@@ -4,6 +4,37 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
 
+@implementer(schemas.ILogSets)
+class LogSets(dict):
+    "Collections of Log Sets"
+
+@implementer(schemas.ILogSet)
+class LogSet(dict):
+    "Collection of Log Categories"
+
+@implementer(schemas.ILogCategory)
+class LogCategory(dict):
+    "Collection of Log Sources"
+
+    def __init__(self, name):
+        self.name = name
+
+@implementer(schemas.ILogSource)
+class LogSource(Name):
+    path = FieldProperty(schemas.ILogSource["path"])
+
+@implementer(schemas.ICWAgentLogSource)
+class CWAgentLogSource(LogSource):
+    timezone = FieldProperty(schemas.ICWAgentLogSource["timezone"])
+    timestamp_format = FieldProperty(schemas.ICWAgentLogSource["timestamp_format"])
+    multi_line_start_pattern = FieldProperty(schemas.ICWAgentLogSource["multi_line_start_pattern"])
+    encoding = FieldProperty(schemas.ICWAgentLogSource["encoding"])
+    log_group_name = FieldProperty(schemas.ICWAgentLogSource["log_group_name"])
+    log_stream_name = FieldProperty(schemas.ICWAgentLogSource["log_stream_name"])
+
+    def __init__(self, name):
+        self.name = name
+
 @implementer(schemas.IAlarmSet)
 class AlarmSet(dict):
     resource_type = FieldProperty(schemas.IAlarmSet["resource_type"])
@@ -32,7 +63,7 @@ class CloudWatchAlarm(Alarm):
 
     def __init__(self, name):
         self.name = name
-    
+
     def threshold_human(self):
         "Human readable threshold"
         comparison = vocabulary.cloudwatch_comparison_operators[self.comparison_operator]
@@ -67,6 +98,7 @@ class MonitorConfig(Deployable, Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets()
+        self.log_sets = LogSets()
 
 @implementer(schemas.IMetric)
 class Metric():

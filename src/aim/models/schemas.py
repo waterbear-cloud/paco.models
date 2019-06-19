@@ -107,6 +107,15 @@ def isValidASGMetricNames(value):
             raise InvalidASGMetricName
     return True
 
+class InvalidCWAgentTimezone(schema.ValidationError):
+    __doc__ = 'Timezone choices for CW Agent'
+
+def isValidCWAgentTimezone(value):
+    if value not in ('Local','UTC'):
+        raise InvalidCWAgentTimezone
+    return True
+
+
 #
 # Here be Schemas!
 #
@@ -387,6 +396,64 @@ class ICloudWatchAlarm(IAlarm):
         title = "Evaluate low sample count percentile"
     )
 
+class ILogSets(IMapping):
+    """
+    A collection of information about logs to collect
+    """
+
+class ILogSet(IMapping):
+    """
+    A dict of log category objects
+    """
+
+class ILogCategory(IMapping, IName):
+    """
+    A dict of log source objects
+    """
+    pass
+
+class ILogSource(IName):
+    """
+    Information about a log source
+    """
+    path = schema.TextLine(
+        title = "Path",
+        default = "",
+        required = True
+    )
+
+class ICWAgentLogSource(ILogSource):
+    """
+    Information about a CloudWatch Agent log source
+    """
+    timezone = schema.TextLine(
+        title = "Timezone",
+        default = "Local",
+        constraint = isValidCWAgentTimezone
+    )
+    timestamp_format = schema.TextLine(
+        title = "Timestamp format",
+        default = "",
+    )
+    multi_line_start_pattern = schema.Text(
+        title = "Multi-line start pattern",
+        default = ""
+    )
+    encoding = schema.TextLine(
+        title = "Encoding",
+        default = "utf-8"
+    )
+    log_group_name = schema.TextLine(
+        title = "Log group name",
+        description = "CloudWatch Log Group name",
+        default = ""
+    )
+    log_stream_name = schema.TextLine(
+        title = "Log stream name",
+        description = "CloudWatch Log Stream name",
+        default = ""
+    )
+
 class IMetric(Interface):
     """
     A set of metrics to collect and an optional collection interval:
@@ -429,8 +496,12 @@ class IMonitorConfig(IDeployable, INamed):
         constraint = isValidASGMetricNames
     )
     alarm_sets = schema.Object(
-        title="Set of Alarms",
+        title="Sets of Alarm Sets",
         schema=IAlarmSets,
+    )
+    log_sets = schema.Object(
+        title="Sets of Log Sets",
+        schema=ILogSets,
     )
 
 class IMonitorable(Interface):
@@ -442,6 +513,46 @@ class IMonitorable(Interface):
         required = False
     )
 
+class IMetricFilters(IMapping):
+    """
+    Metric Filters
+    """
+
+class IMetricFilter(Interface):
+    """
+    Metric filter
+    """
+    filter_pattern = schema.Text(
+        title = "Filter pattern",
+        default = ""
+    )
+    metric_transformations = schema.Text(
+        title = "Metric transformations",
+        default = ""
+    )
+
+class ICWLogGroups(IMapping):
+    """
+    CloudWatch Log Groups
+    """
+
+class ICWLogGroup(Interface):
+    """
+    CloudWatch Log Group
+    """
+    log_group_name = schema.TextLine(
+        title = "Log group name",
+        default = ""
+    )
+    expire_events_after = schema.TextLine(
+        title = "Expire Events After",
+        description = "Retention period of logs in this group",
+        default = ""
+    )
+    metric_filters = schema.Object(
+        title = "Metric Filters",
+        schema = IMetricFilters
+    )
 
 #class IS3BucketPolicies(ISequence):
 #    """

@@ -7,6 +7,7 @@ import zope.schema.interfaces
 from aim.models import YAML
 from aim.models.exceptions import InvalidAimProjectFile
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, AlarmSets
+from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
     SecurityGroup, IngressRule, EgressRule
@@ -65,6 +66,7 @@ SUB_TYPES_CLASS_MAP = {
     MonitorConfig: {
         'metrics': ('obj_list', Metric),
         'alarm_sets': ('alarm_sets', AlarmSets),
+        'log_sets': ('log_sets', LogSets),
     },
     CodePipeBuildDeploy: {
         'artifacts_bucket': ('unnamed_dict', S3Bucket),
@@ -319,16 +321,40 @@ def sub_types_loader(obj, name, value, lookup_config=None):
             sub_list.append(sub_obj)
         return sub_list
 
+    elif sub_type == 'log_sets':
+        # Special loading for LogSets
+        log_sets = LogSets()
+        for log_set_name in value.keys():
+            # look-up LogSet by name from base config
+            log_set = LogSet()
+            for log_category_name, log_category_config in lookup_config['logs']['log_sets'][log_set_name].items():
+                log_category = LogCategory(name=log_category_name)
+                log_set[log_category_name] = log_category
+                for log_source_name, log_source_config in log_category_config.items():
+                    log_source = CWAgentLogSource(name=log_source_name)
+                    apply_attributes_from_config(log_source, log_source_config)
+                    log_category[log_source_name] = log_source
+            log_sets[log_set_name] = log_set
+
+            # check for and apply overrides
+            if value[log_set_name] is not None:
+                for log_category_name in value[log_set_name].keys():
+                    if value[log_set_name][log_category_name] is not None:
+                        for log_source_name in value[log_set_name][log_category_name].keys():
+                            for setting_name, setting_value in value[log_set_name][log_category_name][log_source_name].items():
+                                setattr(log_sets[log_set_name][log_category_name][log_source_name], setting_name, setting_value)
+
+        return log_sets
+
     elif sub_type == 'alarm_sets':
         # Special loading for AlarmSets
-        alarm_sets= AlarmSets()
+        alarm_sets = AlarmSets()
         for alarm_set_name in value.keys():
-            # look-up AlarmsSet on by Resource type and name
+            # look-up AlarmsSet by Resource type and name
             resource_type = obj.__parent__.type
             alarm_set = AlarmSet()
             alarm_set.resource_type = resource_type
-            for alarm_name, alarm_config in lookup_config[resource_type][alarm_set_name].items():
-                alarm = CloudWatchAlarm(name=alarm_name)
+            for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():                alarm = CloudWatchAlarm(name=alarm_name)
                 apply_attributes_from_config(alarm, alarm_config)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
@@ -350,7 +376,7 @@ class ModelLoader():
         self.aim_ctx = aim_ctx
         self.config_folder = config_folder
         self.config_subdirs = {
-            "AlarmSets": self.instantiate_alarm_sets,
+            "MonitorConfig": self.instantiate_monitor_config,
             "Accounts": self.instantiate_accounts,
             "NetworkEnvironments": self.instantiate_network_environments,
             "Governance": self.instantiate_governance
@@ -672,17 +698,21 @@ class ModelLoader():
             return
         return
         # Under Construction
-        for [service_id, service_config] in config['services'].items():
-            self.load_governance_service(service_id)
-        return
+        #for [service_id, service_config] in config['services'].items():
+        #    self.load_governance_service(service_id)
 
-    def instantiate_alarm_sets(self, name, config):
+    def instantiate_monitor_config(self, name, config):
         """
-        Loads AlarmSets config
-        These do not get directly loaded into the model, the config is simply stored
+        Loads LogSets and AlarmSets config
+        These do not get directly loaded into the model, their config is simply stored
         in Loader and applied to the model when named in alarm_sets: config sections.
         """
-        self.alarm_sets_config = config
+        if not hasattr(self, 'monitor_config'):
+            self.monitor_config = {}
+        if name == 'AlarmSets':
+            self.monitor_config['alarms'] = config
+        elif name == 'LogSets':
+            self.monitor_config['logs'] = config
 
     def instantiate_accounts(self, name, config):
         accounts = self.project['accounts']

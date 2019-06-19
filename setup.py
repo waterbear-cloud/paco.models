@@ -5,7 +5,7 @@ setup(
     version='1.0.0.dev0',
     description='aim.models: Semantic cloud infrastructure configuration file format and data model.',
     url='https://waterbear.cloud',
-    install_requires=['Setuptools', 'click', 'ruamel.yaml', 'boto3', 'tldextract', 'zope.schema'],
+    install_requires=['Setuptools', 'ruamel.yaml', 'zope.schema'],
     packages=[
         'aim.models',
     ],

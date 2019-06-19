@@ -1,10 +1,65 @@
 """
 References
 """
+
 import re
 import zope.schema
 from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
+
+
+class AimReference():
+
+    def is_ref(self, aim_ref):
+        ref_types = ["netenv.ref", "service.ref", "config.ref"]
+        for ref_type in ref_types:
+            if aim_ref.startswith(ref_type):
+                return True
+
+        return False
+
+    def parse_netenv_ref(self, aim_ref, ref_parts):
+        ref_dict = {}
+        ref_dict['subenv_id'] = ""
+        ref_dict['netenv_component'] = ""
+        ref_dict['subenv_component'] = ""
+        if ref_parts[0] == 'this':
+            ref_dict['netenv_id'] = self.this_netenv_id
+        else:
+            ref_dict['netenv_id'] = ref_parts[0]
+
+        if ref_parts[1] == 'subenv':
+            ref_dict['subenv_component'] = ref_parts[1]
+            ref_dict['subenv_id'] = ref_parts[2]
+            ref_dict['subenv_region'] = ref_parts[3]
+            ref_dict['netenv_component'] = ref_parts[4]
+        else:
+            ref_dict['netenv_component'] = ref_parts[1]
+        return ref_dict
+
+    def parse_ref(self, aim_ref):
+        ref_parts = aim_ref.split(' ')
+        if len(ref_parts) != 2:
+            raise StackException(AimErrorCode.Unknown)
+        ref_type = ref_parts[0]
+        config_ref = ref_parts[1]
+        location_parts = ref_parts[1].split('.')
+        ref_dict = {}
+        if ref_parts[0] == 'netenv.ref':
+            ref_dict = self.parse_netenv_ref(aim_ref, location_parts)
+        elif ref_parts[0] == 'service.ref':
+            pass
+        elif ref_parts[0] == 'config.ref':
+            pass
+        else:
+            print(ref_parts[0])
+            raise StackException(AimErrorCode.Unknown)
+        ref_dict['type'] = ref_type
+        ref_dict['ref'] = config_ref
+        ref_dict['ref_parts'] = location_parts
+        ref_dict['raw'] = aim_ref
+
+        return ref_dict
 
 
 class TextReference(zope.schema.Text):

@@ -30,3 +30,6 @@ include/
 lib/
 share/
 var/
+
+# IDE
+.vscode/

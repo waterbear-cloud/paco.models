@@ -1,0 +1,39 @@
+aim:
+  enabled: true
+  domain_name: aim.waterbear.cloud
+  aws_account: config.ref accounts.prod
+aimdemo:
+  enabled: true
+  domain_name: aimdemo.waterbear.cloud
+  aws_account: config.ref accounts.prod
+aimdemo_dev:
+  enabled: true
+  domain_name: dev.aimdemo.waterbear.cloud
+  aws_account: config.ref accounts.dev
+
+waterbearcloud:
+  enabled: true
+  domain_name: waterbear.cloud
+  aws_account: config.ref accounts.prod
+waterbearcloud_dev:
+  enabled: true
+  domain_name: dev.waterbear.cloud
+  aws_account: config.ref accounts.dev
+
+waterbearsocial:
+  enabled: true
+  domain_name: waterbear.social
+  aws_account: config.ref accounts.prod
+waterbearsocial_dev:
+  enabled: true
+  domain_name: dev.waterbear.social
+  aws_account: config.ref accounts.dev
+
+#  record_sets:
+#    app1:
+#      domain_name: app1.aim.waterbear.cloud.
+#      type: A
+#      # alias_target: ?
+#      ttl: 300
+#      resource_records:
+#        - 1.1.1.1

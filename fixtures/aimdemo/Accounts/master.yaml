@@ -1,0 +1,17 @@
+name: Master
+title: Master AWS Account
+is_master: true
+account_type: AWS
+account_id: '1234567890'
+admin_delegate_role_name: 'AIM-Organization-Account-Delegate-Role'
+region: us-west-2
+organization_account_ids:
+  - prod
+  - tools
+  - dev
+  - data
+admin_iam_users:
+  kevin_teague:
+    enabled: true
+    username: 'kevin.t@waterbear.cloud'
+

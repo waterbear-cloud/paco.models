@@ -1,0 +1,6 @@
+name: Tools
+title: Tools AWS Account
+account_type: AWS
+account_id: '1234567890'
+admin_delegate_role_name: 'AIM-Organization-Account-Delegate-Role'
+

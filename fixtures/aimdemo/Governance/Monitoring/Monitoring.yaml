@@ -1,0 +1,16 @@
+aws_account: config.ref accounts.tools
+aws_region: us-west-2
+resources:
+  service:
+    type: Lambda
+    source_path: src
+    index_file: monitoring-service.py
+    function_handler: lambda_handler
+    runtime: python3.6
+    environment:
+      variables:
+        - key: 'env_name'
+          value: 'env_value'
+
+
+

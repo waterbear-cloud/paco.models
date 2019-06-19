@@ -1,0 +1,4 @@
+# Keep default config here
+services:
+  Monitoring:
+    enabled: true

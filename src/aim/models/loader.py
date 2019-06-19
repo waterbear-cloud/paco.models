@@ -1,10 +1,8 @@
-import aim.models
-import os
-import itertools
-import copy
+import itertools, os, copy
+import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
-from aim.models import YAML
+from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, AlarmSets
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
@@ -25,10 +23,21 @@ from aim.models.references import TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
 from aim.models import schemas
+from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
 
 
-logger = aim.models.get_logger()
+class YAML(ruamel.yaml.YAML):
+    def dump(self, data, stream=None, **kw):
+        dumps = False
+        if stream is None:
+            dumps = True
+            stream = StringIO()
+        ruamel.yaml.YAML.dump(self, data, stream, **kw)
+        if dumps:
+            return stream.getvalue()
+
+logger = get_logger()
 
 RESOURCES_CLASS_MAP = {
     'ASG': ASG,
@@ -354,7 +363,8 @@ def sub_types_loader(obj, name, value, lookup_config=None):
             resource_type = obj.__parent__.type
             alarm_set = AlarmSet()
             alarm_set.resource_type = resource_type
-            for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():                alarm = CloudWatchAlarm(name=alarm_name)
+            for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
+                alarm = CloudWatchAlarm(name=alarm_name)
                 apply_attributes_from_config(alarm, alarm_config)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
@@ -527,7 +537,7 @@ class ModelLoader():
                         "No mapping for type {} for {}".format(res_config['type'], res_key)
                     )
                 obj = klass(res_key, res_groups)
-                apply_attributes_from_config(obj, res_config, lookup_config=self.alarm_sets_config)
+                apply_attributes_from_config(obj, res_config, lookup_config=self.monitor_config)
                 res_groups[grp_key].resources[res_key] = obj
 
     def load_iam_group(self, res_groups, app_config, local_config={}):

@@ -1,0 +1,390 @@
+network:
+  aws_account: config.ref accounts.prod
+  availability_zones: 2
+  enabled: true
+  region: us-west-2
+  vpc:
+    enable_dns_hostnames: true
+    enable_dns_support: true
+    enable_internet_gateway: true
+    private_hosted_zone:
+      enabled: false
+      name: wbcloud.internal
+    nat_gateway:
+      sites:
+        enabled: true
+        availability_zone: 1  # 1, 2, 3, 4, ... | all
+        segment: public
+        default_route_segments:
+          - private
+    security_groups:
+      sites:
+        alb:
+          egress:
+            - cidr_ip: 0.0.0.0/0
+              name: ANY
+              protocol: "-1"
+          ingress:
+            - cidr_ip: 0.0.0.0/0
+              from_port: 443
+              name: HTTPS
+              protocol: tcp
+              to_port: 443
+            - cidr_ip: 0.0.0.0/0
+              from_port: 80
+              name: HTTP
+              protocol: tcp
+              to_port: 80
+        wordpress:
+          egress:
+            - cidr_ip: 0.0.0.0/0
+              name: ANY
+              protocol: "-1"
+          ingress:
+            - from_port: 80
+              to_port: 80
+              name: HTTP
+              protocol: tcp
+              source_security_group_id: netenv.ref wbsites.network.vpc.security_groups.sites.alb.id
+            - from_port: 22
+              to_port: 22
+              name: SSH
+              protocol: tcp
+              source_security_group_id: netenv.ref wbsites.network.vpc.security_groups.sites.bastion.id
+        bastion:
+          egress:
+            - cidr_ip: 0.0.0.0/0
+              name: ANY
+              protocol: "-1"
+          ingress:
+            - from_port: 22
+              name: SSH
+              protocol: tcp
+              cidr_ip: 70.68.173.245/32
+              to_port: 22
+    segments:
+      public:
+        enabled: true
+      private:
+        enabled: true
+
+applications:
+  sites:
+    enabled: true
+    managed_updates: true
+    groups:
+      compute:
+        type: Application
+        order: 1
+        resources:
+          cloud_cert:
+            type: ACM
+            order: 1
+            enabled: true
+            domain_name: waterbear.cloud
+            subject_alternative_names:
+              - '*.waterbear.cloud'
+          social_cert:
+            type: ACM
+            order: 1
+            enabled: true
+            domain_name: waterbear.social
+            subject_alternative_names:
+              - '*.waterbear.social'
+          bastion:
+            type: ASG
+            enabled: true
+            order: 1
+            associate_public_ip_address: true
+            cooldown_secs: 300
+            desired_capacity: 1
+            ebs_optimized: false
+            health_check_grace_period_secs: 300
+            health_check_type: EC2
+            instance_iam_role:
+              enabled: true
+            instance_ami: ami-032509850cf9ee54e
+            instance_key_pair: wbsites-us-west-2 # TODO: services.ref ec2.keypair.wbsites.name
+            instance_monitoring: false
+            instance_type: t3.micro
+            max_instances: 1
+            min_instances: 1
+            segment: public
+            termination_policies:
+              - Default
+            update_policy_max_batch_size: 1
+            update_policy_min_instances_in_service: 0
+            security_groups:
+              - netenv.ref wbsites.network.vpc.security_groups.sites.bastion.id
+            user_data_script: |
+              #!/bin/bash
+
+              yum update -y
+          alb:
+            type: LBApplication # LBClassic | LBNetwork | LBApplication
+            order: 2
+            enabled: true
+            target_groups:
+              cloud:
+                health_check_interval: 30
+                health_check_timeout: 10
+                healthy_threshold: 2
+                unhealthy_threshold: 4
+                port: 80
+                protocol: HTTP
+                health_check_http_code: 200
+                health_check_path: /healthcheck.html
+                connection_drain_timeout: 10
+              social:
+                health_check_interval: 30
+                health_check_timeout: 10
+                healthy_threshold: 2
+                unhealthy_threshold: 4
+                port: 80
+                protocol: HTTP
+                health_check_http_code: 200
+                health_check_path: /healthcheck.html
+                connection_drain_timeout: 10
+            listeners:
+              - port: 80
+                protocol: HTTP
+                redirect:
+                  port: 443
+                  protocol: HTTPS
+              - port: 443
+                protocol: HTTPS
+                ssl_certificates:
+                  - netenv.ref wbsites.applications.sites.groups.compute.resources.cloud_cert.arn
+                  - netenv.ref wbsites.applications.sites.groups.compute.resources.social_cert.arn
+                target_group: cloud
+                forward_hosts:
+                  - host: '*.waterbear.cloud'
+                    target_group: cloud
+                    priority: 1
+                  - host: '*.waterbear.cloud'
+                    target_group: cloud
+                    priority: 2
+                  - host: '*.waterbear.social'
+                    target_group: social
+                    priority: 3
+                  - host: 'waterbear.social'
+                    target_group: social
+                    priority: 4
+            dns:
+              - hosted_zone_id: service.ref route53.waterbearcloud.id
+                domain_name: waterbear.cloud
+                ssl_certificate: netenv.ref wbsites.applications.sites.groups.compute.resources.cloud_cert.arn
+              - hosted_zone_id: service.ref route53.waterbearsocial.id
+                domain_name: waterbear.social
+                ssl_certificate: netenv.ref wbsites.applications.sites.groups.compute.resources.social_cert.arn
+            scheme: internet-facing
+            security_groups:
+              - netenv.ref wbsites.network.vpc.security_groups.sites.alb.id
+            segment: public
+          cloud:
+            type: ASG
+            order: 3
+            associate_public_ip_address: false
+            cooldown_secs: 200
+            ebs_optimized: false
+            health_check_grace_period_secs: 240
+            health_check_type: ELB
+            instance_iam_role:
+              enabled: true
+            instance_ami: ami-03f04394b722a2c40
+            instance_key_pair: wbsites-us-west-2
+            instance_monitoring: false
+            instance_type: t3.medium
+            desired_capacity: 1
+            max_instances: 3
+            min_instances: 1
+            target_groups:
+              - netenv.ref wbsites.applications.sites.groups.compute.resources.alb.target_groups.cloud.arn
+            security_groups:
+              - netenv.ref wbsites.network.vpc.security_groups.sites.wordpress.id
+            segment: private
+            termination_policies:
+              - Default
+            update_policy_max_batch_size: 1
+            update_policy_min_instances_in_service: 1
+            scaling_policy_cpu_average: 60
+            user_data_script: |
+              #!/bin/bash
+
+              yum update -y
+          social:
+            type: ASG
+            order: 3
+            enabled: false
+            associate_public_ip_address: false
+            cooldown_secs: 200
+            ebs_optimized: false
+            health_check_grace_period_secs: 240
+            health_check_type: ELB
+            instance_iam_role:
+              enabled: true
+            instance_ami: ami-0d9b23bf7c21bdebd
+            instance_key_pair: wbsites-us-west-2
+            instance_monitoring: false
+            instance_type: t3.medium
+            desired_capacity: 1
+            max_instances: 3
+            min_instances: 1
+            target_groups:
+              - netenv.ref wbsites.applications.sites.groups.compute.resources.alb.target_groups.social.arn
+            security_groups:
+              - netenv.ref wbsites.network.vpc.security_groups.sites.wordpress.id
+            segment: private
+            termination_policies:
+              - Default
+            update_policy_max_batch_size: 1
+            update_policy_min_instances_in_service: 0
+            user_data_script: |
+              #!/bin/bash
+
+              yum update -y
+
+environments:
+  prod:
+    us-west-2:
+      enabled: true
+    default:
+      applications:
+        sites:
+          enabled: true
+          groups:
+            compute:
+              resources:
+                cloud:
+                  enabled: true
+                  max_instances: 5
+                  min_instances: 1
+                  desired_capacity: 1
+                  instance_ami: ami-0ef114095b89b5735
+                  instance_type: t3.medium
+                  user_data_script: |
+                    #!/bin/bash
+
+                    yum update -y
+
+                    sed -i 's/\/dev.waterbear\.cloud/\/waterbear\.cloud/g' /var/www/html/wp-config.php
+                social:
+                  enabled: true
+                  max_instances: 3
+                  min_instances: 1
+                  desired_capacity: 1
+                  instance_ami: ami-0d9b23bf7c21bdebd
+                  user_data_script: |
+                    #!/bin/bash
+
+                    yum update -y
+
+                    sed -i 's/\/dev\.waterbear\.social/\/waterbear\.social/g' /var/www/html/wp-config.php
+                bastion:
+                  max_instances: 3
+                  min_instances: 0
+                  desired_capacity: 0
+                alb:
+                  dns:
+                    - domain_name: waterbear.cloud
+                    - domain_name: waterbear.social
+      enabled: true
+      network:
+        aws_account: config.ref accounts.prod
+        vpc:
+          cidr: 10.0.0.0/16
+          segments:
+            public:
+              az1_cidr: 10.0.1.0/24
+              az2_cidr: 10.0.2.0/24
+              internet_access: true
+            private:
+              az1_cidr: 10.0.3.0/24
+              az2_cidr: 10.0.4.0/24
+              internet_access: false
+  dev:
+    us-west-2:
+      enabled: true
+    default:
+      applications:
+        sites:
+          enabled: true
+          groups:
+            compute:
+              resources:
+                cloud_cert:
+                  domain_name: dev.waterbear.cloud
+                  subject_alternative_names:
+                    - '*.dev.waterbear.cloud'
+                social_cert:
+                  domain_name: dev.waterbear.social
+                  subject_alternative_names:
+                    - '*.dev.waterbear.social'
+                cloud:
+                  enabled: true
+                  max_instances: 3
+                  min_instances: 0
+                  desired_capacity: 0
+                  health_check_type: EC2
+                  instance_type: t3.small
+                  instance_ami: ami-0b0deaba06a9588b4
+                  instance_key_pair: wbsites-dev-us-west-2
+                  backup_ami_permissions:
+                    - config.ref accounts.prod
+                  user_data_script: |
+                    #!/bin/bash
+
+                    #yum update -y
+                    #cd /tmp/
+                    #wget https://wordpress.org/latest.tar.gz
+                    #tar -xzvf latest.tar.gz
+
+                    #sed -i 's/\/waterbear\.cloud/\/dev\.waterbear\.cloud/g' /var/www/html/wp-config.php
+                social:
+                  enabled: true
+                  max_instances: 3
+                  min_instances: 0
+                  desired_capacity: 0
+                  health_check_type: EC2
+                  instance_ami: ami-0d9b23bf7c21bdebd
+                  instance_key_pair: wbsites-dev-us-west-2
+                  user_data_script: |
+                    #!/bin/bash
+
+                    yum update -y
+
+                    sed -i 's/\/waterbear\.social/\/dev\.waterbear\.social/g' /var/www/html/wp-config.php
+                bastion:
+                  max_instances: 3
+                  min_instances: 0
+                  desired_capacity: 0
+                  instance_ami: ami-032509850cf9ee54e
+                  instance_key_pair: wbsites-dev-us-west-2
+                  user_data_script: |
+                    #!/bin/bash
+
+                    yum update -y
+                    yum install telnet emacs -y
+                alb:
+                  enabled: false
+                  dns:
+                    - domain_name: dev.waterbear.cloud
+                      hosted_zone_id: service.ref route53.waterbearcloud_dev.id
+                    - domain_name: dev.waterbear.social
+                      hosted_zone_id: service.ref route53.waterbearsocial_dev.id
+      network:
+        aws_account: config.ref accounts.dev
+        vpc:
+          nat_gateway:
+            sites:
+              enabled: false
+          cidr: 10.2.0.0/16
+          segments:
+            public:
+              az1_cidr: 10.2.1.0/24
+              az2_cidr: 10.2.2.0/24
+              internet_access: true
+            private:
+              az1_cidr: 10.2.3.0/24
+              az2_cidr: 10.2.4.0/24
+              internet_access: false

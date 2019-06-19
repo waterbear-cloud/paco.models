@@ -2,12 +2,29 @@ import aim.models.apps
 import aim.models.networks
 import aim.models.loader
 import os
+import inspect
 import unittest
-from aim.tests import fixtures_path
 from aim.models import load_project_from_yaml, schemas
 from aim.models.project import Project
 from aim.models.networks import SecurityGroup
+from aim.models.references import AimReference
 
+def fixtures_path():
+    # find the project root directory
+    # this works for pytest run from VS Code
+    parts = []
+    for part in os.path.abspath(os.path.dirname(__file__)).split(os.sep):
+        if part == 'src':
+            parts.append('fixtures')
+            break
+        parts.append(part)
+    path = os.sep.join(parts)
+    return path
+
+def cwd_to_fixtures():
+    fpath = fixtures_path()
+    os.chdir(fpath)
+    return fpath
 
 class BaseTestModelLoader(unittest.TestCase):
     project_name = 'config_me'
@@ -15,14 +32,12 @@ class BaseTestModelLoader(unittest.TestCase):
     def setUp(self):
         # set the fixtures dir
         self.path = fixtures_path()
-        # ToDo: temp re-factor or permanent?
-        import aim.config.aim_context
-        aim_ctx = aim.config.aim_context.AimContext()
+        aim_ctx = AimReference()
         self.project = load_project_from_yaml(aim_ctx, self.path + os.sep + self.project_name)
 
 class TestAimDemo(BaseTestModelLoader):
 
-    project_name = 'waterbear-networks'
+    project_name = 'aimdemo'
     def test_project(self):
         assert isinstance(self.project, Project)
         assert self.project.name == 'waterbear-networks'
@@ -138,15 +153,3 @@ class TestAimDemo(BaseTestModelLoader):
         # override log source settings
         assert demo_webapp.monitoring.log_sets['amazon_linux']['linux']['audit'].log_group_name, "puppydog"
 
-class TestMatchaLatteDemo(BaseTestModelLoader):
-    project_name = 'waterbear-kt'
-
-    def test_project(self):
-        assert isinstance(self.project, Project)
-
-    def test_monitoring(self):
-        env_reg = self.project['ne']['ml']['dev']['eu-central-1']
-        asg = env_reg.applications['ml'].groups['app'].resources['webapp']
-        assert isinstance(asg, aim.models.resources.ASG)
-        assert asg.monitoring.collection_interval == 60
-        assert asg.monitoring.metrics[0].measurements[0] == 'CPUUtilization'

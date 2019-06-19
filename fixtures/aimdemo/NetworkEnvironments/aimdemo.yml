@@ -1,0 +1,455 @@
+network:
+  availability_zones: 2
+  enabled: true
+  region: us-west-2
+  vpc:
+    enable_dns_hostnames: true
+    enable_dns_support: true
+    enable_internet_gateway: true
+    nat_gateway:
+      app:
+        enabled: true
+        availability_zone: 1  # 1, 2, 3, 4, ... | all
+        segment: public
+        default_route_segments:
+          - webapp
+    vpn_gateway:
+      app:
+        enabled: false
+    private_hosted_zone:
+      enabled: false
+      name: example.internal
+    security_groups:
+      app:
+        lb:
+          egress:
+            - cidr_ip: 0.0.0.0/0
+              name: ANY
+              protocol: "-1"
+          ingress:
+            - cidr_ip: 70.68.173.245/32
+              from_port: 443
+              name: HTTPS
+              protocol: tcp
+              to_port: 443
+            - cidr_ip: 70.68.173.245/32
+              from_port: 80
+              name: HTTP
+              protocol: tcp
+              to_port: 80
+        webapp:
+          egress:
+            - cidr_ip: 0.0.0.0/0
+              name: ANY
+              protocol: "-1"
+          ingress:
+            - from_port: 80
+              name: HTTP
+              protocol: tcp
+              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.lb.id
+              to_port: 80
+            - from_port: 22
+              to_port: 22
+              name: SSH
+              protocol: tcp
+              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.bastion.id
+            - from_port: 80
+              to_port: 80
+              name: BASTIONHTTP
+              protocol: tcp
+              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.bastion.id
+        bastion:
+          egress:
+            - cidr_ip: 0.0.0.0/0
+              name: ANY
+              protocol: "-1"
+          ingress:
+            - from_port: 22
+              name: SSH
+              protocol: tcp
+              cidr_ip: 70.68.173.245/32
+              to_port: 22
+        rds:
+          ingress:
+            - name: AuroraMYSQL
+              protocol: "6"
+              from_port: 3306
+              to_port: 3306
+              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.webapp.id
+          egress:
+            - name: ANY
+              cidr_ip: 0.0.0.0/0
+              protocol: "-1"
+    segments:
+      database:
+        enabled: true
+      public:
+        enabled: true
+      webapp:
+        enabled: true
+
+applications:
+  app:
+    enabled: true
+    managed_updates: true
+    groups:
+      cicd:
+        type: Deployment
+        title: 'CI/CD'
+        order: 10
+        resources:
+          cpbd:
+            type: CodePipeBuildDeploy
+            order: 1
+            #wait_order: 1
+            enabled: true
+            deployment_environment: "" # Override in sub-environment
+            deployment_branch_name: "" # Override in sub-environments
+            manual_approval_enabled: false
+            manual_approval_notification_email: ""
+            codecommit_repository: service.ref codecommit.aimdemo.app
+            asg_name: netenv.ref aimdemo.applications.app.groups.site.resources.webapp.name
+            auto_rollback_enabled: true
+            deploy_config_type: HOST_COUNT
+            deploy_style_option: WITH_TRAFFIC_CONTROL
+            deploy_config_value: 1
+            deploy_instance_role_name: netenv.ref aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role.name
+            elb_name: ""
+            alb_target_group_name: netenv.ref aimdemo.applications.app.groups.site.resources.alb.target_groups.app.name
+            tools_account: config.ref accounts.tools
+            cross_account_support: true
+            artifacts_bucket:
+              name: "artifacts"
+              enabled: true
+              deletion_policy: "delete"
+              policy:
+                - aws:
+                    - aim.sub '${netenv.ref aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role.arn}'
+                  effect: 'Allow'
+                  action:
+                    - 's3:Get*'
+                    - 's3:List*'
+                  resource_suffix:
+                    - '/*'
+                    - ''
+      site:
+        type: Application
+        order: 1
+        resources:
+          cert:
+            type: ACM
+            order: 1
+            enabled: true
+            domain_name: aimdemo.waterbear.cloud
+            subject_alternative_names:
+              - '*.aimdemo.waterbear.cloud'
+          alb:
+            type: LBApplication # LBClassic | LBNetwork | LBApplication
+            enabled: true
+            order: 2
+            target_groups:
+              app:
+                health_check_interval: 30
+                health_check_timeout: 10
+                healthy_threshold: 2
+                unhealthy_threshold: 2
+                port: 80
+                protocol: HTTP
+                health_check_http_code: 200
+                health_check_path: /
+                connection_drain_timeout: 300
+            listeners:
+              - port: 80
+                protocol: HTTP
+                redirect:
+                  port: 443
+                  protocol: HTTPS
+              - port: 443
+                protocol: HTTPS
+                ssl_certificates:
+                  - netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn
+                target_group: app
+            dns:
+              - hosted_zone_id: service.ref route53.aimdemo.id
+                domain_name: aimdemo.waterbear.cloud
+                ssl_certificate: netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn
+            scheme: internet-facing
+            security_groups:
+              - netenv.ref aimdemo.network.vpc.security_groups.app.lb.id
+            segment: public
+          webapp:
+            type: ASG
+            order: 3
+            enabled: true
+            associate_public_ip_address: false
+            cooldown_secs: 300
+            ebs_optimized: false
+            health_check_grace_period_secs: 300
+            health_check_type: ELB
+            instance_iam_role:
+              enabled: true
+            instance_ami: ami-01bbe152bf19d0289
+            instance_key_pair: aimdemo-us-west-2
+            instance_monitoring: false
+            instance_type: t2.micro
+            max_instances: 3
+            min_instances: 1
+            desired_capacity: 1
+            target_groups:
+              - netenv.ref aimdemo.applications.app.groups.site.resources.alb.target_groups.app.arn
+            security_groups:
+              - netenv.ref aimdemo.network.vpc.security_groups.app.webapp.id
+            segment: webapp
+            termination_policies:
+              - Default
+            update_policy_max_batch_size: 1
+            update_policy_min_instances_in_service: 0
+            monitoring:
+              enabled: true
+              collection_interval: 60
+              asg_metrics:
+                - GroupMinSize
+                - GroupMaxSize
+                - GroupDesiredCapacity
+                - GroupInServiceInstances
+                - GroupPendingInstances
+                - GroupStandbyInstances
+                - GroupTerminatingInstances
+                - GroupTotalInstances
+              metrics:
+                - name: swap
+                  measurements:
+                    - used_percent
+                - name: cpu
+                  measurements:
+                    - usage_user
+                    - usage_system
+                - name: disk
+                  measurements:
+                    - free
+                  collection_interval: 300
+                - name: diskio
+                  measurements:
+                    - iops_in_progress
+                - name: netstat
+                  measurements:
+                    - tcp_established
+                    - tcp_close_wait
+                    - tcp_listen
+                    - udp_socket
+                - name: processes
+                  measurements:
+                    - total
+                    - zombies
+            user_data_script: |
+              #!/bin/bash
+
+              yum update -y
+              yum install httpd ruby wget -y
+
+              # CodeDeploy Agent
+              cd /tmp/
+              wget https://aws-codedeploy-us-west-2.s3.amazonaws.com/latest/install
+              chmod u+x ./install
+              ./install auto
+
+              echo "Launch placeholder" > /var/www/html/index.html
+              # Restart apache
+              apachectl restart
+      bastion:
+        type: Bastion
+        order: 1
+        resources:
+          instance:
+            type: ASG
+            order: 1
+            enabled: true
+            associate_public_ip_address: true
+            cooldown_secs: 300
+            desired_capacity: 1
+            ebs_optimized: false
+            health_check_grace_period_secs: 300
+            health_check_type: EC2
+            instance_iam_role:
+              enabled: false
+            #  These are the defaults
+            #  assume_role_policy:
+            #    effect: Allow
+            #    service:
+            #        - ec2.amazonaws.com
+            #  instance_profile: true
+            #  policies:
+            instance_ami: ami-01bbe152bf19d0289
+            instance_key_pair: aimdemo-us-west-2
+            instance_monitoring: false
+            instance_type: t2.micro
+            max_instances: 2
+            min_instances: 1
+            segment: public
+            termination_policies:
+              - Default
+            update_policy_max_batch_size: 1
+            update_policy_min_instances_in_service: 0
+            security_groups:
+              - netenv.ref aimdemo.network.vpc.security_groups.app.bastion.id
+            user_data_script: |
+              #!/bin/bash
+
+              yum update -y
+
+storage:
+  storage_group:
+    app:
+      type: RDSAurora
+      security_groups:
+        - netenv.ref aimdemo.network.vpc.security_groups.app.rds.id
+      segment: database
+
+#iam:
+
+      # policies:
+      #   my_policy:
+      #     roles:
+      #       - netenv.ref aimdemo.iam.app.site.roles.instance_role.arn
+      #     statement:
+      #       ...
+
+
+environments:
+  demo:
+    default:
+      applications:
+        app:
+          enabled: true
+          groups:
+            cicd:
+              resources:
+                cpbd:
+                  deployment_environment: "master"
+                  deployment_branch_name: "master"
+                  deploy_config_value: 0
+            bastion:
+              resources:
+                instance:
+                  monitoring:
+                    alarm_sets:
+                      instance-health-core:
+                      instance-health-cwagent:
+            site:
+              resources:
+                alb:
+                  monitoring:
+                    alarm_sets:
+                      instance-health:
+                      response-latency:
+                      response-health:
+                webapp:
+                  max_instances: 3
+                  min_instances: 0
+                  monitoring:
+                    log_sets:
+                      amazon_linux:
+                        linux:
+                          audit:
+                            log_group_name: "puppydog"
+                    alarm_sets:
+                      launch-health:
+                      instance-health-core:
+                      instance-health-cwagent:
+                        SwapPercent-Low:
+                          evaluation_periods: 15
+      enabled: true
+      network:
+        aws_account: config.ref accounts.prod
+        name: example
+        vpc:
+          cidr: 10.0.0.0/16
+          segments:
+            database:
+              az1_cidr: 10.0.5.0/24
+              az2_cidr: 10.0.6.0/24
+            public:
+              az1_cidr: 10.0.1.0/24
+              az2_cidr: 10.0.2.0/24
+              internet_access: true
+            webapp:
+              az1_cidr: 10.0.3.0/24
+              az2_cidr: 10.0.4.0/24
+    us-west-2:
+      enabled: true
+    ca-central-1:
+      enables: true
+
+  dev:
+    default:
+      applications:
+        app:
+          enabled: true
+          groups:
+            cicd:
+              resources:
+                cpbd:
+                  deployment_environment: "dev"
+                  deployment_branch_name: "dev"
+                  deploy_config_value: 0
+            bastion:
+              resources:
+                instance:
+                  instance_key_pair: dev-aimdemo-us-west-2
+                  desired_capacity: 0 # if you change this you break a test!
+                  min_instances: 0
+            site:
+              resources:
+                webapp:
+                  max_instances: 2
+                  min_instances: 0
+                  desired_capacity: 0
+                  instance_key_pair: dev-aimdemo-us-west-2
+                  monitoring:
+                    alarm_sets:
+                      launch-health:
+                      instance-health-core:
+                      instance-health-cwagent:
+                        SwapPercent-Low:
+                          evaluation_periods: 15
+                # Must remember to override both 'cert' and 'alb' DNS
+                # How can we control override policies like this?
+                cert:
+                  domain_name: dev.aimdemo.waterbear.cloud
+                  # Maybe shorten this to just the subjective hostname.
+                  #  Then we don't need to override this field
+                  subject_alternative_names:
+                    - '*.dev.aimdemo.waterbear.cloud'
+
+                alb:
+                  enabled: false
+                  dns:
+                    - hosted_zone_id: service.ref route53.aimdemo_dev.id
+                      domain_name: dev.aimdemo.waterbear.cloud
+                  monitoring:
+                    alarm_sets:
+                      instance-health:
+                      response-latency:
+                      response-health:
+      network:
+        aws_account: config.ref accounts.dev
+        availability_zones: 2 # For the ALB
+        name: example
+        vpc:
+          cidr: 10.20.0.0/16
+          segments:
+            database:
+              az1_cidr: 10.20.5.0/24
+              az2_cidr: 10.20.6.0/24
+            public:
+              az1_cidr: 10.20.1.0/24
+              az2_cidr: 10.20.2.0/24
+              internet_access: true
+            webapp:
+              az1_cidr: 10.20.3.0/24
+              az2_cidr: 10.20.4.0/24
+          nat_gateway:
+            app:
+              enabled: false
+    us-west-2:
+      enabled: true

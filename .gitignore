@@ -1,0 +1,32 @@
+# Python
+*.egg-info
+*__pycache__*
+build
+stacks
+venv
+env
+.venv
+.pytest_cache
+
+# AIM files
+.credentials.yaml
+Resources/
+
+# Buildout
+bin
+eggs
+parts
+develop-eggs
+.installed.cfg
+profile.sh
+
+# macos
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# build artifacts
+include/
+lib/
+share/
+var/

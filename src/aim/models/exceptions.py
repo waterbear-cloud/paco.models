@@ -1,0 +1,2 @@
+class InvalidAimProjectFile(Exception):
+    pass

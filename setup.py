@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='aim.models',
-    version='1.0.1',
+    version='1.0.2.dev0',
     description='aim.models: Semantic cloud infrastructure configuration file format and object model',
     author='Waterbear Cloud',
     author_email='hello@waterbear.cloud',

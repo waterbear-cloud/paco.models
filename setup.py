@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='aim.models',
-    version='1.0.0',
+    version='1.0.1.dev0',
     description='aim.models: Semantic cloud infrastructure configuration file format and object model',
     url='https://waterbear.cloud',
     install_requires=['Setuptools', 'ruamel.yaml', 'zope.schema'],

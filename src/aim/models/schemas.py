@@ -608,7 +608,8 @@ class IS3Bucket(IDeployable):
     policy = schema.List(
         title="List of S3 Bucket Policies",
         description="",
-        value_type=schema.Object(IS3BucketPolicy)
+        value_type=schema.Object(IS3BucketPolicy),
+        default=[]
     )
 
 

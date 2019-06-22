@@ -4,7 +4,7 @@ Changelog for aim.models
 1.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added default to IS3Bucket.policy
 
 
 1.0.1 (2019-06-19)

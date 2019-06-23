@@ -5,7 +5,3 @@ aimdemo:
     aws_region: 'us-west-2'
     description: "Demo repository"
     name: "aimdemo-app"
-    users:
-      - services.ref iam.users.kevinlindsay  # TODO
-    services:
-      - netenv.ref aimdemo.applications.app.deployments.cpbd.codepipeline # TODO

@@ -254,10 +254,10 @@ class IIngressRule(ISecurityGroupRule):
 class IEgressRule(ISecurityGroupRule):
     "Security group egress"
 
-class ISecurityGroups(IMapping):
-    """
-    Colleciton of Security Groups
-    """
+#class ISecurityGroups(IMapping):
+#    """
+#    Colleciton of Security Groups
+#    """
 
 class ISecurityGroup(Interface):
     """
@@ -1464,11 +1464,10 @@ class IRoute53HostedZone(IDeployable):
         title = "Domain Name",
         required = True
     )
-    aws_account = TextReference(
+    account = TextReference(
         title = "AWS Account Reference",
         required = True
     )
-
 
 class IRoute53(Interface):
     """
@@ -1477,4 +1476,28 @@ class IRoute53(Interface):
     hosted_zones = schema.Dict(
         title = "Hosted Zones",
         value_type = schema.Object(IRoute53HostedZone)
+    )
+
+class ICodeCommitRepository(INamed, IDeployable, IMapping):
+    """
+    CodeCommit Repository Configuration
+    """
+    account = TextReference(
+        title = "AWS Account Reference",
+        required = True
+    )
+    region = schema.TextLine(
+        title = "AWS Region"
+    )
+    description = schema.TextLine(
+        title = "Repository Description"
+    )
+
+class ICodeCommit(Interface):
+    """
+    CodeCommit Service Configuration
+    """
+    repository_groups = schema.Dict(
+        title = "Group of Repositories",
+        value_type = schema.Object(ICodeCommitRepository)
     )

@@ -17,7 +17,7 @@ from aim.models.resources import CodePipeBuildDeploy, ASG, Resource, Resources,L
 from aim.models.governance import Governance, GovernanceService, GovernanceMonitoring
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
-from aim.models.storages import RDS
+from aim.models.storages import RDS, CodeCommit, CodeCommitRepository
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import TextReference
 from aim.models.vocabulary import aws_regions
@@ -721,10 +721,27 @@ class ModelLoader():
         apply_attributes_from_config(obj, config)
         return obj
 
+    def instantiate_codecommit(self, config):
+        codecommit_obj = CodeCommit()
+        codecommit_obj.repository_groups = {}
+        for group_id in config.keys():
+            group_config = config[group_id]
+            codecommit_obj.repository_groups[group_id] = {}
+            for repo_id in group_config.keys():
+                repo_config = group_config[repo_id]
+                repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
+                apply_attributes_from_config(repo_obj, repo_config)
+                codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
+
+        codecommit_obj.gen_repo_by_account()
+        return codecommit_obj
+
+
     def instantiate_services(self, name, config):
         if name == "Route53":
             self.project['route53'] = self.instantiate_route53(config)
-            return
+        elif name == "CodeCommit":
+            self.project['codecommit'] = self.instantiate_codecommit(config)
         return
 
     def instantiate_monitor_config(self, name, config):

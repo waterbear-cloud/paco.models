@@ -154,9 +154,9 @@ class VPNGateway(Deployable, dict):
 class PrivateHostedZone(Deployable):
     name = FieldProperty(schemas.IPrivateHostedZone["name"])
 
-@implementer(schemas.ISecurityGroups)
-class SecurityGroups(dict):
-    pass
+#@implementer(schemas.ISecurityGroups)
+#class SecurityGroups(dict):
+#    pass
 
 @implementer(schemas.ISecurityGroup)
 class SecurityGroup():
@@ -217,7 +217,7 @@ class Segment(Deployable):
 @implementer(schemas.IRoute53HostedZone)
 class Route53HostedZone(Deployable):
     domain_name = FieldProperty(schemas.IRoute53HostedZone["domain_name"])
-    aws_account = FieldProperty(schemas.IRoute53HostedZone["aws_account"])
+    account = FieldProperty(schemas.IRoute53HostedZone["account"])
 
     def has_record_sets(self):
         return False
@@ -235,7 +235,7 @@ class Route53():
 
         for zone_id in self.hosted_zones.keys():
             hosted_zone = self.hosted_zones[zone_id]
-            aws_account_ref = hosted_zone.aws_account
+            aws_account_ref = hosted_zone.account
             aim_ref = references.AimReference()
             ref_dict = aim_ref.parse_ref(aws_account_ref)
             account_name = ref_dict['ref_parts'][1]

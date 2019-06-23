@@ -1456,3 +1456,25 @@ class ILambda(IResource):
     )
 
 
+class IRoute53HostedZone(IDeployable):
+    """
+    Route53 Hosted Zone
+    """
+    domain_name = schema.TextLine(
+        title = "Domain Name",
+        required = True
+    )
+    aws_account = TextReference(
+        title = "AWS Account Reference",
+        required = True
+    )
+
+
+class IRoute53(Interface):
+    """
+    Route53 Service Configuration
+    """
+    hosted_zones = schema.Dict(
+        title = "Hosted Zones",
+        value_type = schema.Object(IRoute53HostedZone)
+    )

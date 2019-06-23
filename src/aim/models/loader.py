@@ -8,7 +8,7 @@ from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, 
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
-    SecurityGroup, IngressRule, EgressRule
+    SecurityGroup, IngressRule, EgressRule, Route53, Route53HostedZone
 from aim.models.project import Project, Credentials
 from aim.models.apps import ApplicationEngines, ApplicationEngine, Application, ResourceGroup
 from aim.models.resources import CodePipeBuildDeploy, ASG, Resource, Resources,LBApplication, \
@@ -129,6 +129,9 @@ SUB_TYPES_CLASS_MAP = {
     # Accounts
     Account: {
         'admin_iam_users': ('named_dict', AdminIAMUser)
+    },
+    Route53: {
+        'hosted_zones': ('named_dict', Route53HostedZone)
     }
 }
 
@@ -389,7 +392,8 @@ class ModelLoader():
             "MonitorConfig": self.instantiate_monitor_config,
             "Accounts": self.instantiate_accounts,
             "NetworkEnvironments": self.instantiate_network_environments,
-            "Governance": self.instantiate_governance
+            "Governance": self.instantiate_governance,
+            "Services": self.instantiate_services
         }
         self.yaml = YAML(typ="safe", pure=True)
         self.yaml.default_flow_sytle = False
@@ -710,6 +714,18 @@ class ModelLoader():
         # Under Construction
         #for [service_id, service_config] in config['services'].items():
         #    self.load_governance_service(service_id)
+
+    def instantiate_route53(self, config):
+        obj = Route53(config)
+        #breakpoint()
+        apply_attributes_from_config(obj, config)
+        return obj
+
+    def instantiate_services(self, name, config):
+        if name == "Route53":
+            self.project['route53'] = self.instantiate_route53(config)
+            return
+        return
 
     def instantiate_monitor_config(self, name, config):
         """

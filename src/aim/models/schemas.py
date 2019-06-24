@@ -131,7 +131,8 @@ class INamed(Interface):
     )
     title = schema.TextLine(
         title="Title",
-        default=""
+        default="",
+        required=False
     )
 
 class IDeployable(Interface):
@@ -178,7 +179,7 @@ class IAccount(INamed):
     )
     account_id = schema.TextLine(
         title = "Account ID",
-        description = "",
+        description = "Can only contain digits.",
         required = True,
         constraint = isOnlyDigits
     )
@@ -200,7 +201,7 @@ class IAccount(INamed):
         required = True
     )
     organization_account_ids = schema.List(
-        title = "A list of Waterbear Cloud account ids of existin or new accounts to add to this Master accounts AWS Organization",
+        title = "A list of account ids to add to the Master account's AWS Organization",
         value_type = schema.TextLine(),
         required = False,
         default = []

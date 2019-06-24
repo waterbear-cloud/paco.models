@@ -11,6 +11,23 @@ import ipaddress
 
 # Constraints
 
+class InvalidAWSRegion(schema.ValidationError):
+    __doc__ = 'Not a valid AWS Region name.'
+
+def isValidAWSRegionName(value):
+    if value not in vocabulary.aws_regions:
+        raise InvalidAWSRegion
+    return True
+
+class InvalidEmailAddress(schema.ValidationError):
+    __doc__ = 'Malformed email address'
+
+EMAIL_RE = re.compile(r"[^@]+@[^@]+\.[^@]+")
+def isValidEmail(value):
+    if not EMAIL_RE.match(value):
+        raise InvalidEmailAddress
+    return True
+
 class InvalidInstanceSizeError(schema.ValidationError):
     __doc__ = 'Not a valid instance size (or update the instance_size_info vocabulary).'
 
@@ -174,7 +191,7 @@ class IAccount(INamed):
     "Cloud account information"
     account_type = schema.TextLine(
         title = "Account Type",
-        description = "Supported account types: AWS",
+        description = "Supported types: 'AWS'",
         default = "AWS"
     )
     account_id = schema.TextLine(
@@ -194,17 +211,22 @@ class IAccount(INamed):
     )
     region = schema.TextLine(
         title = "Region to install AWS Account specific resources",
-        default = "us-west-2"
+        default = "us-west-2",
+        description = 'Must be a valid AWS Region name',
+        constraint = isValidAWSRegionName
     )
     root_email = schema.TextLine(
         title = "The email address for the root user of this account",
-        required = True
+        required = True,
+        description = 'Must be a valid email address.',
+        constraint = isValidEmail
     )
     organization_account_ids = schema.List(
         title = "A list of account ids to add to the Master account's AWS Organization",
         value_type = schema.TextLine(),
         required = False,
-        default = []
+        default = [],
+        description = 'Each string in the list must contain only digits.'
     )
     admin_iam_users = schema.Dict(
         title="Admin IAM Users",
@@ -223,30 +245,37 @@ class ISecurityGroupRule(IName):
     cidr_ip = schema.TextLine(
         title = "CIDR IP",
         default = "",
+        description = "A valid CIDR v4 block or an empty string",
         constraint = isValidCidrIpv4orBlank
     )
     cidr_ip_v6 = schema.TextLine(
         title = "CIDR IP v6",
+        description = "A valid CIDR v6 block or an empty string",
         default = ""
     )
     description = schema.TextLine(
         title = "Description",
-        default = ""
+        default = "",
+        description = "Max 255 characters. Allowed characters are a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*."
     )
     from_port = schema.Int(
         title = "From port",
+        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default = -1
     )
     protocol = schema.TextLine(
         title = "IP Protocol",
+        description = "The IP protocol name (tcp, udp, icmp, icmpv6) or number."
     )
     to_port = schema.Int(
         title = "To port",
+        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default = -1
     )
     source_security_group_id = TextReference(
         title = "Source Security Group",
-        required = False
+        required = False,
+        description = "An AIM Reference to a SecurityGroup"
     )
 
 class IIngressRule(ISecurityGroupRule):
@@ -257,7 +286,7 @@ class IEgressRule(ISecurityGroupRule):
 
 #class ISecurityGroups(IMapping):
 #    """
-#    Colleciton of Security Groups
+#    Collection of Security Groups
 #    """
 
 class ISecurityGroup(Interface):
@@ -266,21 +295,25 @@ class ISecurityGroup(Interface):
     """
     group_name = schema.TextLine(
         title = "Group name",
-        default = ""
+        default = "",
+        description = "Up to 255 characters in length. Cannot start with sg-."
     )
     group_description = schema.TextLine(
         title = "Group description",
-        default = ""
+        default = "",
+        description = "Up to 255 characters in length"
     )
     ingress = schema.List(
         title = "Ingress",
         value_type=schema.Object(schema=IIngressRule),
-        default = []
+        default = [],
+        description = "Every list item must be an IngressRule"
     )
     egress = schema.List(
         title = "Egress",
         value_type=schema.Object(schema=IEgressRule),
-        default = []
+        default = [],
+        description = "Every list item must be an EgressRule"
     )
 
 
@@ -294,15 +327,15 @@ class IResource(INamed, IDeployable):
     """
     type = schema.TextLine(
         title = "Type of Resources",
-        description = ""
+        description = "A valid AWS Resource type: ASG, LBApplication, etc."
     )
     resource_name = schema.TextLine(
         title = "AWS Resource Name",
         description = ""
     )
     order = schema.Int(
-        title = "Resource Dependency",
-        description = "The order in which the resource will be deployed.",
+        title = "The order in which the resource will be deployed",
+        description = "",
         min = 0,
         default = 0,
         required = False
@@ -322,8 +355,8 @@ class IResourceGroup(INamed, IMapping):
         title="Type"
     )
     order = schema.Int(
-        title = "Group Dependency",
-        description = "The order in which the group will be deployed.",
+        title = "The order in which the group will be deployed",
+        description = "",
         min = 1,  # 0 is loading ad NoneType
         required = True
     )
@@ -340,7 +373,7 @@ class IAlarmSet(IMapping):
     """
     resource_type = schema.TextLine(
         title = "Resource type",
-        description = "AWS resource type that these Alarms are applicable to"
+        description = "Must be a valid AWS resource type"
     )
 
 class IAlarmSets(IMapping):
@@ -355,11 +388,12 @@ class IAlarm(IDeployable, IName):
     severity = schema.TextLine(
         title = "Severity",
         default = "low",
-        constraint = isValidAlarmSeverity
+        constraint = isValidAlarmSeverity,
+        description = "Must be one of: 'low', 'critical'"
     )
     classification = schema.TextLine(
         title = "Classification",
-        description = "Class of Alarm: performance, security or health",
+        description = "Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification
     )
 
@@ -372,8 +406,9 @@ class ICloudWatchAlarm(IAlarm):
         required = True
     )
     period = schema.Int(
-        title = "Period",
-        constraint = isValidPeriod
+        title = "Period in seconds",
+        constraint = isValidPeriod,
+        description = "Must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000"
     )
     evaluation_periods = schema.Int(
         title = "Evaluation periods"
@@ -383,7 +418,8 @@ class ICloudWatchAlarm(IAlarm):
     )
     comparison_operator = schema.TextLine(
         title = "Comparison operator",
-        constraint = isComparisonOperator
+        constraint = isComparisonOperator,
+        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'"
     )
     statistic = schema.TextLine(
         title = "Statistic"
@@ -421,7 +457,8 @@ class ILogSource(IName):
     path = schema.TextLine(
         title = "Path",
         default = "",
-        required = True
+        required = True,
+        description = "Must be a valid filesystem path expression. Wildcard * is allowed."
     )
 
 class ICWAgentLogSource(ILogSource):
@@ -431,7 +468,8 @@ class ICWAgentLogSource(ILogSource):
     timezone = schema.TextLine(
         title = "Timezone",
         default = "Local",
-        constraint = isValidCWAgentTimezone
+        constraint = isValidCWAgentTimezone,
+        description = "Must be one of: 'Local', 'UTC'"
     )
     timestamp_format = schema.TextLine(
         title = "Timestamp format",
@@ -474,7 +512,8 @@ class IMetric(Interface):
     )
     collection_interval = schema.Int(
         title = "Collection interval",
-        description = "Can override the baes collection interval in IMonitorConfig.",
+        description = "",
+        min = 1,
         required=False
     )
 
@@ -484,6 +523,7 @@ class IMonitorConfig(IDeployable, INamed):
     """
     collection_interval = schema.Int(
         title = "Collection interval",
+        min = 1,
         default=60
     )
     metrics = schema.List(
@@ -495,7 +535,8 @@ class IMonitorConfig(IDeployable, INamed):
         title = "ASG Metrics",
         value_type=schema.TextLine(),
         default= [],
-        constraint = isValidASGMetricNames
+        constraint = isValidASGMetricNames,
+        description = "Must be one of: 'GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'"
     )
     alarm_sets = schema.Object(
         title="Sets of Alarm Sets",
@@ -576,7 +617,8 @@ class IS3BucketPolicy(Interface):
     effect = schema.TextLine(
         title="Effect",
         default="Deny",
-        required = True
+        required = True,
+        description = "Must be one of: 'Allow', 'Deny'"
     )
     action = schema.List(
         title="List of Actions",
@@ -698,7 +740,6 @@ class ICodePipeBuildDeploy(IResource):
         description = "",
         default = ""
     )
-    #alb_target_group_name = Attribute("ALB Target Group Name")
     alb_target_group_name = TextReference(
         title = "ALB Target Group Name Reference"
     )
@@ -756,7 +797,8 @@ class IEC2(IResource):
     root_volume_size_gb = schema.Int(
         title="Root volume size GB",
         description="",
-        default=8
+        default=8,
+        min=8
     )
     disable_api_termination = schema.Bool(
         title="Disable API Termination",
@@ -901,7 +943,8 @@ class IVPC(Interface):
     security_groups = schema.Dict(
         # This is a dict of dicts ...
         title = "Security groups",
-        default = {}
+        default = {},
+        description = "Two level deep dictionary: first key is Application name, second key is Resource name."
     )
     segments = schema.Dict(
         title="Segments",
@@ -915,7 +958,7 @@ class INetworkEnvironment(INamed, IDeployable, IMapping):
     """
     availability_zones = schema.Int(
         title="Availability Zones",
-        description = "Number of Availability Zones",
+        description = "",
         default=0
     )
     vpc = schema.Object(
@@ -928,27 +971,28 @@ class INetworkEnvironment(INamed, IDeployable, IMapping):
 class ICredentials(INamed):
     aws_access_key_id = schema.TextLine(
         title = "AWS Access Key ID",
-        description = "The AWS Access Key ID for the IAM user administrating the project",
+        description = "",
         default = ""
         )
     aws_secret_access_key = schema.TextLine(
         title = "AWS Secret Access Key",
-        description = "The AWS Secret Access Key for the IAM user administrating the project",
+        description = "",
         default = ""
         )
     aws_default_region = schema.TextLine(
         title = "AWS Default Region",
-        description = "The default AWS region to use",
-        default = "us-west-2"
+        description = "Must be a valid AWS Region name",
+        default = "us-west-2",
+        constraint = isValidAWSRegionName
         )
     master_account_id = schema.TextLine(
         title = "Master AWS Account ID",
-        description = "The AWS Account ID of the Master account",
-        default = "us-west-2"
+        description = "",
+        default = ""
         )
     master_admin_iam_username = schema.TextLine(
         title = "Master Account Admin IAM Username",
-        description = "The username of the IAM user administrating the project",
+        description = "",
         default = ""
         )
 
@@ -1097,6 +1141,7 @@ class IIAMs(INamed, IMapping):
 class IStatement(Interface):
     effect = schema.TextLine(
         title = "Effect",
+        description = "Must be one of: 'Allow', 'Deny'",
         # ToDo: check constraint
         # constraint = vocabulary.iam_policy_effect
     )
@@ -1199,7 +1244,7 @@ class IRole(IDeployable):
     )
     permissions_boundary = schema.TextLine(
         title = "Permissions boundary ARN",
-        description = "The ARN of the policy that is used to set the permissions boundary.",
+        description = "Must be valid ARN",
         default = "",
         required = False
     )
@@ -1298,7 +1343,7 @@ class IASG(IResource, IMonitorable):
     )
     health_check_type = schema.TextLine(
         title="Health check type",
-        description="",
+        description="Must be one of: 'EC2', 'ELB'",
         default='EC2',
         constraint = isValidHealthCheckType
     )

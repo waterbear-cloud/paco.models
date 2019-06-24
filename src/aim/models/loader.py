@@ -47,7 +47,8 @@ RESOURCES_CLASS_MAP = {
     'LBApplication': LBApplication,
     'EC2': EC2,
     'Lambda': Lambda,
-    'ManagedPolicy': ManagedPolicy
+    'ManagedPolicy': ManagedPolicy,
+    'S3Bucket': S3Bucket
 }
 
 SUB_TYPES_CLASS_MAP = {

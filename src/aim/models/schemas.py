@@ -302,8 +302,9 @@ class IResource(INamed, IDeployable):
     order = schema.Int(
         title = "Resource Dependency",
         description = "The order in which the resource will be deployed.",
-        min = 1,  # 0 is loading ad NoneType
-        required = True
+        min = 0,
+        default = 0,
+        required = False
     )
 
 class IResources(INamed, IMapping):
@@ -591,14 +592,18 @@ class IS3BucketPolicy(Interface):
         required = True
     )
 
-class IS3Bucket(IDeployable):
+class IS3Bucket(IResource, IDeployable):
     """
     S3 Bucket : A template describing an S3 Bbucket
     """
-    name = schema.TextLine(
+    bucket_name = schema.TextLine(
         title = "Bucket Name",
+        description = "A short unique name to assign the bucket.",
         default = "",
         required = True
+    )
+    account = TextReference(
+        title = "Account Reference"
     )
     deletion_policy = schema.TextLine(
         title = "Bucket Deletion Policy",
@@ -704,10 +709,9 @@ class ICodePipeBuildDeploy(IResource):
         description = "",
         default = False
     )
-    artifacts_bucket = schema.Object(
-        title = "Artifacts S3 Bucket",
-        description="",
-        schema=IS3Bucket
+    artifacts_bucket = TextReference(
+        title = "Artifacts S3 Bucket Reference",
+        description=""
     )
 
 class IService(IResource):

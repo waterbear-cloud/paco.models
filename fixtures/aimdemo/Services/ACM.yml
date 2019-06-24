@@ -1,9 +1,0 @@
-#example: (leave this for manual certificates)?
-#  app1:
-#    domain_name: app1.aim.waterbear.cloud
-#    subject_alternative_names:
-#      - '*.app1.aim.waterbear.cloud'
-#    validation_method: DNS
-#    hosted_zone_id: "netenv.ref example
-#example:
-#  app1:

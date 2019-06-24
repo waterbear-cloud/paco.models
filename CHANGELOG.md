@@ -4,7 +4,12 @@ Changelog for aim.models
 1.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added default to IS3Bucket.policy
+- Added Route53 to schema and model
+- Removed unused yaml config from aimdemo under fixtures.
+- Ported CodeCommit to schema and model
+- Refactored S3 to use Application StackGroup
+- CPBD artifacts s3 bucket now uses S3 Resource in NetEnv yaml instead
 
 
 1.0.1 (2019-06-19)

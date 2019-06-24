@@ -75,11 +75,16 @@ class S3BucketPolicy():
     action = FieldProperty(schemas.IS3BucketPolicy['action'])
     resource_suffix = FieldProperty(schemas.IS3BucketPolicy['resource_suffix'])
 
+    def __init__(self):
+        self.written_to_template = False
+
 @implementer(schemas.IS3Bucket)
-class S3Bucket(Deployable):
-    name = FieldProperty(schemas.IS3Bucket['name'])
+class S3Bucket(Resource, Deployable):
+    bucket_name = FieldProperty(schemas.IS3Bucket['bucket_name'])
+    account = FieldProperty(schemas.IS3Bucket['account'])
     deletion_policy = FieldProperty(schemas.IS3Bucket['deletion_policy'])
     policy = FieldProperty(schemas.IS3Bucket['policy'])
+
 
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()
@@ -91,7 +96,8 @@ class S3Bucket(Deployable):
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':
-            return self.name
+            breakpoint()
+            return self.bucket_name
         return None
 
 #@implementer(schemas.IService)

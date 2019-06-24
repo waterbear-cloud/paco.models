@@ -9,7 +9,8 @@ from aim.models import schemas
 from aim.models import vocabulary
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
-
+from aim.models import loader
+from aim.models import references
 
 @implementer(schemas.INetworkEnvironments)
 class NetworkEnvironments(Named, dict):
@@ -153,9 +154,9 @@ class VPNGateway(Deployable, dict):
 class PrivateHostedZone(Deployable):
     name = FieldProperty(schemas.IPrivateHostedZone["name"])
 
-@implementer(schemas.ISecurityGroups)
-class SecurityGroups(dict):
-    pass
+#@implementer(schemas.ISecurityGroups)
+#class SecurityGroups(dict):
+#    pass
 
 @implementer(schemas.ISecurityGroup)
 class SecurityGroup():
@@ -212,5 +213,47 @@ class Segment(Deployable):
             else:
                 return stack
         return None
+
+@implementer(schemas.IRoute53HostedZone)
+class Route53HostedZone(Deployable):
+    domain_name = FieldProperty(schemas.IRoute53HostedZone["domain_name"])
+    account = FieldProperty(schemas.IRoute53HostedZone["account"])
+
+    def has_record_sets(self):
+        return False
+
+@implementer(schemas.IRoute53)
+class Route53():
+
+    hosted_zones = FieldProperty(schemas.IRoute53["hosted_zones"])
+
+    def __init__(self, config_dict):
+        super().__init__()
+
+        self.zones_by_account = {}
+        loader.apply_attributes_from_config(self, config_dict)
+
+        for zone_id in self.hosted_zones.keys():
+            hosted_zone = self.hosted_zones[zone_id]
+            aws_account_ref = hosted_zone.account
+            aim_ref = references.AimReference()
+            ref_dict = aim_ref.parse_ref(aws_account_ref)
+            account_name = ref_dict['ref_parts'][1]
+            if account_name not in self.zones_by_account:
+                self.zones_by_account[account_name] = []
+            self.zones_by_account[account_name].append(zone_id)
+
+    def get_hosted_zones_account_names(self):
+        return sorted(self.zones_by_account.keys())
+
+    def get_zone_ids(self, account_name=None):
+        if account_name != None:
+            return self.zones_by_account[account_name]
+        return sorted(self.hosted_zones.keys())
+
+    def account_has_zone(self, account_name, zone_id):
+        if zone_id in self.zones_by_account[account_name]:
+            return True
+        return False
 
 

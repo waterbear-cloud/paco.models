@@ -255,10 +255,10 @@ class IIngressRule(ISecurityGroupRule):
 class IEgressRule(ISecurityGroupRule):
     "Security group egress"
 
-class ISecurityGroups(IMapping):
-    """
-    Colleciton of Security Groups
-    """
+#class ISecurityGroups(IMapping):
+#    """
+#    Colleciton of Security Groups
+#    """
 
 class ISecurityGroup(Interface):
     """
@@ -303,8 +303,9 @@ class IResource(INamed, IDeployable):
     order = schema.Int(
         title = "Resource Dependency",
         description = "The order in which the resource will be deployed.",
-        min = 1,  # 0 is loading ad NoneType
-        required = True
+        min = 0,
+        default = 0,
+        required = False
     )
 
 class IResources(INamed, IMapping):
@@ -592,14 +593,18 @@ class IS3BucketPolicy(Interface):
         required = True
     )
 
-class IS3Bucket(IDeployable):
+class IS3Bucket(IResource, IDeployable):
     """
     S3 Bucket : A template describing an S3 Bbucket
     """
-    name = schema.TextLine(
+    bucket_name = schema.TextLine(
         title = "Bucket Name",
+        description = "A short unique name to assign the bucket.",
         default = "",
         required = True
+    )
+    account = TextReference(
+        title = "Account Reference"
     )
     deletion_policy = schema.TextLine(
         title = "Bucket Deletion Policy",
@@ -609,7 +614,8 @@ class IS3Bucket(IDeployable):
     policy = schema.List(
         title="List of S3 Bucket Policies",
         description="",
-        value_type=schema.Object(IS3BucketPolicy)
+        value_type=schema.Object(IS3BucketPolicy),
+        default=[]
     )
 
 
@@ -704,10 +710,9 @@ class ICodePipeBuildDeploy(IResource):
         description = "",
         default = False
     )
-    artifacts_bucket = schema.Object(
-        title = "Artifacts S3 Bucket",
-        description="",
-        schema=IS3Bucket
+    artifacts_bucket = TextReference(
+        title = "Artifacts S3 Bucket Reference",
+        description=""
     )
 
 class IService(IResource):
@@ -1456,3 +1461,48 @@ class ILambda(IResource):
     )
 
 
+class IRoute53HostedZone(IDeployable):
+    """
+    Route53 Hosted Zone
+    """
+    domain_name = schema.TextLine(
+        title = "Domain Name",
+        required = True
+    )
+    account = TextReference(
+        title = "AWS Account Reference",
+        required = True
+    )
+
+class IRoute53(Interface):
+    """
+    Route53 Service Configuration
+    """
+    hosted_zones = schema.Dict(
+        title = "Hosted Zones",
+        value_type = schema.Object(IRoute53HostedZone)
+    )
+
+class ICodeCommitRepository(INamed, IDeployable, IMapping):
+    """
+    CodeCommit Repository Configuration
+    """
+    account = TextReference(
+        title = "AWS Account Reference",
+        required = True
+    )
+    region = schema.TextLine(
+        title = "AWS Region"
+    )
+    description = schema.TextLine(
+        title = "Repository Description"
+    )
+
+class ICodeCommit(Interface):
+    """
+    CodeCommit Service Configuration
+    """
+    repository_groups = schema.Dict(
+        title = "Group of Repositories",
+        value_type = schema.Object(ICodeCommitRepository)
+    )

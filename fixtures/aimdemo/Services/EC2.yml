@@ -1,7 +1,0 @@
-keypair:
-  aimdemo:
-    name: "aim-demo-us-west-2"
-    region: "us-west-2"
-  wbsites:
-    name: "waterbear-sites-us-west-2"
-    region: "us-west-2"

@@ -165,18 +165,20 @@ class TargetGroup(PortProtocol):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
-@implementer(schemas.IListenerForwardHost)
-class ListenerForwardHost():
-    host = FieldProperty(schemas.IListenerForwardHost['host'])
-    target_group = FieldProperty(schemas.IListenerForwardHost['target_group'])
-    priority = FieldProperty(schemas.IListenerForwardHost['priority'])
+@implementer(schemas.IListenerRule)
+class ListenerRule(Deployable):
+    rule_type = FieldProperty(schemas.IListenerRule['rule_type'])
+    priority = FieldProperty(schemas.IListenerRule['priority'])
+    host = FieldProperty(schemas.IListenerRule['host'])
+    redirect_host = FieldProperty(schemas.IListenerRule['redirect_host'])
+    target_group = FieldProperty(schemas.IListenerRule['target_group'])
 
 @implementer(schemas.IListener)
 class Listener(PortProtocol):
     redirect = FieldProperty(schemas.IListener['redirect'])
     ssl_certificates = FieldProperty(schemas.IListener['ssl_certificates'])
     target_group = FieldProperty(schemas.IListener['target_group'])
-    forward_hosts = FieldProperty(schemas.IListener['forward_hosts'])
+    rules = FieldProperty(schemas.IListener['rules'])
 
 @implementer(schemas.IDNS)
 class DNS():

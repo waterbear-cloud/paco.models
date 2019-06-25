@@ -1008,17 +1008,27 @@ class ITargetGroup(IPortProtocol):
         title = "Connection drain timeout"
     )
 
-class IListenerForwardHost(Interface):
-    host = schema.TextLine(
-        title = "Host header value"
-    )
-    target_group = schema.TextLine(
-        title="Target group name"
+class IListenerRule(IDeployable):
+    rule_type = schema.TextLine(
+        title = "Type of Rule"
     )
     priority = schema.Int(
         title="Forward condition priority",
         required=False,
         default=1
+    )
+    host = schema.TextLine(
+        title = "Host header value"
+    )
+    # Redirect Rule Variables
+    redirect_host = schema.TextLine(
+        title="The host to redirect to",
+        required=False
+    )
+    # Forward Rule Variables
+    target_group = schema.TextLine(
+        title="Target group name",
+        required=False
     )
 
 class IListener(IPortProtocol):
@@ -1040,11 +1050,11 @@ class IListener(IPortProtocol):
         default = "",
         required=False
     )
-    forward_hosts = schema.List(
-        title = "List of Host header Listner Forwards",
-        value_type = schema.Object(IListenerForwardHost),
+    rules = schema.Dict(
+        title = "Container of listener rules",
+        value_type = schema.Object(IListenerRule),
         required=False,
-        default=[]
+        default=None
     )
 
 class IDNS(Interface):
@@ -1066,7 +1076,7 @@ class ILBApplication(IResource, IMonitorable, IMapping):
         title = "Target Groups",
         value_type=schema.Object(ITargetGroup)
     )
-    listeners = schema.List(
+    listeners = schema.Dict(
         title = "Listeners",
         value_type=schema.Object(IListener)
     )

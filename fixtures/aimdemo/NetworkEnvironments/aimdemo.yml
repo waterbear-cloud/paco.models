@@ -159,12 +159,14 @@ applications:
                 health_check_path: /
                 connection_drain_timeout: 300
             listeners:
-              - port: 80
+              http:
+                port: 80
                 protocol: HTTP
                 redirect:
                   port: 443
                   protocol: HTTPS
-              - port: 443
+              https:
+                port: 443
                 protocol: HTTPS
                 ssl_certificates:
                   - netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn

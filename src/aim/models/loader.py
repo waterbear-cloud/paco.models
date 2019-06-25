@@ -13,7 +13,7 @@ from aim.models.project import Project, Credentials
 from aim.models.apps import ApplicationEngines, ApplicationEngine, Application, ResourceGroup
 from aim.models.resources import CodePipeBuildDeploy, ASG, Resource, Resources,LBApplication, \
     TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, S3BucketPolicy, \
-    AWSCertificateManager, ListenerForwardHost, Lambda, LambdaEnvironment
+    AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment
 from aim.models.governance import Governance, GovernanceService, GovernanceMonitoring
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
@@ -56,7 +56,7 @@ SUB_TYPES_CLASS_MAP = {
     LBApplication: {
         'target_groups': ('named_dict', TargetGroup),
         'security_groups': ('str_list', TextReference),
-        'listeners': ('obj_list', Listener),
+        'listeners': ('named_dict', Listener),
         'dns': ('obj_list', DNS),
         'monitoring': ('located_dict', MonitorConfig)
     },
@@ -68,7 +68,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),
-        'forward_hosts': ('obj_list', ListenerForwardHost)
+        'rules': ('named_dict', ListenerRule)
     },
     EC2: {
         'security_groups': ('str_list', TextReference)

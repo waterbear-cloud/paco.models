@@ -10,6 +10,8 @@ Changelog for aim.models
 - Ported CodeCommit to schema and model
 - Refactored S3 to use Application StackGroup
 - CPBD artifacts s3 bucket now uses S3 Resource in NetEnv yaml instead
+- Added redirect to Listner rules in the ALB
+- Converted the ALB's listener and listener rules to dicts from lists
 
 
 1.0.1 (2019-06-19)

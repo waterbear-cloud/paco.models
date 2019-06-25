@@ -345,7 +345,7 @@ class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
 
-class IResourceGroup(INamed, IMapping):
+class IResourceGroup(INamed):
     "A collection of Application Resources"
     title = schema.TextLine(
         title="Title",

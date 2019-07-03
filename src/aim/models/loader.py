@@ -386,7 +386,7 @@ class ModelLoader():
     Loads YAML config files into aim.model instances
     """
 
-    def __init__(self, aim_ctx, config_folder):
+    def __init__(self, aim_ctx, config_folder, config_processor=None):
         self.aim_ctx = aim_ctx
         self.config_folder = config_folder
         self.config_subdirs = {
@@ -398,6 +398,8 @@ class ModelLoader():
         }
         self.yaml = YAML(typ="safe", pure=True)
         self.yaml.default_flow_sytle = False
+        self.config_processor = config_processor
+        self.project = None
 
     def read_yaml(self, sub_dir='', fname=''):
         # default is to load root project.yaml
@@ -412,6 +414,11 @@ class ModelLoader():
             oct_perm = oct(cred_stat.st_mode)
             if oct_perm != '0o100400':
                 raise PermissionError('Credentials file permissions are too relaxed. Run: chmod 0400 %s' % (path))
+
+        # Validate Configuration
+        if self.config_processor != None:
+            self.config_processor(sub_dir, fname)
+
         with open(path, 'r') as stream:
             config = self.yaml.load(stream)
         return config
@@ -717,12 +724,16 @@ class ModelLoader():
         #    self.load_governance_service(service_id)
 
     def instantiate_route53(self, config):
+        if config == None:
+            return
         obj = Route53(config)
         #breakpoint()
         apply_attributes_from_config(obj, config)
         return obj
 
     def instantiate_codecommit(self, config):
+        if config == None:
+            return
         codecommit_obj = CodeCommit()
         codecommit_obj.repository_groups = {}
         for group_id in config.keys():

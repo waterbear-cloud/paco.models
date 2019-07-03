@@ -118,20 +118,7 @@ applications:
             alb_target_group_name: netenv.ref aimdemo.applications.app.groups.site.resources.alb.target_groups.app.name
             tools_account: config.ref accounts.tools
             cross_account_support: true
-            artifacts_bucket:
-              name: "artifacts"
-              enabled: true
-              deletion_policy: "delete"
-              policy:
-                - aws:
-                    - aim.sub '${netenv.ref aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role.arn}'
-                  effect: 'Allow'
-                  action:
-                    - 's3:Get*'
-                    - 's3:List*'
-                  resource_suffix:
-                    - '/*'
-                    - ''
+            artifacts_bucket: netenv.ref aimdemo.applications.app.groups.cicd.resources.cpbd_s3
       site:
         type: Application
         order: 1

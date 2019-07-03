@@ -2,17 +2,8 @@ hosted_zones:
   aimdemo:
     enabled: true
     domain_name: aimdemo.example.com
-    aws_account: config.ref accounts.prod
+    account: config.ref accounts.prod
   aimdemo_dev:
     enabled: true
     domain_name: dev.aimdemo.example.com
-    aws_account: config.ref accounts.dev
-
-  #  record_sets:
-  #    app1:
-  #      domain_name: app1.aim.waterbear.cloud.
-  #      type: A
-  #      # alias_target: ?
-  #      ttl: 300
-  #      resource_records:
-  #        - 1.1.1.1
+    account: config.ref accounts.dev

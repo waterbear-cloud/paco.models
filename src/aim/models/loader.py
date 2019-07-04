@@ -22,6 +22,7 @@ from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
+from aim.models.services import EC2Service, EC2KeyPair
 from aim.models import schemas
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
@@ -748,12 +749,27 @@ class ModelLoader():
         codecommit_obj.gen_repo_by_account()
         return codecommit_obj
 
+    def instantiate_ec2(self, config):
+        if config == None or 'keypairs' not in config.keys():
+            return
+        ec2_obj = EC2Service()
+        ec2_obj.keypairs = {}
+        for keypair_id in config['keypairs'].keys():
+            keypair_config = config['keypairs'][keypair_id]
+            keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
+            apply_attributes_from_config(keypair_obj, keypair_config)
+            ec2_obj.keypairs[keypair_id] = keypair_obj
+
+        return ec2_obj
+
 
     def instantiate_services(self, name, config):
         if name == "Route53":
             self.project['route53'] = self.instantiate_route53(config)
         elif name == "CodeCommit":
             self.project['codecommit'] = self.instantiate_codecommit(config)
+        elif name == "EC2":
+            self.project['ec2'] = self.instantiate_ec2(config)
         return
 
     def instantiate_monitor_config(self, name, config):

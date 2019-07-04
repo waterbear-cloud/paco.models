@@ -756,6 +756,30 @@ class ICodePipeBuildDeploy(IResource):
         description=""
     )
 
+class IEC2KeyPair(INamed):
+    """
+    EC2 SSH Key Pair
+    """
+    region = schema.TextLine(
+        title = "AWS Region",
+        description = "Must be a valid AWS Region name",
+        default = "us-west-2",
+        constraint = isValidAWSRegionName
+        )
+    account = TextReference(
+        title = 'AWS Account Reference'
+    )
+
+class IEC2Service(Interface):
+    """
+    EC2 Service Configuration
+    """
+    keypairs = schema.Dict(
+        title = "Group of EC2 Key Pairs",
+        value_type = schema.Object(IEC2KeyPair)
+    )
+
+
 class IService(IResource):
     """
     Specialized type of Resource

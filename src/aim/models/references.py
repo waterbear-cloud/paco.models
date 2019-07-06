@@ -6,16 +6,15 @@ import re
 import zope.schema
 from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
-
+from operator import itemgetter
 
 class AimReference():
 
     def is_ref(self, aim_ref):
-        ref_types = ["netenv.ref", "service.ref", "config.ref"]
+        ref_types = ["netenv.ref", "service.ref", "config.ref", "function.ref"]
         for ref_type in ref_types:
             if aim_ref.startswith(ref_type):
                 return True
-
         return False
 
     def parse_netenv_ref(self, aim_ref, ref_parts):
@@ -40,20 +39,20 @@ class AimReference():
     def parse_ref(self, aim_ref):
         ref_parts = aim_ref.split(' ')
         if len(ref_parts) != 2:
-            raise StackException(AimErrorCode.Unknown)
+            raise ValueError("Invalid aim_ref: {}".format(aim_ref))
+            #raise StackException(AimErrorCode.Unknown)
         ref_type = ref_parts[0]
         config_ref = ref_parts[1]
         location_parts = ref_parts[1].split('.')
         ref_dict = {}
         if ref_parts[0] == 'netenv.ref':
             ref_dict = self.parse_netenv_ref(aim_ref, location_parts)
-        elif ref_parts[0] == 'service.ref':
-            pass
-        elif ref_parts[0] == 'config.ref':
+        elif self.is_ref(aim_ref):
             pass
         else:
             print(ref_parts[0])
-            raise StackException(AimErrorCode.Unknown)
+            raise ValueError("Invalid aim_ref: {}".format(aim_ref))
+            #raise StackException(AimErrorCode.Unknown)
         ref_dict['type'] = ref_type
         ref_dict['ref'] = config_ref
         ref_dict['ref_parts'] = location_parts
@@ -101,6 +100,15 @@ class Reference():
         self.resource = None
         self.resource_ref = None
 
+        aim_ref = AimReference()
+        if aim_ref.is_ref(self.raw) == False:
+            print("Invalid AIM Reference: %s" % (value))
+            #raise StackException(AimErrorCode.Unknown)
+
+    @property
+    def last_part(self):
+        return self.parts[-1]
+
     def next_part(self, search_ref):
         search_parts = search_ref.split('.')
         first_found = False
@@ -117,12 +125,11 @@ class Reference():
         return None
 
 
-def resolve_ref(value, project, output_type="value"):
+def resolve_ref(value, project, output_type="value", account_ctx=None):
     #return '' # XXX until we rework where ref values are stored to avoid schema conflicts
     ref = Reference(value)
     if ref.type == "service":
         return ''
-        return get_service_ref_value(ref, output_type)
     elif ref.type == "netenv":
         # examples:
         # netenv.ref aimdemo.applications.app.resources.webapp.name
@@ -137,10 +144,6 @@ def resolve_ref(value, project, output_type="value"):
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
         obj = project['ne'][ref.parts[0]][ref.parts[2]][ref.parts[3]]
-        # detect if we want to return an object or a value
-        #last_part = ref.parts[-1:]
-        #if last_part in ('name','arn','profile'):
-        #    ref.parts = ref.parts[:-1] # XXX just chop it for for now ...
         for part_idx in range(4, len(ref.parts)):
             try:
                 obj = obj[ref.parts[part_idx]]
@@ -150,32 +153,80 @@ def resolve_ref(value, project, output_type="value"):
                     obj = attr_obj
                 else:
                     break
-                #else:
-                #    break
-        #if isinstance(obj, dict):
-        #    raise ValueError("Unsupported object type: dict")
+
         if isinstance(obj, str):
             pass
         ref.resource_ref = '.'.join(ref.parts[part_idx:])
         ref.resource = obj
         return obj.resolve_ref(ref)
 
-        #for part in ref.parts:
-        #    if part == 'subenv':
-        #        continue
-        #    try:
-        #        obj = obj[part]
-        #    except (TypeError, KeyError):
-        #        attr_obj = getattr(obj, part, None)
-        #        if attr_obj:
-        #            obj = attr_obj
-        #obj.resolv_ref()
-
     elif ref.type == "config":
         return get_config_ref_value(ref, project, output_type)
+    elif ref.type == "function":
+        return resolve_function_ref(ref, project, account_ctx)
     else:
         raise ValueError("Unsupported ref type: {}".format(ref.type))
 
+def resolve_function_ref(ref, project, account_ctx):
+    if account_ctx == None:
+        return None
+    if ref.ref.startswith('aws.ec2.ami.latest'):
+        ami_description = None
+        ami_name = None
+        if ref.last_part == 'amazon-linux-2':
+            ami_description = "Amazon Linux 2 AMI*"
+            ami_name = 'amzn2-ami-hvm-*'
+        elif ref.last_part == 'amazon-linux':
+            ami_description = "Amazon Linux AMI*"
+            ami_name = 'amzn-ami-hvm-*'
+        else:
+            raise ValueError("Unsupported AMI Name: {}".format(ref.last_part))
+
+        ec2_client = account_ctx.get_aws_client('ec2')
+        filters = [ {
+            'Name': 'name',
+            'Values': [ami_name]
+        },{
+            'Name': 'description',
+            'Values': [ami_description]
+        },{
+            'Name': 'architecture',
+            'Values': ['x86_64']
+        },{
+            'Name': 'owner-alias',
+            'Values': ['amazon']
+        },
+        #{
+        #    'Name': 'owner-id',
+        #    'Values': ['137112412989']
+        #},
+        {
+            'Name': 'state',
+            'Values': ['available']
+        },{
+            'Name': 'root-device-type',
+            'Values': ['ebs']
+        },{
+            'Name': 'virtualization-type',
+            'Values': ['hvm']
+        },{
+            'Name': 'hypervisor',
+            'Values': ['xen']
+        },{
+            'Name': 'image-type',
+            'Values': ['machine']
+        } ]
+
+        ami_list= ec2_client.describe_images(
+            Filters=filters,
+            Owners=[
+                'amazon'
+            ]
+        )
+        # Sort on Creation date Desc
+        image_details = sorted(ami_list['Images'],key=itemgetter('CreationDate'),reverse=True)
+        ami_id = image_details[0]['ImageId']
+        return ami_id
 
 def get_config_ref_value(ref, project, output_type):
     # Only config item is accounts at the moment

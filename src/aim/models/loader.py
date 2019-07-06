@@ -655,7 +655,7 @@ class ModelLoader():
         sub_ref_len = len(netenv_ref_raw)
 
         netenv_ref = netenv_ref_raw[0:sub_ref_len]
-        ref_dict = self.aim_ctx.parse_ref(netenv_ref)
+        ref_dict = self.aim_ctx.aim_ref.parse_ref(netenv_ref)
         if ref_dict['netenv_component'] == 'subenv':
             return str_value
 

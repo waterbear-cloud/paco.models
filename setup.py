@@ -2,6 +2,9 @@ from setuptools import setup
 
 with open('README.md') as f:
     long_description = f.read()
+    long_description += '\n\n'
+with open('CHANGELOG.md') as f:
+    long_description += f.read()
 
 setup(
     name='aim.models',
@@ -20,7 +23,6 @@ setup(
     classifiers=[
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Development Status :: 5 - Production/Stable',
-
     ],
     include_package_data=True,
     zip_safe=False,

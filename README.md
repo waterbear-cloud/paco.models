@@ -13,5 +13,3 @@ and pip install the dependencies in there:
 
 There are unit tests using PyTest. If you are using VS Code you can turn on the
 "Py Test Enabled" setting and run "Discover Unit Tests" command.
-
-ToDo: Set-up a CLI to run the test suite and run this suite automatically on commits to master.

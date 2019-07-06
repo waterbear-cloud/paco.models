@@ -227,7 +227,7 @@ def interface_seen(seen, iface):
             return True
     return False
 
-def apply_attributes_from_config(obj, config, lookup_config=None):
+def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path=''):
     """
     Iterates through the field an object's schema has
     and applies the values from configuration.
@@ -273,7 +273,7 @@ def apply_attributes_from_config(obj, config, lookup_config=None):
                         try:
                             if type(obj) in SUB_TYPES_CLASS_MAP:
                                 if name in SUB_TYPES_CLASS_MAP[type(obj)]:
-                                    value = sub_types_loader(obj, name, value, lookup_config)
+                                    value = sub_types_loader(obj, name, value, lookup_config, read_file_path)
                                     setattr(obj, name, value)
                                 else:
                                     setattr(obj, name, copy.deepcopy(value))
@@ -281,12 +281,14 @@ def apply_attributes_from_config(obj, config, lookup_config=None):
                                 setattr(obj, name, copy.deepcopy(value))
                         except ValidationError as exc:
                             raise InvalidAimProjectFile(
-                                "Invalid config for {} => {} (Type: {})\n{}: {}\nSchema error: {}".format(
-                                    name, type(obj), value, type(exc), exc.__doc__, exc
-                                )
+                                """Error in file at {}
+Invalid config for field '{}' for object type '{}'.
+Value supplied: {}
+Reason: {}
+Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, exc.__doc__, exc)
                             )
 
-def sub_types_loader(obj, name, value, lookup_config=None):
+def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
     """
     Load sub types
     """
@@ -296,7 +298,7 @@ def sub_types_loader(obj, name, value, lookup_config=None):
         sub_dict = {}
         for sub_key, sub_value in value.items():
             sub_obj = sub_class()
-            apply_attributes_from_config(sub_obj, sub_value, lookup_config)
+            apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_dict[sub_key] = sub_obj
         return sub_dict
 
@@ -306,25 +308,25 @@ def sub_types_loader(obj, name, value, lookup_config=None):
             sub_dict[first_key]  = {}
             for sub_key, sub_value in first_value.items():
                 sub_obj = sub_class()
-                apply_attributes_from_config(sub_obj, sub_value, lookup_config)
+                apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
                 sub_dict[first_key][sub_key] = sub_obj
         return sub_dict
 
     elif sub_type == 'unnamed_dict':
         sub_obj = sub_class()
-        apply_attributes_from_config(sub_obj, value, lookup_config)
+        apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
         return sub_obj
 
     elif sub_type == 'located_dict':
         sub_obj = sub_class(name, obj)
-        apply_attributes_from_config(sub_obj, value, lookup_config)
+        apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
         return sub_obj
 
     elif sub_type == 'obj_list':
         sub_list = []
         for sub_value in value:
             sub_obj = sub_class()
-            apply_attributes_from_config(sub_obj, sub_value, lookup_config)
+            apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_list.append(sub_obj)
         return sub_list
 
@@ -346,7 +348,7 @@ def sub_types_loader(obj, name, value, lookup_config=None):
                 log_set[log_category_name] = log_category
                 for log_source_name, log_source_config in log_category_config.items():
                     log_source = CWAgentLogSource(name=log_source_name)
-                    apply_attributes_from_config(log_source, log_source_config)
+                    apply_attributes_from_config(log_source, log_source_config, read_file_path)
                     log_category[log_source_name] = log_source
             log_sets[log_set_name] = log_set
 
@@ -370,7 +372,7 @@ def sub_types_loader(obj, name, value, lookup_config=None):
             alarm_set.resource_type = resource_type
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
                 alarm = CloudWatchAlarm(name=alarm_name)
-                apply_attributes_from_config(alarm, alarm_config)
+                apply_attributes_from_config(alarm, alarm_config, read_file_path)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
 
@@ -409,6 +411,7 @@ class ModelLoader():
         else:
             path = self.config_folder + os.sep + sub_dir + os.sep + fname
         logger.debug("Loading YAML: %s" % (path))
+        self.read_file_path = path
         # Credential files must be secured. This seems hacky, is there a better way?
         if fname == '.credentials.yaml':
             cred_stat = os.stat(path)
@@ -517,7 +520,7 @@ class ModelLoader():
         service_config = self.read_yaml(service_yaml_path, name+".yaml")
         if name == "Monitoring":
             obj = GovernanceMonitoring(name, self.project['governance'].services)
-            apply_attributes_from_config(obj, service_config)
+            apply_attributes_from_config(obj, service_config, read_file_path=self.read_file_path)
         self.project['governance'].services.append(obj)
 
     def load_resources(self, res_groups, app_config, local_config={}):
@@ -538,19 +541,22 @@ class ModelLoader():
 
         for grp_key, grp_config in merged_config['groups'].items():
             obj = ResourceGroup(grp_key, res_groups)
-            apply_attributes_from_config(obj, grp_config)
+            apply_attributes_from_config(obj, grp_config, read_file_path=self.read_file_path)
             res_groups[grp_key] = obj
             for res_key, res_config in grp_config['resources'].items():
                 try:
                     klass = RESOURCES_CLASS_MAP[res_config['type']]
                 except KeyError:
                     if 'type' not in res_config:
-                        raise InvalidAimProjectFile("No type for resource {}".format(res_key))
+                        raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
+                            self.read_file_path, res_key, res_config)
+                        )
                     raise InvalidAimProjectFile(
-                        "No mapping for type {} for {}".format(res_config['type'], res_key)
+                        "Error in file at {}\nNo mapping for type '{}' for resource named '{}'\n\nConfiguration section:\n{}".format(
+                            self.read_file_path, res_config['type'], res_key, res_config)
                     )
                 obj = klass(res_key, res_groups)
-                apply_attributes_from_config(obj, res_config, lookup_config=self.monitor_config)
+                apply_attributes_from_config(obj, res_config, lookup_config=self.monitor_config, read_file_path=self.read_file_path)
                 res_groups[grp_key].resources[res_key] = obj
 
     def load_iam_group(self, res_groups, app_config, local_config={}):
@@ -570,7 +576,7 @@ class ModelLoader():
 
         for grp_key, grp_config in merged_config['groups'].items():
             obj = ResourceGroup(grp_key, res_groups)
-            apply_attributes_from_config(obj, grp_config)
+            apply_attributes_from_config(obj, grp_config, read_file_path=self.read_file_path)
             res_groups[grp_key] = obj
             for res_key, res_config in grp_config['resources'].items():
                 try:
@@ -582,7 +588,7 @@ class ModelLoader():
                         "No mapping for type {} for {}".format(res_config['type'], res_key)
                     )
                 obj = klass(res_key, res_groups)
-                apply_attributes_from_config(obj, res_config)
+                apply_attributes_from_config(obj, res_config, read_file_path=self.read_file_path)
                 res_groups[grp_key].resources[res_key] = obj
 
     def create_apply_and_save(self, name, parent, klass, config):
@@ -592,7 +598,7 @@ class ModelLoader():
         and save in the object hierarchy
         """
         obj = klass(name, parent)
-        apply_attributes_from_config(obj, config)
+        apply_attributes_from_config(obj, config, read_file_path=self.read_file_path)
         parent[name] = obj
         return obj
 
@@ -712,9 +718,9 @@ class ModelLoader():
     def instantiate_project(self, name, config):
         if name == 'project':
             self.project = Project(config['name'], None)
-            apply_attributes_from_config(self.project, config)
+            apply_attributes_from_config(self.project, config, read_file_path=self.read_file_path)
         elif name == '.credentials':
-            apply_attributes_from_config(self.project['credentials'], config)
+            apply_attributes_from_config(self.project['credentials'], config, read_file_path=self.read_file_path)
 
     def instantiate_governance(self, name, config):
         if name != "Governance":
@@ -729,7 +735,7 @@ class ModelLoader():
             return
         obj = Route53(config)
         #breakpoint()
-        apply_attributes_from_config(obj, config)
+        apply_attributes_from_config(obj, config, read_file_path=self.read_file_path)
         return obj
 
     def instantiate_codecommit(self, config):
@@ -743,7 +749,7 @@ class ModelLoader():
             for repo_id in group_config.keys():
                 repo_config = group_config[repo_id]
                 repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
-                apply_attributes_from_config(repo_obj, repo_config)
+                apply_attributes_from_config(repo_obj, repo_config, read_file_path=self.read_file_path)
                 codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
 
         codecommit_obj.gen_repo_by_account()
@@ -757,7 +763,7 @@ class ModelLoader():
         for keypair_id in config['keypairs'].keys():
             keypair_config = config['keypairs'][keypair_id]
             keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
-            apply_attributes_from_config(keypair_obj, keypair_config)
+            apply_attributes_from_config(keypair_obj, keypair_config, read_file_path=self.read_file_path)
             ec2_obj.keypairs[keypair_id] = keypair_obj
 
         return ec2_obj
@@ -824,7 +830,7 @@ class ModelLoader():
                         annotate_base_config(item, item_config, global_item_config[item_name])
 
                 env_region[config_name][item_name] = item # save
-                apply_attributes_from_config(item, item_config)
+                apply_attributes_from_config(item, item_config, read_file_path=self.read_file_path)
 
                 if config_name == 'applications':
                     # Load resources for application
@@ -899,7 +905,7 @@ class ModelLoader():
                         )
                         if 'network' in env_reg_config:
                             net_config = merge(net_config, env_reg_config['network'])
-                    apply_attributes_from_config(network, net_config)
+                    apply_attributes_from_config(network, net_config, read_file_path=self.read_file_path)
 
                     # Applications
                     self.instantiate_env_region_config('applications',

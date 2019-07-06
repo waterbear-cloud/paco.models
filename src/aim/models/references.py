@@ -125,11 +125,15 @@ class Reference():
         return None
 
 
-def resolve_ref(value, project, output_type="value", account_ctx=None):
+def resolve_ref(value, project, account_ctx=None):
     #return '' # XXX until we rework where ref values are stored to avoid schema conflicts
+    aim_ref = AimReference()
+    if aim_ref.is_ref(value) == False:
+        return None
+
     ref = Reference(value)
     if ref.type == "service":
-        return ''
+        return project[ref.parts[0]].resolve_ref_obj.resolve_ref(ref)
     elif ref.type == "netenv":
         # examples:
         # netenv.ref aimdemo.applications.app.resources.webapp.name
@@ -161,7 +165,7 @@ def resolve_ref(value, project, output_type="value", account_ctx=None):
         return obj.resolve_ref(ref)
 
     elif ref.type == "config":
-        return get_config_ref_value(ref, project, output_type)
+        return get_config_ref_value(ref, project)
     elif ref.type == "function":
         return resolve_function_ref(ref, project, account_ctx)
     else:
@@ -226,10 +230,6 @@ def resolve_function_ref(ref, project, account_ctx):
         ami_id = image_details[0]['ImageId']
         return ami_id
 
-def get_config_ref_value(ref, project, output_type):
+def get_config_ref_value(ref, project):
     # Only config item is accounts at the moment
     return project[ref.parts[0]][ref.parts[1]].account_id
-
-def get_service_ref_value(ref, project, output_type):
-
-    return ''

@@ -32,8 +32,8 @@ class BaseTestModelLoader(unittest.TestCase):
     def setUp(self):
         # set the fixtures dir
         self.path = fixtures_path()
-        aim_ctx = AimReference()
-        self.project = load_project_from_yaml(aim_ctx, self.path + os.sep + self.project_name)
+        aim_ref = AimReference()
+        self.project = load_project_from_yaml(aim_ref, self.path + os.sep + self.project_name)
 
 class TestAimDemo(BaseTestModelLoader):
 

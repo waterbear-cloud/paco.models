@@ -387,8 +387,8 @@ class ModelLoader():
     Loads YAML config files into aim.model instances
     """
 
-    def __init__(self, aim_ctx, config_folder, config_processor=None):
-        self.aim_ctx = aim_ctx
+    def __init__(self, aim_ref, config_folder, config_processor=None):
+        self.aim_ref = aim_ref
         self.config_folder = config_folder
         self.config_subdirs = {
             "MonitorConfig": self.instantiate_monitor_config,
@@ -655,7 +655,7 @@ class ModelLoader():
         sub_ref_len = len(netenv_ref_raw)
 
         netenv_ref = netenv_ref_raw[0:sub_ref_len]
-        ref_dict = self.aim_ctx.aim_ref.parse_ref(netenv_ref)
+        ref_dict = self.aim_ref.parse_ref(netenv_ref)
         if ref_dict['netenv_component'] == 'subenv':
             return str_value
 

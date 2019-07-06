@@ -195,12 +195,10 @@ def resolve_function_ref(ref, project, account_ctx):
         },{
             'Name': 'owner-alias',
             'Values': ['amazon']
-        },
-        #{
-        #    'Name': 'owner-id',
-        #    'Values': ['137112412989']
-        #},
-        {
+        },{
+            'Name': 'owner-id',
+            'Values': ['137112412989']
+        },{
             'Name': 'state',
             'Values': ['available']
         },{

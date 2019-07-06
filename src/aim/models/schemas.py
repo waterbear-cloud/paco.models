@@ -799,8 +799,8 @@ class IEC2(IResource):
         title="Instance AMI",
         description="",
     )
-    instance_key_pair = schema.TextLine(
-        title = "Instance key pair",
+    instance_key_pair = TextReference(
+        title = "Instance key pair reference",
         description=""
     )
     instance_type = schema.TextLine(
@@ -1391,8 +1391,8 @@ class IASG(IResource, IMonitorable):
         title="Instance AMI",
         description="",
     )
-    instance_key_pair = schema.TextLine(
-        title = "Instance key pair",
+    instance_key_pair = TextReference(
+        title = "Instance key pair reference",
         description=""
     )
     instance_type = schema.TextLine(

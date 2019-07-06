@@ -14,3 +14,19 @@ class EC2KeyPair(Named):
 class EC2Service():
     keypairs = FieldProperty(schemas.IEC2Service['keypairs'])
 
+    def resolve_ref(self, ref):
+        if ref.parts[1] == 'keypairs':
+            keypair_id = ref.parts[2]
+            keypair_attr = 'name'
+            if len(ref.parts) > 3:
+                keypair_attr = ref.parts[3]
+            keypair = self.keypairs[keypair_id]
+            if keypair_attr == 'name':
+                return keypair.name
+            elif keypair_attr == 'region':
+                return keypair.region
+            elif keypair_attr == 'account':
+                return keypair.account
+
+        return self.resolve_ref_obj.resolve_ref(ref)
+

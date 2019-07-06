@@ -178,7 +178,7 @@ applications:
             instance_iam_role:
               enabled: true
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: aimdemo-us-west-2
+            instance_key_pair: service.ref ec2.keypairs.aimdemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 3
@@ -269,7 +269,7 @@ applications:
             #  instance_profile: true
             #  policies:
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: aimdemo-us-west-2
+            instance_key_pair: service.ref ec2.keypairs.aimdemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 2
@@ -384,7 +384,7 @@ environments:
             bastion:
               resources:
                 instance:
-                  instance_key_pair: dev-aimdemo-us-west-2
+                  instance_key_pair: service.ref ec2.keypairs.aimdemo_dev
                   desired_capacity: 0 # if you change this you break a test!
                   min_instances: 0
             site:
@@ -393,7 +393,7 @@ environments:
                   max_instances: 2
                   min_instances: 0
                   desired_capacity: 0
-                  instance_key_pair: dev-aimdemo-us-west-2
+                  instance_key_pair: service.ref ec2.keypairs.aimdemo_dev
                   monitoring:
                     alarm_sets:
                       launch-health:

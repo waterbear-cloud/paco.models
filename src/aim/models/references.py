@@ -133,6 +133,8 @@ def resolve_ref(value, project, account_ctx=None):
 
     ref = Reference(value)
     if ref.type == "service":
+        if ref.parts[0] == 'ec2':
+            return project['ec2'].resolve_ref(ref)
         return project[ref.parts[0]].resolve_ref_obj.resolve_ref(ref)
     elif ref.type == "netenv":
         # examples:

@@ -4,6 +4,7 @@ References
 
 import re
 import zope.schema
+from aim.models.exceptions import InvalidAimReference
 from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
@@ -164,7 +165,11 @@ def resolve_ref(value, project, account_ctx=None):
             pass
         ref.resource_ref = '.'.join(ref.parts[part_idx:])
         ref.resource = obj
-        return obj.resolve_ref(ref)
+        try:
+            response = obj.resolve_ref(ref)
+        except AttributeError:
+            raise InvalidAimReference("Can not resolve the reference '{}'".format(value))
+        return response
 
     elif ref.type == "config":
         return get_config_ref_value(ref, project)

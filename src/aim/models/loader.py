@@ -3,7 +3,7 @@ import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import get_logger
-from aim.models.exceptions import InvalidAimProjectFile
+from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, AlarmSets
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
@@ -237,6 +237,15 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
     # all most-specialized interfaces implemented by obj
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
+
+        # throw an error if there are fields which do not match the schema
+        if not zope.interface.common.mapping.IMapping.providedBy(obj):
+            for key in config.keys():
+                if key not in fields:
+                    raise UnusedAimProjectField("""Error in file at {}
+Unneeded field '{}' in config for object type '{}'
+    """.format(read_file_path, key, obj.__class__.__name__))
+
         for name, field in fields.items():
             # Locatable Objects get their name from their key in the config, for example:
             #   environments:
@@ -551,9 +560,14 @@ class ModelLoader():
                         raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
                             self.read_file_path, res_key, res_config)
                         )
+                    import pdb; pdb.set_trace();
                     raise InvalidAimProjectFile(
-                        "Error in file at {}\nNo mapping for type '{}' for resource named '{}'\n\nConfiguration section:\n{}".format(
-                            self.read_file_path, res_config['type'], res_key, res_config)
+                        """Error in file at {}
+No mapping for type '{}' for resource named '{}'
+
+Configuration section:
+{}
+""".format(self.read_file_path, res_config['type'], res_key, res_config)
                     )
                 obj = klass(res_key, res_groups)
                 apply_attributes_from_config(obj, res_config, lookup_config=self.monitor_config, read_file_path=self.read_file_path)

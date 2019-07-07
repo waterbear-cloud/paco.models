@@ -391,8 +391,8 @@ environments:
               resources:
                 webapp:
                   max_instances: 2
-                  min_instances: 0
-                  desired_capacity: 0
+                  min_instances: 1
+                  desired_capacity: 1
                   instance_key_pair: service.ref ec2.keypairs.aimdemo_dev
                   monitoring:
                     alarm_sets:
@@ -411,7 +411,7 @@ environments:
                     - '*.dev.aimdemo.waterbear.cloud'
 
                 alb:
-                  enabled: false
+                  enabled: true
                   dns:
                     - hosted_zone_id: service.ref route53.aimdemo_dev.id
                       domain_name: dev.aimdemo.waterbear.cloud
@@ -439,6 +439,6 @@ environments:
               az2_cidr: 10.20.4.0/24
           nat_gateway:
             app:
-              enabled: false
+              enabled: true
     us-west-2:
       enabled: true

@@ -636,7 +636,7 @@ class ModelLoader():
 
                 new_ref = self.insert_subenv_ref_str(sub_ref, subenv_id, region)
                 sub_var = str_value[sub_ref_idx:sub_ref_end_idx]
-                str_value = str_value.replace(sub_var, new_ref)
+                str_value = str_value.replace(sub_var, new_ref, 1)
             else:
                 break
             first_pass = False

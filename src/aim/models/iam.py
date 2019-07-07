@@ -8,7 +8,6 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import loader
 
-
 @implementer(schemas.IIAMs)
 class IAMs(Named, dict):
     pass
@@ -35,8 +34,8 @@ class Role(Deployable):
     role_name = FieldProperty(schemas.IRole["role_name"])
     policies = FieldProperty(schemas.IRole["policies"])
 
-    def apply_config(self, role_config_dict):
-        loader.apply_attributes_from_config(self, role_config_dict)
+    def apply_config(self, config_dict):
+        loader.apply_attributes_from_config(self, config_dict)
 
     def set_assume_role_policy(self, policy_config_dict):
         policy_config = AssumeRolePolicy()
@@ -49,8 +48,6 @@ class Role(Deployable):
         self.policies.append(policy_config)
 
     def resolve_ref(self, ref):
-        if not hasattr(ref.resource, 'resolve_ref_obj'):
-            pass
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IPolicy)

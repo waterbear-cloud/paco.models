@@ -76,7 +76,7 @@ class S3BucketPolicy():
     resource_suffix = FieldProperty(schemas.IS3BucketPolicy['resource_suffix'])
 
     def __init__(self):
-        self.written_to_template = False
+        self.processed = False
 
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
@@ -95,10 +95,7 @@ class S3Bucket(Resource, Deployable):
         loader.apply_attributes_from_config(self, config_dict)
 
     def resolve_ref(self, ref):
-        if ref.resource_ref == 'name':
-            breakpoint()
-            return self.bucket_name
-        return None
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 #@implementer(schemas.IService)
 #class Service(Named, dict):
@@ -138,6 +135,8 @@ class ASG(Resource, Monitorable):
             return self.instance_iam_role
         elif ref.parts[-2] == 'resources':
             return self
+        elif ref.resource_ref.startswith('instance_id'):
+            self.resolve_ref_obj.resolve_ref(ref)
         #return self.stack_group_object.get_stack_from_ref(self, aim_ref, ref_parts)
         return None
 

@@ -505,6 +505,7 @@ class ModelLoader():
 
                 env_reg = self.project['ne'][ne_name][env_name][region]
                 reg_config = self.read_yaml('Resources' + os.sep + 'NetworkEnvironments', rfile)
+
                 if 'applications' in reg_config:
                     for app_name in reg_config['applications'].keys():
                         groups_config = reg_config['applications'][app_name]['groups']
@@ -513,7 +514,11 @@ class ModelLoader():
                                 # Standard AWS Resources in an Application's Resource Group
                                 resource_config = groups_config[grp_name]['resources'][res_name]
                                 resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
-                                resource.resource_name = resource_config['__name__']
+                                if 'name' in resource_config:
+                                    # ALB have a name attribute with an embedded __name__
+                                    resource.resource_name = resource_config['name']['__name__']
+                                else:
+                                    resource.resource_name = resource_config['__name__']
 
                                 # CloudWatch Alarms
                                 if 'monitoring' in resource_config:

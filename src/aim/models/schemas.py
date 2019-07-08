@@ -672,7 +672,7 @@ class IApplicationEngine(INamed, IDeployable):
         default=False
     )
 
-class IApplication(IApplicationEngine):
+class IApplication(IApplicationEngine, IMapping):
     """
     Application : An Application Engine configuration to run in a specific Environment
     """

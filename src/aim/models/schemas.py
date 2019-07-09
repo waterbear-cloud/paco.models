@@ -746,6 +746,9 @@ class ICodePipeBuildDeploy(IResource):
     tools_account = TextReference(
         title = "Tools Account Reference"
     )
+    data_account = TextReference(
+        title = "Data Account Reference"
+    )
     cross_account_support = schema.Bool(
         title = "Cross Account Support",
         description = "",

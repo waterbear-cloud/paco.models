@@ -1,10 +1,12 @@
 Changelog for aim.models
 =================
 
-1.1.1 (unreleased)
+1.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Changed
+
+- Services are loaded as entry_point plugins named `aim.services`
 
 
 1.1.0 (2019-07-06)

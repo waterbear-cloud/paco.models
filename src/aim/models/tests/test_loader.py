@@ -153,7 +153,15 @@ class TestAimDemo(BaseTestModelLoader):
         # override log source settings
         assert demo_webapp.monitoring.log_sets['amazon_linux']['linux']['audit'].log_group_name, "puppydog"
 
-    def test_resource_account(self):
+    def test_instantiate_services(self):
+        # Route53
+        assert self.project['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
+        # CodeCommit
+        assert self.project['codecommit'].repository_groups['aimdemo']['app'].account, 'config.ref accounts.data'
+        # EC2
+        assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'config.ref accounts.dev'
+
+        def test_resource_account(self):
         dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         account = bastion.get_account()

@@ -24,6 +24,13 @@ setup(
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Development Status :: 5 - Production/Stable',
     ],
+    entry_points = {
+        'aim.services': [
+            'Route53 = aim.models.loader:instantiate_route53',
+            'CodeCommit = aim.models.loader:instantiate_codecommit',
+            'EC2 = aim.models.loader:instantiate_ec2',
+        ],
+    },
     include_package_data=True,
     zip_safe=False,
     package_dir={'': 'src'},

@@ -1,4 +1,5 @@
 import itertools, os, copy
+import pkg_resources
 import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
@@ -393,6 +394,41 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
 
         return alarm_sets
 
+def instantiate_route53(config, read_file_path):
+    if config == None:
+        return
+    obj = Route53(config)
+    apply_attributes_from_config(obj, config, read_file_path=read_file_path)
+    return obj
+
+def instantiate_codecommit(config, read_file_path):
+    if config == None:
+        return
+    codecommit_obj = CodeCommit()
+    codecommit_obj.repository_groups = {}
+    for group_id in config.keys():
+        group_config = config[group_id]
+        codecommit_obj.repository_groups[group_id] = {}
+        for repo_id in group_config.keys():
+            repo_config = group_config[repo_id]
+            repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
+            apply_attributes_from_config(repo_obj, repo_config, read_file_path=read_file_path)
+            codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
+    codecommit_obj.gen_repo_by_account()
+    return codecommit_obj
+
+def instantiate_ec2(config, read_file_path):
+    if config == None or 'keypairs' not in config.keys():
+        return
+    ec2_obj = EC2Service()
+    ec2_obj.keypairs = {}
+    for keypair_id in config['keypairs'].keys():
+        keypair_config = config['keypairs'][keypair_id]
+        keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
+        apply_attributes_from_config(keypair_obj, keypair_config, read_file_path=read_file_path)
+        ec2_obj.keypairs[keypair_id] = keypair_obj
+    return ec2_obj
+
 class ModelLoader():
     """
     Loads YAML config files into aim.model instances
@@ -406,7 +442,6 @@ class ModelLoader():
             "Accounts": self.instantiate_accounts,
             "NetworkEnvironments": self.instantiate_network_environments,
             "Governance": self.instantiate_governance,
-            "Services": self.instantiate_services
         }
         self.yaml = YAML(typ="safe", pure=True)
         self.yaml.default_flow_sytle = False
@@ -451,6 +486,7 @@ class ModelLoader():
                         name = fname[:-5]
                     config = self.read_yaml(subdir, fname)
                     instantiate_method(name, config)
+        self.instantiate_services()
         self.load_references()
         try:
             self.load_resource_ids()
@@ -749,52 +785,29 @@ Configuration section:
         #for [service_id, service_config] in config['services'].items():
         #    self.load_governance_service(service_id)
 
-    def instantiate_route53(self, config):
-        if config == None:
-            return
-        obj = Route53(config)
-        #breakpoint()
-        apply_attributes_from_config(obj, config, read_file_path=self.read_file_path)
-        return obj
-
-    def instantiate_codecommit(self, config):
-        if config == None:
-            return
-        codecommit_obj = CodeCommit()
-        codecommit_obj.repository_groups = {}
-        for group_id in config.keys():
-            group_config = config[group_id]
-            codecommit_obj.repository_groups[group_id] = {}
-            for repo_id in group_config.keys():
-                repo_config = group_config[repo_id]
-                repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
-                apply_attributes_from_config(repo_obj, repo_config, read_file_path=self.read_file_path)
-                codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
-
-        codecommit_obj.gen_repo_by_account()
-        return codecommit_obj
-
-    def instantiate_ec2(self, config):
-        if config == None or 'keypairs' not in config.keys():
-            return
-        ec2_obj = EC2Service()
-        ec2_obj.keypairs = {}
-        for keypair_id in config['keypairs'].keys():
-            keypair_config = config['keypairs'][keypair_id]
-            keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
-            apply_attributes_from_config(keypair_obj, keypair_config, read_file_path=self.read_file_path)
-            ec2_obj.keypairs[keypair_id] = keypair_obj
-
-        return ec2_obj
-
-
-    def instantiate_services(self, name, config):
-        if name == "Route53":
-            self.project['route53'] = self.instantiate_route53(config)
-        elif name == "CodeCommit":
-            self.project['codecommit'] = self.instantiate_codecommit(config)
-        elif name == "EC2":
-            self.project['ec2'] = self.instantiate_ec2(config)
+    def instantiate_services(self):
+        """
+        Load Services
+        These are loaded from an entry point named 'aim.services'.
+        The entry point name will match a filename at:
+          <AIMProject>/Services/<EntryPointName>(.yml|.yaml)
+        """
+        services_dir = self.config_folder + os.sep + 'Services' + os.sep
+        service_plugins = {
+            entry_point.name: entry_point.load()
+            for entry_point
+            in pkg_resources.iter_entry_points('aim.services')
+        }
+        for plugin_name, plugin_func in service_plugins.items():
+            if os.path.isfile(services_dir + plugin_name + '.yml'):
+                fname = plugin_name + '.yml'
+            elif os.path.isfile(services_dir + plugin_name + '.yaml'):
+                fname = plugin_name + '.yaml'
+            else:
+                continue
+            config = self.read_yaml('Services', fname)
+            service = plugin_func(config, read_file_path=services_dir + fname)
+            self.project[plugin_name.lower()] = service
         return
 
     def instantiate_monitor_config(self, name, config):

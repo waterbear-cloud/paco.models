@@ -8,6 +8,8 @@ from aim.models import schemas
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import loader
+from aim.models.locations import get_parent_by_interface
+from aim.models.references import AimReference
 
 @implementer(schemas.IResources)
 class Resources(Named, dict):
@@ -25,6 +27,17 @@ class Resource(Named, Deployable, Regionalized):
     resource_name = FieldProperty(schemas.IResource['resource_name'])
     order = FieldProperty(schemas.IResource['order'])
 
+    def get_account(self):
+        """
+        Return the Account object that this resource is provisioned to
+        """
+        env_reg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        project = get_parent_by_interface(self, schemas.IProject)
+        # ToDo: rework account references so that they resolve to Account objs
+        # and not just the account_id
+        ref = AimReference().parse_ref(env_reg.network.aws_account)
+        account = project[ref['ref_parts'][0]][ref['ref_parts'][1]]
+        return account
 
 #@implementer(schemas.IDeployment)
 #class Deployment(Named, Deployable):

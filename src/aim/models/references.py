@@ -239,4 +239,8 @@ def resolve_function_ref(ref, project, account_ctx):
 
 def get_config_ref_value(ref, project):
     # Only config item is accounts at the moment
-    return project[ref.parts[0]][ref.parts[1]].account_id
+    try:
+        account_id = project[ref.parts[0]][ref.parts[1]].account_id
+    except KeyError:
+        raise InvalidAimReference("Can not resolve the reference '{}'".format(ref.raw))
+    return account_id

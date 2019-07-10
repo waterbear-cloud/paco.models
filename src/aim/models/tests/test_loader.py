@@ -153,3 +153,8 @@ class TestAimDemo(BaseTestModelLoader):
         # override log source settings
         assert demo_webapp.monitoring.log_sets['amazon_linux']['linux']['audit'].log_group_name, "puppydog"
 
+    def test_resource_account(self):
+        dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
+        bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
+        account = bastion.get_account()
+        assert account.name, 'dev'

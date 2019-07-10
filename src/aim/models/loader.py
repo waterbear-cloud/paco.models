@@ -394,14 +394,14 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
 
         return alarm_sets
 
-def instantiate_route53(config, read_file_path):
+def instantiate_route53(config, project, read_file_path):
     if config == None:
         return
     obj = Route53(config)
     apply_attributes_from_config(obj, config, read_file_path=read_file_path)
     return obj
 
-def instantiate_codecommit(config, read_file_path):
+def instantiate_codecommit(config, project, read_file_path):
     if config == None:
         return
     codecommit_obj = CodeCommit()
@@ -417,7 +417,7 @@ def instantiate_codecommit(config, read_file_path):
     codecommit_obj.gen_repo_by_account()
     return codecommit_obj
 
-def instantiate_ec2(config, read_file_path):
+def instantiate_ec2(config, project, read_file_path):
     if config == None or 'keypairs' not in config.keys():
         return
     ec2_obj = EC2Service()
@@ -806,7 +806,7 @@ Configuration section:
             else:
                 continue
             config = self.read_yaml('Services', fname)
-            service = plugin_func(config, read_file_path=services_dir + fname)
+            service = plugin_func(config, self.project, read_file_path=services_dir + fname)
             self.project[plugin_name.lower()] = service
         return
 

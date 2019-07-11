@@ -11,7 +11,7 @@ from aim.models import loader
 from aim.models.locations import get_parent_by_interface
 from aim.models.references import AimReference
 
-@implementer(schemas.IResources)
+@implementer(schemas.IAppResources)
 class Resources(Named, dict):
     "Resources"
 
@@ -20,12 +20,12 @@ class Resources(Named, dict):
         # resources only
         pass
 
-@implementer(schemas.IResource)
+@implementer(schemas.IAppResource)
 class Resource(Named, Deployable, Regionalized):
     "Resource"
-    type = FieldProperty(schemas.IResource['type'])
-    resource_name = FieldProperty(schemas.IResource['resource_name'])
-    order = FieldProperty(schemas.IResource['order'])
+    type = FieldProperty(schemas.IAppResource['type'])
+    resource_name = FieldProperty(schemas.IAppResource['resource_name'])
+    order = FieldProperty(schemas.IAppResource['order'])
 
     def get_account(self):
         """

@@ -23,7 +23,7 @@ from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
-from aim.models.services import EC2Service, EC2KeyPair
+from aim.models.services import EC2Resource, EC2KeyPair
 from aim.models import schemas
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
@@ -394,41 +394,6 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
 
         return alarm_sets
 
-def instantiate_route53(config, project, read_file_path):
-    if config == None:
-        return
-    obj = Route53(config)
-    apply_attributes_from_config(obj, config, read_file_path=read_file_path)
-    return obj
-
-def instantiate_codecommit(config, project, read_file_path):
-    if config == None:
-        return
-    codecommit_obj = CodeCommit()
-    codecommit_obj.repository_groups = {}
-    for group_id in config.keys():
-        group_config = config[group_id]
-        codecommit_obj.repository_groups[group_id] = {}
-        for repo_id in group_config.keys():
-            repo_config = group_config[repo_id]
-            repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
-            apply_attributes_from_config(repo_obj, repo_config, read_file_path=read_file_path)
-            codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
-    codecommit_obj.gen_repo_by_account()
-    return codecommit_obj
-
-def instantiate_ec2(config, project, read_file_path):
-    if config == None or 'keypairs' not in config.keys():
-        return
-    ec2_obj = EC2Service()
-    ec2_obj.keypairs = {}
-    for keypair_id in config['keypairs'].keys():
-        keypair_config = config['keypairs'][keypair_id]
-        keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
-        apply_attributes_from_config(keypair_obj, keypair_config, read_file_path=read_file_path)
-        ec2_obj.keypairs[keypair_id] = keypair_obj
-    return ec2_obj
-
 class ModelLoader():
     """
     Loads YAML config files into aim.model instances
@@ -442,6 +407,7 @@ class ModelLoader():
             "Accounts": self.instantiate_accounts,
             "NetworkEnvironments": self.instantiate_network_environments,
             "Governance": self.instantiate_governance,
+            "Resources": self.instantiate_resources,
         }
         self.yaml = YAML(typ="safe", pure=True)
         self.yaml.default_flow_sytle = False
@@ -798,7 +764,7 @@ Configuration section:
             for entry_point
             in pkg_resources.iter_entry_points('aim.services')
         }
-        for plugin_name, plugin_func in service_plugins.items():
+        for plugin_name, plugin_module in service_plugins.items():
             if os.path.isfile(services_dir + plugin_name + '.yml'):
                 fname = plugin_name + '.yml'
             elif os.path.isfile(services_dir + plugin_name + '.yaml'):
@@ -806,7 +772,8 @@ Configuration section:
             else:
                 continue
             config = self.read_yaml('Services', fname)
-            service = plugin_func(config, self.project, read_file_path=services_dir + fname)
+            service = plugin_module.instantiate_model(config, self.project, read_file_path=services_dir + fname)
+            #service = plugin_func(config, self.project, read_file_path=services_dir + fname)
             self.project[plugin_name.lower()] = service
         return
 
@@ -831,6 +798,49 @@ Configuration section:
             Account,
             config
         )
+
+    def instantiate_route53(self, config):
+        if config == None:
+            return
+        obj = Route53(config)
+        apply_attributes_from_config(obj, config)
+        return obj
+
+    def instantiate_codecommit(self, config):
+        if config == None:
+            return
+        codecommit_obj = CodeCommit()
+        codecommit_obj.repository_groups = {}
+        for group_id in config.keys():
+            group_config = config[group_id]
+            codecommit_obj.repository_groups[group_id] = {}
+            for repo_id in group_config.keys():
+                repo_config = group_config[repo_id]
+                repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
+                apply_attributes_from_config(repo_obj, repo_config)
+                codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
+        codecommit_obj.gen_repo_by_account()
+        return codecommit_obj
+
+    def instantiate_ec2(self, config):
+        if config == None or 'keypairs' not in config.keys():
+            return
+        ec2_obj = EC2Resource()
+        ec2_obj.keypairs = {}
+        for keypair_id in config['keypairs'].keys():
+            keypair_config = config['keypairs'][keypair_id]
+            keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
+            apply_attributes_from_config(keypair_obj, keypair_config)
+            ec2_obj.keypairs[keypair_id] = keypair_obj
+        return ec2_obj
+
+    def instantiate_resources(self, name, config):
+        if name == "Route53":
+            self.project['route53'] = self.instantiate_route53(config)
+        elif name == "CodeCommit":
+            self.project['codecommit'] = self.instantiate_codecommit(config)
+        elif name == "EC2":
+            self.project['ec2'] = self.instantiate_ec2(config)
 
     # Applications and IAM environment config
     # Merged global, region default, and region config

@@ -321,7 +321,7 @@ class IApplicationEngines(INamed, IMapping):
     "A collection of Application Engines"
     pass
 
-class IResource(INamed, IDeployable):
+class IAppResource(INamed, IDeployable):
     """
     AWS Resource to support an Application
     """
@@ -341,11 +341,11 @@ class IResource(INamed, IDeployable):
         required = False
     )
 
-class IResources(INamed, IMapping):
+class IAppResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
 
-class IResourceGroup(INamed, IMapping):
+class IAppResourceGroup(INamed, IMapping):
     "A collection of Application Resources"
     title = schema.TextLine(
         title="Title",
@@ -360,10 +360,10 @@ class IResourceGroup(INamed, IMapping):
         min = 1,  # 0 is loading ad NoneType
         required = True
     )
-    resources = schema.Object(schema=IResources)
+    resources = schema.Object(schema=IAppResources)
 
 
-class IResourceGroups(INamed, IMapping):
+class IAppResourceGroups(INamed, IMapping):
     "A collection of Application Resource Groups"
     pass
 
@@ -635,7 +635,7 @@ class IS3BucketPolicy(Interface):
         required = True
     )
 
-class IS3Bucket(IResource, IDeployable):
+class IS3Bucket(IAppResource, IDeployable):
     """
     S3 Bucket : A template describing an S3 Bbucket
     """
@@ -665,7 +665,7 @@ class IApplicationEngine(INamed, IDeployable):
     """
     Application Engine : A template describing an application
     """
-    groups = schema.Object(IResourceGroups)
+    groups = schema.Object(IAppResourceGroups)
     managed_updates = schema.Bool(
         title = "Managed Updates",
         description = "",
@@ -677,12 +677,12 @@ class IApplication(IApplicationEngine, IMapping):
     Application : An Application Engine configuration to run in a specific Environment
     """
 
-#class IDeployment(IResource):
+#class IDeployment(IAppResource):
 #    """
 #    An application deployment
 #    """
 
-class ICodePipeBuildDeploy(IResource):
+class ICodePipeBuildDeploy(IAppResource):
     """
     Code Pipeline: Build and Deploy
     """
@@ -773,9 +773,9 @@ class IEC2KeyPair(INamed):
         title = 'AWS Account Reference'
     )
 
-class IEC2Service(Interface):
+class IEC2Resource(Interface):
     """
-    EC2 Service Configuration
+    EC2 Resource Configuration
     """
     keypairs = schema.Dict(
         title = "Group of EC2 Key Pairs",
@@ -783,12 +783,12 @@ class IEC2Service(Interface):
     )
 
 
-class IService(IResource):
+class IService(IAppResource):
     """
     Specialized type of Resource
     """
 
-class IEC2(IResource):
+class IEC2(IAppResource):
     """
     EC2 Instance
     """
@@ -1028,7 +1028,7 @@ class INetwork(INetworkEnvironment):
         title = 'AWS Account Reference'
     )
 
-class IAWSCertificateManager(IResource):
+class IAWSCertificateManager(IAppResource):
     domain_name = schema.TextLine(
         title = "Domain Name",
         description = "",
@@ -1042,7 +1042,7 @@ class IAWSCertificateManager(IResource):
         )
     )
 
-class IRDS(IResource):
+class IRDS(IAppResource):
     """RDS is TBD"""
 
 class IPortProtocol(Interface):
@@ -1142,7 +1142,7 @@ class IDNS(Interface):
         required = False
     )
 
-class ILBApplication(IResource, IMonitorable, IMapping):
+class ILBApplication(IAppResource, IMonitorable, IMapping):
     """Application Load Balancer"""
     target_groups = schema.Dict(
         title = "Target Groups",
@@ -1334,7 +1334,7 @@ class IIAM(INamed, IMapping):
         )
     )
 
-class IASG(IResource, IMonitorable):
+class IASG(IAppResource, IMonitorable):
     """
     Auto-scaling group
     """
@@ -1493,7 +1493,7 @@ class IGovernanceService(INamed, IDeployable, IMapping):
         title = "AWS Region",
         description = "The AWS region to provision this service in."
     )
-    resources = schema.Object(IResources)
+    resources = schema.Object(IAppResources)
 
 class IGovernance(INamed):
     services = schema.Object(IGovernanceServices)
@@ -1527,7 +1527,7 @@ class ILambdaEnvironment(Interface):
         default = []
     )
 
-class ILambda(IResource):
+class ILambda(IAppResource):
     """
     Lambda Function resource
     """

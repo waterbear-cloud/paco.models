@@ -10,9 +10,9 @@ class EC2KeyPair(Named):
     region = FieldProperty(schemas.IEC2KeyPair['region'])
     account = FieldProperty(schemas.IEC2KeyPair['account'])
 
-@implementer(schemas.IEC2Service)
-class EC2Service():
-    keypairs = FieldProperty(schemas.IEC2Service['keypairs'])
+@implementer(schemas.IEC2Resource)
+class EC2Resource():
+    keypairs = FieldProperty(schemas.IEC2Resource['keypairs'])
 
     def resolve_ref(self, ref):
         if ref.parts[1] == 'keypairs':

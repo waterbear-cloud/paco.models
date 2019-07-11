@@ -12,7 +12,7 @@ from operator import itemgetter
 class AimReference():
 
     def is_ref(self, aim_ref):
-        ref_types = ["netenv.ref", "service.ref", "config.ref", "function.ref"]
+        ref_types = ["netenv.ref", "resource.ref", "config.ref", "function.ref"]
         for ref_type in ref_types:
             if aim_ref.startswith(ref_type):
                 return True
@@ -71,7 +71,7 @@ class TextReference(zope.schema.Text):
         match = re.match("(\w+)\.ref\s+(.*)", value)
         if match:
             ref_type, ref_value = match.groups()
-            if ref_type not in ('service','netenv','config'):
+            if ref_type not in ('resource','service','netenv','config'):
                 return False
             for part in ref_value.split('.'):
                 if not re.match("[\w-]+", part):
@@ -133,7 +133,7 @@ def resolve_ref(value, project, account_ctx=None):
         return None
 
     ref = Reference(value)
-    if ref.type == "service":
+    if ref.type == "resource":
         if ref.parts[0] == 'ec2':
             return project['ec2'].resolve_ref(ref)
         return project[ref.parts[0]].resolve_ref_obj.resolve_ref(ref)

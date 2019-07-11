@@ -153,7 +153,7 @@ class TestAimDemo(BaseTestModelLoader):
         # override log source settings
         assert demo_webapp.monitoring.log_sets['amazon_linux']['linux']['audit'].log_group_name, "puppydog"
 
-    def test_instantiate_services(self):
+    def test_instantiate_resources(self):
         # Route53
         assert self.project['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
         # CodeCommit

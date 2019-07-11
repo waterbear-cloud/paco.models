@@ -107,7 +107,7 @@ applications:
             deployment_branch_name: "" # Override in sub-environments
             manual_approval_enabled: false
             manual_approval_notification_email: ""
-            codecommit_repository: service.ref codecommit.aimdemo.app
+            codecommit_repository: resource.ref codecommit.aimdemo.app
             asg_name: netenv.ref aimdemo.applications.app.groups.site.resources.webapp.name
             auto_rollback_enabled: true
             deploy_config_type: HOST_COUNT
@@ -159,7 +159,7 @@ applications:
                   - netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn
                 target_group: app
             dns:
-              - hosted_zone_id: service.ref route53.aimdemo.id
+              - hosted_zone_id: resource.ref route53.aimdemo.id
                 domain_name: aimdemo.waterbear.cloud
                 ssl_certificate: netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn
             scheme: internet-facing
@@ -178,7 +178,7 @@ applications:
             instance_iam_role:
               enabled: true
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: service.ref ec2.keypairs.aimdemo_prod
+            instance_key_pair: resource.ref ec2.keypairs.aimdemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 3
@@ -269,7 +269,7 @@ applications:
             #  instance_profile: true
             #  policies:
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: service.ref ec2.keypairs.aimdemo_prod
+            instance_key_pair: resource.ref ec2.keypairs.aimdemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 2
@@ -384,7 +384,7 @@ environments:
             bastion:
               resources:
                 instance:
-                  instance_key_pair: service.ref ec2.keypairs.aimdemo_dev
+                  instance_key_pair: resource.ref ec2.keypairs.aimdemo_dev
                   desired_capacity: 0 # if you change this you break a test!
                   min_instances: 0
             site:
@@ -393,7 +393,7 @@ environments:
                   max_instances: 2
                   min_instances: 1
                   desired_capacity: 1
-                  instance_key_pair: service.ref ec2.keypairs.aimdemo_dev
+                  instance_key_pair: resource.ref ec2.keypairs.aimdemo_dev
                   monitoring:
                     alarm_sets:
                       launch-health:
@@ -413,7 +413,7 @@ environments:
                 alb:
                   enabled: true
                   dns:
-                    - hosted_zone_id: service.ref route53.aimdemo_dev.id
+                    - hosted_zone_id: resource.ref route53.aimdemo_dev.id
                       domain_name: dev.aimdemo.waterbear.cloud
                   monitoring:
                     alarm_sets:

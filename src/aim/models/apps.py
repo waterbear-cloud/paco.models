@@ -101,7 +101,7 @@ class Application(ApplicationEngine, Regionalized):
     def resolve_ref(self, ref):
         pass
 
-@implementer(schemas.IAppResourceGroups)
+@implementer(schemas.IResourceGroups)
 class ResourceGroups(Named, dict):
     "ResourceGroups"
 
@@ -114,7 +114,7 @@ class ResourceGroups(Named, dict):
         return results
 
 
-@implementer(schemas.IAppResourceGroup)
+@implementer(schemas.IResourceGroup)
 class ResourceGroup(Named, dict):
 
     def resources_ordered(self):

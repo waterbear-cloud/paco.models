@@ -358,7 +358,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
                 log_set[log_category_name] = log_category
                 for log_source_name, log_source_config in log_category_config.items():
                     log_source = CWAgentLogSource(name=log_source_name)
-                    apply_attributes_from_config(log_source, log_source_config, read_file_path)
+                    apply_attributes_from_config(log_source, log_source_config, read_file_path=read_file_path)
                     log_category[log_source_name] = log_source
             log_sets[log_set_name] = log_set
 
@@ -382,7 +382,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             alarm_set.resource_type = resource_type
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
                 alarm = CloudWatchAlarm(name=alarm_name)
-                apply_attributes_from_config(alarm, alarm_config, read_file_path)
+                apply_attributes_from_config(alarm, alarm_config, read_file_path=read_file_path)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
 
@@ -393,6 +393,36 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
                         setattr(alarm_sets[alarm_set_name][alarm_name], setting_name, setting_value)
 
         return alarm_sets
+
+def load_resources(res_groups, groups_config, monitor_config=None, read_file_path=''):
+    """
+    Loads resources for an Application
+    """
+
+    for grp_key, grp_config in groups_config.items():
+        obj = ResourceGroup(grp_key, res_groups)
+        apply_attributes_from_config(obj, grp_config, read_file_path=read_file_path)
+        res_groups[grp_key] = obj
+        for res_key, res_config in grp_config['resources'].items():
+            try:
+                klass = RESOURCES_CLASS_MAP[res_config['type']]
+            except KeyError:
+                if 'type' not in res_config:
+                    raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
+                        self.read_file_path, res_key, res_config)
+                    )
+                import pdb; pdb.set_trace();
+                raise InvalidAimProjectFile(
+                    """Error in file at {}
+    No mapping for type '{}' for resource named '{}'
+
+    Configuration section:
+    {}
+    """.format(self.read_file_path, res_config['type'], res_key, res_config)
+                )
+            obj = klass(res_key, res_groups)
+            apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
+            res_groups[grp_key].resources[res_key] = obj
 
 class ModelLoader():
     """
@@ -538,47 +568,6 @@ class ModelLoader():
             obj = GovernanceMonitoring(name, self.project['governance'].services)
             apply_attributes_from_config(obj, service_config, read_file_path=self.read_file_path)
         self.project['governance'].services.append(obj)
-
-    def load_resources(self, res_groups, app_config, local_config={}):
-        """
-        Loads resources for an Application
-        """
-
-        if 'groups' not in app_config:
-            app_config['groups'] = {}
-
-        # ToDo: this is never called, it can be removed?
-        # layer env config over base app config
-        if  len(local_config.keys()) > 0:
-            merged_config = merge(app_config['groups'], local_config)
-        # if no customizations, use only base config
-        else:
-            merged_config = app_config
-
-        for grp_key, grp_config in merged_config['groups'].items():
-            obj = ResourceGroup(grp_key, res_groups)
-            apply_attributes_from_config(obj, grp_config, read_file_path=self.read_file_path)
-            res_groups[grp_key] = obj
-            for res_key, res_config in grp_config['resources'].items():
-                try:
-                    klass = RESOURCES_CLASS_MAP[res_config['type']]
-                except KeyError:
-                    if 'type' not in res_config:
-                        raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
-                            self.read_file_path, res_key, res_config)
-                        )
-                    import pdb; pdb.set_trace();
-                    raise InvalidAimProjectFile(
-                        """Error in file at {}
-No mapping for type '{}' for resource named '{}'
-
-Configuration section:
-{}
-""".format(self.read_file_path, res_config['type'], res_key, res_config)
-                    )
-                obj = klass(res_key, res_groups)
-                apply_attributes_from_config(obj, res_config, lookup_config=self.monitor_config, read_file_path=self.read_file_path)
-                res_groups[grp_key].resources[res_key] = obj
 
     def load_iam_group(self, res_groups, app_config, local_config={}):
         """
@@ -876,7 +865,9 @@ Configuration section:
 
                 if config_name == 'applications':
                     # Load resources for application
-                    self.load_resources(item.groups, item_config)
+                    if 'groups' not in item_config:
+                        item_config['groups'] = {}
+                    load_resources(item.groups, item_config['groups'], self.monitor_config, self.read_file_path)
                 elif config_name == 'iam':
                     self.load_iam_group(item.groups, item_config)
 

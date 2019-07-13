@@ -1,4 +1,4 @@
-import aim.models.apps
+import aim.models.applications
 import aim.models.networks
 import aim.models.loader
 import os

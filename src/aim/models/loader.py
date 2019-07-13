@@ -11,19 +11,19 @@ from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefa
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
     SecurityGroup, IngressRule, EgressRule, Route53, Route53HostedZone
 from aim.models.project import Project, Credentials
-from aim.models.apps import Application, ResourceGroup
-from aim.models.resources import CodePipeBuildDeploy, ASG, Resource, Resources,LBApplication, \
-    TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, S3BucketPolicy, \
-    AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaFunctionCode, LambdaVariable
+from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
+    Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
+    S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
+    LambdaFunctionCode, LambdaVariable
 from aim.models.governance import Governance, GovernanceService, GovernanceMonitoring
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
-from aim.models.storages import RDS, CodeCommit, CodeCommitRepository
+from aim.models.storages import CodeCommit, CodeCommitRepository
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
-from aim.models.services import EC2Resource, EC2KeyPair
+from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource
 from aim.models import schemas
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
@@ -830,6 +830,18 @@ class ModelLoader():
             ec2_obj.keypairs[keypair_id] = keypair_obj
         return ec2_obj
 
+    def instantiate_s3(self, config):
+        if config == None or 'buckets' not in config.keys():
+            return
+        s3_obj = S3Resource()
+        s3_obj.buckets = {}
+        for bucket_id in config['buckets'].keys():
+            bucket_config = config['buckets'][bucket_id]
+            bucket_obj = S3Bucket(bucket_id, s3_obj)
+            apply_attributes_from_config(bucket_obj, bucket_config)
+            s3_obj.buckets[bucket_id] = bucket_obj
+        return s3_obj
+
     def instantiate_resources(self, name, config):
         if name == "Route53":
             self.project['route53'] = self.instantiate_route53(config)
@@ -837,6 +849,8 @@ class ModelLoader():
             self.project['codecommit'] = self.instantiate_codecommit(config)
         elif name == "EC2":
             self.project['ec2'] = self.instantiate_ec2(config)
+        elif name == "S3":
+            self.project['s3'] = self.instantiate_s3(config)
 
     # Applications and IAM environment config
     # Merged global, region default, and region config

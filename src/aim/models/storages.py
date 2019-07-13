@@ -1,13 +1,7 @@
 from aim.models import schemas
-from aim.models.resources import Resource
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from aim.models.base import Named, Deployable, Regionalized
-
-
-@implementer(schemas.IRDS)
-class RDS(Resource):
-    pass
 
 @implementer(schemas.ICodeCommitRepository)
 class CodeCommitRepository(Named, Deployable, dict):

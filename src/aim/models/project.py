@@ -1,5 +1,5 @@
 import aim.models.networks
-import aim.models.apps
+import aim.models.applications
 from aim.models import schemas
 from aim.models.base import Named
 from aim.models.schemas import IProject

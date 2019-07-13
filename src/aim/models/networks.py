@@ -2,7 +2,7 @@
 All things network.
 """
 
-import aim.models.apps
+import aim.models.applications
 import aim.models.iam
 from aim.models.base import Name, Named, Deployable
 from aim.models import schemas
@@ -74,7 +74,7 @@ class EnvironmentDefault(Named, dict):
         super().__init__(name, __parent__)
 
         # applications
-        self.applications = aim.models.apps.ApplicationEngines(
+        self.applications = aim.models.applications.ApplicationEngines(
             name='applications',
             __parent__=self
         )

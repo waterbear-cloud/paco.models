@@ -659,7 +659,20 @@ class IS3Bucket(IResource, IDeployable):
         value_type=schema.Object(IS3BucketPolicy),
         default=[]
     )
+    region = schema.TextLine(
+        title = "Bucket region",
+        default = None,
+        required = False
+    )
 
+class IS3Resource(INamed):
+    """
+    EC2 Resource Configuration
+    """
+    buckets = schema.Dict(
+        title = "Group of EC2 Key Pairs",
+        value_type = schema.Object(IS3Bucket)
+    )
 
 class IApplicationEngine(INamed, IDeployable):
     """

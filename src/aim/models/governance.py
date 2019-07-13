@@ -2,7 +2,7 @@
 Governance Services
 """
 
-import aim.models.apps
+import aim.models.applications
 import aim.models.iam
 from aim.models.base import Name, Named, Deployable
 from aim.models import schemas

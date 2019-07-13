@@ -17,7 +17,6 @@ class ApplicationEngines(Named, dict):
 
 @implementer(schemas.IApplicationEngine)
 class ApplicationEngine(Named, Deployable, Regionalized, dict):
-    managed_updates = FieldProperty(schemas.IApplicationEngine['managed_updates'])
     groups = FieldProperty(schemas.IApplicationEngine['groups'])
 
     def __init__(self, name, parent):

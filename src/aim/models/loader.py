@@ -11,7 +11,7 @@ from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefa
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
     SecurityGroup, IngressRule, EgressRule, Route53, Route53HostedZone
 from aim.models.project import Project, Credentials
-from aim.models.apps import ApplicationEngines, ApplicationEngine, Application, ResourceGroup
+from aim.models.apps import Application, ResourceGroup
 from aim.models.resources import CodePipeBuildDeploy, ASG, Resource, Resources,LBApplication, \
     TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, S3BucketPolicy, \
     AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment

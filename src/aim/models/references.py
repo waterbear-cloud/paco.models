@@ -12,7 +12,7 @@ from operator import itemgetter
 class AimReference():
 
     def is_ref(self, aim_ref):
-        ref_types = ["netenv.ref", "resource.ref", "config.ref", "function.ref"]
+        ref_types = ["netenv.ref", "resource.ref", "config.ref", "function.ref", "service.ref"]
         for ref_type in ref_types:
             if aim_ref.startswith(ref_type):
                 return True
@@ -64,14 +64,26 @@ class AimReference():
 
 class TextReference(zope.schema.Text):
 
+    def __init__(self, *args, **kwargs):
+        self.str_ok = False
+        if 'str_ok' in kwargs.keys():
+            self.str_ok = kwargs['str_ok']
+            del kwargs['str_ok']
+        super().__init__(*args, **kwargs)
+
     def constraint(self, value):
         """
         Limit text to the format 'word.ref chars_here.more-chars.finalchars100'
         """
+        if self.str_ok:
+            if isinstance(value, str) == False:
+                return False
+            return True
+
         match = re.match("(\w+)\.ref\s+(.*)", value)
         if match:
             ref_type, ref_value = match.groups()
-            if ref_type not in ('resource','service','netenv','config'):
+            if ref_type not in ('resource','service','netenv','config', 'function'):
                 return False
             for part in ref_value.split('.'):
                 if not re.match("[\w-]+", part):
@@ -125,6 +137,26 @@ class Reference():
 
         return None
 
+def resolve_ref_obj(obj, ref, value, part_idx_start):
+    for part_idx in range(part_idx_start, len(ref.parts)):
+        try:
+            obj = obj[ref.parts[part_idx]]
+        except (TypeError, KeyError):
+            attr_obj = getattr(obj, ref.parts[part_idx], None)
+            if attr_obj != None and isinstance(attr_obj, str) == False:
+                obj = attr_obj
+            else:
+                break
+
+    if isinstance(obj, str):
+        pass
+    ref.resource_ref = '.'.join(ref.parts[part_idx:])
+    ref.resource = obj
+    try:
+        response = obj.resolve_ref(ref)
+    except AttributeError:
+        raise InvalidAimReference("Can not resolve the reference '{}'".format(value))
+    return response
 
 def resolve_ref(value, project, account_ctx=None):
     #return '' # XXX until we rework where ref values are stored to avoid schema conflicts
@@ -137,6 +169,12 @@ def resolve_ref(value, project, account_ctx=None):
         if ref.parts[0] == 'ec2':
             return project['ec2'].resolve_ref(ref)
         return project[ref.parts[0]].resolve_ref_obj.resolve_ref(ref)
+    elif ref.type == "service":
+        if ref.parts[3] == 'application':
+            obj = project[ref.parts[0]]
+            response = resolve_ref_obj(obj, ref, value, 3)
+            return response
+        return project[ref.parts[0]].resolve_ref(ref)
     elif ref.type == "netenv":
         # examples:
         # netenv.ref aimdemo.applications.app.resources.webapp.name
@@ -151,25 +189,8 @@ def resolve_ref(value, project, account_ctx=None):
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
         obj = project['ne'][ref.parts[0]][ref.parts[2]][ref.parts[3]]
-        for part_idx in range(4, len(ref.parts)):
-            try:
-                obj = obj[ref.parts[part_idx]]
-            except (TypeError, KeyError):
-                attr_obj = getattr(obj, ref.parts[part_idx], None)
-                if attr_obj and not isinstance(attr_obj, str):
-                    obj = attr_obj
-                else:
-                    break
+        return resolve_ref_obj(obj, ref, value, 4)
 
-        if isinstance(obj, str):
-            pass
-        ref.resource_ref = '.'.join(ref.parts[part_idx:])
-        ref.resource = obj
-        try:
-            response = obj.resolve_ref(ref)
-        except AttributeError:
-            raise InvalidAimReference("Can not resolve the reference '{}'".format(value))
-        return response
 
     elif ref.type == "config":
         return get_config_ref_value(ref, project)

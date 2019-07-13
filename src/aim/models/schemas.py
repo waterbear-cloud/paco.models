@@ -666,11 +666,7 @@ class IApplicationEngine(INamed, IDeployable):
     Application Engine : A template describing an application
     """
     groups = schema.Object(IResourceGroups)
-    managed_updates = schema.Bool(
-        title = "Managed Updates",
-        description = "",
-        default=False
-    )
+
 
 class IApplication(IApplicationEngine, IMapping):
     """
@@ -1390,9 +1386,10 @@ class IASG(IResource, IMonitorable):
         default=300
     )
     instance_iam_role = schema.Object(IRole)
-    instance_ami = schema.TextLine(
+    instance_ami = TextReference(
         title="Instance AMI",
         description="",
+        str_ok=True
     )
     instance_key_pair = TextReference(
         title = "Instance key pair reference",

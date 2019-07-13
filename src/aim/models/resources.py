@@ -104,6 +104,9 @@ class S3Bucket(Resource, Deployable):
         loader.apply_attributes_from_config(policy_obj, policy_dict)
         self.policy.append(policy_obj)
 
+    def set_account(self, account_ref):
+        setattr(self, 'account', account_ref)
+
     def update(self, config_dict):
         loader.apply_attributes_from_config(self, config_dict)
 
@@ -236,7 +239,7 @@ class LambdaEnvironment():
     variables = FieldProperty(schemas.ILambdaEnvironment['variables'])
 
 @implementer(schemas.ILambda)
-class Lambda():
+class Lambda(Resource):
     """
     Lambda Function resource
     """

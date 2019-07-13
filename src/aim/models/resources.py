@@ -40,3 +40,7 @@ class EC2Resource():
 @implementer(schemas.IS3Resource)
 class S3Resource():
     buckets = FieldProperty(schemas.IS3Resource['buckets'])
+
+    def resolve_ref(self, ref):
+        breakpoint()
+        return self.resolve_ref_obj.resolve_ref(ref)

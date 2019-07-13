@@ -1514,7 +1514,7 @@ class ILambdaVariable(Interface):
         required = True
     )
 
-class ILambdaEnvironment(Interface):
+class ILambdaEnvironment(IMapping):
     """
     Lambda Environment
     """
@@ -1524,21 +1524,65 @@ class ILambdaEnvironment(Interface):
         default = []
     )
 
+class ILambdaFunctionCode(Interface):
+    """The deployment package for a Lambda function."""
+    s3_bucket = TextReference(
+        title = "An Amazon S3 bucket in the same AWS Region as your function"
+    )
+    s3_key = schema.TextLine(
+        title = "The Amazon S3 key of the deployment package."
+    )
+
 class ILambda(IResource):
     """
     Lambda Function resource
     """
-    #source_path: src
-    #index_file: monitoring-service.py
-    #function_handler: lambda_handler
-    #runtime: python3.6
-
+    description = schema.TextLine(
+        title = "A description of the function.",
+        required = True
+    )
+    code = schema.Object(
+        title = "The function deployment package.",
+        schema = ILambdaFunctionCode,
+        required = True
+    )
     environment = schema.Object(
         title = "Lambda Function Environment",
         schema = ILambdaEnvironment,
         default = None
     )
-
+    iam_role = schema.Object(
+        title = "The functions execution IAM role",
+        required = True,
+        schema = IRole
+    )
+    handler = schema.TextLine(
+        title = "Function Handler",
+        required = True
+    )
+    memory_size = schema.Int(
+        title = "Function memory size (MB)",
+        min = 128,
+        max = 3008,
+        default = 128
+    )
+    reserved_concurrent_executions = schema.Int(
+        title = "Reserved Concurrent Executions",
+        default = 0
+    )
+    runtime = schema.TextLine(
+        title = "Runtime environment",
+        required = True,
+        # dotnetcore1.0 | dotnetcore2.1 | go1.x | java8 | nodejs10.x | nodejs8.10 | provided | python2.7 | python3.6 | python3.7 | ruby2.5
+        default = 'python3.7'
+    )
+    # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
+    timeout = schema.Int(
+        title = "Max function execution time in seconds.",
+        description = "Must be between 0 and 900 seconds.",
+        min = 0,
+        max = 900,
+    )
 
 class IRoute53HostedZone(IDeployable):
     """

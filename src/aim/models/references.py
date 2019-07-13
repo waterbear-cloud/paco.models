@@ -137,16 +137,16 @@ class Reference():
 
         return None
 
-def resolve_ref_obj(obj, ref, value, part_idx_start):
+def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     for part_idx in range(part_idx_start, len(ref.parts)):
         try:
-            obj = obj[ref.parts[part_idx]]
+            next_obj = obj[ref.parts[part_idx]]
         except (TypeError, KeyError):
-            attr_obj = getattr(obj, ref.parts[part_idx], None)
-            if attr_obj != None and isinstance(attr_obj, str) == False:
-                obj = attr_obj
-            else:
-                break
+            next_obj = getattr(obj, ref.parts[part_idx], None)
+        if next_obj != None and isinstance(next_obj, str) == False:
+            obj = next_obj
+        else:
+            break
 
     if isinstance(obj, str):
         pass
@@ -155,7 +155,7 @@ def resolve_ref_obj(obj, ref, value, part_idx_start):
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
-        raise InvalidAimReference("Can not resolve the reference '{}'".format(value))
+        raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
     return response
 
 def resolve_ref(value, project, account_ctx=None):
@@ -170,9 +170,9 @@ def resolve_ref(value, project, account_ctx=None):
             return project['ec2'].resolve_ref(ref)
         return project[ref.parts[0]].resolve_ref_obj.resolve_ref(ref)
     elif ref.type == "service":
-        if ref.parts[3] == 'application':
+        if ref.parts[3] == 'applications':
             obj = project[ref.parts[0]]
-            response = resolve_ref_obj(obj, ref, value, 3)
+            response = get_resolve_ref_obj(obj, ref, value, 3)
             return response
         return project[ref.parts[0]].resolve_ref(ref)
     elif ref.type == "netenv":
@@ -189,7 +189,7 @@ def resolve_ref(value, project, account_ctx=None):
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
         obj = project['ne'][ref.parts[0]][ref.parts[2]][ref.parts[3]]
-        return resolve_ref_obj(obj, ref, value, 4)
+        return get_resolve_ref_obj(obj, ref, value, 4)
 
 
     elif ref.type == "config":
@@ -263,5 +263,6 @@ def get_config_ref_value(ref, project):
     try:
         account_id = project[ref.parts[0]][ref.parts[1]].account_id
     except KeyError:
+        breakpoint()
         raise InvalidAimReference("Can not resolve the reference '{}'".format(ref.raw))
     return account_id

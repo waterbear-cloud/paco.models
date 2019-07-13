@@ -14,7 +14,7 @@ from aim.models.project import Project, Credentials
 from aim.models.apps import Application, ResourceGroup
 from aim.models.resources import CodePipeBuildDeploy, ASG, Resource, Resources,LBApplication, \
     TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, S3BucketPolicy, \
-    AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment
+    AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaFunctionCode, LambdaVariable
 from aim.models.governance import Governance, GovernanceService, GovernanceMonitoring
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
@@ -123,7 +123,12 @@ SUB_TYPES_CLASS_MAP = {
         'resource': ('str_list', zope.schema.TextLine)
     },
     Lambda: {
-        'environment': ('obj_list', LambdaEnvironment)
+        'environment': ('unnamed_dict', LambdaEnvironment),
+        'code': ('unnamed_dict', LambdaFunctionCode),
+        'iam_role': ('unnamed_dict', Role)
+    },
+    LambdaEnvironment: {
+        'variables': ('obj_list', LambdaVariable)
     },
     ManagedPolicy: {
         'roles': ('str_list', zope.schema.TextLine),
@@ -241,6 +246,8 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
 
         # throw an error if there are fields which do not match the schema
         if not zope.interface.common.mapping.IMapping.providedBy(obj):
+            if isinstance(config, str):
+                breakpoint()
             for key in config.keys():
                 if key not in fields:
                     raise UnusedAimProjectField("""Error in file at {}

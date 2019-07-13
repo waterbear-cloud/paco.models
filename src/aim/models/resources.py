@@ -232,16 +232,32 @@ class LambdaVariable():
     value = FieldProperty(schemas.ILambdaVariable['value'])
 
 @implementer(schemas.ILambdaEnvironment)
-class LambdaEnvironment():
+class LambdaEnvironment(dict):
     """
     Lambda Environment
     """
     variables = FieldProperty(schemas.ILambdaEnvironment['variables'])
+
+@implementer(schemas.ILambdaFunctionCode)
+class LambdaFunctionCode():
+    s3_bucket = FieldProperty(schemas.ILambdaFunctionCode['s3_bucket'])
+    s3_key = FieldProperty(schemas.ILambdaFunctionCode['s3_key'])
 
 @implementer(schemas.ILambda)
 class Lambda(Resource):
     """
     Lambda Function resource
     """
+    description = FieldProperty(schemas.ILambda['description'])
+    code = FieldProperty(schemas.ILambda['code'])
     environment = FieldProperty(schemas.ILambda['environment'])
+    iam_role = FieldProperty(schemas.ILambda['iam_role'])
+    handler = FieldProperty(schemas.ILambda['handler'])
+    memory_size = FieldProperty(schemas.ILambda['memory_size'])
+    reserved_concurrent_executions = FieldProperty(schemas.ILambda['reserved_concurrent_executions'])
+    runtime = FieldProperty(schemas.ILambda['runtime'])
+    # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
+    timeout = FieldProperty(schemas.ILambda['timeout'])
 
+    def resolve_ref(self, ref):
+        breakpoint()

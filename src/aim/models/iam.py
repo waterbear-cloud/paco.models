@@ -47,6 +47,9 @@ class Role(Deployable):
         loader.apply_attributes_from_config(policy_config, policy_config_dict)
         self.policies.append(policy_config)
 
+    def get_arn(self):
+        return self.resolve_ref_obj.get_role_arn()
+
     def resolve_ref(self, ref):
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 

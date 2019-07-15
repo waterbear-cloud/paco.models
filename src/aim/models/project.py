@@ -1,5 +1,6 @@
-import aim.models.networks
 import aim.models.applications
+import aim.models.networks
+import aim.models.resources
 from aim.models import schemas
 from aim.models.base import Named
 from aim.models.schemas import IProject
@@ -31,6 +32,9 @@ class Project(Named, dict):
         self.accounts = aim.models.accounts.Accounts('accounts', self)
         self.accounts.title = 'Cloud Accounts'
         self.__setitem__('accounts', self.accounts)
+
+        # Init an empty S3Resource in-case there is no Resources/S3.yaml
+        self.__setitem__('s3', aim.models.resources.S3Resource())
 
         self.governance = aim.models.governance.Governance(
             name='governance',

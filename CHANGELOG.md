@@ -4,13 +4,15 @@ Changelog for aim.models
 1.2.0 (unreleased)
 ------------------
 
+### Added
+
+- Added S3Resource for Resources/S3.yml configuration
+
 ### Changed
 
 - Services are loaded as entry_point plugins named `aim.services`
 
 - Refactored the models applications, resources, and services.
-
-- Added S3Resource for Resources/S3.yml configuration
 
 
 1.1.0 (2019-07-06)

@@ -671,7 +671,8 @@ class IS3Resource(INamed):
     """
     buckets = schema.Dict(
         title = "Group of EC2 Key Pairs",
-        value_type = schema.Object(IS3Bucket)
+        value_type = schema.Object(IS3Bucket),
+        default = {}
     )
 
 class IApplicationEngine(INamed, IDeployable):

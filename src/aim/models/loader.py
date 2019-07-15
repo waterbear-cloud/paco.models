@@ -246,8 +246,6 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
 
         # throw an error if there are fields which do not match the schema
         if not zope.interface.common.mapping.IMapping.providedBy(obj):
-            if isinstance(config, str):
-                breakpoint()
             for key in config.keys():
                 if key not in fields:
                     raise UnusedAimProjectField("""Error in file at {}
@@ -405,11 +403,10 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
     """
     Loads resources for an Application
     """
-
     for grp_key, grp_config in groups_config.items():
-        obj = ResourceGroup(grp_key, res_groups)
-        apply_attributes_from_config(obj, grp_config, read_file_path=read_file_path)
-        res_groups[grp_key] = obj
+        resource_group = ResourceGroup(grp_key, res_groups)
+        apply_attributes_from_config(resource_group, grp_config, read_file_path=read_file_path)
+        res_groups[grp_key] = resource_group
         for res_key, res_config in grp_config['resources'].items():
             try:
                 klass = RESOURCES_CLASS_MAP[res_config['type']]
@@ -418,7 +415,6 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
                     raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
                         self.read_file_path, res_key, res_config)
                     )
-                import pdb; pdb.set_trace();
                 raise InvalidAimProjectFile(
                     """Error in file at {}
     No mapping for type '{}' for resource named '{}'
@@ -427,7 +423,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
     {}
     """.format(self.read_file_path, res_config['type'], res_key, res_config)
                 )
-            obj = klass(res_key, res_groups)
+            obj = klass(res_key, resource_group)
             apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
             res_groups[grp_key].resources[res_key] = obj
 

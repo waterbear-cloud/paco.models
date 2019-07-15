@@ -161,7 +161,7 @@ class TestAimDemo(BaseTestModelLoader):
         # EC2
         assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'config.ref accounts.dev'
 
-        def test_resource_account(self):
+    def test_resource_account(self):
         dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         account = bastion.get_account()

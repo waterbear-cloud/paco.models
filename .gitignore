@@ -10,7 +10,6 @@ env
 
 # AIM files
 .credentials.yaml
-Resources/
 
 # Buildout
 bin

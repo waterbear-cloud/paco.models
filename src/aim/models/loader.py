@@ -9,21 +9,21 @@ from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, 
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
-    SecurityGroup, IngressRule, EgressRule, Route53, Route53HostedZone
+    SecurityGroup, IngressRule, EgressRule
 from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable
+from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
+    CodeCommit, CodeCommitRepository
 from aim.models.governance import Governance, GovernanceService, GovernanceMonitoring
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
-from aim.models.storages import CodeCommit, CodeCommitRepository
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
-from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource
 from aim.models import schemas
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
@@ -138,7 +138,7 @@ SUB_TYPES_CLASS_MAP = {
     Account: {
         'admin_iam_users': ('named_dict', AdminIAMUser)
     },
-    Route53: {
+    Route53Resource: {
         'hosted_zones': ('named_dict', Route53HostedZone)
     }
 }
@@ -794,7 +794,7 @@ class ModelLoader():
     def instantiate_route53(self, config):
         if config == None:
             return
-        obj = Route53(config)
+        obj = Route53Resource(config)
         apply_attributes_from_config(obj, config)
         return obj
 

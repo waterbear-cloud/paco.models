@@ -263,6 +263,5 @@ def get_config_ref_value(ref, project):
     try:
         account_id = project[ref.parts[0]][ref.parts[1]].account_id
     except KeyError:
-        breakpoint()
         raise InvalidAimReference("Can not resolve the reference '{}'".format(ref.raw))
     return account_id

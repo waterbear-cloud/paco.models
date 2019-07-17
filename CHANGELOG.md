@@ -8,11 +8,15 @@ Changelog for aim.models
 
 - Added S3Resource for Resources/S3.yml configuration
 
+- Added Lambda resolve_ref support
+
 ### Changed
 
 - Services are loaded as entry_point plugins named `aim.services`
 
 - Refactored the models applications, resources, and services.
+
+- Renamed IRoute53 to IRoute53Resource.
 
 
 1.1.0 (2019-07-06)

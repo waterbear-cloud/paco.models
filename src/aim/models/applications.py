@@ -388,7 +388,7 @@ class Lambda(Resource):
     timeout = FieldProperty(schemas.ILambda['timeout'])
 
     def resolve_ref(self, ref):
-        breakpoint()
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IRDS)
 class RDS(Resource):

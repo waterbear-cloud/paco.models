@@ -1523,9 +1523,10 @@ class ILambdaVariable(Interface):
         title = 'Variable Name',
         required = True
     )
-    value = schema.TextLine(
+    value = TextReference(
         title = 'Variable Value',
-        required = True
+        required = True,
+        str_ok=True
     )
 
 class ILambdaEnvironment(IMapping):
@@ -1611,7 +1612,7 @@ class IRoute53HostedZone(IDeployable):
         required = True
     )
 
-class IRoute53(Interface):
+class IRoute53Resource(Interface):
     """
     Route53 Service Configuration
     """

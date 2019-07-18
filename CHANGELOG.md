@@ -18,6 +18,11 @@ Changelog for aim.models
 
 - Renamed IRoute53 to IRoute53Resource.
 
+### Fixed
+
+ - CloudWatchAlarms now validate a classification field value of
+   'performance', 'health' or 'security' is supplied.
+
 
 1.1.0 (2019-07-06)
 ------------------

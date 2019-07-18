@@ -46,7 +46,8 @@ class AlarmSets(dict):
 @implementer(schemas.IAlarm)
 class Alarm(Name):
     "Alarm"
-    severity = FieldProperty(schemas.IAlarmSet["resource_type"])
+    classification = FieldProperty(schemas.IAlarm["classification"])
+    severity = FieldProperty(schemas.IAlarm["severity"])
 
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
@@ -63,6 +64,7 @@ class CloudWatchAlarm(Alarm):
 
     def __init__(self, name):
         self.name = name
+        #self.classification = "invalid" # force this field to be supplied as a valid classification string
 
     def threshold_human(self):
         "Human readable threshold"

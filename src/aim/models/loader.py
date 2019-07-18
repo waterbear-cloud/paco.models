@@ -299,8 +299,9 @@ Unneeded field '{}' in config for object type '{}'
                                 """Error in file at {}
 Invalid config for field '{}' for object type '{}'.
 Value supplied: {}
+Field Context name: {}
 Reason: {}
-Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, exc.__doc__, exc)
+Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, exc.field.context.name, exc.__doc__, exc)
                             )
 
 def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):

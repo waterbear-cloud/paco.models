@@ -6,6 +6,8 @@ Changelog for aim.models
 
 ### Added
 
+- Schema for Notifications for subscribing to Alarms
+
 - Added S3Resource for Resources/S3.yml configuration
 
 - Added Lambda resolve_ref support

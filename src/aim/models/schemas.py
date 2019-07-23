@@ -372,12 +372,12 @@ class IResourceGroups(INamed, IMapping):
     "A collection of Application Resource Groups"
     pass
 
-class IAlarmNotifications(INamed, IMapping):
+class IAlarmNotifications(IMapping):
     """
     Alarm Notifications
     """
 
-class IAlarmNotification(INamed):
+class IAlarmNotification(Interface):
     """
     Alarm Notification
     """

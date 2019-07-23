@@ -5,11 +5,11 @@ from zope.schema.fieldproperty import FieldProperty
 
 
 @implementer(schemas.IAlarmNotifications)
-class AlarmNotifications(Named, dict):
+class AlarmNotifications(dict):
     "Container of AlarmNotifications"
 
 @implementer(schemas.IAlarmNotification)
-class AlarmNotification(Named):
+class AlarmNotification():
     "AlarmNotification"
     groups = FieldProperty(schemas.IAlarmNotification["groups"])
     classification = FieldProperty(schemas.IAlarmNotification["classification"])
@@ -51,7 +51,7 @@ class AlarmSet(dict):
     resource_type = FieldProperty(schemas.IAlarmSet["resource_type"])
 
     def __init__(self):
-        self.notifications = AlarmNotifications('notifications', self)
+        self.notifications = AlarmNotifications()
 
 @implementer(schemas.IAlarmSets)
 class AlarmSets(dict):
@@ -65,7 +65,7 @@ class Alarm(Name):
 
     def __init__(self, name):
         self.name = name
-        self.notifications = AlarmNotifications('notifications', self)
+        self.notifications = AlarmNotifications()
 
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
@@ -110,12 +110,13 @@ class MonitorConfig(Deployable, Named):
     collection_interval = FieldProperty(schemas.IMonitorConfig["collection_interval"])
     metrics = FieldProperty(schemas.IMonitorConfig["metrics"])
     asg_metrics = FieldProperty(schemas.IMonitorConfig["asg_metrics"])
+    notifications = FieldProperty(schemas.IMonitorConfig["notifications"])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets()
         self.log_sets = LogSets()
-        self.notifications = AlarmNotifications('notifications', self)
+        self.notifications = AlarmNotifications()
 
 @implementer(schemas.IMetric)
 class Metric():

@@ -24,7 +24,7 @@ class ApplicationEngine(Named, Deployable, Regionalized, dict):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.groups = ResourceGroups('groups', self)
-        self.notifications = AlarmNotifications('notifications', self)
+        self.notifications = AlarmNotifications()
 
     # Returns a list of groups sorted by 'order'
     def groups_ordered(self):

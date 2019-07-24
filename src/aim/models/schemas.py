@@ -1598,6 +1598,11 @@ class ILambda(IResource):
         min = 0,
         max = 900,
     )
+    sdb_cache = schema.Bool(
+        title = "SDB Cache Domain",
+        required=False,
+        default=False
+    )
 
 class IRoute53HostedZone(IDeployable):
     """

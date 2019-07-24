@@ -549,10 +549,11 @@ class ModelLoader():
                                 # Standard AWS Resources in an Application's Resource Group
                                 resource_config = groups_config[grp_name]['resources'][res_name]
                                 resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
+
                                 if 'name' in resource_config:
                                     # ALB have a name attribute with an embedded __name__
                                     resource.resource_name = resource_config['name']['__name__']
-                                else:
+                                elif '__name__' in resource_config:
                                     resource.resource_name = resource_config['__name__']
 
                                 # CloudWatch Alarms

@@ -281,6 +281,8 @@ class ASG(Resource, Monitorable):
             return self
         elif ref.resource_ref.startswith('instance_id'):
             self.resolve_ref_obj.resolve_ref(ref)
+        elif ref.last_part == 'resource_name':
+            return self.resource_name
         #return self.stack_group_object.get_stack_from_ref(self, aim_ref, ref_parts)
         return None
 
@@ -386,6 +388,7 @@ class Lambda(Resource):
     runtime = FieldProperty(schemas.ILambda['runtime'])
     # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
     timeout = FieldProperty(schemas.ILambda['timeout'])
+    sdb_cache = FieldProperty(schemas.ILambda['sdb_cache'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

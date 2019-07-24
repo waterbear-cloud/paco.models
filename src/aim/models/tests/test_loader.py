@@ -166,3 +166,30 @@ class TestAimDemo(BaseTestModelLoader):
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         account = bastion.get_account()
         assert account.name, 'dev'
+
+    def test_notifications(self):
+        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_app = demo_env['applications']['app']
+
+        # notifications for applications
+        assert schemas.IAlarmNotifications.providedBy(demo_app.notifications)
+        assert schemas.IAlarmNotification.providedBy(demo_app.notifications['team_bob'])
+        assert demo_app.notifications['team_bob'].classification, 'performance'
+
+        # test application override
+        assert demo_app.notifications['team_bob'].groups[0], 'jim_is_the_new_bob'
+
+        # notification for a resource
+        webapp = demo_app.groups['site'].resources['webapp']
+        notif_group = webapp.monitoring.notifications['santaclaus']
+        assert notif_group.groups[0], 'santa'
+
+        # notification for an alarm set
+        alarm_set = webapp.monitoring.alarm_sets['instance-health-cwagent']
+        assert schemas.IAlarmNotifications.providedBy(alarm_set.notifications)
+        assert alarm_set.notifications['alarmsetnotif'].groups[0], 'misterteam'
+
+        # notification for just a single alarm
+        alarm_with_notif = alarm_set['SwapPercent-Low']
+        assert schemas.IAlarmNotifications.providedBy(alarm_with_notif.notifications)
+        assert alarm_with_notif.notifications['singlealarm']

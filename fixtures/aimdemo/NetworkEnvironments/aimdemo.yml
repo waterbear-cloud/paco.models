@@ -92,6 +92,11 @@ applications:
   app:
     enabled: true
     managed_updates: true
+    notifications:
+      team_bob:
+        groups:
+         - bob
+        classification: 'performance'
     groups:
       cicd:
         type: Deployment
@@ -310,6 +315,11 @@ environments:
       applications:
         app:
           enabled: true
+          notifications:
+            team_bob:
+              groups:
+              - jim_is_the_new_bob
+              classification: 'performance'
           groups:
             cicd:
               resources:
@@ -336,6 +346,11 @@ environments:
                   max_instances: 3
                   min_instances: 0
                   monitoring:
+                    notifications:
+                      santaclaus:
+                        groups:
+                        - santa
+                        severity: 'low'
                     log_sets:
                       amazon_linux:
                         linux:
@@ -345,8 +360,16 @@ environments:
                       launch-health:
                       instance-health-core:
                       instance-health-cwagent:
+                        notifications:
+                          alarmsetnotif:
+                            groups:
+                            - misterteam
                         SwapPercent-Low:
                           evaluation_periods: 15
+                          notifications:
+                            singlealarm:
+                              groups:
+                              - oneguygetsthis
       enabled: true
       network:
         aws_account: config.ref accounts.prod

@@ -107,6 +107,11 @@ def isValidAlarmSeverity(value):
         raise InvalidAlarmSeverity
     return True
 
+def isValidAlarmSeverityFilter(value):
+    "Filters can be None or ''"
+    if not value: return True
+    return isValidAlarmSeverity(value)
+
 class InvalidAlarmClassification(schema.ValidationError):
     __doc__ = 'Classification must be one of: health, performance, security'
 
@@ -114,6 +119,11 @@ def isValidAlarmClassification(value):
     if value not in vocabulary.alarm_classifications:
         raise InvalidAlarmClassification
     return True
+
+def isValidAlarmClassificationFilter(value):
+    "Filters can be None or ''"
+    if not value: return True
+    return isValidAlarmClassification(value)
 
 class InvalidASGMetricName(schema.ValidationError):
     __doc__ = 'ASG Metric name is not valid'
@@ -284,11 +294,6 @@ class IIngressRule(ISecurityGroupRule):
 class IEgressRule(ISecurityGroupRule):
     "Security group egress"
 
-#class ISecurityGroups(IMapping):
-#    """
-#    Collection of Security Groups
-#    """
-
 class ISecurityGroup(Interface):
     """
     AWS Resource: Security Group
@@ -367,7 +372,43 @@ class IResourceGroups(INamed, IMapping):
     "A collection of Application Resource Groups"
     pass
 
-class IAlarmSet(IMapping):
+class IAlarmNotifications(IMapping):
+    """
+    Alarm Notifications
+    """
+
+class IAlarmNotification(Interface):
+    """
+    Alarm Notification
+    """
+    groups = schema.List(
+        title = "List of groups",
+        value_type=schema.TextLine(
+            title="Group"
+        ),
+        required = True
+    )
+    classification = schema.TextLine(
+        title = "Classification filter",
+        description = "Must be one of: 'performance', 'security' or 'health'",
+        constraint = isValidAlarmClassificationFilter
+    )
+    severity = schema.TextLine(
+        title = "Severity filter",
+        constraint = isValidAlarmSeverityFilter,
+        description = "Must be one of: 'low', 'critical'"
+    )
+
+class INotifiable(Interface):
+    """
+    A notifiable object
+    """
+    notifications = schema.Object(
+        title = "Alarm Notifications",
+        schema = IAlarmNotifications,
+    )
+
+class IAlarmSet(IMapping, INotifiable):
     """
     A collection of Alarms
     """
@@ -376,12 +417,13 @@ class IAlarmSet(IMapping):
         description = "Must be a valid AWS resource type"
     )
 
+
 class IAlarmSets(IMapping):
     """
     A collection of AlarmSets
     """
 
-class IAlarm(IDeployable, IName):
+class IAlarm(IDeployable, IName, INotifiable):
     """
     An Alarm
     """
@@ -396,6 +438,7 @@ class IAlarm(IDeployable, IName):
         description = "Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification
     )
+
 
 class ICloudWatchAlarm(IAlarm):
     """
@@ -517,7 +560,7 @@ class IMetric(Interface):
         required=False
     )
 
-class IMonitorConfig(IDeployable, INamed):
+class IMonitorConfig(IDeployable, INamed, INotifiable):
     """
     A set of metrics and a default collection interval
     """
@@ -546,6 +589,7 @@ class IMonitorConfig(IDeployable, INamed):
         title="Sets of Log Sets",
         schema=ILogSets,
     )
+
 
 class IMonitorable(Interface):
     """
@@ -597,11 +641,6 @@ class ICWLogGroup(Interface):
         schema = IMetricFilters
     )
 
-#class IS3BucketPolicies(ISequence):
-#    """
-#    A list of S3 Bucket Policies
-#    """
-#    pass
 
 class IS3BucketPolicy(Interface):
     """
@@ -675,7 +714,7 @@ class IS3Resource(INamed):
         default = {}
     )
 
-class IApplicationEngine(INamed, IDeployable):
+class IApplicationEngine(INamed, IDeployable, INotifiable):
     """
     Application Engine : A template describing an application
     """

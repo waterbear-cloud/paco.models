@@ -1,10 +1,18 @@
 Changelog for aim.models
 =================
 
-1.2.0 (unreleased)
+2.1.0 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+2.0.0 (2019-07-23)
 ------------------
 
 ### Added
+
+- Schema for Notifications for subscribing to Alarms
 
 - Added S3Resource for Resources/S3.yml configuration
 
@@ -17,6 +25,11 @@ Changelog for aim.models
 - Refactored the models applications, resources, and services.
 
 - Renamed IRoute53 to IRoute53Resource.
+
+### Fixed
+
+ - CloudWatchAlarms now validate a classification field value of
+   'performance', 'health' or 'security' is supplied.
 
 
 1.1.0 (2019-07-06)

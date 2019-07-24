@@ -4,6 +4,17 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
 
+@implementer(schemas.IAlarmNotifications)
+class AlarmNotifications(dict):
+    "Container of AlarmNotifications"
+
+@implementer(schemas.IAlarmNotification)
+class AlarmNotification():
+    "AlarmNotification"
+    groups = FieldProperty(schemas.IAlarmNotification["groups"])
+    classification = FieldProperty(schemas.IAlarmNotification["classification"])
+    severity = FieldProperty(schemas.IAlarmNotification["severity"])
+
 @implementer(schemas.ILogSets)
 class LogSets(dict):
     "Collections of Log Sets"
@@ -39,6 +50,9 @@ class CWAgentLogSource(LogSource):
 class AlarmSet(dict):
     resource_type = FieldProperty(schemas.IAlarmSet["resource_type"])
 
+    def __init__(self):
+        self.notifications = AlarmNotifications()
+
 @implementer(schemas.IAlarmSets)
 class AlarmSets(dict):
     "Collection of Alarms"
@@ -46,7 +60,12 @@ class AlarmSets(dict):
 @implementer(schemas.IAlarm)
 class Alarm(Name):
     "Alarm"
-    severity = FieldProperty(schemas.IAlarmSet["resource_type"])
+    classification = FieldProperty(schemas.IAlarm["classification"])
+    severity = FieldProperty(schemas.IAlarm["severity"])
+
+    def __init__(self, name):
+        self.name = name
+        self.notifications = AlarmNotifications()
 
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
@@ -60,9 +79,6 @@ class CloudWatchAlarm(Alarm):
     treat_missing_data = FieldProperty(schemas.ICloudWatchAlarm["treat_missing_data"])
     extended_statistic = FieldProperty(schemas.ICloudWatchAlarm["extended_statistic"])
     evaluate_low_sample_count_percentile = FieldProperty(schemas.ICloudWatchAlarm["evaluate_low_sample_count_percentile"])
-
-    def __init__(self, name):
-        self.name = name
 
     def threshold_human(self):
         "Human readable threshold"
@@ -94,11 +110,13 @@ class MonitorConfig(Deployable, Named):
     collection_interval = FieldProperty(schemas.IMonitorConfig["collection_interval"])
     metrics = FieldProperty(schemas.IMonitorConfig["metrics"])
     asg_metrics = FieldProperty(schemas.IMonitorConfig["asg_metrics"])
+    notifications = FieldProperty(schemas.IMonitorConfig["notifications"])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets()
         self.log_sets = LogSets()
+        self.notifications = AlarmNotifications()
 
 @implementer(schemas.IMetric)
 class Metric():

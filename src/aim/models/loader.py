@@ -5,7 +5,8 @@ import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
-from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, AlarmSets
+from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
+    AlarmSets, AlarmNotifications, AlarmNotification
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -79,9 +80,10 @@ SUB_TYPES_CLASS_MAP = {
         'metrics': ('obj_list', Metric),
         'alarm_sets': ('alarm_sets', AlarmSets),
         'log_sets': ('log_sets', LogSets),
+        'notifications': ('notifications', AlarmNotifications)
     },
     CodePipeBuildDeploy: {
-        'artifacts_bucket': ('unnamed_dict', S3Bucket),
+        'artifacts_bucket': ('named_dict', S3Bucket),
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy)
@@ -104,6 +106,11 @@ SUB_TYPES_CLASS_MAP = {
     SecurityGroup: {
         'ingress': ('obj_list', IngressRule),
         'egress' : ('obj_list', EgressRule)
+    },
+
+    # Application
+    Application: {
+        'notifications': ('notifications', AlarmNotifications)
     },
 
     # IAM
@@ -295,12 +302,17 @@ Unneeded field '{}' in config for object type '{}'
                             else:
                                 setattr(obj, name, copy.deepcopy(value))
                         except ValidationError as exc:
+                            try:
+                                field_context_name = exc.field.context.name
+                            except AttributeError:
+                                field_context_name = 'Not applicable'
                             raise InvalidAimProjectFile(
                                 """Error in file at {}
 Invalid config for field '{}' for object type '{}'.
 Value supplied: {}
+Field Context name: {}
 Reason: {}
-Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, exc.__doc__, exc)
+Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, field_context_name, exc.__doc__, exc)
                             )
 
 def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
@@ -395,9 +407,28 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             if value[alarm_set_name] is not None:
                 for alarm_name in value[alarm_set_name].keys():
                     for setting_name, setting_value in value[alarm_set_name][alarm_name].items():
-                        setattr(alarm_sets[alarm_set_name][alarm_name], setting_name, setting_value)
+                        # 'notifications' is a reserved name for AlarmSet and Alarm objects
+                        # load notifications for an AlarmSet
+                        if alarm_name == 'notifications':
+                            alarm_sets[alarm_set_name].notifications = instantiate_notifications(
+                                value[alarm_set_name]['notifications'],
+                                read_file_path
+                            )
+                        # load notifications for an Alarm
+                        elif setting_name == 'notifications':
+                            alarm_sets[alarm_set_name][alarm_name].notifications = instantiate_notifications(
+                                value[alarm_set_name][alarm_name]['notifications'],
+                                read_file_path
+                            )
+                        else:
+                            setattr(alarm_sets[alarm_set_name][alarm_name], setting_name, setting_value)
 
         return alarm_sets
+
+    elif sub_type == 'notifications':
+        # Special loading for AlarmNotifications
+        return instantiate_notifications(value, read_file_path)
+
 
 def load_resources(res_groups, groups_config, monitor_config=None, read_file_path=''):
     """
@@ -426,6 +457,14 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
             obj = klass(res_key, resource_group)
             apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
             res_groups[grp_key].resources[res_key] = obj
+
+def instantiate_notifications(value, read_file_path):
+    notifications = AlarmNotifications()
+    for notification_name in value.keys():
+        notification = AlarmNotification()
+        apply_attributes_from_config(notification, value[notification_name], read_file_path=read_file_path)
+        notifications[notification_name] = notification
+    return notifications
 
 class ModelLoader():
     """
@@ -849,14 +888,20 @@ class ModelLoader():
         elif name == "S3":
             self.project['s3'] = self.instantiate_s3(config)
 
-    # Applications and IAM environment config
-    # Merged global, region default, and region config
-    def instantiate_env_region_config(self,
-                                      config_name, # iam, applications
-                                      item_klass,
-                                      env_region_config,
-                                      env_region,
-                                      global_config):
+    def instantiate_env_region_config(
+        self,
+        config_name, # iam, applications
+        item_klass,
+        env_region_config,
+        env_region,
+        global_config
+    ):
+        """Load applications and IAM into an EnvironmentRegion
+
+        Applications merge the global ApplicationEngine configuration
+        with the EnvironmentDefault configuration with the final
+        EnvironmentRegion configuration.
+        """
         if config_name in env_region_config:
             global_item_config = global_config[config_name]
             for item_name, item_config in env_region_config[config_name].items():
@@ -959,19 +1004,13 @@ class ModelLoader():
                     apply_attributes_from_config(network, net_config, read_file_path=self.read_file_path)
 
                     # Applications
-                    self.instantiate_env_region_config('applications',
-                                                       Application,
-                                                       env_region_config,
-                                                       env_region,
-                                                       config)
-
-                    # IAM
-                    #self.instantiate_env_region_config('iam',
-                    #                                   IAMGroup,
-                    #                                   env_region_config,
-                    #                                   env_region,
-                    #                                   config)
-
+                    self.instantiate_env_region_config(
+                        'applications',
+                        Application,
+                        env_region_config,
+                        env_region,
+                        config
+                    )
                     if env_reg_name != 'default':
                         # Insert the environment and region into any Refs
                         self.normalize_environment_refs(env_region, env_name, env_reg_name)

@@ -6,7 +6,7 @@ from aim.models import loader
 from aim.models import schemas
 from aim.models.base import Named, Deployable, Regionalized
 from aim.models.locations import get_parent_by_interface
-from aim.models.metrics import Monitorable
+from aim.models.metrics import Monitorable, AlarmNotifications
 from aim.models.references import AimReference
 from aim.models.vocabulary import application_group_types
 from zope.interface import implementer
@@ -24,6 +24,7 @@ class ApplicationEngine(Named, Deployable, Regionalized, dict):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.groups = ResourceGroups('groups', self)
+        self.notifications = AlarmNotifications()
 
     # Returns a list of groups sorted by 'order'
     def groups_ordered(self):
@@ -204,9 +205,6 @@ class CodePipeBuildDeploy(Resource):
 
         return None
 
-#@implementer(schemas.IS3BucketPolicies)
-#class S3BucketPolicies():
-#    pass
 
 @implementer(schemas.IS3BucketPolicy)
 class S3BucketPolicy():

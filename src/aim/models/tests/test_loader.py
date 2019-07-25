@@ -193,3 +193,31 @@ class TestAimDemo(BaseTestModelLoader):
         alarm_with_notif = alarm_set['SwapPercent-Low']
         assert schemas.IAlarmNotifications.providedBy(alarm_with_notif.notifications)
         assert alarm_with_notif.notifications['singlealarm']
+
+    def test_alarm_notifications(self):
+        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
+
+        alarm_set = webapp.monitoring.alarm_sets['instance-health-cwagent']
+
+        # alarm with specific notification
+        alarm_one = alarm_set['SwapPercent-Low']
+        assert alarm_one.notification_groups, ['oneguygetsthis', 'misterteam', 'santa', 'jim_is_the_new_bob']
+
+        # alarm with alarm set notification
+        alarm_two = alarm_set['SwapPercent-Critical']
+        assert alarm_two.notification_groups, ['misterteam', 'santa', 'jim_is_the_new_bob']
+
+        # alarm with resource notification
+        alarm_set = webapp.monitoring.alarm_sets['launch-health']
+        alarm_three = alarm_set['GroupPendingInstances-Low']
+        assert alarm_three.notification_groups, ['santa']
+
+        # alarm with no notifications, is filtered out of on severity and performance
+        alarm_four = alarm_set['GroupPendingInstances-Critical']
+        assert len(alarm_four.notification_groups) == 0
+
+        # alarm with only app notification
+        alarm_set = webapp.monitoring.alarm_sets['instance-health-core']
+        alarm_five = alarm_set['CPUTotal-Low']
+        assert alarm_five.notification_groups, ['santa']

@@ -1,5 +1,6 @@
-from aim.models.base import Deployable, Named, Name
 from aim.models import schemas, vocabulary
+from aim.models.base import Deployable, Named, Name
+from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -67,6 +68,40 @@ class Alarm(Named):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.notifications = AlarmNotifications()
+
+    def _add_notifications_to_groups(self, notifications, groups):
+        for notification in notifications.values():
+            # do not add if it is filtered out
+            if notification.classification and self.classification != notification.classification:
+                continue
+            if notification.severity and self.severity != notification.severity:
+                continue
+            for group in notification.groups:
+                if group not in groups:
+                    groups[group] = None
+        return groups
+
+    @property
+    def notification_groups(self):
+        "A unique list of notification groups that an Alarm is subscribed to"
+        groups = {}
+
+        # start with any notifications specific to the alarm
+        groups = self._add_notifications_to_groups(self.notifications, groups)
+
+        # add on notifications for the AlarmSet
+        alarm_set = get_parent_by_interface(self, schemas.IAlarmSet)
+        groups = self._add_notifications_to_groups(alarm_set.notifications, groups)
+
+        # add on notifications for the Resource
+        monitor = get_parent_by_interface(self, schemas.IMonitorConfig)
+        groups = self._add_notifications_to_groups(monitor.notifications, groups)
+
+        # add on notifications for the Application
+        app = get_parent_by_interface(self, schemas.IApplication)
+        groups = self._add_notifications_to_groups(app.notifications, groups)
+
+        return list(groups.keys())
 
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):

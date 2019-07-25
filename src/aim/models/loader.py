@@ -202,6 +202,8 @@ def get_all_nodes(root):
                     for child in obj.values():
                         stack.insert(0, child)
             elif zope.schema.interfaces.IList.providedBy(field):
+                # skip computed fields
+                if field.readonly: continue
                 # don't drill down into lists of strings - only lists of model objects
                 for obj in getattr(cur_node, field_name, None):
                     if type(obj) != type(''):
@@ -754,7 +756,7 @@ class ModelLoader():
                     if value != None and value.find('netenv.ref') != -1:
                         value = self.insert_subenv_ref_str(value, env_name, env_region)
                         setattr(model, attr_name, value)
-                elif zope.schema.interfaces.IList.providedBy(field):
+                elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     new_list = []
                     attr_name = name
                     modified = False

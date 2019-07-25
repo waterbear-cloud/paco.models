@@ -438,7 +438,11 @@ class IAlarm(INamed, IDeployable, IName, INotifiable):
         description = "Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification
     )
-
+    notification_groups = schema.List(
+        readonly = True,
+        title = "List of notificationn groups the alarm is subscribed to.",
+        value_type=schema.TextLine(title="Notification group name")
+    )
 
 class ICloudWatchAlarm(IAlarm):
     """

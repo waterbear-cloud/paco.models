@@ -47,24 +47,25 @@ class CWAgentLogSource(LogSource):
         self.name = name
 
 @implementer(schemas.IAlarmSet)
-class AlarmSet(dict):
+class AlarmSet(Named, dict):
     resource_type = FieldProperty(schemas.IAlarmSet["resource_type"])
 
-    def __init__(self):
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
         self.notifications = AlarmNotifications()
 
 @implementer(schemas.IAlarmSets)
-class AlarmSets(dict):
+class AlarmSets(Named, dict):
     "Collection of Alarms"
 
 @implementer(schemas.IAlarm)
-class Alarm(Name):
+class Alarm(Named):
     "Alarm"
     classification = FieldProperty(schemas.IAlarm["classification"])
     severity = FieldProperty(schemas.IAlarm["severity"])
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
         self.notifications = AlarmNotifications()
 
 @implementer(schemas.ICloudWatchAlarm)
@@ -114,7 +115,7 @@ class MonitorConfig(Deployable, Named):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
-        self.alarm_sets = AlarmSets()
+        self.alarm_sets = AlarmSets('alarm_sets', self)
         self.log_sets = LogSets()
         self.notifications = AlarmNotifications()
 

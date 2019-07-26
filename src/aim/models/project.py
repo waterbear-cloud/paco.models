@@ -36,12 +36,6 @@ class Project(Named, dict):
         # Init an empty S3Resource in-case there is no Resources/S3.yaml
         self.__setitem__('s3', aim.models.resources.S3Resource())
 
-        self.governance = aim.models.governance.Governance(
-            name='governance',
-            __parent__=self
-        )
-        self.governance.title = 'Governance'
-        self.__setitem__('governance', self.governance)
 
     def find_object_from_cli(self, controller_type, component_name=None, config_name=None):
         found = None

@@ -1,8 +1,28 @@
 # aim.models
 
-aim.models: Semantic cloud infrastructure configuration file format and object models
+An object model for semantic cloud infrastructure.
 
-# Developing
+`aim.models` parses a directory of YAML files that compose an AIM Project and loads them
+into a complete object model.
+
+
+## What's in the model?
+
+The model defines common logical cloud infrastructure concepts, such as networks, accounts,
+applications and environments.
+
+The model uses network and applications as hierarchical trees of configuration that can
+have their values over rode when they are placed into environments. Environments live in a
+network and contain applications, and typically represent the stages of the software development
+lifecycle (SDLC), such as 'development', 'staging' and 'production'.
+
+The model has a declarative schema that explicitly defines the fields for each object type in the model.
+This schema declares not only type (e.g. string, integer) but can also declare defaults, min and max values,
+constrain to specific values, and define invariants that ensure that if one field has a specific value, another
+fields value is compatabile with that. The model will validates these fields when it loads an AIM Project.
+
+
+## Developing
 
 Install this package with your Python tool of choice. Typically set-up a virtualenv
 and pip install the dependencies in there:

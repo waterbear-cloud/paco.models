@@ -18,7 +18,6 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     LambdaFunctionCode, LambdaVariable
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository
-from aim.models.governance import Governance, GovernanceService, GovernanceMonitoring
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
@@ -480,7 +479,6 @@ class ModelLoader():
             "MonitorConfig": self.instantiate_monitor_config,
             "Accounts": self.instantiate_accounts,
             "NetworkEnvironments": self.instantiate_network_environments,
-            "Governance": self.instantiate_governance,
             "Resources": self.instantiate_resources,
         }
         self.yaml = YAML(typ="safe", pure=True)
@@ -604,15 +602,6 @@ class ModelLoader():
                                             for alarm_name in resource_config['monitoring']['alarm_sets'][alarm_set_name]:
                                                 alarm = resource.monitoring.alarm_sets[alarm_set_name][alarm_name]
                                                 alarm.resource_name = resource_config['monitoring']['alarm_sets'][alarm_set_name][alarm_name]['__name__']
-
-    def load_governance_service(self, name):
-        "Loads resource ids from CFN Outputs"
-        service_yaml_path = "Governance" + os.sep + name
-        service_config = self.read_yaml(service_yaml_path, name+".yaml")
-        if name == "Monitoring":
-            obj = GovernanceMonitoring(name, self.project['governance'].services)
-            apply_attributes_from_config(obj, service_config, read_file_path=self.read_file_path)
-        self.project['governance'].services.append(obj)
 
     def load_iam_group(self, res_groups, app_config, local_config={}):
         """
@@ -776,14 +765,6 @@ class ModelLoader():
             apply_attributes_from_config(self.project, config, read_file_path=self.read_file_path)
         elif name == '.credentials':
             apply_attributes_from_config(self.project['credentials'], config, read_file_path=self.read_file_path)
-
-    def instantiate_governance(self, name, config):
-        if name != "Governance":
-            return
-        return
-        # Under Construction
-        #for [service_id, service_config] in config['services'].items():
-        #    self.load_governance_service(service_id)
 
     def instantiate_services(self):
         """

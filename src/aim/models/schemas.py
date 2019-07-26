@@ -1534,29 +1534,6 @@ class IEnvironment(INamed, IMapping):
     """
     #default = schema.Object(IEnvironmentDefault)
 
-class IGovernanceServices(INamed, IMapping):
-    """
-    A collection of GovernanceServices
-    """
-
-class IGovernanceService(INamed, IDeployable, IMapping):
-    aws_account = TextReference(
-        title = 'AWS Account Reference'
-    )
-    aws_region = schema.TextLine(
-        title = "AWS Region",
-        description = "The AWS region to provision this service in."
-    )
-    resources = schema.Object(IResources)
-
-class IGovernance(INamed):
-    services = schema.Object(IGovernanceServices)
-
-class IGovernanceMonitoring(IGovernanceService):
-    """
-    Governance Monitoring Service
-    """
-
 
 class ILambdaVariable(Interface):
     """

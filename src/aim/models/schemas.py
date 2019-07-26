@@ -408,7 +408,7 @@ class INotifiable(Interface):
         schema = IAlarmNotifications,
     )
 
-class IAlarmSet(IMapping, INotifiable):
+class IAlarmSet(INamed, IMapping, INotifiable):
     """
     A collection of Alarms
     """
@@ -418,12 +418,12 @@ class IAlarmSet(IMapping, INotifiable):
     )
 
 
-class IAlarmSets(IMapping):
+class IAlarmSets(INamed, IMapping):
     """
     A collection of AlarmSets
     """
 
-class IAlarm(IDeployable, IName, INotifiable):
+class IAlarm(INamed, IDeployable, IName, INotifiable):
     """
     An Alarm
     """
@@ -438,7 +438,11 @@ class IAlarm(IDeployable, IName, INotifiable):
         description = "Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification
     )
-
+    notification_groups = schema.List(
+        readonly = True,
+        title = "List of notificationn groups the alarm is subscribed to.",
+        value_type=schema.TextLine(title="Notification group name")
+    )
 
 class ICloudWatchAlarm(IAlarm):
     """

@@ -8,6 +8,11 @@ Changelog for aim.models
 
 - sdb_cache field for Lambda.
 
+### Changed
+
+ - AlarmSets, AlarmSet and Alarm all now implement INamed and
+   are locatable in the model
+
 
 2.0.0 (2019-07-23)
 ------------------

@@ -202,6 +202,8 @@ def get_all_nodes(root):
                     for child in obj.values():
                         stack.insert(0, child)
             elif zope.schema.interfaces.IList.providedBy(field):
+                # skip computed fields
+                if field.readonly: continue
                 # don't drill down into lists of strings - only lists of model objects
                 for obj in getattr(cur_node, field_name, None):
                     if type(obj) != type(''):
@@ -391,14 +393,14 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
 
     elif sub_type == 'alarm_sets':
         # Special loading for AlarmSets
-        alarm_sets = AlarmSets()
+        alarm_sets = AlarmSets('alarm_sets', obj)
         for alarm_set_name in value.keys():
             # look-up AlarmsSet by Resource type and name
             resource_type = obj.__parent__.type
-            alarm_set = AlarmSet()
+            alarm_set = AlarmSet(alarm_set_name, alarm_sets)
             alarm_set.resource_type = resource_type
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
-                alarm = CloudWatchAlarm(name=alarm_name)
+                alarm = CloudWatchAlarm(alarm_name, alarm_set)
                 apply_attributes_from_config(alarm, alarm_config, read_file_path=read_file_path)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
@@ -754,7 +756,7 @@ class ModelLoader():
                     if value != None and value.find('netenv.ref') != -1:
                         value = self.insert_subenv_ref_str(value, env_name, env_region)
                         setattr(model, attr_name, value)
-                elif zope.schema.interfaces.IList.providedBy(field):
+                elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     new_list = []
                     attr_name = name
                     modified = False

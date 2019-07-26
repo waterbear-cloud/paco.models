@@ -11,6 +11,14 @@ import ipaddress
 
 # Constraints
 
+class InvalidSNSSubscriptionProtocol(schema.ValidationError):
+    __doc__ = 'Not a valid SNS Subscription protocol.'
+
+def isValidSNSSubscriptionProtocol(value):
+    if value not in vocabulary.subscription_protocols:
+        raise InvalidSNSSubscriptionProtocol
+    return True
+
 class InvalidAWSRegion(schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
 

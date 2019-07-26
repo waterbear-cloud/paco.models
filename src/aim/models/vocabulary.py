@@ -6,6 +6,16 @@ https://docs.plone.org/develop/plone/forms/vocabularies.html
 
 from zope.schema.vocabulary import SimpleVocabulary
 
+subscription_protocols = [
+	'http',
+	'https',
+	'email',
+	'email-json',
+	'sms',
+	'sqs',
+	'application',
+	'lambda'
+]
 application_group_types = [
     'Application',
     'Bastion',

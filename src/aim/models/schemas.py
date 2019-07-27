@@ -1386,6 +1386,13 @@ class IManagedPolicy(INamed, IMapping):
         ),
         default = []
     )
+    users = schema.List(
+        title = "List of IAM Users",
+        value_type=schema.TextLine(
+            title = "IAM User name"
+        ),
+        default = []
+    )
     statement = schema.List(
         title = "Statements",
         value_type=schema.Object(
@@ -1673,7 +1680,8 @@ class IRoute53Resource(Interface):
     """
     hosted_zones = schema.Dict(
         title = "Hosted Zones",
-        value_type = schema.Object(IRoute53HostedZone)
+        value_type = schema.Object(IRoute53HostedZone),
+        default = None
     )
 
 class ICodeCommitRepository(INamed, IDeployable, IMapping):

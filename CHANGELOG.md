@@ -6,6 +6,8 @@ Changelog for aim.models
 
 ### Added
 
+- New `MonitorConfig/NotificationGroups.yaml` that contains subscription groups for notifications.
+
 - sdb_cache field for Lambda.
 
 ### Changed

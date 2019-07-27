@@ -6,7 +6,7 @@ import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -525,6 +525,7 @@ class ModelLoader():
                     config = self.read_yaml(subdir, fname)
                     instantiate_method(name, config)
         self.instantiate_services()
+        self.check_notification_config()
         self.load_references()
         try:
             self.load_resource_ids()
@@ -792,6 +793,31 @@ class ModelLoader():
             self.project[plugin_name.lower()] = service
         return
 
+    def check_notification_config(self):
+        """Detect misconfigured alarm notification situations.
+        This happens after both MonitorConfig and NetworkEnvironments have loaded.
+        """
+        for app in self.project.get_all_applications():
+            if app.is_enabled():
+                for alarm_info in app.list_alarm_info():
+                    alarm = alarm_info['alarm']
+                    # warn on alarms with no subscriptions
+                    if len(alarm.notification_groups) == 0:
+                        print("Alarm {} for app {} does not have any notfiications.".format(
+                            alarm.name,
+                            app.name
+                        ))
+                    # alarms with groups that do not exist
+                    for groupname in alarm.notification_groups:
+                        if groupname not in self.project['notificationgroups']:
+                            raise InvalidAimProjectFile(
+                                "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
+                                    alarm.name,
+                                    app.name,
+                                    groupname
+                                )
+                            )
+
     def instantiate_monitor_config(self, name, config):
         """
         Loads LogSets and AlarmSets config
@@ -800,10 +826,22 @@ class ModelLoader():
         """
         if not hasattr(self, 'monitor_config'):
             self.monitor_config = {}
-        if name == 'AlarmSets':
+        if name.lower() == 'alarmsets':
             self.monitor_config['alarms'] = config
-        elif name == 'LogSets':
+        elif name.lower() == 'logsets':
             self.monitor_config['logs'] = config
+        elif name.lower() == 'notificationgroups':
+            groups = NotificationGroups('notificationgroups', self.project)
+            self.project['notificationgroups'] = groups
+            if 'groups' in config:
+                # load Notification service groups
+                for groupname, group_config in config['groups'].items():
+                    group = NotificationGroup(groupname, groups)
+                    apply_attributes_from_config(group, group_config)
+                    groups[groupname] = group
+            else:
+                raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
+            self.monitor_config['notificationgroups'] = config
 
     def instantiate_accounts(self, name, config):
         accounts = self.project['accounts']

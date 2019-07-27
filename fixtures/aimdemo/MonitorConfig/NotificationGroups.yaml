@@ -1,0 +1,30 @@
+groups:
+  bob:
+    protocol: 'email'
+    members:
+      - bob@example.com
+  misterteam:
+    protocol: 'email'
+    members:
+      - jim@example.com
+  oneguygetsthis:
+    protocol: 'email'
+    members:
+      - jim@example.com
+  santa:
+    protocol: 'email'
+    members:
+      - santa@example.com
+  jim_is_the_new_bob:
+    protocol: 'email'
+    members:
+      - jim@example.com
+  bobs_team:
+    protocol: 'email'
+    members:
+      - joe@example.com
+      - bob@example.com
+  wb_ops:
+    protocol: 'email-json'
+    members:
+      - pagerduty@waterbear.cloud

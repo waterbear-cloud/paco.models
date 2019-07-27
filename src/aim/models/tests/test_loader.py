@@ -221,3 +221,11 @@ class TestAimDemo(BaseTestModelLoader):
         alarm_set = webapp.monitoring.alarm_sets['instance-health-core']
         alarm_five = alarm_set['CPUTotal-Low']
         assert alarm_five.notification_groups, ['santa']
+
+    def test_notification_groups(self):
+        groups = self.project['notificationgroups']
+        assert schemas.INotificationGroups.providedBy(groups)
+        assert groups['bobs_team'].protocol, 'email'
+        assert len(groups['bobs_team'].members), 2
+        assert groups['wb_ops'].members[0], 'pagerduty@waterbear.cloud'
+        assert groups['wb_ops'].protocol, 'email-json'

@@ -5,6 +5,16 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
 
+@implementer(schemas.INotificationGroups)
+class NotificationGroups(Named, dict):
+    "Container for NotificationGroups"
+
+@implementer(schemas.INotificationGroup)
+class NotificationGroup(Named):
+    """NotificationGroup"""
+    protocol = FieldProperty(schemas.INotificationGroup['protocol'])
+    members = FieldProperty(schemas.INotificationGroup['members'])
+
 @implementer(schemas.IAlarmNotifications)
 class AlarmNotifications(dict):
     "Container of AlarmNotifications"

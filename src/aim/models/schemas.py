@@ -380,6 +380,8 @@ class IResourceGroups(INamed, IMapping):
     "A collection of Application Resource Groups"
     pass
 
+# Alarm and notification schemas
+
 class IAlarmNotifications(IMapping):
     """
     Alarm Notifications
@@ -488,6 +490,26 @@ class ICloudWatchAlarm(IAlarm):
     evaluate_low_sample_count_percentile = schema.TextLine(
         title = "Evaluate low sample count percentile"
     )
+
+class INotificationGroups(INamed, IMapping):
+    "Container for Notification Groups"
+
+class INotificationGroup(INamed):
+    "Notification group"
+    protocol = schema.TextLine(
+        title = "Notification protocol",
+        default = "email",
+        description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
+        constraint = isValidSNSSubscriptionProtocol
+    )
+    members = schema.List(
+        title = "List of members",
+        value_type = schema.TextLine(),
+        required = False,
+        default = [],
+    )
+
+# Logging schemas
 
 class ILogSets(IMapping):
     """

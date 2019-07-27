@@ -79,4 +79,5 @@ class ManagedPolicy(Named, dict):
     name = FieldProperty(schemas.IManagedPolicy["name"])
     statement = FieldProperty(schemas.IManagedPolicy["statement"])
     roles = FieldProperty(schemas.IManagedPolicy["roles"])
+    users = FieldProperty(schemas.IManagedPolicy["users"])
     path = FieldProperty(schemas.IManagedPolicy["path"])

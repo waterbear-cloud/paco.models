@@ -176,6 +176,14 @@ def annotate_base_config(obj, override_config, base_config):
         if value:
             setattr(obj, '__base__' + name, value)
 
+def gen_yaml_filename(folder, filename):
+    for ext in ['.yaml', '.yml']:
+        yaml_file = os.path.join(folder, filename+ext)
+        if os.path.isfile(yaml_file):
+            return yaml_file
+    return yaml_file
+
+
 def get_all_nodes(root):
     "Return a list of all nodes in aim.model"
     nodes = []
@@ -815,10 +823,9 @@ class ModelLoader():
         )
 
     def instantiate_route53(self, config):
-        if config == None:
-            return
         obj = Route53Resource(config)
-        apply_attributes_from_config(obj, config)
+        if config != None:
+            apply_attributes_from_config(obj, config)
         return obj
 
     def instantiate_codecommit(self, config):

@@ -63,6 +63,8 @@ class Route53Resource():
         super().__init__()
 
         self.zones_by_account = {}
+        if config_dict == None:
+            return
         loader.apply_attributes_from_config(self, config_dict)
 
         for zone_id in self.hosted_zones.keys():

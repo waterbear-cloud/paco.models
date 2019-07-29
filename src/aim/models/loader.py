@@ -805,26 +805,27 @@ class ModelLoader():
         """Detect misconfigured alarm notification situations.
         This happens after both MonitorConfig and NetworkEnvironments have loaded.
         """
-        for app in self.project.get_all_applications():
-            if app.is_enabled():
-                for alarm_info in app.list_alarm_info():
-                    alarm = alarm_info['alarm']
-                    # warn on alarms with no subscriptions
-                    if len(alarm.notification_groups) == 0:
-                        print("Alarm {} for app {} does not have any notfiications.".format(
-                            alarm.name,
-                            app.name
-                        ))
-                    # alarms with groups that do not exist
-                    for groupname in alarm.notification_groups:
-                        if groupname not in self.project['notificationgroups']:
-                            raise InvalidAimProjectFile(
-                                "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
-                                    alarm.name,
-                                    app.name,
-                                    groupname
+        if 'notificationgroups' in self.project:
+            for app in self.project.get_all_applications():
+                if app.is_enabled():
+                    for alarm_info in app.list_alarm_info():
+                        alarm = alarm_info['alarm']
+                        # warn on alarms with no subscriptions
+                        if len(alarm.notification_groups) == 0:
+                            print("Alarm {} for app {} does not have any notfiications.".format(
+                                alarm.name,
+                                app.name
+                            ))
+                        # alarms with groups that do not exist
+                        for groupname in alarm.notification_groups:
+                            if groupname not in self.project['notificationgroups']:
+                                raise InvalidAimProjectFile(
+                                    "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
+                                        alarm.name,
+                                        app.name,
+                                        groupname
+                                    )
                                 )
-                            )
 
     def instantiate_monitor_config(self, name, config):
         """

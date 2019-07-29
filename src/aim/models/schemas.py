@@ -26,6 +26,7 @@ def isListOfLayerARNs(value):
         else:
             if m.groups()[0] not in vocabulary.aws_regions:
                 raise InvalidLayerARNList
+    return True
 
 class InvalidSNSSubscriptionProtocol(schema.ValidationError):
     __doc__ = 'Not a valid SNS Subscription protocol.'
@@ -1646,7 +1647,7 @@ class ILambda(IResource):
     )
     layers = schema.List(
         title = "Layers",
-        schema = schema.TextLine,
+        value_type = schema.TextLine(),
         default = [],
         description = "Up to 5 Layer ARNs",
         constraint = isListOfLayerARNs

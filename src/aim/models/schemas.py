@@ -11,6 +11,22 @@ import ipaddress
 
 # Constraints
 
+class InvalidLayerARNList(schema.ValidationError):
+    __doc__ = 'Not a valid list of Layer ARNs'
+
+LAYER_ARN = re.compile(r"arn:aws:lambda:(.*):(\d+):layer:(.*):(.*)")
+def isListOfLayerARNs(value):
+    "Validate a list of Lambda Layer ARNs"
+    if len(value) > 5:
+        raise InvalidLayerARNList
+    for arn in value:
+        m = LAYER_ARN.match(arn)
+        if not m:
+            raise InvalidLayerARNList
+        else:
+            if m.groups()[0] not in vocabulary.aws_regions:
+                raise InvalidLayerARNList
+
 class InvalidSNSSubscriptionProtocol(schema.ValidationError):
     __doc__ = 'Not a valid SNS Subscription protocol.'
 
@@ -1609,13 +1625,13 @@ class ILambda(IResource):
     """
     Lambda Function resource
     """
-    description = schema.TextLine(
-        title = "A description of the function.",
-        required = True
-    )
     code = schema.Object(
         title = "The function deployment package.",
         schema = ILambdaFunctionCode,
+        required = True
+    )
+    description = schema.TextLine(
+        title = "A description of the function.",
         required = True
     )
     environment = schema.Object(
@@ -1627,6 +1643,13 @@ class ILambda(IResource):
         title = "The functions execution IAM role",
         required = True,
         schema = IRole
+    )
+    layers = schema.List(
+        title = "Layers",
+        schema = schema.TextLine,
+        default = [],
+        description = "Up to 5 Layer ARNs",
+        constraint = isListOfLayerARNs
     )
     handler = schema.TextLine(
         title = "Function Handler",

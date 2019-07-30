@@ -387,6 +387,7 @@ class Lambda(Resource):
     # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
     timeout = FieldProperty(schemas.ILambda['timeout'])
     sdb_cache = FieldProperty(schemas.ILambda['sdb_cache'])
+    layers = FieldProperty(schemas.ILambda['layers'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

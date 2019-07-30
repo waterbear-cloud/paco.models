@@ -291,6 +291,38 @@ applications:
 
               yum update -y
 
+  notification:
+    groups:
+      lambda:
+        name: 'Notification'
+        type: Service
+        order: 20
+        resources:
+          function:
+            type: Lambda
+            enabled: true
+            order: 1
+            description: 'notification service'
+            code:
+              s3_bucket: resource.ref s3.buckets.bucketland
+              s3_key: 'notification-0.1.0.zip'
+            iam_role:
+              enabled: true
+              policies:
+                - name: 'S3Access'
+                  statement:
+                    - effect: Allow
+                      action:
+                        - 's3:*'
+                      resource:
+                        - '*'
+            handler: 'notification.lambda_handler'
+            memory_size: 128
+            runtime: 'python3.7'
+            timeout: 900
+            layers:
+              - arn:aws:lambda:eu-central-1:113088814899:layer:Klayers-python37-requests:4
+
 storage:
   storage_group:
     app:
@@ -313,6 +345,8 @@ environments:
   demo:
     default:
       applications:
+        notification:
+          enabled: true
         app:
           enabled: true
           notifications:

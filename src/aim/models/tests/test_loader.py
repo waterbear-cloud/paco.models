@@ -229,3 +229,11 @@ class TestAimDemo(BaseTestModelLoader):
         assert len(groups['bobs_team'].members), 2
         assert groups['wb_ops'].members[0], 'pagerduty@waterbear.cloud'
         assert groups['wb_ops'].protocol, 'email-json'
+
+    def test_lambda(self):
+        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        lmbda = demo_env['applications']['notification'].groups['lambda'].resources['function']
+        assert schemas.ILambda.providedBy(lmbda)
+        assert lmbda.handler, 'notification.lambda_handler'
+        assert lmbda.memory_size, 128
+        assert len(lmbda.layers), 1

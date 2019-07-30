@@ -227,10 +227,9 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.INotificationGroups.providedBy(groups)
         assert groups.region, 'eu-central-1'
         assert groups.account, 'config.ref accounts.master'
-        assert groups['bobs_team'].protocol, 'email'
-        assert len(groups['bobs_team'].members), 2
-        assert groups['wb_ops'].members[0], 'pagerduty@waterbear.cloud'
-        assert groups['wb_ops'].protocol, 'email-json'
+        assert groups['bobs_team']['bob@example.com'].protocol, 'email'
+        assert len(groups['bobs_team'].keys()), 2
+        assert groups['wb_ops']['pagerduty@waterbear.cloud'].protocol, 'pagerduty@waterbear.cloud'
 
     def test_lambda(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']

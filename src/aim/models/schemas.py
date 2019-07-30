@@ -521,19 +521,16 @@ class INotificationGroups(INamed, IMapping):
         constraint = isValidAWSRegionName
     )
 
-class INotificationGroup(INamed):
-    "Notification group"
+class INotificationGroup(INamed, IMapping):
+    "Container for Notification Members"
+
+class INotificationMember(INamed):
+    "Endpoint to notify"
     protocol = schema.TextLine(
         title = "Notification protocol",
         default = "email",
         description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
         constraint = isValidSNSSubscriptionProtocol
-    )
-    members = schema.List(
-        title = "List of members",
-        value_type = schema.TextLine(),
-        required = False,
-        default = [],
     )
 
 # Logging schemas

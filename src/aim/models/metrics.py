@@ -12,10 +12,13 @@ class NotificationGroups(Named, dict):
     region = FieldProperty(schemas.INotificationGroups['region'])
 
 @implementer(schemas.INotificationGroup)
-class NotificationGroup(Named):
+class NotificationGroup(Named, dict):
     """NotificationGroup"""
-    protocol = FieldProperty(schemas.INotificationGroup['protocol'])
-    members = FieldProperty(schemas.INotificationGroup['members'])
+
+@implementer(schemas.INotificationMember)
+class NotificationMember(Named):
+    """NotificationMember"""
+    protocol = FieldProperty(schemas.INotificationMember['protocol'])
 
 @implementer(schemas.IAlarmNotifications)
 class AlarmNotifications(dict):

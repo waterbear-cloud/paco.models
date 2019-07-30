@@ -2,31 +2,33 @@ account: config.ref accounts.master
 region: eu-central-1
 groups:
   bob:
-    protocol: 'email'
+    title: "Bob is on the job"
     members:
-      - bob@example.com
+      bob@example.com:
+        protocol: 'email'
   misterteam:
-    protocol: 'email'
     members:
-      - jim@example.com
+      jim@example.com:
+        protocol: 'email'
   oneguygetsthis:
-    protocol: 'email'
     members:
-      - jim@example.com
+      jim@example.com:
+        protocol: 'email'
   santa:
-    protocol: 'email'
     members:
-      - santa@example.com
+      santa@example.com:
+        protocol: 'email'
   jim_is_the_new_bob:
-    protocol: 'email'
     members:
-      - jim@example.com
+      jim@example.com:
+        protocol: 'email'
   bobs_team:
-    protocol: 'email'
     members:
-      - joe@example.com
-      - bob@example.com
+      joe@example.com:
+        protocol: 'email'
+      bob@example.com:
+        protocol: 'email'
   wb_ops:
-    protocol: 'email-json'
     members:
-      - pagerduty@waterbear.cloud
+      pagerduty@waterbear.cloud:
+        protocol: 'email-json'

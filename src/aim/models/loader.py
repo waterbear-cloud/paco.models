@@ -6,7 +6,7 @@ import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups, NotificationMember
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -844,11 +844,16 @@ class ModelLoader():
             apply_attributes_from_config(groups, config)
             self.project['notificationgroups'] = groups
             if 'groups' in config:
-                # load Notification service groups
+                # load Notification Groups
                 for groupname, group_config in config['groups'].items():
                     group = NotificationGroup(groupname, groups)
                     apply_attributes_from_config(group, group_config)
                     groups[groupname] = group
+                    # load group members
+                    for membername, member_config in config['groups'][groupname]['members'].items():
+                        member = NotificationMember(membername, group)
+                        apply_attributes_from_config(member, member_config)
+                        groups[groupname][membername] = member
             else:
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config

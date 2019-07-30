@@ -8,6 +8,8 @@ from zope.schema.fieldproperty import FieldProperty
 @implementer(schemas.INotificationGroups)
 class NotificationGroups(Named, dict):
     "Container for NotificationGroups"
+    account = FieldProperty(schemas.INotificationGroups['account'])
+    region = FieldProperty(schemas.INotificationGroups['region'])
 
 @implementer(schemas.INotificationGroup)
 class NotificationGroup(Named):

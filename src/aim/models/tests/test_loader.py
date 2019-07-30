@@ -225,6 +225,8 @@ class TestAimDemo(BaseTestModelLoader):
     def test_notification_groups(self):
         groups = self.project['notificationgroups']
         assert schemas.INotificationGroups.providedBy(groups)
+        assert groups.region, 'eu-central-1'
+        assert groups.account, 'config.ref accounts.master'
         assert groups['bobs_team'].protocol, 'email'
         assert len(groups['bobs_team'].members), 2
         assert groups['wb_ops'].members[0], 'pagerduty@waterbear.cloud'

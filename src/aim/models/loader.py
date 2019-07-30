@@ -841,6 +841,7 @@ class ModelLoader():
             self.monitor_config['logs'] = config
         elif name.lower() == 'notificationgroups':
             groups = NotificationGroups('notificationgroups', self.project)
+            apply_attributes_from_config(groups, config)
             self.project['notificationgroups'] = groups
             if 'groups' in config:
                 # load Notification service groups

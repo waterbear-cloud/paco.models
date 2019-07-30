@@ -510,6 +510,16 @@ class ICloudWatchAlarm(IAlarm):
 
 class INotificationGroups(INamed, IMapping):
     "Container for Notification Groups"
+    account = TextReference(
+        title = "Account Reference",
+        required = False
+    )
+    region = schema.TextLine(
+        title = "AWS Region",
+        description = "Must be a valid AWS Region name",
+        default = "us-west-2",
+        constraint = isValidAWSRegionName
+    )
 
 class INotificationGroup(INamed):
     "Notification group"

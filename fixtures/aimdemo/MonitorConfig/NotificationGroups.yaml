@@ -1,3 +1,5 @@
+account: config.ref accounts.master
+region: eu-central-1
 groups:
   bob:
     protocol: 'email'

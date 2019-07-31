@@ -371,6 +371,18 @@ class IResource(INamed, IDeployable):
         required = False
     )
 
+class IServiceAccountRegion(Interface):
+    account = TextReference(
+        title = "Account Reference",
+        required = False
+    )
+    region = schema.TextLine(
+        title = "AWS Region",
+        description = "Must be a valid AWS Region name",
+        default = "us-west-2",
+        constraint = isValidAWSRegionName
+    )
+
 class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
@@ -508,20 +520,11 @@ class ICloudWatchAlarm(IAlarm):
         title = "Evaluate low sample count percentile"
     )
 
-class INotificationGroups(INamed, IMapping):
+class INotificationGroups(IServiceAccountRegion):
     "Container for Notification Groups"
-    account = TextReference(
-        title = "Account Reference",
-        required = False
-    )
-    region = schema.TextLine(
-        title = "AWS Region",
-        description = "Must be a valid AWS Region name",
-        default = "us-west-2",
-        constraint = isValidAWSRegionName
-    )
 
-class INotificationGroup(INamed, IMapping):
+
+class INotificationGroup(INamed, IMapping, IResource):
     "Container for Notification Members"
 
 class INotificationMember(INamed):

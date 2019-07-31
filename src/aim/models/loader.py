@@ -228,9 +228,7 @@ def most_specialized_interfaces(context):
     """Get interfaces for an object without any duplicates.
 
     Interfaces in a declaration for an object may already have been seen
-    because it is also inherited by another interface. Don't return the
-    interface twice, as that would result in duplicate names when creating
-    the form.
+    because it is also inherited by another interface.
     """
     declaration = zope.interface.providedBy(context)
     seen = []
@@ -256,18 +254,18 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
 
     Also handles loading of sub-types ...
     """
+    # throw an error if there are fields which do not match the schema
+    fields = get_all_fields(obj)
+    if not zope.interface.common.mapping.IMapping.providedBy(obj):
+        for key in config.keys():
+            if key not in fields:
+                raise UnusedAimProjectField("""Error in file at {}
+Unneeded field '{}' in config for object type '{}'
+""".format(read_file_path, key, obj.__class__.__name__))
+
     # all most-specialized interfaces implemented by obj
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
-
-        # throw an error if there are fields which do not match the schema
-        if not zope.interface.common.mapping.IMapping.providedBy(obj):
-            for key in config.keys():
-                if key not in fields:
-                    raise UnusedAimProjectField("""Error in file at {}
-Unneeded field '{}' in config for object type '{}'
-    """.format(read_file_path, key, obj.__class__.__name__))
-
         for name, field in fields.items():
             # Locatable Objects get their name from their key in the config, for example:
             #   environments:
@@ -495,13 +493,14 @@ class ModelLoader():
         self.project = None
 
     def read_yaml(self, sub_dir='', fname=''):
+        """Read a YAML file"""
         # default is to load root project.yaml
         if sub_dir == '':
             path = self.config_folder + os.sep + fname
         else:
             path = self.config_folder + os.sep + sub_dir + os.sep + fname
         logger.debug("Loading YAML: %s" % (path))
-        self.read_file_path = path
+
         # Credential files must be secured. This seems hacky, is there a better way?
         if fname == '.credentials.yaml':
             cred_stat = os.stat(path)
@@ -513,6 +512,10 @@ class ModelLoader():
         if self.config_processor != None:
             self.config_processor(sub_dir, fname)
 
+        # everytime a file is read, update read_file_path to assist with debugging messages
+        self.read_file_path = path
+
+        # read the YAML!
         with open(path, 'r') as stream:
             config = self.yaml.load(stream)
         return config
@@ -534,18 +537,9 @@ class ModelLoader():
                     instantiate_method(name, config)
         self.instantiate_services()
         self.check_notification_config()
-        self.load_references()
-        try:
-            self.load_resource_ids()
-        except:
-            # ToDo: we should only inspect actual Resources config files
-            # and load them so that load_resource_ids fails if there is an actual bug.
-            #
-            # ITs ok to fail here when new config has been added
-            # but it has not yet generated the Resources.yaml for it
-            # In this case we need to wait until the new resources have
-            # been generated and saved.
-            pass
+        # ToDo: references only need to be loaded for things like web UIs, implementation not complete
+        #self.load_references()
+        self.load_resource_ids()
         self.load_core_monitoring()
 
     def load_references(self):
@@ -555,8 +549,6 @@ class ModelLoader():
         reference string is stored as '_ref_<attribute>' while the resolved reference is
         stored in the attribute.
         """
-        # XXX
-        return
         # walk the model
         for model in get_all_nodes(self.project):
             for name, field in get_all_fields(model).items():
@@ -577,9 +569,18 @@ class ModelLoader():
 
     def load_resource_ids(self):
         "Loads resource ids from CFN Outputs"
-        ne_resources_path = self.config_folder + os.sep + 'Resources' + os.sep + 'NetworkEnvironments'
-        if os.path.isdir(ne_resources_path):
-            for rfile in os.listdir(ne_resources_path):
+        base_output_path = 'Outputs' + os.sep
+        monitor_config_output_path = base_output_path + 'MonitorConfig'
+        if os.path.isdir(self.config_folder + os.sep + monitor_config_output_path):
+            notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
+            if 'groups' in notif_groups_config:
+                notif_groups = self.project['notificationgroups']
+                for group_name in notif_groups_config['groups'].keys():
+                    notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
+
+        ne_outputs_path = base_output_path + 'NetworkEnvironments'
+        if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
+            for rfile in os.listdir(self.config_folder + os.sep + ne_outputs_path):
                 # parse filename
                 info = rfile.split('.')[0]
                 ne_name = info.split('-')[0]
@@ -587,7 +588,7 @@ class ModelLoader():
                 region = info[len(ne_name) + len(env_name) + 2:]
 
                 env_reg = self.project['ne'][ne_name][env_name][region]
-                reg_config = self.read_yaml('Resources' + os.sep + 'NetworkEnvironments', rfile)
+                reg_config = self.read_yaml(ne_outputs_path, rfile)
 
                 if 'applications' in reg_config:
                     for app_name in reg_config['applications'].keys():
@@ -841,16 +842,20 @@ class ModelLoader():
             self.monitor_config['logs'] = config
         elif name.lower() == 'notificationgroups':
             groups = NotificationGroups('notificationgroups', self.project)
-            apply_attributes_from_config(groups, config)
             self.project['notificationgroups'] = groups
             if 'groups' in config:
+                # top-level 'groups:' gets absorbed into a top-level NotificationGroups mapping
+                # fiddle with the data to make apply_attrs happy ...
+                groups_config = copy.deepcopy(config['groups'])
+                del config['groups']
+                apply_attributes_from_config(groups, config, read_file_path=self.read_file_path)
                 # load Notification Groups
-                for groupname, group_config in config['groups'].items():
+                for groupname, group_config in groups_config.items():
                     group = NotificationGroup(groupname, groups)
                     apply_attributes_from_config(group, group_config)
                     groups[groupname] = group
                     # load group members
-                    for membername, member_config in config['groups'][groupname]['members'].items():
+                    for membername, member_config in groups_config[groupname]['members'].items():
                         member = NotificationMember(membername, group)
                         apply_attributes_from_config(member, member_config)
                         groups[groupname][membername] = member
@@ -858,7 +863,7 @@ class ModelLoader():
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config
 
-    def instantiate_accounts(self, name, config):
+    def instantiate_accounts(self, name, config, read_file_path=''):
         accounts = self.project['accounts']
         self.create_apply_and_save(
             name,

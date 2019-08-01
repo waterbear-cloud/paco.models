@@ -376,6 +376,7 @@ class Lambda(Resource):
     timeout = FieldProperty(schemas.ILambda['timeout'])
     sdb_cache = FieldProperty(schemas.ILambda['sdb_cache'])
     layers = FieldProperty(schemas.ILambda['layers'])
+    sns_topics = FieldProperty(schemas.ILambda['sns_topics'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

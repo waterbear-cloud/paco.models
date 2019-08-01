@@ -1703,6 +1703,14 @@ class ILambda(IResource):
         required=False,
         default=False
     )
+    sns_topics = schema.List(
+        title = "List of SNS Topic AIM Referenes",
+        value_type =  TextReference(
+            title = "SNS Topic AIM Reference",
+            str_ok=True
+        ),
+        default = []
+    )
 
 class IRoute53HostedZone(IDeployable):
     """

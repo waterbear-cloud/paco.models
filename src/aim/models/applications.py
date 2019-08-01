@@ -4,7 +4,7 @@ All things Application Engine.
 
 from aim.models import loader
 from aim.models import schemas
-from aim.models.base import Named, Deployable, Regionalized, Resource
+from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion
 from aim.models.locations import get_parent_by_interface
 from aim.models.metrics import Monitorable, AlarmNotifications
 from aim.models.vocabulary import application_group_types
@@ -101,6 +101,14 @@ class Application(ApplicationEngine, Regionalized):
 
     def resolve_ref(self, ref):
         pass
+
+@implementer(schemas.IServiceEnvironment)
+class ServiceEnvironment(ServiceAccountRegion, Named):
+    applications = FieldProperty(schemas.IServiceEnvironment['applications'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.applications = ApplicationEngines('applications', self)
 
 @implementer(schemas.IResourceGroups)
 class ResourceGroups(Named, dict):

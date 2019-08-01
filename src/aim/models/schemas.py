@@ -371,7 +371,9 @@ class IResource(INamed, IDeployable):
         required = False
     )
 
+
 class IServiceAccountRegion(Interface):
+    "An account and region for a service"
     account = TextReference(
         title = "Account Reference",
         required = False
@@ -381,6 +383,13 @@ class IServiceAccountRegion(Interface):
         description = "Must be a valid AWS Region name",
         default = "us-west-2",
         constraint = isValidAWSRegionName
+    )
+
+class IServiceEnvironment(IServiceAccountRegion, INamed):
+    "A service composed of one or more applications"
+    applications = schema.Object(
+        title = "Applications",
+        schema = IApplicationEngines,
     )
 
 class IResources(INamed, IMapping):

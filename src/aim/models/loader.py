@@ -459,7 +459,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
 
     Configuration section:
     {}
-    """.format(self.read_file_path, res_config['type'], res_key, res_config)
+    """.format(read_file_path, res_config['type'], res_key, res_config)
                 )
             obj = klass(res_key, resource_group)
             apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
@@ -539,7 +539,7 @@ class ModelLoader():
         self.check_notification_config()
         # ToDo: references only need to be loaded for things like web UIs, implementation not complete
         #self.load_references()
-        self.load_resource_ids()
+        self.load_outputs()
         self.load_core_monitoring()
 
     def load_references(self):
@@ -567,8 +567,9 @@ class ModelLoader():
             if schemas.IASG.providedBy(model):
                 add_metric(model, ec2core)
 
-    def load_resource_ids(self):
+    def load_outputs(self):
         "Loads resource ids from CFN Outputs"
+
         base_output_path = 'Outputs' + os.sep
         monitor_config_output_path = base_output_path + 'MonitorConfig'
         if os.path.isdir(self.config_folder + os.sep + monitor_config_output_path):
@@ -798,7 +799,8 @@ class ModelLoader():
                 continue
             config = self.read_yaml('Services', fname)
             service = plugin_module.instantiate_model(config, self.project, read_file_path=services_dir + fname)
-            #service = plugin_func(config, self.project, read_file_path=services_dir + fname)
+            if hasattr(plugin_module, 'load_outputs'):
+                plugin_module.load_outputs(self)
             self.project[plugin_name.lower()] = service
         return
 

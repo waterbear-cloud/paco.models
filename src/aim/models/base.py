@@ -124,3 +124,4 @@ class Resource(Named, Deployable, Regionalized):
 class ServiceAccountRegion():
     account = FieldProperty(schemas.IServiceAccountRegion['account'])
     region = FieldProperty(schemas.IServiceAccountRegion['region'])
+

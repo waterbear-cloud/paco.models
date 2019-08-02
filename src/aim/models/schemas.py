@@ -56,7 +56,7 @@ def isValidEmail(value):
 class InvalidHttpUrl(schema.ValidationError):
     __doc__ = 'Malformed HTTP URL'
 
-HTTP_RE = re.compile(r"^http://(.*)")
+HTTP_RE = re.compile(r"^http:\/\/(.*)")
 def isValidHttpUrl(value):
     if not HTTP_RE.match(value):
         raise InvalidHttpUrl
@@ -65,7 +65,7 @@ def isValidHttpUrl(value):
 class InvalidHttpsUrl(schema.ValidationError):
     __doc__ = 'Malformed HTTPS URL'
 
-HTTPS_RE = re.compile(r"^https://(.*)")
+HTTPS_RE = re.compile(r"^https:\/\/(.*)")
 def isValidHttpsUrl(value):
     if not HTTPS_RE.match(value):
         raise InvalidHttpsUrl

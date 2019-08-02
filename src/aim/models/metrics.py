@@ -13,6 +13,7 @@ class NotificationGroups(ServiceAccountRegion, Named, dict):
 class NotificationGroup(Resource, dict):
     "A NotificationGroup is a special type of SNS Topic that can recieve Alarm notifications"
     type = 'SNSTopic'
+    email = FieldProperty(schemas.INotificationGroup['email'])
 
 @implementer(schemas.INotificationMember)
 class NotificationMember(Named):

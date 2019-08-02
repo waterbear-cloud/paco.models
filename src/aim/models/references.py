@@ -166,19 +166,16 @@ def get_resolve_ref_obj(obj, ref, value, part_idx_start):
         else:
             break
 
-    if isinstance(obj, str):
-        pass
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
-        #breakpoint()
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
     return response
 
 def resolve_ref(value, project, account_ctx=None):
-    #return '' # XXX until we rework where ref values are stored to avoid schema conflicts
+    """Resolve a reference"""
     aim_ref = AimReference()
     if aim_ref.is_ref(value) == False:
         return None

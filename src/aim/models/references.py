@@ -78,10 +78,14 @@ class TextReference(zope.schema.Text):
         """
         Limit text to the format 'word.ref chars_here.more-chars.finalchars100'
         """
-        if self.str_ok and value.startswith("aim.ref ") == False:
+#        if value.find('patch.<account>.<region>.applications.patch.groups.lambda.resources.snstopic.arn') != -1:
+#            breakpoint()
+        if self.str_ok and is_ref(value) == False:
             if isinstance(value, str) == False:
                 return False
             return True
+
+        return is_ref(value)
 
         match = re.match("(\w+)\.ref\s+(.*)", value)
         if match:
@@ -140,6 +144,17 @@ class Reference():
 
         return None
 
+    def sub_part(self, part, value):
+        self.raw = self.raw.replace(part, value)
+        self.ref = self.ref.replace(part, value)
+        self.parts = self.ref.split('.')
+
+    def set_account_name(self, account_name):
+        self.sub_part('<account>', account_name)
+
+    def set_region(self, region):
+        self.sub_part('<region>', region)
+
 def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     for part_idx in range(part_idx_start, len(ref.parts)):
         try:
@@ -158,6 +173,7 @@ def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
+        #breakpoint()
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
     return response
 

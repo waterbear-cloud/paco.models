@@ -391,6 +391,9 @@ class SNSTopic(Resource):
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IRDS)
 class RDS(Resource):
     pass

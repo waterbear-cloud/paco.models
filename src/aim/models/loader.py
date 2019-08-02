@@ -1,5 +1,5 @@
+import aim.models.services
 import itertools, os, copy
-import pkg_resources
 import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
@@ -801,12 +801,8 @@ class ModelLoader():
         The entry point name will match a filename at:
           <AIMProject>/Services/<EntryPointName>(.yml|.yaml)
         """
+        service_plugins = aim.models.services.list_service_plugins()
         services_dir = self.config_folder + os.sep + 'Services' + os.sep
-        service_plugins = {
-            entry_point.name: entry_point.load()
-            for entry_point
-            in pkg_resources.iter_entry_points('aim.services')
-        }
         for plugin_name, plugin_module in service_plugins.items():
             if os.path.isfile(services_dir + plugin_name + '.yml'):
                 fname = plugin_name + '.yml'

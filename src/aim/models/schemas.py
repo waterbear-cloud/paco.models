@@ -53,6 +53,24 @@ def isValidEmail(value):
         raise InvalidEmailAddress
     return True
 
+class InvalidHttpUrl(schema.ValidationError):
+    __doc__ = 'Malformed HTTP URL'
+
+HTTP_RE = re.compile(r"^http:\/\/(.*)")
+def isValidHttpUrl(value):
+    if not HTTP_RE.match(value):
+        raise InvalidHttpUrl
+    return True
+
+class InvalidHttpsUrl(schema.ValidationError):
+    __doc__ = 'Malformed HTTPS URL'
+
+HTTPS_RE = re.compile(r"^https:\/\/(.*)")
+def isValidHttpsUrl(value):
+    if not HTTPS_RE.match(value):
+        raise InvalidHttpsUrl
+    return True
+
 class InvalidInstanceSizeError(schema.ValidationError):
     __doc__ = 'Not a valid instance size (or update the instance_size_info vocabulary).'
 
@@ -529,20 +547,101 @@ class ICloudWatchAlarm(IAlarm):
         title = "Evaluate low sample count percentile"
     )
 
+class INotificationMember(INamed):
+    "Endpoint to notify"
+    endpoint = schema.TextLine(
+        title = "Subscription Endpoint",
+        description = "Must be a valid endpoint",
+    )
+
+class IHttpNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "HTTP Subscription Endpoint",
+        description = "Must be a valid HTTP endpoint",
+        constraint = isValidHttpUrl
+    )
+
+class IHttpsNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "HTTPS Subscription Endpoint",
+        description = "Must be a valid HTTPS endpoint",
+        constraint = isValidHttpsUrl
+    )
+
+class IEmailNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Email Subscription Endpoint",
+        description = "Must be a valid email endpoint",
+        constraint = isValidEmail
+    )
+
+class IEmailJsonNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Email-JSON Subscription Endpoint",
+        description = "Must be a valid email endpoint",
+        constraint = isValidEmail
+    )
+
+class ISmsNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "SMS Subscription Endpoint",
+        description = "Must be a valid SMS endpoint",
+    )
+
+class ISqsNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Subscription Endpoint",
+        description = "Must be a valid SQS endpoint",
+    )
+
+class IApplicationNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Application Subscription Endpoint",
+        description = "Must be a valid application endpoint",
+    )
+
+class ILambdaNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Lambda Subscription Endpoint",
+        description = "Must be a valid lambda endpoint",
+    )
+
 class INotificationGroups(IServiceAccountRegion):
     "Container for Notification Groups"
 
-
 class INotificationGroup(INamed, IMapping, IResource):
     "Container for Notification Members"
-
-class INotificationMember(INamed):
-    "Endpoint to notify"
-    protocol = schema.TextLine(
-        title = "Notification protocol",
-        default = "email",
-        description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
-        constraint = isValidSNSSubscriptionProtocol
+    http = schema.List(
+        title = "HTTP members",
+        value_type=schema.Object(IHttpNotificationMember)
+    )
+    https = schema.List(
+        title = "HTTPS members",
+        value_type=schema.Object(IHttpsNotificationMember)
+    )
+    email = schema.List(
+        title = "Email members",
+        value_type=schema.Object(IEmailNotificationMember)
+    )
+    emailjson = schema.List(
+        title = "Email-JSON members",
+        value_type=schema.Object(IEmailJsonNotificationMember)
+    )
+    sms = schema.List(
+        title = "SMS members",
+        value_type=schema.Object(ISmsNotificationMember)
+    )
+    sqs = schema.List(
+        title = "SQS members",
+        value_type=schema.Object(ISqsNotificationMember)
+    )
+    application = schema.List(
+        title = "Application members",
+        value_type=schema.Object(IApplicationNotificationMember)
+    )
+    lambdafunc = schema.List(
+        title = "Lambda members",
+        value_type=schema.Object(ILambdaNotificationMember)
     )
 
 # Logging schemas

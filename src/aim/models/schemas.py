@@ -1758,3 +1758,30 @@ class ICodeCommit(Interface):
         title = "Group of Repositories",
         value_type = schema.Object(ICodeCommitRepository)
     )
+
+class ISNSTopicSubscription(Interface):
+    protocol = schema.TextLine(
+        title = "Notification protocol",
+        default = "email",
+        description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
+        constraint = isValidSNSSubscriptionProtocol
+    )
+
+    endpoint = TextReference(
+        title = "SNS Topic Endpoint",
+        str_ok = True
+    )
+
+class ISNSTopic(IResource):
+    """
+    SNS Topic Resource Configuration
+    """
+    display_name = schema.TextLine(
+        title = "Display name for SMS Messages"
+    )
+
+    subscriptions = schema.List(
+        title = "List of SNS Topic Subscriptions",
+        value_type = schema.Object(ISNSTopicSubscription),
+        default = []
+    )

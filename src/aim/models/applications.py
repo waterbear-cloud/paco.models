@@ -381,6 +381,16 @@ class Lambda(Resource):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.ISNSTopicSubscription)
+class SNSTopicSubscription():
+    protocol = FieldProperty(schemas.ISNSTopicSubscription['protocol'])
+    endpoint = FieldProperty(schemas.ISNSTopicSubscription['endpoint'])
+
+@implementer(schemas.ISNSTopic)
+class SNSTopic(Resource):
+    display_name = FieldProperty(schemas.ISNSTopic['display_name'])
+    subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
+
 @implementer(schemas.IRDS)
 class RDS(Resource):
     pass

@@ -9,14 +9,17 @@ from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
 
+def is_ref(aim_ref):
+    ref_types = ["netenv.ref", "resource.ref", "config.ref", "function.ref", "service.ref"]
+    for ref_type in ref_types:
+        if aim_ref.startswith(ref_type):
+            return True
+    return False
+
 class AimReference():
 
     def is_ref(self, aim_ref):
-        ref_types = ["netenv.ref", "resource.ref", "config.ref", "function.ref", "service.ref"]
-        for ref_type in ref_types:
-            if aim_ref.startswith(ref_type):
-                return True
-        return False
+        return is_ref(aim_ref)
 
     def parse_netenv_ref(self, aim_ref, ref_parts):
         ref_dict = {}
@@ -48,7 +51,7 @@ class AimReference():
         ref_dict = {}
         if ref_parts[0] == 'netenv.ref':
             ref_dict = self.parse_netenv_ref(aim_ref, location_parts)
-        elif self.is_ref(aim_ref):
+        elif is_ref(aim_ref):
             pass
         else:
             print(ref_parts[0])
@@ -75,7 +78,7 @@ class TextReference(zope.schema.Text):
         """
         Limit text to the format 'word.ref chars_here.more-chars.finalchars100'
         """
-        if self.str_ok:
+        if self.str_ok and value.startswith("aim.ref ") == False:
             if isinstance(value, str) == False:
                 return False
             return True

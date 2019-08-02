@@ -15,7 +15,7 @@ from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
-    LambdaFunctionCode, LambdaVariable
+    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -50,7 +50,8 @@ RESOURCES_CLASS_MAP = {
     'EC2': EC2,
     'Lambda': Lambda,
     'ManagedPolicy': ManagedPolicy,
-    'S3Bucket': S3Bucket
+    'S3Bucket': S3Bucket,
+    'SNSTopic': SNSTopic
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -146,6 +147,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     Route53Resource: {
         'hosted_zones': ('named_dict', Route53HostedZone)
+    },
+    SNSTopic: {
+        'subscriptions': ('obj_list', SNSTopicSubscription)
     }
 }
 

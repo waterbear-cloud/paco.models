@@ -6,7 +6,9 @@ import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups, NotificationMember
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups, \
+    HttpNotificationMember, HttpsNotificationMember, EmailNotificationMember, EmailJsonNotificationMember, \
+    SmsNotificationMember, SqsNotificationMember, ApplicationNotificationMember, LambdaNotificationMember
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -54,18 +56,28 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    NotificationGroup: {
+        'http': ('obj_list', HttpNotificationMember),
+        'https': ('obj_list', HttpsNotificationMember),
+        'email': ('obj_list', EmailNotificationMember),
+        'emailjson': ('obj_list', EmailJsonNotificationMember),
+        'sms': ('obj_list', SmsNotificationMember),
+        'sqs': ('obj_list', SqsNotificationMember),
+        'application': ('obj_list', ApplicationNotificationMember),
+        'lambdafunc': ('obj_list', LambdaNotificationMember),
+    },
     # Resource sub-objects
     LBApplication: {
         'target_groups': ('named_dict', TargetGroup),
         'security_groups': ('str_list', TextReference),
         'listeners': ('named_dict', Listener),
         'dns': ('obj_list', DNS),
-        'monitoring': ('located_dict', MonitorConfig)
+        'monitoring': ('unnamed_dict', MonitorConfig)
     },
     ASG: {
         'security_groups': ('str_list', TextReference),
         'target_groups': ('str_list', TextReference),
-        'monitoring': ('located_dict', MonitorConfig),
+        'monitoring': ('unnamed_dict', MonitorConfig),
         'instance_iam_role': ('unnamed_dict', Role)
     },
     Listener: {
@@ -347,19 +359,20 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         return sub_dict
 
     elif sub_type == 'unnamed_dict':
-        sub_obj = sub_class()
-        apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
-        return sub_obj
-
-    elif sub_type == 'located_dict':
-        sub_obj = sub_class(name, obj)
+        if schemas.INamed.implementedBy(sub_class):
+            sub_obj = sub_class(name, obj)
+        else:
+            sub_obj = sub_class()
         apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
         return sub_obj
 
     elif sub_type == 'obj_list':
         sub_list = []
         for sub_value in value:
-            sub_obj = sub_class()
+            if schemas.INamed.implementedBy(sub_class):
+                sub_obj = sub_class(name, obj)
+            else:
+                sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_list.append(sub_obj)
         return sub_list
@@ -857,10 +870,10 @@ class ModelLoader():
                     apply_attributes_from_config(group, group_config)
                     groups[groupname] = group
                     # load group members
-                    for membername, member_config in groups_config[groupname]['members'].items():
-                        member = NotificationMember(membername, group)
-                        apply_attributes_from_config(member, member_config)
-                        groups[groupname][membername] = member
+                    #for membername, member_config in groups_config[groupname]['members'].items():
+                    #    member = NotificationMember(membername, group)
+                    #    apply_attributes_from_config(member, member_config)
+                    #    groups[groupname][membername] = member
             else:
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config

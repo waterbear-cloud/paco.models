@@ -3,32 +3,38 @@ region: eu-central-1
 groups:
   bob:
     title: "Bob is on the job"
-    members:
-      bob@example.com:
-        protocol: 'email'
+    http:
+      - endpoint: http://example.com/yes
+    https:
+      - endpoint: https://example.com/orno
+    email:
+      - endpoint: bob@example.com
+    emailjson:
+      - endpoint: bob@example.com
+    sms:
+      - endpoint: '555-555-5555'
+    sqs:
+      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
+    application:
+      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
+    lambdafunc:
+      - endpoint: arn:aws:lambda:us-east-1:123456789012:function:my-function
   misterteam:
-    members:
-      jim@example.com:
-        protocol: 'email'
+    email:
+      - endpoint: jim@example.com
   oneguygetsthis:
-    members:
-      jim@example.com:
-        protocol: 'email'
+    email:
+      - endpoint: jim@example.com
   santa:
-    members:
-      santa@example.com:
-        protocol: 'email'
+    email:
+      - endpoint: santa@example.com
   jim_is_the_new_bob:
-    members:
-      jim@example.com:
-        protocol: 'email'
+    email:
+      - endpoint: jim@example.com
   bobs_team:
-    members:
-      joe@example.com:
-        protocol: 'email'
-      bob@example.com:
-        protocol: 'email'
+    email:
+      - endpoint: joe@example.com
+      - endpoint: bob@example.com
   wb_ops:
-    members:
-      pagerduty@waterbear.cloud:
-        protocol: 'email-json'
+    email-json:
+      - endpoint: pagerduty@waterbear.cloud

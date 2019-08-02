@@ -227,9 +227,17 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.INotificationGroups.providedBy(groups)
         assert groups.region, 'eu-central-1'
         assert groups.account, 'config.ref accounts.master'
-        assert groups['bobs_team']['bob@example.com'].protocol, 'email'
-        assert len(groups['bobs_team'].keys()), 2
-        assert groups['wb_ops']['pagerduty@waterbear.cloud'].protocol, 'pagerduty@waterbear.cloud'
+        assert groups['bobs_team'].email[0].endpoint, 'joe@example.com'
+        assert len(groups['bobs_team'].email), 2
+        bob = groups['bob']
+        assert bob.http[0], 'http://example.com/yes'
+        assert bob.https[0], 'https://example.com/orno'
+        assert bob.email[0], 'bob@example.com'
+        assert bob.emailjson[0], 'bob@example.com'
+        assert bob.sms[0], '555-555-5555'
+        assert bob.sqs[0], 'arn:aws:sqs:us-east-2:444455556666:queue1'
+        assert bob.application[0], 'arn:aws:sqs:us-east-2:444455556666:queue1'
+        assert bob.lambdafunc[0], 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
 
     def test_lambda(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']

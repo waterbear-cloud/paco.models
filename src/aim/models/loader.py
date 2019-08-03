@@ -812,9 +812,9 @@ class ModelLoader():
                 continue
             config = self.read_yaml('Services', fname)
             service = plugin_module.instantiate_model(config, self.project, read_file_path=services_dir + fname)
+            self.project[plugin_name.lower()] = service
             if hasattr(plugin_module, 'load_outputs'):
                 plugin_module.load_outputs(self)
-            self.project[plugin_name.lower()] = service
         return
 
     def check_notification_config(self):

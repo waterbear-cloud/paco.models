@@ -1,4 +1,4 @@
-account: config.ref accounts.master
+account: aim.ref accounts.master
 region: eu-central-1
 groups:
   bob:

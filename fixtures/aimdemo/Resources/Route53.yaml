@@ -2,4 +2,4 @@ hosted_zones:
   aimdemo:
     enabled: true
     domain_name: aimdemo.example.com
-    account: config.ref accounts.prod
+    account: aim.ref accounts.prod

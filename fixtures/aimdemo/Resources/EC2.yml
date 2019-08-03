@@ -2,8 +2,8 @@ keypairs:
   aimdemo_dev:
     name: "aimdemo-dev-us-west-2"
     region: "us-west-2"
-    account: config.ref accounts.dev
+    account: aim.ref accounts.dev
   aimdemo_prod:
     name: "aimdemo-prod-us-west-2"
     region: "us-west-2"
-    account: config.ref accounts.prod
+    account: aim.ref accounts.prod

@@ -1,11 +1,11 @@
 aimdemo:
   app:
     enabled: true
-    account: config.ref accounts.data
+    account: aim.ref accounts.data
     region: 'us-west-2'
     description: "Demo repository"
     name: "aimdemo-app"
     users:
-      - resource.ref iam.users.kevinlindsay  # TODO
+      - aim.ref resource.iam.users.kevinlindsay  # TODO
     resources:
-      - netenv.ref aimdemo.applications.app.deployments.cpbd.codepipeline # TODO
+      - aim.ref netenv.aimdemo.applications.app.deployments.cpbd.codepipeline # TODO

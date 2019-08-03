@@ -23,11 +23,11 @@ class EC2Resource():
     keypairs = FieldProperty(schemas.IEC2Resource['keypairs'])
 
     def resolve_ref(self, ref):
-        if ref.parts[1] == 'keypairs':
-            keypair_id = ref.parts[2]
+        if ref.parts[2] == 'keypairs':
+            keypair_id = ref.parts[3]
             keypair_attr = 'name'
-            if len(ref.parts) > 3:
-                keypair_attr = ref.parts[3]
+            if len(ref.parts) > 4:
+                keypair_attr = ref.parts[4]
             keypair = self.keypairs[keypair_id]
             if keypair_attr == 'name':
                 return keypair.name

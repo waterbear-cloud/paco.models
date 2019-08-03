@@ -92,17 +92,17 @@ class TestAimDemo(BaseTestModelLoader):
 
     def test_netenv_refs(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
-        # Basic netenv.ref
+        # Basic aim.ref netenv
         ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg_name
-        assert ref_value == "netenv.ref aimdemo.subenv.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
+        assert ref_value == "aim.ref netenv.aimdemo.subenv.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
 
         # aimsub netenf.ref
         #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
-        #assert ref_value == "aim.sub 'arn:aws:s3:::${netenv.ref aimdemo.subenv.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
+        #assert ref_value == "aim.sub 'arn:aws:s3:::${aim.ref netenv.aimdemo.subenv.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
-        assert ref_value == "netenv.ref aimdemo.subenv.demo.us-west-2.network.vpc.security_groups.app.lb.id"
+        assert ref_value == "aim.ref netenv.aimdemo.subenv.demo.us-west-2.network.vpc.security_groups.app.lb.id"
 
     def test_get_all_nodes(self):
         # check to ensure each node is only visited once
@@ -157,9 +157,9 @@ class TestAimDemo(BaseTestModelLoader):
         # Route53
         assert self.project['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
         # CodeCommit
-        assert self.project['codecommit'].repository_groups['aimdemo']['app'].account, 'config.ref accounts.data'
+        assert self.project['codecommit'].repository_groups['aimdemo']['app'].account, 'aim.ref accounts.data'
         # EC2
-        assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'config.ref accounts.dev'
+        assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'aim.ref accounts.dev'
 
     def test_resource_account(self):
         dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
@@ -226,7 +226,7 @@ class TestAimDemo(BaseTestModelLoader):
         groups = self.project['notificationgroups']
         assert schemas.INotificationGroups.providedBy(groups)
         assert groups.region, 'eu-central-1'
-        assert groups.account, 'config.ref accounts.master'
+        assert groups.account, 'aim.ref accounts.master'
         assert groups['bobs_team'].email[0].endpoint, 'joe@example.com'
         assert len(groups['bobs_team'].email), 2
         bob = groups['bob']

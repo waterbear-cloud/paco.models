@@ -10,9 +10,13 @@ from zope.interface import implementer, Interface
 from operator import itemgetter
 
 def is_ref(aim_ref):
-    ref_types = ["netenv.ref", "resource.ref", "config.ref", "function.ref", "service.ref"]
+    """Determines if the string value is an AIM Reference"""
+
+    if aim_ref.startswith('aim.ref ') == False:
+        return False
+    ref_types = ["netenv", "resource", "accounts", "function", "service"]
     for ref_type in ref_types:
-        if aim_ref.startswith(ref_type):
+        if aim_ref.startswith('aim.ref %s.' % ref_type):
             return True
     return False
 
@@ -26,18 +30,18 @@ class AimReference():
         ref_dict['subenv_id'] = ""
         ref_dict['netenv_component'] = ""
         ref_dict['subenv_component'] = ""
-        if ref_parts[0] == 'this':
+        if ref_parts[1] == 'this':
             ref_dict['netenv_id'] = self.this_netenv_id
         else:
-            ref_dict['netenv_id'] = ref_parts[0]
+            ref_dict['netenv_id'] = ref_parts[1]
 
-        if ref_parts[1] == 'subenv':
-            ref_dict['subenv_component'] = ref_parts[1]
-            ref_dict['subenv_id'] = ref_parts[2]
-            ref_dict['subenv_region'] = ref_parts[3]
-            ref_dict['netenv_component'] = ref_parts[4]
+        if ref_parts[2] == 'subenv':
+            ref_dict['subenv_component'] = ref_parts[2]
+            ref_dict['subenv_id'] = ref_parts[3]
+            ref_dict['subenv_region'] = ref_parts[4]
+            ref_dict['netenv_component'] = ref_parts[5]
         else:
-            ref_dict['netenv_component'] = ref_parts[1]
+            ref_dict['netenv_component'] = ref_parts[2]
         return ref_dict
 
     def parse_ref(self, aim_ref):
@@ -45,11 +49,11 @@ class AimReference():
         if len(ref_parts) != 2:
             raise ValueError("Invalid aim_ref: {}".format(aim_ref))
             #raise StackException(AimErrorCode.Unknown)
-        ref_type = ref_parts[0]
         config_ref = ref_parts[1]
         location_parts = ref_parts[1].split('.')
+        ref_type = location_parts[0]
         ref_dict = {}
-        if ref_parts[0] == 'netenv.ref':
+        if ref_type == 'netenv':
             ref_dict = self.parse_netenv_ref(aim_ref, location_parts)
         elif is_ref(aim_ref):
             pass
@@ -104,17 +108,18 @@ class Reference():
     Reference to something in the aim.model
 
     attributes:
-      raw : original reference str : 'netenv.ref aimdemo.network.vpc.security_groups.app.lb'
+      raw : original reference str : 'aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb'
       type : reference type str : 'netenv'
-      parts : list of ref parts : ['aimdemo', 'network', 'vpc', 'security_groups', 'app', 'lb']
-      ref : reffered string : 'aimdemo.network.vpc.security_groups.app.lb'
+      parts : list of ref parts : ['netenv', 'aimdemo', 'network', 'vpc', 'security_groups', 'app', 'lb']
+      ref : reffered string : 'netenv.aimdemo.network.vpc.security_groups.app.lb'
     """
 
     def __init__(self, value):
         self.raw = value
-        match = re.match("(\w+)\.ref\s+(.*)", value)
-        self.type, self.ref = match.groups()
+        #match = re.match("aim\.ref\s+(.*)", value)
+        self.ref = value.split(' ', 2)[1]
         self.parts = self.ref.split('.')
+        self.type = self.parts[0]
         # resource_ref is the tail end of the reference that is
         # relevant to the Resource it references
         self.resource = None
@@ -156,6 +161,11 @@ class Reference():
         self.sub_part('<region>', region)
 
 def get_resolve_ref_obj(obj, ref, value, part_idx_start):
+    """
+    Traverses the reference parts looking for the last child that
+    is a not a string. This object is expected to be a part of the
+    model and should have a resolve_ref method that can be called.
+    """
     for part_idx in range(part_idx_start, len(ref.parts)):
         try:
             next_obj = obj[ref.parts[part_idx]]
@@ -182,34 +192,34 @@ def resolve_ref(value, project, account_ctx=None):
 
     ref = Reference(value)
     if ref.type == "resource":
-        if ref.parts[0] == 's3':
-            return get_resolve_ref_obj(project['s3'], ref, value, 1)
-        return project[ref.parts[0]].resolve_ref(ref)
+        if ref.parts[1] == 's3':
+            return get_resolve_ref_obj(project['s3'], ref, value, part_idx_start=2)
+        return project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
-        if ref.parts[3] == 'applications':
-            obj = project[ref.parts[0]]
-            response = get_resolve_ref_obj(obj, ref, value, 3)
+        if ref.parts[4] == 'applications':
+            obj = project[ref.parts[1]]
+            response = get_resolve_ref_obj(obj, ref, value, part_idx_start=4)
             return response
-        return project[ref.parts[0]].resolve_ref(ref)
+        return project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
         # examples:
-        # netenv.ref aimdemo.applications.app.resources.webapp.name
-        # netenv.ref aimdemo.applications.app.resources.alb.dns.ssl_certificate.arn
-        # netenv.ref aimdemo.iam.app.roles.instance_role.name
-        # netenv.ref aimdemo.iam.app.roles.instance_role.arn
-        # netenv.ref aimdemo.iam.app.roles.instance_role.profile
-        # netenv.ref aimdemo.network.vpc.security_groups.app.bastion
-        # netenv.ref aimdemo.network.vpc.security_groups.app.webapp
-        # netenv.ref aimdemo.network.vpc.security_groups.app.webapp
+        # aim.ref netenv.aimdemo.applications.app.resources.webapp.name
+        # aim.ref netenv.aimdemo.applications.app.resources.alb.dns.ssl_certificate.arn
+        # aim.ref netenv.aimdemo.iam.app.roles.instance_role.name
+        # aim.ref netenv.aimdemo.iam.app.roles.instance_role.arn
+        # aim.ref netenv.aimdemo.iam.app.roles.instance_role.profile
+        # aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
+        # aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
+        # aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
         #
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
-        obj = project['ne'][ref.parts[0]][ref.parts[2]][ref.parts[3]]
-        return get_resolve_ref_obj(obj, ref, value, 4)
+        obj = project['ne'][ref.parts[1]][ref.parts[3]][ref.parts[4]]
+        return get_resolve_ref_obj(obj, ref, value, 5)
 
 
-    elif ref.type == "config":
-        return get_config_ref_value(ref, project)
+    elif ref.type == "accounts":
+        return get_accounts_ref_value(ref, project)
     elif ref.type == "function":
         return resolve_function_ref(ref, project, account_ctx)
     else:
@@ -218,7 +228,7 @@ def resolve_ref(value, project, account_ctx=None):
 def resolve_function_ref(ref, project, account_ctx):
     if account_ctx == None:
         return None
-    if ref.ref.startswith('aws.ec2.ami.latest'):
+    if ref.ref.startswith('function.aws.ec2.ami.latest'):
         ami_description = None
         ami_name = None
         if ref.last_part == 'amazon-linux-2':
@@ -274,8 +284,7 @@ def resolve_function_ref(ref, project, account_ctx):
         ami_id = image_details[0]['ImageId']
         return ami_id
 
-def get_config_ref_value(ref, project):
-    # Only config item is accounts at the moment
+def get_accounts_ref_value(ref, project):
     try:
         account_id = project[ref.parts[0]][ref.parts[1]].account_id
     except KeyError:

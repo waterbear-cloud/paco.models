@@ -705,9 +705,9 @@ class ModelLoader():
             rep_1_idx = dollar_idx
             rep_2_idx = str_value.find("}", rep_1_idx, end_str_idx)+1
             netenv_ref_idx = str_value.find(
-                "netenv.ref ", rep_1_idx, rep_2_idx)
+                "aim.ref netenv.", rep_1_idx, rep_2_idx)
             if netenv_ref_idx != -1:
-                #sub_ref_idx = netenv_ref_idx + len("netenv.ref ")
+                #sub_ref_idx = netenv_ref_idx + len("aim.ref netenv.")
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = str_value[sub_ref_idx:sub_ref_end_idx]
@@ -722,7 +722,7 @@ class ModelLoader():
         return str_value
 
     def insert_subenv_ref_str(self, str_value, subenv_id, region):
-        netenv_ref_idx = str_value.find("netenv.ref ")
+        netenv_ref_idx = str_value.find("aim.ref netenv.")
         if netenv_ref_idx == -1:
             return str_value
 
@@ -737,13 +737,13 @@ class ModelLoader():
         if ref_dict['netenv_component'] == 'subenv':
             return str_value
 
-        ref_dict['ref_parts'][0] = '.'.join([ref_dict['netenv_id'],
+        ref_dict['ref_parts'][1] = '.'.join([ref_dict['netenv_id'],
                                              'subenv',
                                              subenv_id,
                                              region])
 
         new_ref_parts = '.'.join(ref_dict['ref_parts'])
-        new_ref = ' '.join([ref_dict['type'], new_ref_parts])
+        new_ref = ' '.join(['aim.ref', new_ref_parts])
 
         return new_ref
 
@@ -753,7 +753,7 @@ class ModelLoader():
         A reference is a string that refers to another value in the model. The original
         reference string is stored as '_ref_<attribute>' while the resolved reference is
         stored in the attribute.
-        Inserts the Environment and Region into any netenv.ref references.
+        Inserts the Environment and Region into any aim.ref netenv.references.
         """
         # walk the model
         model_list = get_all_nodes(env_config)
@@ -770,7 +770,7 @@ class ModelLoader():
                     else:
                         attr_name = name
                     value = getattr(model, attr_name)
-                    if value != None and value.find('netenv.ref') != -1:
+                    if value != None and value.find('aim.ref netenv.') != -1:
                         value = self.insert_subenv_ref_str(value, env_name, env_region)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:

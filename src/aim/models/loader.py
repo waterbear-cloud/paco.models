@@ -992,6 +992,8 @@ class ModelLoader():
     def instantiate_network_environments(self, name, config):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
          # Network Environment
+        if config['network'] == None:
+            return
         net_env = self.create_apply_and_save(
             name, self.project['ne'], NetworkEnvironment, config['network']
         )

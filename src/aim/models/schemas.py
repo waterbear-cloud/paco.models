@@ -1834,10 +1834,21 @@ class IRoute53Resource(Interface):
         default = None
     )
 
+class ICodeCommitUser(Interface):
+    """
+    CodeCommit User
+    """
+    username = schema.TextLine(
+        title = "CodeCommit Username"
+    )
+
 class ICodeCommitRepository(INamed, IDeployable, IMapping):
     """
     CodeCommit Repository Configuration
     """
+    repository_name = schema.TextLine(
+        title = "Repository Name"
+    )
     account = TextReference(
         title = "AWS Account Reference",
         required = True
@@ -1847,6 +1858,11 @@ class ICodeCommitRepository(INamed, IDeployable, IMapping):
     )
     description = schema.TextLine(
         title = "Repository Description"
+    )
+    users = schema.Dict(
+        title = "CodeCommit Users",
+        value_type = schema.Object(ICodeCommitUser),
+        default = None
     )
 
 class ICodeCommit(Interface):

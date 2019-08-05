@@ -360,7 +360,7 @@ class LambdaFunctionCode():
     s3_key = FieldProperty(schemas.ILambdaFunctionCode['s3_key'])
 
 @implementer(schemas.ILambda)
-class Lambda(Resource):
+class Lambda(Resource, Monitorable):
     """
     Lambda Function resource
     """

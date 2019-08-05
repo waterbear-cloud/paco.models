@@ -1,10 +1,10 @@
 from aim.models import schemas
 from aim.models import vocabulary
 from aim.models.locations import get_parent_by_interface
-from aim.models.references import AimReference
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 import zope.schema
+from aim.models.references import Reference
 
 
 def get_all_fields(obj):
@@ -116,8 +116,8 @@ class Resource(Named, Deployable, Regionalized):
         project = get_parent_by_interface(self, schemas.IProject)
         # ToDo: rework account references so that they resolve to Account objs
         # and not just the account_id
-        ref = AimReference().parse_ref(env_reg.network.aws_account)
-        account = project[ref['ref_parts'][0]][ref['ref_parts'][1]]
+        ref = Reference(env_reg.network.aws_account)
+        account = project[ref.parts[0]][ref.parts[1]]
         return account
 
 @implementer(schemas.IServiceAccountRegion)

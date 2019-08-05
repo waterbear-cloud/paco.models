@@ -9,7 +9,7 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import loader
 from aim.models.locations import get_parent_by_interface
-from aim.models.references import AimReference
+from aim.models.references import Reference
 from aim.models import references
 
 
@@ -70,9 +70,8 @@ class Route53Resource():
         for zone_id in self.hosted_zones.keys():
             hosted_zone = self.hosted_zones[zone_id]
             aws_account_ref = hosted_zone.account
-            aim_ref = references.AimReference()
-            ref_dict = aim_ref.parse_ref(aws_account_ref)
-            account_name = ref_dict['ref_parts'][1]
+            ref = Reference(aws_account_ref)
+            account_name = ref.parts[1]
             if account_name not in self.zones_by_account:
                 self.zones_by_account[account_name] = []
             self.zones_by_account[account_name].append(zone_id)

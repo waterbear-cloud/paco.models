@@ -21,7 +21,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
-from aim.models.references import TextReference
+from aim.models.references import Reference, TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
 from aim.models import schemas
@@ -490,8 +490,7 @@ class ModelLoader():
     Loads YAML config files into aim.model instances
     """
 
-    def __init__(self, aim_ref, config_folder, config_processor=None):
-        self.aim_ref = aim_ref
+    def __init__(self, config_folder, config_processor=None):
         self.config_folder = config_folder
         self.config_subdirs = {
             "MonitorConfig": self.instantiate_monitor_config,
@@ -728,16 +727,12 @@ class ModelLoader():
         sub_ref_len = len(netenv_ref_raw)
 
         netenv_ref = netenv_ref_raw[0:sub_ref_len]
-        ref_dict = self.aim_ref.parse_ref(netenv_ref)
-        if ref_dict['netenv_component'] == 'subenv':
+        ref = Reference(netenv_ref)
+        if ref.type == 'netenv' and ref.parts[2] == subenv_id and ref.parts[3] == region:
             return str_value
-
-        ref_dict['ref_parts'][1] = '.'.join([ref_dict['netenv_id'],
-                                             'subenv',
-                                             subenv_id,
-                                             region])
-
-        new_ref_parts = '.'.join(ref_dict['ref_parts'])
+        ref.parts.insert(2, subenv_id)
+        ref.parts.insert(3, region)
+        new_ref_parts = '.'.join(ref.parts)
         new_ref = ' '.join(['aim.ref', new_ref_parts])
 
         return new_ref

@@ -269,7 +269,6 @@ class ASG(Resource, Monitorable):
             self.resolve_ref_obj.resolve_ref(ref)
         elif ref.last_part == 'resource_name':
             return self.resource_name
-        #return self.stack_group_object.get_stack_from_ref(self, aim_ref, ref_parts)
         return None
 
 

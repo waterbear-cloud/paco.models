@@ -7,7 +7,6 @@ import unittest
 from aim.models import load_project_from_yaml, schemas
 from aim.models.project import Project
 from aim.models.networks import SecurityGroup
-from aim.models.references import AimReference
 
 def fixtures_path():
     # find the project root directory
@@ -32,8 +31,7 @@ class BaseTestModelLoader(unittest.TestCase):
     def setUp(self):
         # set the fixtures dir
         self.path = fixtures_path()
-        aim_ref = AimReference()
-        self.project = load_project_from_yaml(aim_ref, self.path + os.sep + self.project_name)
+        self.project = load_project_from_yaml(self.path + os.sep + self.project_name)
 
 class TestAimDemo(BaseTestModelLoader):
 
@@ -94,15 +92,15 @@ class TestAimDemo(BaseTestModelLoader):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
         # Basic aim.ref netenv
         ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg_name
-        assert ref_value == "aim.ref netenv.aimdemo.subenv.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
 
         # aimsub netenf.ref
         #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
-        #assert ref_value == "aim.sub 'arn:aws:s3:::${aim.ref netenv.aimdemo.subenv.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
+        #assert ref_value == "aim.sub 'arn:aws:s3:::${aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
-        assert ref_value == "aim.ref netenv.aimdemo.subenv.demo.us-west-2.network.vpc.security_groups.app.lb.id"
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.network.vpc.security_groups.app.lb.id"
 
     def test_get_all_nodes(self):
         # check to ensure each node is only visited once

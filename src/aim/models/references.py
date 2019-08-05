@@ -20,55 +20,6 @@ def is_ref(aim_ref):
             return True
     return False
 
-class AimReference():
-
-    def is_ref(self, aim_ref):
-        return is_ref(aim_ref)
-
-    def parse_netenv_ref(self, aim_ref, ref_parts):
-        ref_dict = {}
-        ref_dict['subenv_id'] = ""
-        ref_dict['netenv_component'] = ""
-        ref_dict['subenv_component'] = ""
-        if ref_parts[1] == 'this':
-            ref_dict['netenv_id'] = self.this_netenv_id
-        else:
-            ref_dict['netenv_id'] = ref_parts[1]
-
-        if ref_parts[2] == 'subenv':
-            ref_dict['subenv_component'] = ref_parts[2]
-            ref_dict['subenv_id'] = ref_parts[3]
-            ref_dict['subenv_region'] = ref_parts[4]
-            ref_dict['netenv_component'] = ref_parts[5]
-        else:
-            ref_dict['netenv_component'] = ref_parts[2]
-        return ref_dict
-
-    def parse_ref(self, aim_ref):
-        ref_parts = aim_ref.split(' ')
-        if len(ref_parts) != 2:
-            raise ValueError("Invalid aim_ref: {}".format(aim_ref))
-            #raise StackException(AimErrorCode.Unknown)
-        config_ref = ref_parts[1]
-        location_parts = ref_parts[1].split('.')
-        ref_type = location_parts[0]
-        ref_dict = {}
-        if ref_type == 'netenv':
-            ref_dict = self.parse_netenv_ref(aim_ref, location_parts)
-        elif is_ref(aim_ref):
-            pass
-        else:
-            print(ref_parts[0])
-            raise ValueError("Invalid aim_ref: {}".format(aim_ref))
-            #raise StackException(AimErrorCode.Unknown)
-        ref_dict['type'] = ref_type
-        ref_dict['ref'] = config_ref
-        ref_dict['ref_parts'] = location_parts
-        ref_dict['raw'] = aim_ref
-
-        return ref_dict
-
-
 class TextReference(zope.schema.Text):
 
     def __init__(self, *args, **kwargs):
@@ -83,7 +34,6 @@ class TextReference(zope.schema.Text):
         Limit text to the format 'word.ref chars_here.more-chars.finalchars100'
         """
 #        if value.find('patch.<account>.<region>.applications.patch.groups.lambda.resources.snstopic.arn') != -1:
-#            breakpoint()
         if self.str_ok and is_ref(value) == False:
             if isinstance(value, str) == False:
                 return False
@@ -125,8 +75,7 @@ class Reference():
         self.resource = None
         self.resource_ref = None
 
-        aim_ref = AimReference()
-        if aim_ref.is_ref(self.raw) == False:
+        if is_ref(self.raw) == False:
             print("Invalid AIM Reference: %s" % (value))
             #raise StackException(AimErrorCode.Unknown)
 
@@ -160,6 +109,14 @@ class Reference():
     def set_region(self, region):
         self.sub_part('<region>', region)
 
+    def resolve(self, project, account_ctx=None):
+        return resolve_ref(
+            ref_str=None,
+            project=project,
+            account_ctx=account_ctx,
+            ref=self
+        )
+
 def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     """
     Traverses the reference parts looking for the last child that
@@ -184,21 +141,18 @@ def get_resolve_ref_obj(obj, ref, value, part_idx_start):
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
     return response
 
-def resolve_ref(value, project, account_ctx=None):
+def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     """Resolve a reference"""
-    aim_ref = AimReference()
-    if aim_ref.is_ref(value) == False:
-        return None
-
-    ref = Reference(value)
+    if ref == None:
+        ref = Reference(ref_str)
     if ref.type == "resource":
         if ref.parts[1] == 's3':
-            return get_resolve_ref_obj(project['s3'], ref, value, part_idx_start=2)
+            return get_resolve_ref_obj(project['s3'], ref, ref_str, part_idx_start=2)
         return project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
         if ref.parts[4] == 'applications':
             obj = project[ref.parts[1]]
-            response = get_resolve_ref_obj(obj, ref, value, part_idx_start=4)
+            response = get_resolve_ref_obj(obj, ref, ref_str, part_idx_start=4)
             return response
         return project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
@@ -214,8 +168,8 @@ def resolve_ref(value, project, account_ctx=None):
         #
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
-        obj = project['ne'][ref.parts[1]][ref.parts[3]][ref.parts[4]]
-        return get_resolve_ref_obj(obj, ref, value, 5)
+        obj = project['ne'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
+        return get_resolve_ref_obj(obj, ref, ref_str, 4)
 
 
     elif ref.type == "accounts":

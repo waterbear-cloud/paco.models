@@ -1707,7 +1707,7 @@ class ILambdaFunctionCode(Interface):
         title = "The Amazon S3 key of the deployment package."
     )
 
-class ILambda(IResource):
+class ILambda(IResource, IMonitorable):
     """
     Lambda Function resource
     """

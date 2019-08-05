@@ -135,7 +135,8 @@ SUB_TYPES_CLASS_MAP = {
     Lambda: {
         'environment': ('unnamed_dict', LambdaEnvironment),
         'code': ('unnamed_dict', LambdaFunctionCode),
-        'iam_role': ('unnamed_dict', Role)
+        'iam_role': ('unnamed_dict', Role),
+        'monitoring': ('unnamed_dict', MonitorConfig)
     },
     LambdaEnvironment: {
         'variables': ('obj_list', LambdaVariable)
@@ -800,7 +801,12 @@ class ModelLoader():
             else:
                 continue
             config = self.read_yaml('Services', fname)
-            service = plugin_module.instantiate_model(config, self.project, read_file_path=services_dir + fname)
+            service = plugin_module.instantiate_model(
+                config,
+                self.project,
+                self.monitor_config,
+                read_file_path=services_dir + fname
+            )
             self.project[plugin_name.lower()] = service
             if hasattr(plugin_module, 'load_outputs'):
                 plugin_module.load_outputs(self)

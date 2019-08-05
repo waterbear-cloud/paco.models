@@ -17,7 +17,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
-    CodeCommit, CodeCommitRepository
+    CodeCommit, CodeCommitRepository, CodeCommitUser
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
@@ -153,6 +153,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     SNSTopic: {
         'subscriptions': ('obj_list', SNSTopicSubscription)
+    },
+    CodeCommitRepository: {
+        'users': ('named_dict', CodeCommitUser)
     }
 }
 
@@ -889,10 +892,11 @@ class ModelLoader():
             codecommit_obj.repository_groups[group_id] = {}
             for repo_id in group_config.keys():
                 repo_config = group_config[repo_id]
-                repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
+                repo_obj = CodeCommitRepository(repo_config['repository_name'], codecommit_obj)
                 apply_attributes_from_config(repo_obj, repo_config)
                 codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
         codecommit_obj.gen_repo_by_account()
+
         return codecommit_obj
 
     def instantiate_ec2(self, config):

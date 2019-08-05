@@ -93,11 +93,16 @@ class Route53Resource():
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.ICodeCommitUser)
+class CodeCommitUser():
+    username = FieldProperty(schemas.ICodeCommitUser["username"])
+
 @implementer(schemas.ICodeCommitRepository)
 class CodeCommitRepository(Named, Deployable, dict):
     account = FieldProperty(schemas.ICodeCommitRepository["account"])
     region = FieldProperty(schemas.ICodeCommitRepository["region"])
     description = FieldProperty(schemas.ICodeCommitRepository["description"])
+    users = FieldProperty(schemas.ICodeCommitRepository["users"])
 
 @implementer(schemas.ICodeCommit)
 class CodeCommit():

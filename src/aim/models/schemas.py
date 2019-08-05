@@ -609,41 +609,6 @@ class ILambdaNotificationMember(INotificationMember):
 class INotificationGroups(IServiceAccountRegion):
     "Container for Notification Groups"
 
-class INotificationGroup(INamed, IMapping, IResource):
-    "Container for Notification Members"
-    http = schema.List(
-        title = "HTTP members",
-        value_type=schema.Object(IHttpNotificationMember)
-    )
-    https = schema.List(
-        title = "HTTPS members",
-        value_type=schema.Object(IHttpsNotificationMember)
-    )
-    email = schema.List(
-        title = "Email members",
-        value_type=schema.Object(IEmailNotificationMember)
-    )
-    emailjson = schema.List(
-        title = "Email-JSON members",
-        value_type=schema.Object(IEmailJsonNotificationMember)
-    )
-    sms = schema.List(
-        title = "SMS members",
-        value_type=schema.Object(ISmsNotificationMember)
-    )
-    sqs = schema.List(
-        title = "SQS members",
-        value_type=schema.Object(ISqsNotificationMember)
-    )
-    application = schema.List(
-        title = "Application members",
-        value_type=schema.Object(IApplicationNotificationMember)
-    )
-    lambdafunc = schema.List(
-        title = "Lambda members",
-        value_type=schema.Object(ILambdaNotificationMember)
-    )
-
 # Logging schemas
 
 class ILogSets(IMapping):
@@ -660,7 +625,6 @@ class ILogCategory(IMapping, IName):
     """
     A dict of log source objects
     """
-    pass
 
 class ILogSource(IName):
     """
@@ -1881,7 +1845,6 @@ class ISNSTopicSubscription(Interface):
         description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
         constraint = isValidSNSSubscriptionProtocol
     )
-
     endpoint = TextReference(
         title = "SNS Topic Endpoint",
         str_ok = True
@@ -1894,7 +1857,6 @@ class ISNSTopic(IResource):
     display_name = schema.TextLine(
         title = "Display name for SMS Messages"
     )
-
     subscriptions = schema.List(
         title = "List of SNS Topic Subscriptions",
         value_type = schema.Object(ISNSTopicSubscription),

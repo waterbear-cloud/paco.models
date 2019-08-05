@@ -227,17 +227,18 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.INotificationGroups.providedBy(groups)
         assert groups.region, 'eu-central-1'
         assert groups.account, 'aim.ref accounts.master'
-        assert groups['bobs_team'].email[0].endpoint, 'joe@example.com'
-        assert len(groups['bobs_team'].email), 2
+        assert groups['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
+        assert len(groups['bobs_team'].subscriptions), 2
         bob = groups['bob']
-        assert bob.http[0], 'http://example.com/yes'
-        assert bob.https[0], 'https://example.com/orno'
-        assert bob.email[0], 'bob@example.com'
-        assert bob.emailjson[0], 'bob@example.com'
-        assert bob.sms[0], '555-555-5555'
-        assert bob.sqs[0], 'arn:aws:sqs:us-east-2:444455556666:queue1'
-        assert bob.application[0], 'arn:aws:sqs:us-east-2:444455556666:queue1'
-        assert bob.lambdafunc[0], 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
+        assert bob.subscriptions[0].protocol, 'http'
+        assert bob.subscriptions[0].endpoint, 'http://example.com/yes'
+        assert bob.subscriptions[1].endpoint, 'https://example.com/orno'
+        assert bob.subscriptions[2].endpoint, 'bob@example.com'
+        assert bob.subscriptions[3].endpoint, 'bob@example.com'
+        assert bob.subscriptions[4].endpoint, '555-555-5555'
+        assert bob.subscriptions[5].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
+        assert bob.subscriptions[6].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
+        assert bob.subscriptions[7].endpoint, 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
 
     def test_lambda(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']

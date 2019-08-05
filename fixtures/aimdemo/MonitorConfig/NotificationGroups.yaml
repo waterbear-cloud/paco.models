@@ -2,39 +2,47 @@ account: aim.ref accounts.master
 region: eu-central-1
 groups:
   bob:
-    title: "Bob is on the job"
-    http:
+    display_name: "Bob is on the job"
+    subscriptions:
       - endpoint: http://example.com/yes
-    https:
+        protocol: http
       - endpoint: https://example.com/orno
-    email:
+        protocol: https
       - endpoint: bob@example.com
-    emailjson:
+        protocol: email
       - endpoint: bob@example.com
-    sms:
+        protocol: email-json
       - endpoint: '555-555-5555'
-    sqs:
+        protocol: sms
       - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
-    application:
+        protocol: sqs
       - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
-    lambdafunc:
+        protocol: application
       - endpoint: arn:aws:lambda:us-east-1:123456789012:function:my-function
+        protocol: lambda
   misterteam:
-    email:
+    subscriptions:
       - endpoint: jim@example.com
+        protocol: email
   oneguygetsthis:
-    email:
+    subscriptions:
       - endpoint: jim@example.com
+        protocol: email
   santa:
-    email:
+    subscriptions:
       - endpoint: santa@example.com
+        protocol: email
   jim_is_the_new_bob:
-    email:
+    subscriptions:
       - endpoint: jim@example.com
+        protocol: email
   bobs_team:
-    email:
+    subscriptions:
       - endpoint: joe@example.com
+        protocol: email
       - endpoint: bob@example.com
+        protocol: email
   wb_ops:
-    email-json:
+    subscriptions:
       - endpoint: pagerduty@waterbear.cloud
+        protocol: email-json

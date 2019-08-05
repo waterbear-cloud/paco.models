@@ -9,49 +9,6 @@ from zope.schema.fieldproperty import FieldProperty
 class NotificationGroups(ServiceAccountRegion, Named, dict):
     "Container for NotificationGroups"
 
-@implementer(schemas.INotificationGroup)
-class NotificationGroup(Resource, dict):
-    "A NotificationGroup is a special type of SNS Topic that can recieve Alarm notifications"
-    type = 'SNSTopic'
-    email = FieldProperty(schemas.INotificationGroup['email'])
-
-@implementer(schemas.INotificationMember)
-class NotificationMember(Named):
-    """NotificationMember"""
-    endpoint = FieldProperty(schemas.INotificationMember['endpoint'])
-
-@implementer(schemas.IHttpNotificationMember)
-class HttpNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.IHttpNotificationMember['endpoint'])
-
-@implementer(schemas.IHttpsNotificationMember)
-class HttpsNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.IHttpsNotificationMember['endpoint'])
-
-@implementer(schemas.IEmailNotificationMember)
-class EmailNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.IEmailNotificationMember['endpoint'])
-
-@implementer(schemas.IEmailJsonNotificationMember)
-class EmailJsonNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.IEmailJsonNotificationMember['endpoint'])
-
-@implementer(schemas.ISmsNotificationMember)
-class SmsNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.ISmsNotificationMember['endpoint'])
-
-@implementer(schemas.ISqsNotificationMember)
-class SqsNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.ISqsNotificationMember['endpoint'])
-
-@implementer(schemas.IApplicationNotificationMember)
-class ApplicationNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.IApplicationNotificationMember['endpoint'])
-
-@implementer(schemas.ILambdaNotificationMember)
-class LambdaNotificationMember(NotificationMember):
-    endpoint = FieldProperty(schemas.ILambdaNotificationMember['endpoint'])
-
 @implementer(schemas.IAlarmNotifications)
 class AlarmNotifications(dict):
     "Container of AlarmNotifications"

@@ -93,19 +93,10 @@ applications:
     enabled: true
     managed_updates: true
     notifications:
-      notificationservice:
-        groups:
-          - servicelambda
-
       team_bob:
         groups:
          - bob
         classification: 'performance'
-
-    notifications:
-      waterbear_service:
-        groups:
-          - lambda
     groups:
       cicd:
         type: Deployment

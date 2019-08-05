@@ -6,9 +6,7 @@ import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups, \
-    HttpNotificationMember, HttpsNotificationMember, EmailNotificationMember, EmailJsonNotificationMember, \
-    SmsNotificationMember, SqsNotificationMember, ApplicationNotificationMember, LambdaNotificationMember
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -57,15 +55,8 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
-    NotificationGroup: {
-        'http': ('obj_list', HttpNotificationMember),
-        'https': ('obj_list', HttpsNotificationMember),
-        'email': ('obj_list', EmailNotificationMember),
-        'emailjson': ('obj_list', EmailJsonNotificationMember),
-        'sms': ('obj_list', SmsNotificationMember),
-        'sqs': ('obj_list', SqsNotificationMember),
-        'application': ('obj_list', ApplicationNotificationMember),
-        'lambdafunc': ('obj_list', LambdaNotificationMember),
+    SNSTopic: {
+        'subscription': ('obj_list', SNSTopicSubscription),
     },
     # Resource sub-objects
     LBApplication: {
@@ -589,12 +580,13 @@ class ModelLoader():
 
         base_output_path = 'Outputs' + os.sep
         monitor_config_output_path = base_output_path + 'MonitorConfig'
-        if os.path.isdir(self.config_folder + os.sep + monitor_config_output_path):
-            notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
-            if 'groups' in notif_groups_config:
-                notif_groups = self.project['notificationgroups']
-                for group_name in notif_groups_config['groups'].keys():
-                    notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
+        # XXX
+        #if os.path.isdir(self.config_folder + os.sep + monitor_config_output_path):
+        #    notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
+        #    if 'groups' in notif_groups_config:
+        #        notif_groups = self.project['notificationgroups']
+        #        for group_name in notif_groups_config['groups'].keys():
+        #            notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
 
         ne_outputs_path = base_output_path + 'NetworkEnvironments'
         if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
@@ -821,6 +813,8 @@ class ModelLoader():
         """Detect misconfigured alarm notification situations.
         This happens after both MonitorConfig and NetworkEnvironments have loaded.
         """
+        # XXX
+        return
         if 'notificationgroups' in self.project:
             for app in self.project.get_all_applications():
                 if app.is_enabled():
@@ -864,16 +858,11 @@ class ModelLoader():
                 groups_config = copy.deepcopy(config['groups'])
                 del config['groups']
                 apply_attributes_from_config(groups, config, read_file_path=self.read_file_path)
-                # load Notification Groups
-                for groupname, group_config in groups_config.items():
-                    group = NotificationGroup(groupname, groups)
-                    apply_attributes_from_config(group, group_config)
-                    groups[groupname] = group
-                    # load group members
-                    #for membername, member_config in groups_config[groupname]['members'].items():
-                    #    member = NotificationMember(membername, group)
-                    #    apply_attributes_from_config(member, member_config)
-                    #    groups[groupname][membername] = member
+                # load SNS Topics
+                for topicname, topic_config in groups_config.items():
+                    topic = SNSTopic(topicname, groups)
+                    apply_attributes_from_config(topic, topic_config)
+                    groups[topicname] = topic
             else:
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config

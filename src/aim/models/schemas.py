@@ -36,6 +36,9 @@ def isValidSNSSubscriptionProtocol(value):
         raise InvalidSNSSubscriptionProtocol
     return True
 
+class InvalidSNSSubscriptionEndpoint(schema.ValidationError):
+    __doc__ = 'Not a valid SNS Endpoint.'
+
 class InvalidAWSRegion(schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
 
@@ -1823,6 +1826,20 @@ class ICodeCommit(Interface):
     )
 
 class ISNSTopicSubscription(Interface):
+
+    @invariant
+    def is_valid_endpoint_for_protocol(obj):
+        "Validate enpoint"
+        # ToDo: this relies on other validation functions, maybe catch an re-raise
+        # with more helpful error message context.
+        # also check the other protocols ...
+        if obj.protocol == 'http':
+            isValidHttpUrl(obj.endpoint)
+        elif obj.protocol == 'https':
+            isValidHttpsUrl(obj.endpoint)
+        elif obj.protocol in ['email','email-json']:
+            isValidEmail(obj.endpoint)
+
     protocol = schema.TextLine(
         title = "Notification protocol",
         default = "email",

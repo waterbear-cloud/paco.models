@@ -580,13 +580,12 @@ class ModelLoader():
 
         base_output_path = 'Outputs' + os.sep
         monitor_config_output_path = base_output_path + 'MonitorConfig'
-        # XXX
-        #if os.path.isdir(self.config_folder + os.sep + monitor_config_output_path):
-        #    notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
-        #    if 'groups' in notif_groups_config:
-        #        notif_groups = self.project['notificationgroups']
-        #        for group_name in notif_groups_config['groups'].keys():
-        #            notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
+        if os.path.isfile(self.config_folder + os.sep + monitor_config_output_path + os.sep + 'NotificationGroups.yaml'):
+            notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
+            if 'groups' in notif_groups_config:
+                notif_groups = self.project['notificationgroups']
+                for group_name in notif_groups_config['groups'].keys():
+                    notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
 
         ne_outputs_path = base_output_path + 'NetworkEnvironments'
         if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
@@ -813,8 +812,6 @@ class ModelLoader():
         """Detect misconfigured alarm notification situations.
         This happens after both MonitorConfig and NetworkEnvironments have loaded.
         """
-        # XXX
-        return
         if 'notificationgroups' in self.project:
             for app in self.project.get_all_applications():
                 if app.is_enabled():
@@ -822,7 +819,7 @@ class ModelLoader():
                         alarm = alarm_info['alarm']
                         # warn on alarms with no subscriptions
                         if len(alarm.notification_groups) == 0:
-                            print("Alarm {} for app {} does not have any notfiications.".format(
+                            print("Alarm {} for app {} does not have any notifications.".format(
                                 alarm.name,
                                 app.name
                             ))

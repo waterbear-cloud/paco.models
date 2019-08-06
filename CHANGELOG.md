@@ -1,7 +1,7 @@
 Changelog for aim.models
 =================
 
-2.1.0 (unreleased)
+3.0.0 (unreleased)
 ------------------
 
 ### Added
@@ -16,8 +16,12 @@ Changelog for aim.models
 
 ### Changed
 
+ - All references have been renamed to start with ``aim.ref`` for consistency.
+
  - AlarmSets, AlarmSet and Alarm all now implement INamed and
    are locatable in the model
+
+ - Service plugins can load their outputs
 
 
 2.0.0 (2019-07-23)

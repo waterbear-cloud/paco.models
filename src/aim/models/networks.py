@@ -178,7 +178,7 @@ class SecurityGroupRule():
     from_port = FieldProperty(schemas.ISecurityGroupRule["from_port"])
     protocol = FieldProperty(schemas.ISecurityGroupRule["protocol"])
     to_port = FieldProperty(schemas.ISecurityGroupRule["to_port"])
-    source_security_group_id = FieldProperty(schemas.ISecurityGroupRule["source_security_group_id"])
+    source_security_group = FieldProperty(schemas.ISecurityGroupRule["source_security_group"])
 
 @implementer(schemas.IIngressRule)
 class IngressRule(SecurityGroupRule):

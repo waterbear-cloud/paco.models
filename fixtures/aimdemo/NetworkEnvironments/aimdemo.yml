@@ -46,18 +46,18 @@ network:
             - from_port: 80
               name: HTTP
               protocol: tcp
-              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb.id
+              source_security_group: aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb
               to_port: 80
             - from_port: 22
               to_port: 22
               name: SSH
               protocol: tcp
-              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion.id
+              source_security_group: aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
             - from_port: 80
               to_port: 80
               name: BASTIONHTTP
               protocol: tcp
-              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion.id
+              source_security_group: aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
         bastion:
           egress:
             - cidr_ip: 0.0.0.0/0
@@ -75,7 +75,7 @@ network:
               protocol: "6"
               from_port: 3306
               to_port: 3306
-              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp.id
+              source_security_group: aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
           egress:
             - name: ANY
               cidr_ip: 0.0.0.0/0
@@ -113,14 +113,14 @@ applications:
             manual_approval_enabled: false
             manual_approval_notification_email: ""
             codecommit_repository: aim.ref resource.codecommit.aimdemo.app
-            asg_name: aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp.name
+            asg: aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp
             auto_rollback_enabled: true
             deploy_config_type: HOST_COUNT
             deploy_style_option: WITH_TRAFFIC_CONTROL
             deploy_config_value: 1
-            deploy_instance_role_name: aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role.name
+            deploy_instance_role: aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role
             elb_name: ""
-            alb_target_group_name: aim.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app.name
+            alb_target_group: aim.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app
             tools_account: aim.ref accounts.tools
             cross_account_support: true
             artifacts_bucket: aim.ref netenv.aimdemo.applications.app.groups.cicd.resources.cpbd_s3
@@ -161,15 +161,14 @@ applications:
                 port: 443
                 protocol: HTTPS
                 ssl_certificates:
-                  - aim.ref netenv.aimdemo.applications.app.groups.site.resources.cert.arn
+                  - aim.ref netenv.aimdemo.applications.app.groups.site.resources.cert
                 target_group: app
             dns:
-              - hosted_zone_id: aim.ref resource.route53.aimdemo.id
+              - hosted_zone: aim.ref resource.route53.aimdemo
                 domain_name: aimdemo.waterbear.cloud
-                ssl_certificate: aim.ref netenv.aimdemo.applications.app.groups.site.resources.cert.arn
             scheme: internet-facing
             security_groups:
-              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb.id
+              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb
             segment: public
           webapp:
             type: ASG
@@ -190,9 +189,9 @@ applications:
             min_instances: 1
             desired_capacity: 1
             target_groups:
-              - aim.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app.arn
+              - aim.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app
             security_groups:
-              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp.id
+              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
             segment: webapp
             termination_policies:
               - Default
@@ -285,7 +284,7 @@ applications:
             update_policy_max_batch_size: 1
             update_policy_min_instances_in_service: 0
             security_groups:
-              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion.id
+              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
             user_data_script: |
               #!/bin/bash
 
@@ -328,7 +327,7 @@ storage:
     app:
       type: RDSAurora
       security_groups:
-        - aim.ref netenv.aimdemo.network.vpc.security_groups.app.rds.id
+        - aim.ref netenv.aimdemo.network.vpc.security_groups.app.rds
       segment: database
 
 #iam:
@@ -336,7 +335,7 @@ storage:
       # policies:
       #   my_policy:
       #     roles:
-      #       - aim.ref netenv.aimdemo.iam.app.site.roles.instance_role.arn
+      #       - aim.ref netenv.aimdemo.iam.app.site.roles.instance_role
       #     statement:
       #       ...
 
@@ -470,7 +469,7 @@ environments:
                 alb:
                   enabled: true
                   dns:
-                    - hosted_zone_id: aim.ref resource.route53.aimdemo_dev.id
+                    - hosted_zone: aim.ref resource.route53.aimdemo_dev
                       domain_name: dev.aimdemo.waterbear.cloud
                   monitoring:
                     alarm_sets:

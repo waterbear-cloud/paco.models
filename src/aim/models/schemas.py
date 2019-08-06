@@ -295,8 +295,8 @@ class ISecurityGroupRule(IName):
 
     @invariant
     def cidr_v4_or_v6(obj):
-        if obj.cidr_ip == '' and obj.cidr_ip_v6 == '' and not getattr(obj, 'source_security_group_id', None):
-            raise Invalid("cidr_ip, cidr_ip_v6 and source_security_group_id can not all be blank")
+        if obj.cidr_ip == '' and obj.cidr_ip_v6 == '' and not getattr(obj, 'source_security_group', None):
+            raise Invalid("cidr_ip, cidr_ip_v6 and source_security_group can not all be blank")
 
     cidr_ip = schema.TextLine(
         title = "CIDR IP",
@@ -328,8 +328,8 @@ class ISecurityGroupRule(IName):
         description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default = -1
     )
-    source_security_group_id = TextReference(
-        title = "Source Security Group",
+    source_security_group = TextReference(
+        title = "Source Security Group Reference",
         required = False,
         description = "An AIM Reference to a SecurityGroup"
     )
@@ -894,7 +894,7 @@ class ICodePipeBuildDeploy(IResource):
     codecommit_repository = TextReference(
         title = 'CodeCommit Respository'
     )
-    asg_name = TextReference(
+    asg = TextReference(
         title = "ASG Reference"
     )
     auto_rollback_enabled = schema.Bool(
@@ -917,16 +917,16 @@ class ICodePipeBuildDeploy(IResource):
         description = "",
         default = 0
     )
-    deploy_instance_role_name = TextReference(
-        title = "Deploy instance role name"
+    deploy_instance_role = TextReference(
+        title = "Deploy Instance Role Reference"
     )
     elb_name = schema.TextLine(
         title = "ELB Name",
         description = "",
         default = ""
     )
-    alb_target_group_name = TextReference(
-        title = "ALB Target Group Name Reference"
+    alb_target_group = TextReference(
+        title = "ALB Target Group Reference"
     )
     tools_account = TextReference(
         title = "Tools Account Reference"
@@ -1315,7 +1315,7 @@ class IListener(IPortProtocol):
     )
 
 class IDNS(Interface):
-    hosted_zone_id = TextReference(
+    hosted_zone = TextReference(
         title = "Hosted Zone Id Reference",
     )
     domain_name = schema.TextLine(

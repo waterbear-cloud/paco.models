@@ -1,13 +1,13 @@
 buckets:
   bucketland:
     enabled: true
-    account: config.ref accounts.master
+    account: aim.ref accounts.master
     region: eu-central-1
     bucket_name: 'lambda-packages'
     deletion_policy: 'delete'
     policy:
       - aws:
-          - aim.sub 'arn:aws:iam::${config.ref accounts.master}:root'
+          - aim.sub 'arn:aws:iam::${aim.ref accounts.master}:root'
         effect: 'Allow'
         action:
           - 's3:Get*'

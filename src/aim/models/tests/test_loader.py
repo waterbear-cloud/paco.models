@@ -7,7 +7,6 @@ import unittest
 from aim.models import load_project_from_yaml, schemas
 from aim.models.project import Project
 from aim.models.networks import SecurityGroup
-from aim.models.references import AimReference
 
 def fixtures_path():
     # find the project root directory
@@ -32,8 +31,7 @@ class BaseTestModelLoader(unittest.TestCase):
     def setUp(self):
         # set the fixtures dir
         self.path = fixtures_path()
-        aim_ref = AimReference()
-        self.project = load_project_from_yaml(aim_ref, self.path + os.sep + self.project_name)
+        self.project = load_project_from_yaml(self.path + os.sep + self.project_name)
 
 class TestAimDemo(BaseTestModelLoader):
 
@@ -92,17 +90,17 @@ class TestAimDemo(BaseTestModelLoader):
 
     def test_netenv_refs(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
-        # Basic netenv.ref
+        # Basic aim.ref netenv
         ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg_name
-        assert ref_value == "netenv.ref aimdemo.subenv.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
 
         # aimsub netenf.ref
         #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
-        #assert ref_value == "aim.sub 'arn:aws:s3:::${netenv.ref aimdemo.subenv.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
+        #assert ref_value == "aim.sub 'arn:aws:s3:::${aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
-        assert ref_value == "netenv.ref aimdemo.subenv.demo.us-west-2.network.vpc.security_groups.app.lb.id"
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.network.vpc.security_groups.app.lb.id"
 
     def test_get_all_nodes(self):
         # check to ensure each node is only visited once
@@ -157,9 +155,9 @@ class TestAimDemo(BaseTestModelLoader):
         # Route53
         assert self.project['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
         # CodeCommit
-        assert self.project['codecommit'].repository_groups['aimdemo']['app'].account, 'config.ref accounts.data'
+        assert self.project['codecommit'].repository_groups['aimdemo']['app'].account, 'aim.ref accounts.data'
         # EC2
-        assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'config.ref accounts.dev'
+        assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'aim.ref accounts.dev'
 
     def test_resource_account(self):
         dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
@@ -226,10 +224,19 @@ class TestAimDemo(BaseTestModelLoader):
         groups = self.project['notificationgroups']
         assert schemas.INotificationGroups.providedBy(groups)
         assert groups.region, 'eu-central-1'
-        assert groups.account, 'config.ref accounts.master'
-        assert groups['bobs_team']['bob@example.com'].protocol, 'email'
-        assert len(groups['bobs_team'].keys()), 2
-        assert groups['wb_ops']['pagerduty@waterbear.cloud'].protocol, 'pagerduty@waterbear.cloud'
+        assert groups.account, 'aim.ref accounts.master'
+        assert groups['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
+        assert len(groups['bobs_team'].subscriptions), 2
+        bob = groups['bob']
+        assert bob.subscriptions[0].protocol, 'http'
+        assert bob.subscriptions[0].endpoint, 'http://example.com/yes'
+        assert bob.subscriptions[1].endpoint, 'https://example.com/orno'
+        assert bob.subscriptions[2].endpoint, 'bob@example.com'
+        assert bob.subscriptions[3].endpoint, 'bob@example.com'
+        assert bob.subscriptions[4].endpoint, '555-555-5555'
+        assert bob.subscriptions[5].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
+        assert bob.subscriptions[6].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
+        assert bob.subscriptions[7].endpoint, 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
 
     def test_lambda(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']

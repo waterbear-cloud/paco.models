@@ -30,6 +30,10 @@ cloudwatch = {
 	'LBApplication': {
 		'dimension': 'LoadBalancer',
 		'namespace': 'AWS/ApplicationELB'
+	},
+	'Lambda': {
+		'dimension': 'FunctionName',
+		'namespace': 'AWS/Lambda'
 	}
 }
 

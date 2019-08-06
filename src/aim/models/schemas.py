@@ -36,6 +36,9 @@ def isValidSNSSubscriptionProtocol(value):
         raise InvalidSNSSubscriptionProtocol
     return True
 
+class InvalidSNSSubscriptionEndpoint(schema.ValidationError):
+    __doc__ = 'Not a valid SNS Endpoint.'
+
 class InvalidAWSRegion(schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
 
@@ -51,6 +54,24 @@ EMAIL_RE = re.compile(r"[^@]+@[^@]+\.[^@]+")
 def isValidEmail(value):
     if not EMAIL_RE.match(value):
         raise InvalidEmailAddress
+    return True
+
+class InvalidHttpUrl(schema.ValidationError):
+    __doc__ = 'Malformed HTTP URL'
+
+HTTP_RE = re.compile(r"^http:\/\/(.*)")
+def isValidHttpUrl(value):
+    if not HTTP_RE.match(value):
+        raise InvalidHttpUrl
+    return True
+
+class InvalidHttpsUrl(schema.ValidationError):
+    __doc__ = 'Malformed HTTPS URL'
+
+HTTPS_RE = re.compile(r"^https:\/\/(.*)")
+def isValidHttpsUrl(value):
+    if not HTTPS_RE.match(value):
+        raise InvalidHttpsUrl
     return True
 
 class InvalidInstanceSizeError(schema.ValidationError):
@@ -371,6 +392,27 @@ class IResource(INamed, IDeployable):
         required = False
     )
 
+
+class IServiceAccountRegion(Interface):
+    "An account and region for a service"
+    account = TextReference(
+        title = "Account Reference",
+        required = False
+    )
+    region = schema.TextLine(
+        title = "AWS Region",
+        description = "Must be a valid AWS Region name",
+        default = "us-west-2",
+        constraint = isValidAWSRegionName
+    )
+
+class IServiceEnvironment(IServiceAccountRegion, INamed):
+    "A service composed of one or more applications"
+    applications = schema.Object(
+        title = "Applications",
+        schema = IApplicationEngines,
+    )
+
 class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
@@ -508,30 +550,67 @@ class ICloudWatchAlarm(IAlarm):
         title = "Evaluate low sample count percentile"
     )
 
-class INotificationGroups(INamed, IMapping):
-    "Container for Notification Groups"
-    account = TextReference(
-        title = "Account Reference",
-        required = False
-    )
-    region = schema.TextLine(
-        title = "AWS Region",
-        description = "Must be a valid AWS Region name",
-        default = "us-west-2",
-        constraint = isValidAWSRegionName
-    )
-
-class INotificationGroup(INamed, IMapping):
-    "Container for Notification Members"
-
 class INotificationMember(INamed):
     "Endpoint to notify"
-    protocol = schema.TextLine(
-        title = "Notification protocol",
-        default = "email",
-        description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
-        constraint = isValidSNSSubscriptionProtocol
+    endpoint = schema.TextLine(
+        title = "Subscription Endpoint",
+        description = "Must be a valid endpoint",
     )
+
+class IHttpNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "HTTP Subscription Endpoint",
+        description = "Must be a valid HTTP endpoint",
+        constraint = isValidHttpUrl
+    )
+
+class IHttpsNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "HTTPS Subscription Endpoint",
+        description = "Must be a valid HTTPS endpoint",
+        constraint = isValidHttpsUrl
+    )
+
+class IEmailNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Email Subscription Endpoint",
+        description = "Must be a valid email endpoint",
+        constraint = isValidEmail
+    )
+
+class IEmailJsonNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Email-JSON Subscription Endpoint",
+        description = "Must be a valid email endpoint",
+        constraint = isValidEmail
+    )
+
+class ISmsNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "SMS Subscription Endpoint",
+        description = "Must be a valid SMS endpoint",
+    )
+
+class ISqsNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Subscription Endpoint",
+        description = "Must be a valid SQS endpoint",
+    )
+
+class IApplicationNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Application Subscription Endpoint",
+        description = "Must be a valid application endpoint",
+    )
+
+class ILambdaNotificationMember(INotificationMember):
+    endpoint = schema.TextLine(
+        title = "Lambda Subscription Endpoint",
+        description = "Must be a valid lambda endpoint",
+    )
+
+class INotificationGroups(IServiceAccountRegion):
+    "Container for Notification Groups"
 
 # Logging schemas
 
@@ -549,7 +628,6 @@ class ILogCategory(IMapping, IName):
     """
     A dict of log source objects
     """
-    pass
 
 class ILogSource(IName):
     """
@@ -1629,7 +1707,7 @@ class ILambdaFunctionCode(Interface):
         title = "The Amazon S3 key of the deployment package."
     )
 
-class ILambda(IResource):
+class ILambda(IResource, IMonitorable):
     """
     Lambda Function resource
     """
@@ -1691,6 +1769,14 @@ class ILambda(IResource):
         required=False,
         default=False
     )
+    sns_topics = schema.List(
+        title = "List of SNS Topic AIM Referenes",
+        value_type =  TextReference(
+            title = "SNS Topic AIM Reference",
+            str_ok=True
+        ),
+        default = []
+    )
 
 class IRoute53HostedZone(IDeployable):
     """
@@ -1715,10 +1801,21 @@ class IRoute53Resource(Interface):
         default = None
     )
 
+class ICodeCommitUser(Interface):
+    """
+    CodeCommit User
+    """
+    username = schema.TextLine(
+        title = "CodeCommit Username"
+    )
+
 class ICodeCommitRepository(INamed, IDeployable, IMapping):
     """
     CodeCommit Repository Configuration
     """
+    repository_name = schema.TextLine(
+        title = "Repository Name"
+    )
     account = TextReference(
         title = "AWS Account Reference",
         required = True
@@ -1729,6 +1826,11 @@ class ICodeCommitRepository(INamed, IDeployable, IMapping):
     description = schema.TextLine(
         title = "Repository Description"
     )
+    users = schema.Dict(
+        title = "CodeCommit Users",
+        value_type = schema.Object(ICodeCommitUser),
+        default = None
+    )
 
 class ICodeCommit(Interface):
     """
@@ -1737,4 +1839,43 @@ class ICodeCommit(Interface):
     repository_groups = schema.Dict(
         title = "Group of Repositories",
         value_type = schema.Object(ICodeCommitRepository)
+    )
+
+class ISNSTopicSubscription(Interface):
+
+    @invariant
+    def is_valid_endpoint_for_protocol(obj):
+        "Validate enpoint"
+        # ToDo: this relies on other validation functions, maybe catch an re-raise
+        # with more helpful error message context.
+        # also check the other protocols ...
+        if obj.protocol == 'http':
+            isValidHttpUrl(obj.endpoint)
+        elif obj.protocol == 'https':
+            isValidHttpsUrl(obj.endpoint)
+        elif obj.protocol in ['email','email-json']:
+            isValidEmail(obj.endpoint)
+
+    protocol = schema.TextLine(
+        title = "Notification protocol",
+        default = "email",
+        description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
+        constraint = isValidSNSSubscriptionProtocol
+    )
+    endpoint = TextReference(
+        title = "SNS Topic Endpoint",
+        str_ok = True
+    )
+
+class ISNSTopic(IResource):
+    """
+    SNS Topic Resource Configuration
+    """
+    display_name = schema.TextLine(
+        title = "Display name for SMS Messages"
+    )
+    subscriptions = schema.List(
+        title = "List of SNS Topic Subscriptions",
+        value_type = schema.Object(ISNSTopicSubscription),
+        default = []
     )

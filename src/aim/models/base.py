@@ -1,9 +1,10 @@
 from aim.models import schemas
-from aim.models.locations import get_parent_by_interface
 from aim.models import vocabulary
+from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 import zope.schema
+from aim.models.references import Reference
 
 
 def get_all_fields(obj):
@@ -90,8 +91,37 @@ class Regionalized():
     def region_name(self):
         # region the resource is deployed in
         env_region = get_parent_by_interface(self, schemas.IEnvironmentRegion)
-        return env_region.region
+        if env_region:
+            return env_region.region
+        # services don't belong to an EnviromentRegion but can have an IServiceAccountRegion
+        service_region = get_parent_by_interface(self, schemas.IServiceAccountRegion)
+        return service_region.region
 
     @property
     def region_full_name(self):
         return vocabulary.aws_regions[self.region_name]['full_name']
+
+@implementer(schemas.IResource)
+class Resource(Named, Deployable, Regionalized):
+    "Resource"
+    type = FieldProperty(schemas.IResource['type'])
+    resource_name = FieldProperty(schemas.IResource['resource_name'])
+    order = FieldProperty(schemas.IResource['order'])
+
+    def get_account(self):
+        """
+        Return the Account object that this resource is provisioned to
+        """
+        env_reg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        project = get_parent_by_interface(self, schemas.IProject)
+        # ToDo: rework account references so that they resolve to Account objs
+        # and not just the account_id
+        ref = Reference(env_reg.network.aws_account)
+        account = project[ref.parts[0]][ref.parts[1]]
+        return account
+
+@implementer(schemas.IServiceAccountRegion)
+class ServiceAccountRegion():
+    account = FieldProperty(schemas.IServiceAccountRegion['account'])
+    region = FieldProperty(schemas.IServiceAccountRegion['region'])
+

@@ -4,10 +4,9 @@ All things Application Engine.
 
 from aim.models import loader
 from aim.models import schemas
-from aim.models.base import Named, Deployable, Regionalized
+from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion
 from aim.models.locations import get_parent_by_interface
 from aim.models.metrics import Monitorable, AlarmNotifications
-from aim.models.references import AimReference
 from aim.models.vocabulary import application_group_types
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -103,6 +102,14 @@ class Application(ApplicationEngine, Regionalized):
     def resolve_ref(self, ref):
         pass
 
+@implementer(schemas.IServiceEnvironment)
+class ServiceEnvironment(ServiceAccountRegion, Named):
+    applications = FieldProperty(schemas.IServiceEnvironment['applications'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.applications = ApplicationEngines('applications', self)
+
 @implementer(schemas.IResourceGroups)
 class ResourceGroups(Named, dict):
     "ResourceGroups"
@@ -147,25 +154,6 @@ class Resources(Named, dict):
         # Loop through resources and return list of deployment
         # resources only
         pass
-
-@implementer(schemas.IResource)
-class Resource(Named, Deployable, Regionalized):
-    "Resource"
-    type = FieldProperty(schemas.IResource['type'])
-    resource_name = FieldProperty(schemas.IResource['resource_name'])
-    order = FieldProperty(schemas.IResource['order'])
-
-    def get_account(self):
-        """
-        Return the Account object that this resource is provisioned to
-        """
-        env_reg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
-        project = get_parent_by_interface(self, schemas.IProject)
-        # ToDo: rework account references so that they resolve to Account objs
-        # and not just the account_id
-        ref = AimReference().parse_ref(env_reg.network.aws_account)
-        account = project[ref['ref_parts'][0]][ref['ref_parts'][1]]
-        return account
 
 #@implementer(schemas.IDeployment)
 #class Deployment(Named, Deployable):
@@ -281,7 +269,6 @@ class ASG(Resource, Monitorable):
             self.resolve_ref_obj.resolve_ref(ref)
         elif ref.last_part == 'resource_name':
             return self.resource_name
-        #return self.stack_group_object.get_stack_from_ref(self, aim_ref, ref_parts)
         return None
 
 
@@ -372,7 +359,7 @@ class LambdaFunctionCode():
     s3_key = FieldProperty(schemas.ILambdaFunctionCode['s3_key'])
 
 @implementer(schemas.ILambda)
-class Lambda(Resource):
+class Lambda(Resource, Monitorable):
     """
     Lambda Function resource
     """
@@ -388,6 +375,20 @@ class Lambda(Resource):
     timeout = FieldProperty(schemas.ILambda['timeout'])
     sdb_cache = FieldProperty(schemas.ILambda['sdb_cache'])
     layers = FieldProperty(schemas.ILambda['layers'])
+    sns_topics = FieldProperty(schemas.ILambda['sns_topics'])
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.ISNSTopicSubscription)
+class SNSTopicSubscription():
+    protocol = FieldProperty(schemas.ISNSTopicSubscription['protocol'])
+    endpoint = FieldProperty(schemas.ISNSTopicSubscription['endpoint'])
+
+@implementer(schemas.ISNSTopic)
+class SNSTopic(Resource):
+    display_name = FieldProperty(schemas.ISNSTopic['display_name'])
+    subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

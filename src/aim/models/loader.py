@@ -1,12 +1,12 @@
+import aim.models.services
 import itertools, os, copy
-import pkg_resources
 import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroup, NotificationGroups, NotificationMember
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -15,13 +15,13 @@ from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
-    LambdaFunctionCode, LambdaVariable
+    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
-    CodeCommit, CodeCommitRepository
+    CodeCommit, CodeCommitRepository, CodeCommitUser
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
-from aim.models.references import TextReference
+from aim.models.references import Reference, TextReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
 from aim.models import schemas
@@ -50,22 +50,26 @@ RESOURCES_CLASS_MAP = {
     'EC2': EC2,
     'Lambda': Lambda,
     'ManagedPolicy': ManagedPolicy,
-    'S3Bucket': S3Bucket
+    'S3Bucket': S3Bucket,
+    'SNSTopic': SNSTopic
 }
 
 SUB_TYPES_CLASS_MAP = {
+    SNSTopic: {
+        'subscription': ('obj_list', SNSTopicSubscription),
+    },
     # Resource sub-objects
     LBApplication: {
         'target_groups': ('named_dict', TargetGroup),
         'security_groups': ('str_list', TextReference),
         'listeners': ('named_dict', Listener),
         'dns': ('obj_list', DNS),
-        'monitoring': ('located_dict', MonitorConfig)
+        'monitoring': ('unnamed_dict', MonitorConfig)
     },
     ASG: {
         'security_groups': ('str_list', TextReference),
         'target_groups': ('str_list', TextReference),
-        'monitoring': ('located_dict', MonitorConfig),
+        'monitoring': ('unnamed_dict', MonitorConfig),
         'instance_iam_role': ('unnamed_dict', Role)
     },
     Listener: {
@@ -131,7 +135,8 @@ SUB_TYPES_CLASS_MAP = {
     Lambda: {
         'environment': ('unnamed_dict', LambdaEnvironment),
         'code': ('unnamed_dict', LambdaFunctionCode),
-        'iam_role': ('unnamed_dict', Role)
+        'iam_role': ('unnamed_dict', Role),
+        'monitoring': ('unnamed_dict', MonitorConfig)
     },
     LambdaEnvironment: {
         'variables': ('obj_list', LambdaVariable)
@@ -146,6 +151,12 @@ SUB_TYPES_CLASS_MAP = {
     },
     Route53Resource: {
         'hosted_zones': ('named_dict', Route53HostedZone)
+    },
+    SNSTopic: {
+        'subscriptions': ('obj_list', SNSTopicSubscription)
+    },
+    CodeCommitRepository: {
+        'users': ('named_dict', CodeCommitUser)
     }
 }
 
@@ -228,9 +239,7 @@ def most_specialized_interfaces(context):
     """Get interfaces for an object without any duplicates.
 
     Interfaces in a declaration for an object may already have been seen
-    because it is also inherited by another interface. Don't return the
-    interface twice, as that would result in duplicate names when creating
-    the form.
+    because it is also inherited by another interface.
     """
     declaration = zope.interface.providedBy(context)
     seen = []
@@ -256,18 +265,18 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
 
     Also handles loading of sub-types ...
     """
+    # throw an error if there are fields which do not match the schema
+    fields = get_all_fields(obj)
+    if not zope.interface.common.mapping.IMapping.providedBy(obj):
+        for key in config.keys():
+            if key not in fields:
+                raise UnusedAimProjectField("""Error in file at {}
+Unneeded field '{}' in config for object type '{}'
+""".format(read_file_path, key, obj.__class__.__name__))
+
     # all most-specialized interfaces implemented by obj
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
-
-        # throw an error if there are fields which do not match the schema
-        if not zope.interface.common.mapping.IMapping.providedBy(obj):
-            for key in config.keys():
-                if key not in fields:
-                    raise UnusedAimProjectField("""Error in file at {}
-Unneeded field '{}' in config for object type '{}'
-    """.format(read_file_path, key, obj.__class__.__name__))
-
         for name, field in fields.items():
             # Locatable Objects get their name from their key in the config, for example:
             #   environments:
@@ -349,19 +358,20 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         return sub_dict
 
     elif sub_type == 'unnamed_dict':
-        sub_obj = sub_class()
-        apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
-        return sub_obj
-
-    elif sub_type == 'located_dict':
-        sub_obj = sub_class(name, obj)
+        if schemas.INamed.implementedBy(sub_class):
+            sub_obj = sub_class(name, obj)
+        else:
+            sub_obj = sub_class()
         apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
         return sub_obj
 
     elif sub_type == 'obj_list':
         sub_list = []
         for sub_value in value:
-            sub_obj = sub_class()
+            if schemas.INamed.implementedBy(sub_class):
+                sub_obj = sub_class(name, obj)
+            else:
+                sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_list.append(sub_obj)
         return sub_list
@@ -461,7 +471,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
 
     Configuration section:
     {}
-    """.format(self.read_file_path, res_config['type'], res_key, res_config)
+    """.format(read_file_path, res_config['type'], res_key, res_config)
                 )
             obj = klass(res_key, resource_group)
             apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
@@ -480,8 +490,7 @@ class ModelLoader():
     Loads YAML config files into aim.model instances
     """
 
-    def __init__(self, aim_ref, config_folder, config_processor=None):
-        self.aim_ref = aim_ref
+    def __init__(self, config_folder, config_processor=None):
         self.config_folder = config_folder
         self.config_subdirs = {
             "MonitorConfig": self.instantiate_monitor_config,
@@ -495,13 +504,14 @@ class ModelLoader():
         self.project = None
 
     def read_yaml(self, sub_dir='', fname=''):
+        """Read a YAML file"""
         # default is to load root project.yaml
         if sub_dir == '':
             path = self.config_folder + os.sep + fname
         else:
             path = self.config_folder + os.sep + sub_dir + os.sep + fname
         logger.debug("Loading YAML: %s" % (path))
-        self.read_file_path = path
+
         # Credential files must be secured. This seems hacky, is there a better way?
         if fname == '.credentials.yaml':
             cred_stat = os.stat(path)
@@ -513,6 +523,10 @@ class ModelLoader():
         if self.config_processor != None:
             self.config_processor(sub_dir, fname)
 
+        # everytime a file is read, update read_file_path to assist with debugging messages
+        self.read_file_path = path
+
+        # read the YAML!
         with open(path, 'r') as stream:
             config = self.yaml.load(stream)
         return config
@@ -534,18 +548,9 @@ class ModelLoader():
                     instantiate_method(name, config)
         self.instantiate_services()
         self.check_notification_config()
-        self.load_references()
-        try:
-            self.load_resource_ids()
-        except:
-            # ToDo: we should only inspect actual Resources config files
-            # and load them so that load_resource_ids fails if there is an actual bug.
-            #
-            # ITs ok to fail here when new config has been added
-            # but it has not yet generated the Resources.yaml for it
-            # In this case we need to wait until the new resources have
-            # been generated and saved.
-            pass
+        # ToDo: references only need to be loaded for things like web UIs, implementation not complete
+        #self.load_references()
+        self.load_outputs()
         self.load_core_monitoring()
 
     def load_references(self):
@@ -555,8 +560,6 @@ class ModelLoader():
         reference string is stored as '_ref_<attribute>' while the resolved reference is
         stored in the attribute.
         """
-        # XXX
-        return
         # walk the model
         for model in get_all_nodes(self.project):
             for name, field in get_all_fields(model).items():
@@ -575,11 +578,21 @@ class ModelLoader():
             if schemas.IASG.providedBy(model):
                 add_metric(model, ec2core)
 
-    def load_resource_ids(self):
+    def load_outputs(self):
         "Loads resource ids from CFN Outputs"
-        ne_resources_path = self.config_folder + os.sep + 'Resources' + os.sep + 'NetworkEnvironments'
-        if os.path.isdir(ne_resources_path):
-            for rfile in os.listdir(ne_resources_path):
+
+        base_output_path = 'Outputs' + os.sep
+        monitor_config_output_path = base_output_path + 'MonitorConfig'
+        if os.path.isfile(self.config_folder + os.sep + monitor_config_output_path + os.sep + 'NotificationGroups.yaml'):
+            notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
+            if 'groups' in notif_groups_config:
+                notif_groups = self.project['notificationgroups']
+                for group_name in notif_groups_config['groups'].keys():
+                    notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
+
+        ne_outputs_path = base_output_path + 'NetworkEnvironments'
+        if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
+            for rfile in os.listdir(self.config_folder + os.sep + ne_outputs_path):
                 # parse filename
                 info = rfile.split('.')[0]
                 ne_name = info.split('-')[0]
@@ -587,7 +600,7 @@ class ModelLoader():
                 region = info[len(ne_name) + len(env_name) + 2:]
 
                 env_reg = self.project['ne'][ne_name][env_name][region]
-                reg_config = self.read_yaml('Resources' + os.sep + 'NetworkEnvironments', rfile)
+                reg_config = self.read_yaml(ne_outputs_path, rfile)
 
                 if 'applications' in reg_config:
                     for app_name in reg_config['applications'].keys():
@@ -655,7 +668,7 @@ class ModelLoader():
         parent[name] = obj
         return obj
 
-    def insert_subenv_ref_aim_sub(self, str_value, subenv_id, region):
+    def insert_env_ref_aim_sub(self, str_value, env_id, region):
         """
         aim.sub substition
         """
@@ -686,14 +699,14 @@ class ModelLoader():
             rep_1_idx = dollar_idx
             rep_2_idx = str_value.find("}", rep_1_idx, end_str_idx)+1
             netenv_ref_idx = str_value.find(
-                "netenv.ref ", rep_1_idx, rep_2_idx)
+                "aim.ref netenv.", rep_1_idx, rep_2_idx)
             if netenv_ref_idx != -1:
-                #sub_ref_idx = netenv_ref_idx + len("netenv.ref ")
+                #sub_ref_idx = netenv_ref_idx + len("aim.ref netenv.")
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = str_value[sub_ref_idx:sub_ref_end_idx]
 
-                new_ref = self.insert_subenv_ref_str(sub_ref, subenv_id, region)
+                new_ref = self.insert_env_ref_str(sub_ref, env_id, region)
                 sub_var = str_value[sub_ref_idx:sub_ref_end_idx]
                 str_value = str_value.replace(sub_var, new_ref, 1)
             else:
@@ -702,29 +715,25 @@ class ModelLoader():
 
         return str_value
 
-    def insert_subenv_ref_str(self, str_value, subenv_id, region):
-        netenv_ref_idx = str_value.find("netenv.ref ")
+    def insert_env_ref_str(self, str_value, env_id, region):
+        netenv_ref_idx = str_value.find("aim.ref netenv.")
         if netenv_ref_idx == -1:
             return str_value
 
         if str_value.startswith("aim.sub "):
-            return self.insert_subenv_ref_aim_sub(str_value, subenv_id, region)
+            return self.insert_env_ref_aim_sub(str_value, env_id, region)
 
         netenv_ref_raw = str_value
         sub_ref_len = len(netenv_ref_raw)
 
         netenv_ref = netenv_ref_raw[0:sub_ref_len]
-        ref_dict = self.aim_ref.parse_ref(netenv_ref)
-        if ref_dict['netenv_component'] == 'subenv':
+        ref = Reference(netenv_ref)
+        if ref.type == 'netenv' and ref.parts[2] == env_id and ref.parts[3] == region:
             return str_value
-
-        ref_dict['ref_parts'][0] = '.'.join([ref_dict['netenv_id'],
-                                             'subenv',
-                                             subenv_id,
-                                             region])
-
-        new_ref_parts = '.'.join(ref_dict['ref_parts'])
-        new_ref = ' '.join([ref_dict['type'], new_ref_parts])
+        ref.parts.insert(2, env_id)
+        ref.parts.insert(3, region)
+        new_ref_parts = '.'.join(ref.parts)
+        new_ref = ' '.join(['aim.ref', new_ref_parts])
 
         return new_ref
 
@@ -734,7 +743,7 @@ class ModelLoader():
         A reference is a string that refers to another value in the model. The original
         reference string is stored as '_ref_<attribute>' while the resolved reference is
         stored in the attribute.
-        Inserts the Environment and Region into any netenv.ref references.
+        Inserts the Environment and Region into any aim.ref netenv.references.
         """
         # walk the model
         model_list = get_all_nodes(env_config)
@@ -751,8 +760,8 @@ class ModelLoader():
                     else:
                         attr_name = name
                     value = getattr(model, attr_name)
-                    if value != None and value.find('netenv.ref') != -1:
-                        value = self.insert_subenv_ref_str(value, env_name, env_region)
+                    if value != None and value.find('aim.ref netenv.') != -1:
+                        value = self.insert_env_ref_str(value, env_name, env_region)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     new_list = []
@@ -760,7 +769,7 @@ class ModelLoader():
                     modified = False
                     for item in getattr(model, name):
                         if isinstance(item, (str, zope.schema.TextLine, zope.schema.Text)):
-                            value = self.insert_subenv_ref_str(item, env_name, env_region)
+                            value = self.insert_env_ref_str(item, env_name, env_region)
                             modified = True
                         else:
                             value = item
@@ -782,12 +791,8 @@ class ModelLoader():
         The entry point name will match a filename at:
           <AIMProject>/Services/<EntryPointName>(.yml|.yaml)
         """
+        service_plugins = aim.models.services.list_service_plugins()
         services_dir = self.config_folder + os.sep + 'Services' + os.sep
-        service_plugins = {
-            entry_point.name: entry_point.load()
-            for entry_point
-            in pkg_resources.iter_entry_points('aim.services')
-        }
         for plugin_name, plugin_module in service_plugins.items():
             if os.path.isfile(services_dir + plugin_name + '.yml'):
                 fname = plugin_name + '.yml'
@@ -796,9 +801,15 @@ class ModelLoader():
             else:
                 continue
             config = self.read_yaml('Services', fname)
-            service = plugin_module.instantiate_model(config, self.project, read_file_path=services_dir + fname)
-            #service = plugin_func(config, self.project, read_file_path=services_dir + fname)
+            service = plugin_module.instantiate_model(
+                config,
+                self.project,
+                self.monitor_config,
+                read_file_path=services_dir + fname
+            )
             self.project[plugin_name.lower()] = service
+            if hasattr(plugin_module, 'load_outputs'):
+                plugin_module.load_outputs(self)
         return
 
     def check_notification_config(self):
@@ -812,7 +823,7 @@ class ModelLoader():
                         alarm = alarm_info['alarm']
                         # warn on alarms with no subscriptions
                         if len(alarm.notification_groups) == 0:
-                            print("Alarm {} for app {} does not have any notfiications.".format(
+                            print("Alarm {} for app {} does not have any notifications.".format(
                                 alarm.name,
                                 app.name
                             ))
@@ -841,24 +852,23 @@ class ModelLoader():
             self.monitor_config['logs'] = config
         elif name.lower() == 'notificationgroups':
             groups = NotificationGroups('notificationgroups', self.project)
-            apply_attributes_from_config(groups, config)
             self.project['notificationgroups'] = groups
             if 'groups' in config:
-                # load Notification Groups
-                for groupname, group_config in config['groups'].items():
-                    group = NotificationGroup(groupname, groups)
-                    apply_attributes_from_config(group, group_config)
-                    groups[groupname] = group
-                    # load group members
-                    for membername, member_config in config['groups'][groupname]['members'].items():
-                        member = NotificationMember(membername, group)
-                        apply_attributes_from_config(member, member_config)
-                        groups[groupname][membername] = member
+                # top-level 'groups:' gets absorbed into a top-level NotificationGroups mapping
+                # fiddle with the data to make apply_attrs happy ...
+                groups_config = copy.deepcopy(config['groups'])
+                del config['groups']
+                apply_attributes_from_config(groups, config, read_file_path=self.read_file_path)
+                # load SNS Topics
+                for topicname, topic_config in groups_config.items():
+                    topic = SNSTopic(topicname, groups)
+                    apply_attributes_from_config(topic, topic_config)
+                    groups[topicname] = topic
             else:
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config
 
-    def instantiate_accounts(self, name, config):
+    def instantiate_accounts(self, name, config, read_file_path=''):
         accounts = self.project['accounts']
         self.create_apply_and_save(
             name,
@@ -883,10 +893,11 @@ class ModelLoader():
             codecommit_obj.repository_groups[group_id] = {}
             for repo_id in group_config.keys():
                 repo_config = group_config[repo_id]
-                repo_obj = CodeCommitRepository(repo_config['name'], codecommit_obj)
+                repo_obj = CodeCommitRepository(repo_config['repository_name'], codecommit_obj)
                 apply_attributes_from_config(repo_obj, repo_config)
                 codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
         codecommit_obj.gen_repo_by_account()
+
         return codecommit_obj
 
     def instantiate_ec2(self, config):
@@ -972,6 +983,8 @@ class ModelLoader():
     def instantiate_network_environments(self, name, config):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
          # Network Environment
+        if config['network'] == None:
+            return
         net_env = self.create_apply_and_save(
             name, self.project['ne'], NetworkEnvironment, config['network']
         )

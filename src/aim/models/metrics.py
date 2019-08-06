@@ -1,24 +1,13 @@
 from aim.models import schemas, vocabulary
-from aim.models.base import Deployable, Named, Name
+from aim.models.base import Deployable, Named, Name, Resource, ServiceAccountRegion
 from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
 
 @implementer(schemas.INotificationGroups)
-class NotificationGroups(Named, dict):
+class NotificationGroups(ServiceAccountRegion, Named, dict):
     "Container for NotificationGroups"
-    account = FieldProperty(schemas.INotificationGroups['account'])
-    region = FieldProperty(schemas.INotificationGroups['region'])
-
-@implementer(schemas.INotificationGroup)
-class NotificationGroup(Named, dict):
-    """NotificationGroup"""
-
-@implementer(schemas.INotificationMember)
-class NotificationMember(Named):
-    """NotificationMember"""
-    protocol = FieldProperty(schemas.INotificationMember['protocol'])
 
 @implementer(schemas.IAlarmNotifications)
 class AlarmNotifications(dict):

@@ -6,3 +6,4 @@ class UnusedAimProjectField(Exception):
 
 class InvalidAimReference(Exception):
     pass
+

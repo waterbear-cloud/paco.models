@@ -46,18 +46,18 @@ network:
             - from_port: 80
               name: HTTP
               protocol: tcp
-              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.lb.id
+              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb.id
               to_port: 80
             - from_port: 22
               to_port: 22
               name: SSH
               protocol: tcp
-              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.bastion.id
+              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion.id
             - from_port: 80
               to_port: 80
               name: BASTIONHTTP
               protocol: tcp
-              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.bastion.id
+              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion.id
         bastion:
           egress:
             - cidr_ip: 0.0.0.0/0
@@ -75,7 +75,7 @@ network:
               protocol: "6"
               from_port: 3306
               to_port: 3306
-              source_security_group_id: netenv.ref aimdemo.network.vpc.security_groups.app.webapp.id
+              source_security_group_id: aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp.id
           egress:
             - name: ANY
               cidr_ip: 0.0.0.0/0
@@ -112,18 +112,18 @@ applications:
             deployment_branch_name: "" # Override in sub-environments
             manual_approval_enabled: false
             manual_approval_notification_email: ""
-            codecommit_repository: resource.ref codecommit.aimdemo.app
-            asg_name: netenv.ref aimdemo.applications.app.groups.site.resources.webapp.name
+            codecommit_repository: aim.ref resource.codecommit.aimdemo.app
+            asg_name: aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp.name
             auto_rollback_enabled: true
             deploy_config_type: HOST_COUNT
             deploy_style_option: WITH_TRAFFIC_CONTROL
             deploy_config_value: 1
-            deploy_instance_role_name: netenv.ref aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role.name
+            deploy_instance_role_name: aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role.name
             elb_name: ""
-            alb_target_group_name: netenv.ref aimdemo.applications.app.groups.site.resources.alb.target_groups.app.name
-            tools_account: config.ref accounts.tools
+            alb_target_group_name: aim.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app.name
+            tools_account: aim.ref accounts.tools
             cross_account_support: true
-            artifacts_bucket: netenv.ref aimdemo.applications.app.groups.cicd.resources.cpbd_s3
+            artifacts_bucket: aim.ref netenv.aimdemo.applications.app.groups.cicd.resources.cpbd_s3
       site:
         type: Application
         order: 1
@@ -161,15 +161,15 @@ applications:
                 port: 443
                 protocol: HTTPS
                 ssl_certificates:
-                  - netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn
+                  - aim.ref netenv.aimdemo.applications.app.groups.site.resources.cert.arn
                 target_group: app
             dns:
-              - hosted_zone_id: resource.ref route53.aimdemo.id
+              - hosted_zone_id: aim.ref resource.route53.aimdemo.id
                 domain_name: aimdemo.waterbear.cloud
-                ssl_certificate: netenv.ref aimdemo.applications.app.groups.site.resources.cert.arn
+                ssl_certificate: aim.ref netenv.aimdemo.applications.app.groups.site.resources.cert.arn
             scheme: internet-facing
             security_groups:
-              - netenv.ref aimdemo.network.vpc.security_groups.app.lb.id
+              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb.id
             segment: public
           webapp:
             type: ASG
@@ -183,16 +183,16 @@ applications:
             instance_iam_role:
               enabled: true
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: resource.ref ec2.keypairs.aimdemo_prod
+            instance_key_pair: aim.ref resource.ec2.keypairs.aimdemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 3
             min_instances: 1
             desired_capacity: 1
             target_groups:
-              - netenv.ref aimdemo.applications.app.groups.site.resources.alb.target_groups.app.arn
+              - aim.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app.arn
             security_groups:
-              - netenv.ref aimdemo.network.vpc.security_groups.app.webapp.id
+              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp.id
             segment: webapp
             termination_policies:
               - Default
@@ -274,7 +274,7 @@ applications:
             #  instance_profile: true
             #  policies:
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: resource.ref ec2.keypairs.aimdemo_prod
+            instance_key_pair: aim.ref resource.ec2.keypairs.aimdemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 2
@@ -285,7 +285,7 @@ applications:
             update_policy_max_batch_size: 1
             update_policy_min_instances_in_service: 0
             security_groups:
-              - netenv.ref aimdemo.network.vpc.security_groups.app.bastion.id
+              - aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion.id
             user_data_script: |
               #!/bin/bash
 
@@ -304,7 +304,7 @@ applications:
             order: 1
             description: 'notification service'
             code:
-              s3_bucket: resource.ref s3.buckets.bucketland
+              s3_bucket: aim.ref resource.s3.buckets.bucketland
               s3_key: 'notification-0.1.0.zip'
             iam_role:
               enabled: true
@@ -328,7 +328,7 @@ storage:
     app:
       type: RDSAurora
       security_groups:
-        - netenv.ref aimdemo.network.vpc.security_groups.app.rds.id
+        - aim.ref netenv.aimdemo.network.vpc.security_groups.app.rds.id
       segment: database
 
 #iam:
@@ -336,7 +336,7 @@ storage:
       # policies:
       #   my_policy:
       #     roles:
-      #       - netenv.ref aimdemo.iam.app.site.roles.instance_role.arn
+      #       - aim.ref netenv.aimdemo.iam.app.site.roles.instance_role.arn
       #     statement:
       #       ...
 
@@ -406,7 +406,7 @@ environments:
                               - oneguygetsthis
       enabled: true
       network:
-        aws_account: config.ref accounts.prod
+        aws_account: aim.ref accounts.prod
         name: example
         vpc:
           cidr: 10.0.0.0/16
@@ -441,7 +441,7 @@ environments:
             bastion:
               resources:
                 instance:
-                  instance_key_pair: resource.ref ec2.keypairs.aimdemo_dev
+                  instance_key_pair: aim.ref resource.ec2.keypairs.aimdemo_dev
                   desired_capacity: 0 # if you change this you break a test!
                   min_instances: 0
             site:
@@ -450,7 +450,7 @@ environments:
                   max_instances: 2
                   min_instances: 1
                   desired_capacity: 1
-                  instance_key_pair: resource.ref ec2.keypairs.aimdemo_dev
+                  instance_key_pair: aim.ref resource.ec2.keypairs.aimdemo_dev
                   monitoring:
                     alarm_sets:
                       launch-health:
@@ -470,7 +470,7 @@ environments:
                 alb:
                   enabled: true
                   dns:
-                    - hosted_zone_id: resource.ref route53.aimdemo_dev.id
+                    - hosted_zone_id: aim.ref resource.route53.aimdemo_dev.id
                       domain_name: dev.aimdemo.waterbear.cloud
                   monitoring:
                     alarm_sets:
@@ -478,7 +478,7 @@ environments:
                       response-latency:
                       response-health:
       network:
-        aws_account: config.ref accounts.dev
+        aws_account: aim.ref accounts.dev
         availability_zones: 2 # For the ALB
         name: example
         vpc:

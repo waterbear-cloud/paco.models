@@ -9,7 +9,7 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import loader
 from aim.models.locations import get_parent_by_interface
-from aim.models.references import AimReference
+from aim.models.references import Reference
 from aim.models import references
 
 
@@ -23,11 +23,11 @@ class EC2Resource():
     keypairs = FieldProperty(schemas.IEC2Resource['keypairs'])
 
     def resolve_ref(self, ref):
-        if ref.parts[1] == 'keypairs':
-            keypair_id = ref.parts[2]
+        if ref.parts[2] == 'keypairs':
+            keypair_id = ref.parts[3]
             keypair_attr = 'name'
-            if len(ref.parts) > 3:
-                keypair_attr = ref.parts[3]
+            if len(ref.parts) > 4:
+                keypair_attr = ref.parts[4]
             keypair = self.keypairs[keypair_id]
             if keypair_attr == 'name':
                 return keypair.name
@@ -70,9 +70,8 @@ class Route53Resource():
         for zone_id in self.hosted_zones.keys():
             hosted_zone = self.hosted_zones[zone_id]
             aws_account_ref = hosted_zone.account
-            aim_ref = references.AimReference()
-            ref_dict = aim_ref.parse_ref(aws_account_ref)
-            account_name = ref_dict['ref_parts'][1]
+            ref = Reference(aws_account_ref)
+            account_name = ref.parts[1]
             if account_name not in self.zones_by_account:
                 self.zones_by_account[account_name] = []
             self.zones_by_account[account_name].append(zone_id)
@@ -93,11 +92,16 @@ class Route53Resource():
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.ICodeCommitUser)
+class CodeCommitUser():
+    username = FieldProperty(schemas.ICodeCommitUser["username"])
+
 @implementer(schemas.ICodeCommitRepository)
 class CodeCommitRepository(Named, Deployable, dict):
     account = FieldProperty(schemas.ICodeCommitRepository["account"])
     region = FieldProperty(schemas.ICodeCommitRepository["region"])
     description = FieldProperty(schemas.ICodeCommitRepository["description"])
+    users = FieldProperty(schemas.ICodeCommitRepository["users"])
 
 @implementer(schemas.ICodeCommit)
 class CodeCommit():

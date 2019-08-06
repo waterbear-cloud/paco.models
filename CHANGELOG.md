@@ -10,6 +10,10 @@ Changelog for aim.models
 
 - sdb_cache field for Lambda.
 
+- Lambda can have alarms.
+
+- ISNSTopic and ISNSTopicSubscription to model SNS.
+
 ### Changed
 
  - AlarmSets, AlarmSet and Alarm all now implement INamed and

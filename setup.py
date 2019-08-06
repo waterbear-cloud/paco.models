@@ -8,7 +8,7 @@ with open('CHANGELOG.md') as f:
 
 setup(
     name='aim.models',
-    version='2.1.0.dev0',
+    version='3.0.0',
     description='aim.models: Semantic cloud infrastructure configuration file format and object model',
     author='Waterbear Cloud',
     author_email='hello@waterbear.cloud',

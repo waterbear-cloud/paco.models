@@ -15,7 +15,8 @@ from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
-    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription
+    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
+    CloudFront, CFCustomErrorResponses, CFOrigin, CFCustomOriginConfig, CFDefaultCacheBehaviour
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -51,10 +52,22 @@ RESOURCES_CLASS_MAP = {
     'Lambda': Lambda,
     'ManagedPolicy': ManagedPolicy,
     'S3Bucket': S3Bucket,
-    'SNSTopic': SNSTopic
+    'SNSTopic': SNSTopic,
+    'CloudFront': CloudFront
 }
 
 SUB_TYPES_CLASS_MAP = {
+    CloudFront: {
+        'domain_aliases': ('obj_list', DNS),
+        'custom_error_responses': ('obj_list', CFCustomErrorResponses),
+        'origins'  : ('named_dict', CFOrigin)
+    },
+    CFCustomOriginConfig: {
+        'ssl_protocols': ('str_list', zope.schema.TextLine)
+    },
+    CFDefaultCacheBehaviour: {
+        'allowed_methods': ('str_list', zope.schema.TextLine)
+    },
     SNSTopic: {
         'subscription': ('obj_list', SNSTopicSubscription),
     },

@@ -396,3 +396,54 @@ class SNSTopic(Resource):
 @implementer(schemas.IRDS)
 class RDS(Resource):
     pass
+
+@implementer(schemas.ICFCustomOriginConfig)
+class CFCustomOriginConfig():
+    http_port = FieldProperty(schemas.ICFCustomOriginConfig['http_port'])
+    https_port = FieldProperty(schemas.ICFCustomOriginConfig['https_port'])
+    protocol_policy = FieldProperty(schemas.ICFCustomOriginConfig['protocol_policy'])
+    ssl_protocols = FieldProperty(schemas.ICFCustomOriginConfig['ssl_protocols'])
+
+@implementer(schemas.ICFCookies)
+class CFCookies():
+    forward = FieldProperty(schemas.ICFCookies['forward'])
+
+@implementer(schemas.ICFForwardedValues)
+class CFForwardedValues():
+    query_string = FieldProperty(schemas.ICFForwardedValues['query_string'])
+    cookies = FieldProperty(schemas.ICFForwardedValues['cookies'])
+
+@implementer(schemas.ICFDefaultCacheBehaviour)
+class CFDefaultCacheBehaviour():
+    allowed_methods = FieldProperty(schemas.ICFDefaultCacheBehaviour['allowed_methods'])
+    default_ttl = FieldProperty(schemas.ICFDefaultCacheBehaviour['default_ttl'])
+    target_origin = FieldProperty(schemas.ICFDefaultCacheBehaviour['target_origin'])
+    viewer_protocol_policy = FieldProperty(schemas.ICFDefaultCacheBehaviour['viewer_protocol_policy'])
+    forwarded_values = FieldProperty(schemas.ICFDefaultCacheBehaviour['forwarded_values'])
+
+@implementer(schemas.ICFViewerCertificate)
+class CFViewerCertificate():
+    certificate = FieldProperty(schemas.ICFViewerCertificate['certificate'])
+    ssl_supported_methods = FieldProperty(schemas.ICFViewerCertificate['ssl_supported_methods'])
+    minimum_protocol_version = FieldProperty(schemas.ICFViewerCertificate['minimum_protocol_version'])
+
+@implementer(schemas.ICFCustomErrorResponses)
+class CFCustomErrorResponses():
+    error_caching_min_ttl = FieldProperty(schemas.ICFCustomErrorResponses['error_caching_min_ttl'])
+    error_code = FieldProperty(schemas.ICFCustomErrorResponses['error_code'])
+    response_code = FieldProperty(schemas.ICFCustomErrorResponses['response_code'])
+    response_page_path = FieldProperty(schemas.ICFCustomErrorResponses['response_page_path'])
+
+@implementer(schemas.ICFOrigin)
+class CFOrigin(Named):
+    origin = FieldProperty(schemas.ICFOrigin['origin'])
+    custom_origin_config = FieldProperty(schemas.ICFOrigin['custom_origin_config'])
+
+@implementer(schemas.ICloudFront)
+class CloudFront(Resource):
+    domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
+    default_cache_behavior = FieldProperty(schemas.ICloudFront['default_cache_behavior'])
+    viewer_certificate = FieldProperty(schemas.ICloudFront['viewer_certificate'])
+    price_class = FieldProperty(schemas.ICloudFront['price_class'])
+    custom_error_responses = FieldProperty(schemas.ICloudFront['custom_error_responses'])
+    origins = FieldProperty(schemas.ICloudFront['origins'])

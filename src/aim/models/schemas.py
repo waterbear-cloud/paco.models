@@ -188,6 +188,61 @@ def isValidCWAgentTimezone(value):
         raise InvalidCWAgentTimezone
     return True
 
+class InvalidCFViewerProtocolPolicy(schema.ValidationError):
+    __doc__ = 'Viewer Protocol Policy must be one of: allow-all | https-only | redirect-to-https'
+
+def isValidCFViewerProtocolPolicy(value):
+    if value not in ('allow-all','https-only','redirect-to-https'):
+        raise InvalidCFViewerProtocolPolicy
+    return True
+
+class InvalidCFCookiesForward(schema.ValidationError):
+    __doc__ = 'Cookies Forward must be one of: all | none | whitelist'
+
+def isValidCFCookiesForward(value):
+    if value not in ('all', 'none', 'whitelist'):
+        raise InvalidCFCookiesForward
+    return True
+
+class InvalidCFSSLSupportedMethods(schema.ValidationError):
+    __doc__ = 'SSL Supported Methods must be one of: sni-only | vip'
+
+def isValidCFSSLSupportedMethods(value):
+    if value not in ('sni-only', 'vip'):
+        raise InvalidCFSSLSupportedMethods
+    return True
+
+class InvalidCFMinimumProtocolVersion(schema.ValidationError):
+    __doc__ = 'Mimimum SSL Protocol Version must be one of: SSLv3 | TLSv1 | TLSv1.1_2016 | TLSv1.2_2018 | TLSv1_2016'
+
+def isValidCFMinimumProtocolVersion(value):
+    if value not in ('SSLv3', 'TLSv1', 'TLSv1.1_2016', 'TLSv1.2_2018', 'TLSv1_2016'):
+        raise InvalidCFMinimumProtocolVersion
+    return True
+
+class InvalidCFPriceClass(schema.ValidationError):
+    __doc__ = 'Price Class must be one of: 100 | 200 | all'
+
+def isValidCFPriceClass(value):
+    if value not in ('100', '200', 'all'):
+        raise InvalidCFPriceClass
+    return True
+
+class InvalidCFProtocolPolicy(schema.ValidationError):
+    __doc__ = 'Protocol Policy must be one of: http-only | https-only | match-viewer'
+
+def isValidCFProtocolPolicy(value):
+    if value not in ('http-only', 'https-only', 'match-viewer'):
+        raise InvalidCFPProtocolPolicy
+    return True
+
+class InvalidCFSSLProtocol(schema.ValidationError):
+    __doc__ = 'SSL Protocols must be one of: SSLv3 | TLSv1 | TLSv1.1 | TLSv1.2'
+
+def isValidCFSSLProtocol(value):
+    if value not in ('SSLv3', 'TLSv1', 'TLSv1.1', 'TLSv1.2'):
+        raise InvalidCFSSLProtocol
+    return True
 
 #
 # Here be Schemas!
@@ -1318,9 +1373,10 @@ class IDNS(Interface):
     hosted_zone_id = TextReference(
         title = "Hosted Zone Id Reference",
     )
-    domain_name = schema.TextLine(
+    domain_name = TextReference(
         title = "Domain name",
-        required = False
+        required = False,
+        str_ok = True
      )
     ssl_certificate = TextReference(
         title = "SSL certificate Reference",
@@ -1878,4 +1934,126 @@ class ISNSTopic(IResource):
         title = "List of SNS Topic Subscriptions",
         value_type = schema.Object(ISNSTopicSubscription),
         default = []
+    )
+
+class ICFCookies(Interface):
+    forward = schema.TextLine(
+        title = "Cookies Forward Action",
+        constraint = isValidCFCookiesForward
+    )
+
+class ICFForwardedValues(Interface):
+    query_string = schema.Bool(
+        title = "Forward Query Strings"
+    )
+    cookies = schema.Object(
+        title = "Forward Cookies",
+        schema = ICFCookies
+    )
+
+class ICFDefaultCacheBehaviour(Interface):
+    allowed_methods = schema.List(
+        title = "List of Allowed HTTP Methods",
+        value_type = schema.TextLine(),
+        default = []
+    )
+    default_ttl = schema.Int(
+        title = "Default TTTL"
+    )
+    target_origin = TextReference(
+        title = "Target Origin"
+    )
+    viewer_protocol_policy = schema.TextLine(
+        title = "Viewer Protocol Policy",
+        constraint = isValidCFViewerProtocolPolicy
+    )
+    forwarded_values = schema.Object(
+        title = "Forwarded Values",
+        schema = ICFForwardedValues
+    )
+
+class ICFViewerCertificate(Interface):
+    certificate = TextReference(
+        title = "Certificate Reference",
+    )
+    ssl_supported_methods = schema.TextLine(
+        title = "SSL Supported Methods",
+        constraint = isValidCFSSLSupportedMethods
+    )
+    minimum_protocol_version = schema.TextLine(
+        title = "Minimum SSL Protocol Version",
+        constraint = isValidCFMinimumProtocolVersion
+    )
+
+class ICFCustomErrorResponses(Interface):
+    error_caching_min_ttl = schema.Int(
+        title = "Error Caching Min TTL"
+    )
+    error_code = schema.Int(
+        title = "HTTP Error Code"
+    )
+    response_code = schema.Int(
+        title = "HTTP Response Code"
+    )
+    response_page_path = schema.TextLine(
+        title = "Response Page Path"
+    )
+
+class ICFCustomOriginConfig(Interface):
+    http_port = schema.Int(
+        title = "HTTP Port"
+    )
+    https_port = schema.Int(
+        title = "HTTPS Port"
+    )
+    protocol_policy = schema.TextLine(
+        title = "Protocol Policy",
+        constraint = isValidCFProtocolPolicy
+    )
+    ssl_protocols = schema.List(
+        title = "List of SSL Protocols",
+        value_type = schema.TextLine(),
+        constraint = isValidCFSSLProtocol
+    )
+
+class ICFOrigin(INamed):
+    """
+    CloudFront Origin Configuration
+    """
+    origin = TextReference(
+        title = "Origin Resource Reference"
+    )
+    custom_origin_config = schema.Object(
+        title = "Custom Origin Configuration",
+        schema = ICFCustomOriginConfig
+    )
+
+class ICloudFront(IResource):
+    """
+    CloudFront CDN Configuration
+    """
+    domain_aliases = schema.List(
+        title = "List of DNS for the Distribution",
+        value_type = schema.Object(IDNS),
+        default = []
+    )
+    default_cache_behavior = schema.Object(
+        title = "Default Cache Behavior",
+        schema = ICFDefaultCacheBehaviour
+    )
+    viewer_certificate = schema.Object(
+        title = "Viewer Certificate",
+        schema = ICFViewerCertificate
+    )
+    price_class = schema.TextLine(
+        title = "Price Class",
+        constraint = isValidCFPriceClass
+    )
+    custom_error_responses = schema.List(
+        title = "List of Custom Error Responses",
+        value_type = schema.Object(ICFCustomErrorResponses)
+    )
+    origins = schema.Dict(
+        title = "Map of Origins",
+        value_type = schema.Object(ICFOrigin)
     )

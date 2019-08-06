@@ -668,7 +668,7 @@ class ModelLoader():
         parent[name] = obj
         return obj
 
-    def insert_subenv_ref_aim_sub(self, str_value, subenv_id, region):
+    def insert_env_ref_aim_sub(self, str_value, env_id, region):
         """
         aim.sub substition
         """
@@ -706,7 +706,7 @@ class ModelLoader():
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = str_value[sub_ref_idx:sub_ref_end_idx]
 
-                new_ref = self.insert_subenv_ref_str(sub_ref, subenv_id, region)
+                new_ref = self.insert_env_ref_str(sub_ref, env_id, region)
                 sub_var = str_value[sub_ref_idx:sub_ref_end_idx]
                 str_value = str_value.replace(sub_var, new_ref, 1)
             else:
@@ -715,22 +715,22 @@ class ModelLoader():
 
         return str_value
 
-    def insert_subenv_ref_str(self, str_value, subenv_id, region):
+    def insert_env_ref_str(self, str_value, env_id, region):
         netenv_ref_idx = str_value.find("aim.ref netenv.")
         if netenv_ref_idx == -1:
             return str_value
 
         if str_value.startswith("aim.sub "):
-            return self.insert_subenv_ref_aim_sub(str_value, subenv_id, region)
+            return self.insert_env_ref_aim_sub(str_value, env_id, region)
 
         netenv_ref_raw = str_value
         sub_ref_len = len(netenv_ref_raw)
 
         netenv_ref = netenv_ref_raw[0:sub_ref_len]
         ref = Reference(netenv_ref)
-        if ref.type == 'netenv' and ref.parts[2] == subenv_id and ref.parts[3] == region:
+        if ref.type == 'netenv' and ref.parts[2] == env_id and ref.parts[3] == region:
             return str_value
-        ref.parts.insert(2, subenv_id)
+        ref.parts.insert(2, env_id)
         ref.parts.insert(3, region)
         new_ref_parts = '.'.join(ref.parts)
         new_ref = ' '.join(['aim.ref', new_ref_parts])
@@ -761,7 +761,7 @@ class ModelLoader():
                         attr_name = name
                     value = getattr(model, attr_name)
                     if value != None and value.find('aim.ref netenv.') != -1:
-                        value = self.insert_subenv_ref_str(value, env_name, env_region)
+                        value = self.insert_env_ref_str(value, env_name, env_region)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     new_list = []
@@ -769,7 +769,7 @@ class ModelLoader():
                     modified = False
                     for item in getattr(model, name):
                         if isinstance(item, (str, zope.schema.TextLine, zope.schema.Text)):
-                            value = self.insert_subenv_ref_str(item, env_name, env_region)
+                            value = self.insert_env_ref_str(item, env_name, env_region)
                             modified = True
                         else:
                             value = item

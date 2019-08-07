@@ -1,13 +1,20 @@
 Changelog for aim.models
 =================
 
-3.0.1 (unreleased)
+3.1.0 (unreleased)
 ------------------
 
 ### Added
 
 - ICloudWatchAlarm gets a namespace field. Can be used to override the default
   Resource namespace, for example, use 'CWAgent' for the CloudWatch agent metrics.
+
+- IResource now has a resource_fullname field. The fullname is the name needed to
+  specify for a metric in a CloudWatch Alarm.
+
+- ICloudWatchAlarm now has a dimensions field, which is a List of Dimension objects.
+
+- ITargetGroup now inherits from IResource. It loads resource_name from outputs.
 
 
 3.0.0 (2019-08-06)
@@ -25,12 +32,12 @@ Changelog for aim.models
 
 ### Changed
 
- - All references have been renamed to start with ``aim.ref`` for consistency.
+- All references have been renamed to start with ``aim.ref`` for consistency.
 
- - AlarmSets, AlarmSet and Alarm all now implement INamed and
-   are locatable in the model
+- AlarmSets, AlarmSet and Alarm all now implement INamed and
+  are locatable in the model
 
- - Service plugins can load their outputs
+- Service plugins can load their outputs
 
 
 2.0.0 (2019-07-23)

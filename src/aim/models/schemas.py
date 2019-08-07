@@ -382,7 +382,13 @@ class IResource(INamed, IDeployable):
     )
     resource_name = schema.TextLine(
         title = "AWS Resource Name",
-        description = ""
+        description = "",
+        default = ""
+    )
+    resource_fullname = schema.TextLine(
+        title = "AWS Resource Fullname",
+        description = "",
+        default = ""
     )
     order = schema.Int(
         title = "The order in which the resource will be deployed",
@@ -492,6 +498,17 @@ class IAlarmSets(INamed, IMapping):
     A collection of AlarmSets
     """
 
+class IDimension(Interface):
+    """
+    A dimension of a metric
+    """
+    name = schema.TextLine(
+        title = "Dimension name"
+    )
+    value = schema.TextLine(
+        title = "Value to look-up dimension"
+    )
+
 class IAlarm(INamed, IDeployable, IName, INotifiable):
     """
     An Alarm
@@ -522,6 +539,11 @@ class ICloudWatchAlarm(IAlarm):
         constraint = isComparisonOperator,
         description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'"
     )
+    dimensions = schema.List(
+        title = "Dimensions",
+        value_type = schema.Object(schema=IDimension),
+        default = []
+    )
     evaluate_low_sample_count_percentile = schema.TextLine(
         title = "Evaluate low sample count percentile"
     )
@@ -551,65 +573,6 @@ class ICloudWatchAlarm(IAlarm):
     )
     treat_missing_data = schema.TextLine(
         title = "Treat missing data"
-    )
-
-class INotificationMember(INamed):
-    "Endpoint to notify"
-    endpoint = schema.TextLine(
-        title = "Subscription Endpoint",
-        description = "Must be a valid endpoint",
-    )
-
-class IHttpNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "HTTP Subscription Endpoint",
-        description = "Must be a valid HTTP endpoint",
-        constraint = isValidHttpUrl
-    )
-
-class IHttpsNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "HTTPS Subscription Endpoint",
-        description = "Must be a valid HTTPS endpoint",
-        constraint = isValidHttpsUrl
-    )
-
-class IEmailNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Email Subscription Endpoint",
-        description = "Must be a valid email endpoint",
-        constraint = isValidEmail
-    )
-
-class IEmailJsonNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Email-JSON Subscription Endpoint",
-        description = "Must be a valid email endpoint",
-        constraint = isValidEmail
-    )
-
-class ISmsNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "SMS Subscription Endpoint",
-        description = "Must be a valid SMS endpoint",
-    )
-
-class ISqsNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Subscription Endpoint",
-        description = "Must be a valid SQS endpoint",
-    )
-
-class IApplicationNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Application Subscription Endpoint",
-        description = "Must be a valid application endpoint",
-    )
-
-class ILambdaNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Lambda Subscription Endpoint",
-        description = "Must be a valid lambda endpoint",
     )
 
 class INotificationGroups(IServiceAccountRegion):
@@ -1243,7 +1206,7 @@ class IPortProtocol(Interface):
         vocabulary=vocabulary.target_group_protocol
     )
 
-class ITargetGroup(IPortProtocol):
+class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
     health_check_interval = schema.Int(
         title = "Health check interval"

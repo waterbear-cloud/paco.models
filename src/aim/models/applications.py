@@ -283,7 +283,8 @@ class PortProtocol():
     protocol = FieldProperty(schemas.IPortProtocol['protocol'])
 
 @implementer(schemas.ITargetGroup)
-class TargetGroup(PortProtocol):
+class TargetGroup(Resource, PortProtocol):
+    type = 'TargetGroup'
     health_check_interval = FieldProperty(schemas.ITargetGroup['health_check_interval'])
     health_check_timeout = FieldProperty(schemas.ITargetGroup['health_check_timeout'])
     healthy_threshold = FieldProperty(schemas.ITargetGroup['healthy_threshold'])

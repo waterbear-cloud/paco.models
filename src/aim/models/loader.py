@@ -6,7 +6,7 @@ import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -59,6 +59,9 @@ SUB_TYPES_CLASS_MAP = {
         'subscription': ('obj_list', SNSTopicSubscription),
     },
     # Resource sub-objects
+    CloudWatchAlarm: {
+        'dimensions': ('obj_list', Dimension)
+    },
     LBApplication: {
         'target_groups': ('named_dict', TargetGroup),
         'security_groups': ('str_list', TextReference),
@@ -342,7 +345,10 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
     if sub_type == 'named_dict':
         sub_dict = {}
         for sub_key, sub_value in value.items():
-            sub_obj = sub_class()
+            if schemas.INamed.implementedBy(sub_class):
+                sub_obj = sub_class(name, obj)
+            else:
+                sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_dict[sub_key] = sub_obj
         return sub_dict
@@ -611,9 +617,17 @@ class ModelLoader():
                                 resource_config = groups_config[grp_name]['resources'][res_name]
                                 resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
 
+                                if 'fullname' in resource_config:
+                                    resource.resource_fullname = resource_config['fullname']['__name__']
                                 if 'name' in resource_config:
                                     # ALB have a name attribute with an embedded __name__
                                     resource.resource_name = resource_config['name']['__name__']
+                                    # TargetGroups are nested in the ALB Output
+                                    if 'target_groups' in resource_config:
+                                        for tg_name, tg_config in resource_config['target_groups'].items():
+                                            tg_resource = resource.target_groups[tg_name]
+                                            tg_resource.resource_name = tg_config['name']['__name__']
+                                            tg_resource.resource_fullname = tg_config['arn']['__name__'].split(':')[-1:][0]
                                 elif '__name__' in resource_config:
                                     resource.resource_name = resource_config['__name__']
 

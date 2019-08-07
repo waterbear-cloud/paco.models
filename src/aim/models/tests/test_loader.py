@@ -92,7 +92,7 @@ class TestAimDemo(BaseTestModelLoader):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
         # Basic aim.ref netenv
         ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg
-        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
 
         # aimsub netenf.ref
         #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]

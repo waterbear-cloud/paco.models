@@ -95,6 +95,7 @@ class Route53Resource():
 @implementer(schemas.ICodeCommitUser)
 class CodeCommitUser():
     username = FieldProperty(schemas.ICodeCommitUser["username"])
+    public_ssh_key = FieldProperty(schemas.ICodeCommitUser["public_ssh_key"])
 
 @implementer(schemas.ICodeCommitRepository)
 class CodeCommitRepository(Named, Deployable, dict):

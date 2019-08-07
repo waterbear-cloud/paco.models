@@ -1811,6 +1811,11 @@ class ICodeCommitUser(Interface):
     username = schema.TextLine(
         title = "CodeCommit Username"
     )
+    public_ssh_key = schema.TextLine(
+        title = "CodeCommit User Public SSH Key",
+        default = None,
+        required = False
+    )
 
 class ICodeCommitRepository(INamed, IDeployable, IMapping):
     """

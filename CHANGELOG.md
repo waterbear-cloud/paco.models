@@ -4,7 +4,10 @@ Changelog for aim.models
 3.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- ICloudWatchAlarm gets a namespace field. Can be used to override the default
+  Resource namespace, for example, use 'CWAgent' for the CloudWatch agent metrics.
 
 
 3.0.0 (2019-08-06)

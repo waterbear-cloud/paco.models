@@ -97,6 +97,7 @@ ASG:
     SwapPercent-Low:
       classification: performance
       severity: low
+      namespace: "CWAgent"
       metric_name: "swap_used_percent"
       period: 60
       evaluation_periods: 5
@@ -108,6 +109,7 @@ ASG:
       classification: performance
       severity: low
       metric_name: "swap_used_percent"
+      namespace: "CWAgent"
       period: 60
       evaluation_periods: 5
       statistic: Maximum
@@ -118,6 +120,7 @@ ASG:
       classification: health
       severity: low
       metric_name: "disk_used_percent"
+      namespace: "CWAgent"
       period: 300
       evaluation_periods: 1
       statistic: Minimum
@@ -128,6 +131,7 @@ ASG:
       classification: health
       severity: low
       metric_name: "disk_used_percent"
+      namespace: "CWAgent"
       period: 300
       evaluation_periods: 1
       statistic: Minimum

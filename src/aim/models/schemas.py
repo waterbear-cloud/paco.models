@@ -517,37 +517,40 @@ class ICloudWatchAlarm(IAlarm):
     """
     A CloudWatch Alarm
     """
+    comparison_operator = schema.TextLine(
+        title = "Comparison operator",
+        constraint = isComparisonOperator,
+        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'"
+    )
+    evaluate_low_sample_count_percentile = schema.TextLine(
+        title = "Evaluate low sample count percentile"
+    )
+    evaluation_periods = schema.Int(
+        title = "Evaluation periods"
+    )
+    extended_statistic = schema.TextLine(
+        title = "Extended statistic"
+    )
     metric_name = schema.TextLine(
         title = "Metric name",
         required = True
+    )
+    namespace = schema.TextLine(
+        title = "Namespace"
     )
     period = schema.Int(
         title = "Period in seconds",
         constraint = isValidPeriod,
         description = "Must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000"
     )
-    evaluation_periods = schema.Int(
-        title = "Evaluation periods"
+    statistic = schema.TextLine(
+        title = "Statistic"
     )
     threshold = schema.Float(
         title = "Threshold"
     )
-    comparison_operator = schema.TextLine(
-        title = "Comparison operator",
-        constraint = isComparisonOperator,
-        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'"
-    )
-    statistic = schema.TextLine(
-        title = "Statistic"
-    )
     treat_missing_data = schema.TextLine(
         title = "Treat missing data"
-    )
-    extended_statistic = schema.TextLine(
-        title = "Extended statistic"
-    )
-    evaluate_low_sample_count_percentile = schema.TextLine(
-        title = "Evaluate low sample count percentile"
     )
 
 class INotificationMember(INamed):

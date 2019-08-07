@@ -111,6 +111,7 @@ class Alarm(Named):
 class CloudWatchAlarm(Alarm):
     "CloudWatch Alarm"
     metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
+    namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
     period = FieldProperty(schemas.ICloudWatchAlarm["period"])
     evaluation_periods = FieldProperty(schemas.ICloudWatchAlarm["evaluation_periods"])
     threshold = FieldProperty(schemas.ICloudWatchAlarm["threshold"])

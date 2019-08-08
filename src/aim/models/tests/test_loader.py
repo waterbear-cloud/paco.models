@@ -245,3 +245,8 @@ class TestAimDemo(BaseTestModelLoader):
         assert lmbda.handler, 'notification.lambda_handler'
         assert lmbda.memory_size, 128
         assert len(lmbda.layers), 1
+
+    def test_aim_project_version(self):
+        # test that a version loaded ... we will fiddle with this number in fixtures
+        # as we update aim.models
+        assert len(self.project.aim_project_version) > 2

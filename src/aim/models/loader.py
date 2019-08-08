@@ -1,5 +1,6 @@
 import aim.models.services
 import itertools, os, copy
+import pkg_resources
 import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
@@ -539,8 +540,11 @@ class ModelLoader():
 
     def load_all(self):
         'Basically does a LOAD "*",8,1'
-        # ToDo: clean-up loading order a bit
+        aim_project_version = self.read_aim_project_version()
+        self.check_aim_project_version(aim_project_version)
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
+        self.project.aim_project_version = '{}.{}'.format(aim_project_version[0], aim_project_version[1])
+
         if os.path.isfile(self.config_folder + os.sep + '.credentials.yaml'):
             self.instantiate_project('.credentials', self.read_yaml('', '.credentials.yaml'))
         for subdir, instantiate_method in self.config_subdirs.items():
@@ -558,6 +562,30 @@ class ModelLoader():
         #self.load_references()
         self.load_outputs()
         self.load_core_monitoring()
+
+    def read_aim_project_version(self):
+        "Reads <project>/aim-project-version.txt and returns a tuple (major,medium) version"
+        version_file = self.config_folder + os.sep + 'aim-project-version.txt'
+        if not os.path.isfile(version_file):
+            raise InvalidAimProjectFile(
+                'You need a <project>/aim-project-version.txt file that declares your AIM Project file foramt version.'
+            )
+        with open(version_file) as f:
+            version = f.read()
+        version = version.strip().replace(' ', '')
+        major, medium = version.split('.')
+        major = int(major)
+        medium = int(medium)
+        return (major, medium)
+
+    def check_aim_project_version(self, version):
+        aim_models_version = pkg_resources.get_distribution('aim.models').version
+        aim_major, aim_medium = aim_models_version.split('.')[0:2]
+        if version[0] != int(aim_major) or version[1] != int(aim_medium):
+            raise InvalidAimProjectFile(
+                "Version mismatch: project declares AIM Project version {}.{} but aim.models is at version {}".format(
+                    version[0], version[1], aim_models_version
+                ))
 
     def load_references(self):
         """

@@ -6,6 +6,9 @@ Changelog for aim.models
 
 ### Added
 
+- aim-project-version.txt file in the root directory can now contain the AIM Project YAML
+  version. IProject now has an aim_project_version field to store this value.
+
 - ICloudWatchAlarm gets a namespace field. Can be used to override the default
   Resource namespace, for example, use 'CWAgent' for the CloudWatch agent metrics.
 

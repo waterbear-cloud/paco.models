@@ -1002,7 +1002,10 @@ class INetworkEnvironments(INamed, IMapping):
 
 class IProject(INamed, IMapping):
     "Project : the root node in the config for an AIM Project"
-
+    aim_project_version = schema.TextLine(
+        title = "AIM Project version",
+        default = ""
+    )
 
 class IInternetGateway(IDeployable):
     """

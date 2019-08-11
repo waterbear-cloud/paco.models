@@ -24,6 +24,15 @@ class AlarmNotification():
 class LogSets(dict):
     "Collections of Log Sets"
 
+    def get_all_log_sources(self):
+        "Return a list of all Log Sources in these Log Sets"
+        results = []
+        for log_set_name in self.keys():
+            for log_cat_name in self[log_set_name].keys():
+                for log_source in self[log_set_name][log_cat_name].values():
+                    results.append(log_source)
+        return results
+
 @implementer(schemas.ILogSet)
 class LogSet(dict):
     "Collection of Log Categories"
@@ -50,6 +59,30 @@ class CWAgentLogSource(LogSource):
 
     def __init__(self, name):
         self.name = name
+
+@implementer(schemas.IMetricFilters)
+class MetricFilters(dict):
+    # ToDo: load these into the model
+    pass
+
+@implementer(schemas.IMetricFilter)
+class MetricFilter():
+    filter_pattern = FieldProperty(schemas.IMetricFilter["filter_pattern"])
+    metric_transformations = FieldProperty(schemas.IMetricFilter["metric_transformations"])
+
+@implementer(schemas.ICWLogGroups)
+class CWLogGroups():
+    expire_events_after = FieldProperty(schemas.ICWLogGroups["expire_events_after"])
+    log_category = FieldProperty(schemas.ICWLogGroups["log_category"])
+
+@implementer(schemas.ICWLogGroup)
+class CWLogGroup():
+    expire_events_after = FieldProperty(schemas.ICWLogGroup["expire_events_after"])
+    log_group_name = FieldProperty(schemas.ICWLogGroup["log_group_name"])
+    metric_filters = FieldProperty(schemas.ICWLogGroup["metric_filters"])
+
+    def __init__(self):
+        self.metric_filters = MetricFilters()
 
 @implementer(schemas.IAlarmSet)
 class AlarmSet(Named, dict):

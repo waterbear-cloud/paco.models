@@ -250,3 +250,10 @@ class TestAimDemo(BaseTestModelLoader):
         # test that a version loaded ... we will fiddle with this number in fixtures
         # as we update aim.models
         assert len(self.project.aim_project_version) > 2
+
+    def test_cloudwatch_log_groups(self):
+        cw_log_groups = self.project['cloudwatch_log_groups']
+        assert cw_log_groups.expire_events_after == "7"
+        assert len(cw_log_groups.log_category.keys()) == 1
+        assert schemas.ICWLogGroup.providedBy(cw_log_groups.log_category['linux'])
+        assert cw_log_groups.log_category['linux'].expire_events_after == "Never"

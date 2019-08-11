@@ -582,22 +582,23 @@ class INotificationGroups(IServiceAccountRegion):
 
 class ILogSets(IMapping):
     """
-    A collection of information about logs to collect
+    A collection of information about logs to collect.
+    A mapping of ILogSet objects.
     """
 
 class ILogSet(IMapping):
     """
-    A dict of log category objects
+    A mapping of ILogCategory objects
     """
 
 class ILogCategory(IMapping, IName):
     """
-    A dict of log source objects
+    A mapping of ILogSource objects
     """
 
 class ILogSource(IName):
     """
-    Information about a log source
+    A log source is a filesystem path where logs can be ingested from
     """
     path = schema.TextLine(
         title = "Path",
@@ -608,7 +609,7 @@ class ILogSource(IName):
 
 class ICWAgentLogSource(ILogSource):
     """
-    Information about a CloudWatch Agent log source
+    Log source for a CloudWatch Agent
     """
     timezone = schema.TextLine(
         title = "Timezone",
@@ -720,22 +721,18 @@ class IMetricFilter(Interface):
         default = ""
     )
 
-class ICWLogGroups(IMapping):
-    """
-    CloudWatch Log Groups
-    """
 
 class ICWLogGroup(Interface):
     """
     CloudWatch Log Group
     """
-    log_group_name = schema.TextLine(
-        title = "Log group name",
+    expire_events_after = schema.TextLine(
+        title = "Expire Events After. Retention period of logs in this group",
+        description = "",
         default = ""
     )
-    expire_events_after = schema.TextLine(
-        title = "Expire Events After",
-        description = "Retention period of logs in this group",
+    log_group_name = schema.TextLine(
+        title = "Log group name",
         default = ""
     )
     metric_filters = schema.Object(
@@ -743,6 +740,20 @@ class ICWLogGroup(Interface):
         schema = IMetricFilters
     )
 
+class ICWLogGroups(Interface):
+    """
+    CloudWatch Log Groups
+    """
+    expire_events_after = schema.TextLine(
+        title = "Expire Events After. Default retention period for all CloudWatch Log Groups.",
+        description = "",
+        default = ""
+    )
+    log_category = schema.Dict(
+        title = "Log Category is a mapping of CWLogGroup objects.",
+        value_type = schema.Object(ICWLogGroup),
+        default = {}
+    )
 
 class IS3BucketPolicy(Interface):
     """

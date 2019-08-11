@@ -1,10 +1,13 @@
 Changelog for aim.models
 =================
 
-3.1.1 (unreleased)
+3.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- CloudWatch Log Group objects are loaded in `MonitorConfig/AlarmSets.yaml` in a `log_groups`
+  section. These are for configuring CloudWatch Log Group expiration dates.
 
 
 3.1.0 (2019-08-08)

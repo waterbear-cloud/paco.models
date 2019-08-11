@@ -7,7 +7,8 @@ import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
+    CWLogGroups, CWLogGroup
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -88,6 +89,9 @@ SUB_TYPES_CLASS_MAP = {
         'alarm_sets': ('alarm_sets', AlarmSets),
         'log_sets': ('log_sets', LogSets),
         'notifications': ('notifications', AlarmNotifications)
+    },
+    CWLogGroups: {
+        'log_category': ('named_dict', CWLogGroup)
     },
     CodePipeBuildDeploy: {
         'artifacts_bucket': ('named_dict', S3Bucket),
@@ -892,6 +896,8 @@ class ModelLoader():
             self.monitor_config['alarms'] = config
         elif name.lower() == 'logsets':
             self.monitor_config['logs'] = config
+            # load CloudWatch Log Groups
+            self.instantiate_cloudwatch_log_groups(config)
         elif name.lower() == 'notificationgroups':
             groups = NotificationGroups('notificationgroups', self.project)
             self.project['notificationgroups'] = groups
@@ -909,6 +915,12 @@ class ModelLoader():
             else:
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config
+
+    def instantiate_cloudwatch_log_groups(self, config):
+        cw_log_groups = CWLogGroups()
+        self.project['cloudwatch_log_groups'] = cw_log_groups
+        if 'log_groups' in config:
+            apply_attributes_from_config(cw_log_groups, config['log_groups'])
 
     def instantiate_accounts(self, name, config, read_file_path=''):
         accounts = self.project['accounts']

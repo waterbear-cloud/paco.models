@@ -21,7 +21,7 @@ class AlarmNotification():
     severity = FieldProperty(schemas.IAlarmNotification["severity"])
 
 @implementer(schemas.ILogSets)
-class LogSets(dict):
+class LogSets(Named, dict):
     "Collections of Log Sets"
 
     def get_all_log_sources(self):
@@ -34,18 +34,15 @@ class LogSets(dict):
         return results
 
 @implementer(schemas.ILogSet)
-class LogSet(dict):
+class LogSet(Named, dict):
     "Collection of Log Categories"
 
 @implementer(schemas.ILogCategory)
-class LogCategory(dict):
+class LogCategory(Named, dict):
     "Collection of Log Sources"
 
-    def __init__(self, name):
-        self.name = name
-
 @implementer(schemas.ILogSource)
-class LogSource(Name):
+class LogSource(Named):
     path = FieldProperty(schemas.ILogSource["path"])
 
 @implementer(schemas.ICWAgentLogSource)
@@ -56,9 +53,6 @@ class CWAgentLogSource(LogSource):
     encoding = FieldProperty(schemas.ICWAgentLogSource["encoding"])
     log_group_name = FieldProperty(schemas.ICWAgentLogSource["log_group_name"])
     log_stream_name = FieldProperty(schemas.ICWAgentLogSource["log_stream_name"])
-
-    def __init__(self, name):
-        self.name = name
 
 @implementer(schemas.IMetricFilters)
 class MetricFilters(dict):
@@ -195,7 +189,7 @@ class MonitorConfig(Deployable, Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets('alarm_sets', self)
-        self.log_sets = LogSets()
+        self.log_sets = LogSets('log_sets', self)
         self.notifications = AlarmNotifications()
 
 @implementer(schemas.IMetric)

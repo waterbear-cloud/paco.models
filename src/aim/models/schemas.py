@@ -580,23 +580,23 @@ class INotificationGroups(IServiceAccountRegion):
 
 # Logging schemas
 
-class ILogSets(IMapping):
+class ILogSets(INamed, IMapping):
     """
     A collection of information about logs to collect.
     A mapping of ILogSet objects.
     """
 
-class ILogSet(IMapping):
+class ILogSet(INamed, IMapping):
     """
     A mapping of ILogCategory objects
     """
 
-class ILogCategory(IMapping, IName):
+class ILogCategory(INamed, IMapping):
     """
     A mapping of ILogSource objects
     """
 
-class ILogSource(IName):
+class ILogSource(INamed):
     """
     A log source is a filesystem path where logs can be ingested from
     """

@@ -396,15 +396,15 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
 
     elif sub_type == 'log_sets':
         # Special loading for LogSets
-        log_sets = LogSets()
+        log_sets = LogSets('log_sets', obj)
         for log_set_name in value.keys():
             # look-up LogSet by name from base config
-            log_set = LogSet()
+            log_set = LogSet(log_set_name, log_sets)
             for log_category_name, log_category_config in lookup_config['logs']['log_sets'][log_set_name].items():
-                log_category = LogCategory(name=log_category_name)
+                log_category = LogCategory(log_category_name, log_set)
                 log_set[log_category_name] = log_category
                 for log_source_name, log_source_config in log_category_config.items():
-                    log_source = CWAgentLogSource(name=log_source_name)
+                    log_source = CWAgentLogSource(log_source_name, log_category)
                     apply_attributes_from_config(log_source, log_source_config, read_file_path=read_file_path)
                     log_category[log_source_name] = log_source
             log_sets[log_set_name] = log_set

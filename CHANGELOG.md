@@ -9,6 +9,9 @@ Changelog for aim.models
 - CloudWatch Log Group objects are loaded in `MonitorConfig/AlarmSets.yaml` in a `log_groups`
   section. These are for configuring CloudWatch Log Group expiration dates.
 
+### Changed
+
+ - LogSets, LogSet, LogCategory and LogSource are now all locatable INamed objects.
 
 3.1.0 (2019-08-08)
 ------------------

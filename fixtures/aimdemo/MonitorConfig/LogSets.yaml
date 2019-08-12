@@ -17,10 +17,10 @@ log_sets:
         path: "/var/log/yum.log"
         log_group_name: "yum.log"
         log_stream_name: "{instance_id}"
+        expire_events_after: "1"
 
 log_groups:
   expire_events_after: "7"
   log_category:
     linux:
-      log_group_name: "audit.log"
       expire_events_after: "Never"

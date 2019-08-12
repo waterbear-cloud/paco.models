@@ -20,6 +20,10 @@ class AlarmNotification():
     classification = FieldProperty(schemas.IAlarmNotification["classification"])
     severity = FieldProperty(schemas.IAlarmNotification["severity"])
 
+@implementer(schemas.ICloudWatchLogRetention)
+class Retention():
+    expire_events_after = FieldProperty(schemas.ICloudWatchLogRetention["expire_events_after"])
+
 @implementer(schemas.ILogSets)
 class LogSets(Named, dict):
     "Collections of Log Sets"
@@ -46,7 +50,7 @@ class LogSource(Named):
     path = FieldProperty(schemas.ILogSource["path"])
 
 @implementer(schemas.ICWAgentLogSource)
-class CWAgentLogSource(LogSource):
+class CWAgentLogSource(LogSource, Retention):
     timezone = FieldProperty(schemas.ICWAgentLogSource["timezone"])
     timestamp_format = FieldProperty(schemas.ICWAgentLogSource["timestamp_format"])
     multi_line_start_pattern = FieldProperty(schemas.ICWAgentLogSource["multi_line_start_pattern"])
@@ -65,14 +69,11 @@ class MetricFilter():
     metric_transformations = FieldProperty(schemas.IMetricFilter["metric_transformations"])
 
 @implementer(schemas.ICWLogGroups)
-class CWLogGroups():
-    expire_events_after = FieldProperty(schemas.ICWLogGroups["expire_events_after"])
+class CWLogGroups(Retention):
     log_category = FieldProperty(schemas.ICWLogGroups["log_category"])
 
 @implementer(schemas.ICWLogGroup)
-class CWLogGroup():
-    expire_events_after = FieldProperty(schemas.ICWLogGroup["expire_events_after"])
-    log_group_name = FieldProperty(schemas.ICWLogGroup["log_group_name"])
+class CWLogGroup(Retention):
     metric_filters = FieldProperty(schemas.ICWLogGroup["metric_filters"])
 
     def __init__(self):

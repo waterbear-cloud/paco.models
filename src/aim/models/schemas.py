@@ -98,6 +98,15 @@ def isOnlyDigits(value):
         return True
     raise InvalidStringCanOnlyContainDigits
 
+class InvalidCloudWatchLogRetention(schema.ValidationError):
+    __doc__ = 'String must be valid log retention value: {}'.format(', '.join(vocabulary.cloudwatch_log_retention.keys()))
+
+def isValidCloudWatchLogRetention(value):
+    if value == '': return True
+    if value not in vocabulary.cloudwatch_log_retention:
+        raise InvalidCloudWatchLogRetention
+    return True
+
 class InvalidCidrIpv4(schema.ValidationError):
     __doc__ = 'String must be a valid CIDR v4 (e.g. 20.50.120.4/30)'
 
@@ -607,7 +616,15 @@ class ILogSource(INamed):
         description = "Must be a valid filesystem path expression. Wildcard * is allowed."
     )
 
-class ICWAgentLogSource(ILogSource):
+class ICloudWatchLogRetention(Interface):
+    expire_events_after = schema.TextLine(
+        title = "Expire Events After. Retention period of logs in this group",
+        description = "",
+        default = "",
+        constraint = isValidCloudWatchLogRetention
+    )
+
+class ICWAgentLogSource(ILogSource, ICloudWatchLogRetention):
     """
     Log source for a CloudWatch Agent
     """
@@ -722,33 +739,19 @@ class IMetricFilter(Interface):
     )
 
 
-class ICWLogGroup(Interface):
+class ICWLogGroup(ICloudWatchLogRetention):
     """
     CloudWatch Log Group
     """
-    expire_events_after = schema.TextLine(
-        title = "Expire Events After. Retention period of logs in this group",
-        description = "",
-        default = ""
-    )
-    log_group_name = schema.TextLine(
-        title = "Log group name",
-        default = ""
-    )
     metric_filters = schema.Object(
         title = "Metric Filters",
         schema = IMetricFilters
     )
 
-class ICWLogGroups(Interface):
+class ICWLogGroups(ICloudWatchLogRetention):
     """
     CloudWatch Log Groups
     """
-    expire_events_after = schema.TextLine(
-        title = "Expire Events After. Default retention period for all CloudWatch Log Groups.",
-        description = "",
-        default = ""
-    )
     log_category = schema.Dict(
         title = "Log Category is a mapping of CWLogGroup objects.",
         value_type = schema.Object(ICWLogGroup),

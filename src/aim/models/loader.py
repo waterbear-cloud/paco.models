@@ -470,7 +470,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
             except KeyError:
                 if 'type' not in res_config:
                     raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
-                        self.read_file_path, res_key, res_config)
+                        read_file_path, res_key, res_config)
                     )
                 raise InvalidAimProjectFile(
                     """Error in file at {}

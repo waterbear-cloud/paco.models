@@ -1,12 +1,13 @@
 import aim.models.services
 import itertools, os, copy
+import pkg_resources
 import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import get_logger
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups
+    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
 from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
@@ -72,6 +73,9 @@ SUB_TYPES_CLASS_MAP = {
         'subscription': ('obj_list', SNSTopicSubscription),
     },
     # Resource sub-objects
+    CloudWatchAlarm: {
+        'dimensions': ('obj_list', Dimension)
+    },
     LBApplication: {
         'target_groups': ('named_dict', TargetGroup),
         'security_groups': ('str_list', TextReference),
@@ -355,7 +359,10 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
     if sub_type == 'named_dict':
         sub_dict = {}
         for sub_key, sub_value in value.items():
-            sub_obj = sub_class()
+            if schemas.INamed.implementedBy(sub_class):
+                sub_obj = sub_class(name, obj)
+            else:
+                sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_dict[sub_key] = sub_obj
         return sub_dict
@@ -476,7 +483,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
             except KeyError:
                 if 'type' not in res_config:
                     raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
-                        self.read_file_path, res_key, res_config)
+                        read_file_path, res_key, res_config)
                     )
                 raise InvalidAimProjectFile(
                     """Error in file at {}
@@ -546,8 +553,11 @@ class ModelLoader():
 
     def load_all(self):
         'Basically does a LOAD "*",8,1'
-        # ToDo: clean-up loading order a bit
+        aim_project_version = self.read_aim_project_version()
+        self.check_aim_project_version(aim_project_version)
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
+        self.project.aim_project_version = '{}.{}'.format(aim_project_version[0], aim_project_version[1])
+
         if os.path.isfile(self.config_folder + os.sep + '.credentials.yaml'):
             self.instantiate_project('.credentials', self.read_yaml('', '.credentials.yaml'))
         for subdir, instantiate_method in self.config_subdirs.items():
@@ -565,6 +575,30 @@ class ModelLoader():
         #self.load_references()
         self.load_outputs()
         self.load_core_monitoring()
+
+    def read_aim_project_version(self):
+        "Reads <project>/aim-project-version.txt and returns a tuple (major,medium) version"
+        version_file = self.config_folder + os.sep + 'aim-project-version.txt'
+        if not os.path.isfile(version_file):
+            raise InvalidAimProjectFile(
+                'You need a <project>/aim-project-version.txt file that declares your AIM Project file foramt version.'
+            )
+        with open(version_file) as f:
+            version = f.read()
+        version = version.strip().replace(' ', '')
+        major, medium = version.split('.')
+        major = int(major)
+        medium = int(medium)
+        return (major, medium)
+
+    def check_aim_project_version(self, version):
+        aim_models_version = pkg_resources.get_distribution('aim.models').version
+        aim_major, aim_medium = aim_models_version.split('.')[0:2]
+        if version[0] != int(aim_major) or version[1] != int(aim_medium):
+            raise InvalidAimProjectFile(
+                "Version mismatch: project declares AIM Project version {}.{} but aim.models is at version {}".format(
+                    version[0], version[1], aim_models_version
+                ))
 
     def load_references(self):
         """
@@ -624,9 +658,17 @@ class ModelLoader():
                                 resource_config = groups_config[grp_name]['resources'][res_name]
                                 resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
 
+                                if 'fullname' in resource_config:
+                                    resource.resource_fullname = resource_config['fullname']['__name__']
                                 if 'name' in resource_config:
                                     # ALB have a name attribute with an embedded __name__
                                     resource.resource_name = resource_config['name']['__name__']
+                                    # TargetGroups are nested in the ALB Output
+                                    if 'target_groups' in resource_config:
+                                        for tg_name, tg_config in resource_config['target_groups'].items():
+                                            tg_resource = resource.target_groups[tg_name]
+                                            tg_resource.resource_name = tg_config['name']['__name__']
+                                            tg_resource.resource_fullname = tg_config['arn']['__name__'].split(':')[-1:][0]
                                 elif '__name__' in resource_config:
                                     resource.resource_name = resource_config['__name__']
 

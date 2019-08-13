@@ -350,8 +350,8 @@ class ISecurityGroupRule(IName):
 
     @invariant
     def cidr_v4_or_v6(obj):
-        if obj.cidr_ip == '' and obj.cidr_ip_v6 == '' and not getattr(obj, 'source_security_group_id', None):
-            raise Invalid("cidr_ip, cidr_ip_v6 and source_security_group_id can not all be blank")
+        if obj.cidr_ip == '' and obj.cidr_ip_v6 == '' and not getattr(obj, 'source_security_group', None):
+            raise Invalid("cidr_ip, cidr_ip_v6 and source_security_group can not all be blank")
 
     cidr_ip = schema.TextLine(
         title = "CIDR IP",
@@ -383,8 +383,8 @@ class ISecurityGroupRule(IName):
         description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default = -1
     )
-    source_security_group_id = TextReference(
-        title = "Source Security Group",
+    source_security_group = TextReference(
+        title = "Source Security Group Reference",
         required = False,
         description = "An AIM Reference to a SecurityGroup"
     )
@@ -437,7 +437,13 @@ class IResource(INamed, IDeployable):
     )
     resource_name = schema.TextLine(
         title = "AWS Resource Name",
-        description = ""
+        description = "",
+        default = ""
+    )
+    resource_fullname = schema.TextLine(
+        title = "AWS Resource Fullname",
+        description = "",
+        default = ""
     )
     order = schema.Int(
         title = "The order in which the resource will be deployed",
@@ -547,6 +553,17 @@ class IAlarmSets(INamed, IMapping):
     A collection of AlarmSets
     """
 
+class IDimension(Interface):
+    """
+    A dimension of a metric
+    """
+    name = schema.TextLine(
+        title = "Dimension name"
+    )
+    value = schema.TextLine(
+        title = "Value to look-up dimension"
+    )
+
 class IAlarm(INamed, IDeployable, IName, INotifiable):
     """
     An Alarm
@@ -572,96 +589,45 @@ class ICloudWatchAlarm(IAlarm):
     """
     A CloudWatch Alarm
     """
+    comparison_operator = schema.TextLine(
+        title = "Comparison operator",
+        constraint = isComparisonOperator,
+        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'"
+    )
+    dimensions = schema.List(
+        title = "Dimensions",
+        value_type = schema.Object(schema=IDimension),
+        default = []
+    )
+    evaluate_low_sample_count_percentile = schema.TextLine(
+        title = "Evaluate low sample count percentile"
+    )
+    evaluation_periods = schema.Int(
+        title = "Evaluation periods"
+    )
+    extended_statistic = schema.TextLine(
+        title = "Extended statistic"
+    )
     metric_name = schema.TextLine(
         title = "Metric name",
         required = True
+    )
+    namespace = schema.TextLine(
+        title = "Namespace"
     )
     period = schema.Int(
         title = "Period in seconds",
         constraint = isValidPeriod,
         description = "Must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000"
     )
-    evaluation_periods = schema.Int(
-        title = "Evaluation periods"
+    statistic = schema.TextLine(
+        title = "Statistic"
     )
     threshold = schema.Float(
         title = "Threshold"
     )
-    comparison_operator = schema.TextLine(
-        title = "Comparison operator",
-        constraint = isComparisonOperator,
-        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'"
-    )
-    statistic = schema.TextLine(
-        title = "Statistic"
-    )
     treat_missing_data = schema.TextLine(
         title = "Treat missing data"
-    )
-    extended_statistic = schema.TextLine(
-        title = "Extended statistic"
-    )
-    evaluate_low_sample_count_percentile = schema.TextLine(
-        title = "Evaluate low sample count percentile"
-    )
-
-class INotificationMember(INamed):
-    "Endpoint to notify"
-    endpoint = schema.TextLine(
-        title = "Subscription Endpoint",
-        description = "Must be a valid endpoint",
-    )
-
-class IHttpNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "HTTP Subscription Endpoint",
-        description = "Must be a valid HTTP endpoint",
-        constraint = isValidHttpUrl
-    )
-
-class IHttpsNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "HTTPS Subscription Endpoint",
-        description = "Must be a valid HTTPS endpoint",
-        constraint = isValidHttpsUrl
-    )
-
-class IEmailNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Email Subscription Endpoint",
-        description = "Must be a valid email endpoint",
-        constraint = isValidEmail
-    )
-
-class IEmailJsonNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Email-JSON Subscription Endpoint",
-        description = "Must be a valid email endpoint",
-        constraint = isValidEmail
-    )
-
-class ISmsNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "SMS Subscription Endpoint",
-        description = "Must be a valid SMS endpoint",
-    )
-
-class ISqsNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Subscription Endpoint",
-        description = "Must be a valid SQS endpoint",
-    )
-
-class IApplicationNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Application Subscription Endpoint",
-        description = "Must be a valid application endpoint",
-    )
-
-class ILambdaNotificationMember(INotificationMember):
-    endpoint = schema.TextLine(
-        title = "Lambda Subscription Endpoint",
-        description = "Must be a valid lambda endpoint",
     )
 
 class INotificationGroups(IServiceAccountRegion):
@@ -949,7 +915,7 @@ class ICodePipeBuildDeploy(IResource):
     codecommit_repository = TextReference(
         title = 'CodeCommit Respository'
     )
-    asg_name = TextReference(
+    asg = TextReference(
         title = "ASG Reference"
     )
     auto_rollback_enabled = schema.Bool(
@@ -972,16 +938,16 @@ class ICodePipeBuildDeploy(IResource):
         description = "",
         default = 0
     )
-    deploy_instance_role_name = TextReference(
-        title = "Deploy instance role name"
+    deploy_instance_role = TextReference(
+        title = "Deploy Instance Role Reference"
     )
     elb_name = schema.TextLine(
         title = "ELB Name",
         description = "",
         default = ""
     )
-    alb_target_group_name = TextReference(
-        title = "ALB Target Group Name Reference"
+    alb_target_group = TextReference(
+        title = "ALB Target Group Reference"
     )
     tools_account = TextReference(
         title = "Tools Account Reference"
@@ -1091,7 +1057,10 @@ class INetworkEnvironments(INamed, IMapping):
 
 class IProject(INamed, IMapping):
     "Project : the root node in the config for an AIM Project"
-
+    aim_project_version = schema.TextLine(
+        title = "AIM Project version",
+        default = ""
+    )
 
 class IInternetGateway(IDeployable):
     """
@@ -1295,7 +1264,7 @@ class IPortProtocol(Interface):
         vocabulary=vocabulary.target_group_protocol
     )
 
-class ITargetGroup(IPortProtocol):
+class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
     health_check_interval = schema.Int(
         title = "Health check interval"
@@ -1370,7 +1339,7 @@ class IListener(IPortProtocol):
     )
 
 class IDNS(Interface):
-    hosted_zone_id = TextReference(
+    hosted_zone = TextReference(
         title = "Hosted Zone Id Reference",
     )
     domain_name = TextReference(
@@ -1863,6 +1832,11 @@ class ICodeCommitUser(Interface):
     """
     username = schema.TextLine(
         title = "CodeCommit Username"
+    )
+    public_ssh_key = schema.TextLine(
+        title = "CodeCommit User Public SSH Key",
+        default = None,
+        required = False
     )
 
 class ICodeCommitRepository(INamed, IDeployable, IMapping):

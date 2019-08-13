@@ -53,7 +53,7 @@ class TestAimDemo(BaseTestModelLoader):
 
     def test_cpbd(self):
         cpbd = self.project['ne']['aimdemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
-        assert cpbd.asg_name != None
+        assert cpbd.asg != None
 
     def test_ne_vpc(self):
         vpc = self.project['ne']['aimdemo'].vpc
@@ -91,8 +91,8 @@ class TestAimDemo(BaseTestModelLoader):
     def test_netenv_refs(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
         # Basic aim.ref netenv
-        ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg_name
-        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp.name"
+        ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
 
         # aimsub netenf.ref
         #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
@@ -100,7 +100,7 @@ class TestAimDemo(BaseTestModelLoader):
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
-        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.network.vpc.security_groups.app.lb.id"
+        assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.network.vpc.security_groups.app.lb"
 
     def test_get_all_nodes(self):
         # check to ensure each node is only visited once
@@ -245,3 +245,8 @@ class TestAimDemo(BaseTestModelLoader):
         assert lmbda.handler, 'notification.lambda_handler'
         assert lmbda.memory_size, 128
         assert len(lmbda.layers), 1
+
+    def test_aim_project_version(self):
+        # test that a version loaded ... we will fiddle with this number in fixtures
+        # as we update aim.models
+        assert len(self.project.aim_project_version) > 2

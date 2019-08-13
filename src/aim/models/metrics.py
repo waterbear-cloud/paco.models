@@ -107,10 +107,17 @@ class Alarm(Named):
 
         return list(groups.keys())
 
+@implementer(schemas.IDimension)
+class Dimension():
+    name = FieldProperty(schemas.IDimension["name"])
+    value = FieldProperty(schemas.IDimension["value"])
+
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
     "CloudWatch Alarm"
     metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
+    namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
+    dimensions = FieldProperty(schemas.ICloudWatchAlarm["dimensions"])
     period = FieldProperty(schemas.ICloudWatchAlarm["period"])
     evaluation_periods = FieldProperty(schemas.ICloudWatchAlarm["evaluation_periods"])
     threshold = FieldProperty(schemas.ICloudWatchAlarm["threshold"])

@@ -106,6 +106,7 @@ class Resource(Named, Deployable, Regionalized):
     "Resource"
     type = FieldProperty(schemas.IResource['type'])
     resource_name = FieldProperty(schemas.IResource['resource_name'])
+    resource_fullname = FieldProperty(schemas.IResource['resource_fullname'])
     order = FieldProperty(schemas.IResource['order'])
 
     def get_account(self):

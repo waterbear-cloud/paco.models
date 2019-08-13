@@ -1,7 +1,32 @@
 Changelog for aim.models
 =================
 
-2.1.0 (unreleased)
+3.1.1 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+3.1.0 (2019-08-08)
+------------------
+
+### Added
+
+- aim-project-version.txt file in the root directory can now contain the AIM Project YAML
+  version. IProject now has an aim_project_version field to store this value.
+
+- ICloudWatchAlarm gets a namespace field. Can be used to override the default
+  Resource namespace, for example, use 'CWAgent' for the CloudWatch agent metrics.
+
+- IResource now has a resource_fullname field. The fullname is the name needed to
+  specify for a metric in a CloudWatch Alarm.
+
+- ICloudWatchAlarm now has a dimensions field, which is a List of Dimension objects.
+
+- ITargetGroup now inherits from IResource. It loads resource_name from outputs.
+
+
+3.0.0 (2019-08-06)
 ------------------
 
 ### Added
@@ -10,10 +35,18 @@ Changelog for aim.models
 
 - sdb_cache field for Lambda.
 
+- Lambda can have alarms.
+
+- ISNSTopic and ISNSTopicSubscription to model SNS.
+
 ### Changed
 
- - AlarmSets, AlarmSet and Alarm all now implement INamed and
-   are locatable in the model
+- All references have been renamed to start with ``aim.ref`` for consistency.
+
+- AlarmSets, AlarmSet and Alarm all now implement INamed and
+  are locatable in the model
+
+- Service plugins can load their outputs
 
 
 2.0.0 (2019-07-23)

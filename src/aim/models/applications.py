@@ -172,11 +172,11 @@ class CodePipeBuildDeploy(Resource):
     elb_name = FieldProperty(schemas.ICodePipeBuildDeploy['elb_name'])
     tools_account = FieldProperty(schemas.ICodePipeBuildDeploy['tools_account'])
     cross_account_support = FieldProperty(schemas.ICodePipeBuildDeploy['cross_account_support'])
-    asg_name = FieldProperty(schemas.ICodePipeBuildDeploy['asg_name'])
-    alb_target_group_name = FieldProperty(schemas.ICodePipeBuildDeploy['alb_target_group_name'])
+    asg = FieldProperty(schemas.ICodePipeBuildDeploy['asg'])
+    alb_target_group = FieldProperty(schemas.ICodePipeBuildDeploy['alb_target_group'])
     artifacts_bucket = FieldProperty(schemas.ICodePipeBuildDeploy['artifacts_bucket'])
     codecommit_repository = FieldProperty(schemas.ICodePipeBuildDeploy['codecommit_repository'])
-    deploy_instance_role_name = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_instance_role_name'])
+    deploy_instance_role = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_instance_role'])
 
     def resolve_ref(self, ref):
         engine_lookup_refs = [  'kms',
@@ -283,7 +283,8 @@ class PortProtocol():
     protocol = FieldProperty(schemas.IPortProtocol['protocol'])
 
 @implementer(schemas.ITargetGroup)
-class TargetGroup(PortProtocol):
+class TargetGroup(Resource, PortProtocol):
+    type = 'TargetGroup'
     health_check_interval = FieldProperty(schemas.ITargetGroup['health_check_interval'])
     health_check_timeout = FieldProperty(schemas.ITargetGroup['health_check_timeout'])
     healthy_threshold = FieldProperty(schemas.ITargetGroup['healthy_threshold'])
@@ -312,7 +313,7 @@ class Listener(PortProtocol):
 
 @implementer(schemas.IDNS)
 class DNS():
-    hosted_zone_id = FieldProperty(schemas.IDNS['hosted_zone_id'])
+    hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
     domain_name = FieldProperty(schemas.IDNS['domain_name'])
     ssl_certificate = FieldProperty(schemas.IDNS['ssl_certificate'])
 

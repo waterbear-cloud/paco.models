@@ -10,11 +10,8 @@ from zope.schema.fieldproperty import FieldProperty
 
 @implementer(IProject)
 class Project(Named, dict):
-    """
-    Object attrs:
-        - network_environments : ordered dict of network environments
-        - applications : ordered dict of application engines
-    """
+    """AIM Project"""
+    aim_project_version = FieldProperty(schemas.IProject["aim_project_version"])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)

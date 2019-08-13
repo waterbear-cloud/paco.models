@@ -4,4 +4,4 @@ aimdemo:
     account: aim.ref accounts.data
     aws_region: 'us-west-2'
     description: "Demo repository"
-    name: "aimdemo-app"
+    repository_name: "aimdemo-app"

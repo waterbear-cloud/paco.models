@@ -49,18 +49,31 @@ class CloudWatchLogGroup(Named, CloudWatchLogRetention):
         self.metric_filters = MetricFilters()
         self.sources = CloudWatchLogSources(name, __parent__)
 
+    def get_log_group_name(self):
+        "Return log_group_name is set, otherwise return name"
+        if self.log_group_name != '':
+            return self.log_group_name
+        return self.name
+
 @implementer(schemas.ICloudWatchLogSets)
 class CloudWatchLogSets(Named, dict):
     "Collection of Log Set objects"
 
     def get_all_log_sources(self):
-        "Return a list of all Log Sources in these Log Sets"
-        # XXX re-work and re-name!
+        "Return a list of all Log Source in these Log Sets"
         results = []
-        for log_set_name in self.keys():
-            for log_cat_name in self[log_set_name].keys():
-                for log_source in self[log_set_name][log_cat_name].values():
+        for log_set in self.values():
+            for log_group in self[log_set.name].log_groups.values():
+                for log_source in log_group.sources.values():
                     results.append(log_source)
+        return []
+
+    def get_all_log_groups(self):
+        "Return a list of all Log Groups in these Log Sets"
+        results = []
+        for log_set in self.values():
+            for log_group in self[log_set.name].log_groups.values():
+                results.append(log_group)
         return results
 
 @implementer(schemas.ICloudWatchLogSet)

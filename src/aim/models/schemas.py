@@ -204,12 +204,12 @@ def isValidCFCookiesForward(value):
         raise InvalidCFCookiesForward
     return True
 
-class InvalidCFSSLSupportedMethods(schema.ValidationError):
+class InvalidCFSSLSupportedMethod(schema.ValidationError):
     __doc__ = 'SSL Supported Methods must be one of: sni-only | vip'
 
-def isValidCFSSLSupportedMethods(value):
+def isValidCFSSLSupportedMethod(value):
     if value not in ('sni-only', 'vip'):
-        raise InvalidCFSSLSupportedMethods
+        raise InvalidCFSSLSupportedMethod
     return True
 
 class InvalidCFMinimumProtocolVersion(schema.ValidationError):
@@ -221,10 +221,10 @@ def isValidCFMinimumProtocolVersion(value):
     return True
 
 class InvalidCFPriceClass(schema.ValidationError):
-    __doc__ = 'Price Class must be one of: 100 | 200 | all'
+    __doc__ = 'Price Class must be one of: 100 | 200 | All'
 
 def isValidCFPriceClass(value):
-    if value not in ('100', '200', 'all'):
+    if value not in ('100', '200', 'All'):
         raise InvalidCFPriceClass
     return True
 
@@ -240,8 +240,9 @@ class InvalidCFSSLProtocol(schema.ValidationError):
     __doc__ = 'SSL Protocols must be one of: SSLv3 | TLSv1 | TLSv1.1 | TLSv1.2'
 
 def isValidCFSSLProtocol(value):
-    if value not in ('SSLv3', 'TLSv1', 'TLSv1.1', 'TLSv1.2'):
-        raise InvalidCFSSLProtocol
+    for protocol in value:
+        if protocol not in ('SSLv3', 'TLSv1', 'TLSv1.1', 'TLSv1.2'):
+            raise InvalidCFSSLProtocol
     return True
 
 #
@@ -1950,9 +1951,9 @@ class ICFViewerCertificate(Interface):
     certificate = TextReference(
         title = "Certificate Reference",
     )
-    ssl_supported_methods = schema.TextLine(
-        title = "SSL Supported Methods",
-        constraint = isValidCFSSLSupportedMethods
+    ssl_supported_method = schema.TextLine(
+        title = "SSL Supported Method",
+        constraint = isValidCFSSLSupportedMethod
     )
     minimum_protocol_version = schema.TextLine(
         title = "Minimum SSL Protocol Version",
@@ -1989,20 +1990,33 @@ class ICFCustomOriginConfig(Interface):
         value_type = schema.TextLine(),
         constraint = isValidCFSSLProtocol
     )
+    read_timeout = schema.Int(
+        title = "Read timeout",
+        min = 4,
+        max = 60,
+        default = 30
+    )
+    keepalive_timeout = schema.Int(
+        title = "HTTP Keepalive Timeout",
+        min = 1,
+        max = 60,
+        default = 5
+    )
 
 class ICFOrigin(INamed):
     """
     CloudFront Origin Configuration
     """
-    origin = TextReference(
-        title = "Origin Resource Reference"
+    domain_name = TextReference(
+        title = "Origin Resource Reference",
+        str_ok = True
     )
     custom_origin_config = schema.Object(
         title = "Custom Origin Configuration",
         schema = ICFCustomOriginConfig
     )
 
-class ICloudFront(IResource):
+class ICloudFront(IResource, IDeployable):
     """
     CloudFront CDN Configuration
     """

@@ -17,7 +17,8 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
-    CloudFront, CFCustomErrorResponses, CFOrigin, CFCustomOriginConfig, CFDefaultCacheBehaviour
+    CloudFront, CFCustomErrorResponses, CFOrigin, CFCustomOriginConfig, CFDefaultCacheBehaviour, \
+    CFForwardedValues, CFCookies, CFViewerCertificate
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -59,15 +60,24 @@ RESOURCES_CLASS_MAP = {
 
 SUB_TYPES_CLASS_MAP = {
     CloudFront: {
+        'default_cache_behavior': ('unnamed_dict', CFDefaultCacheBehaviour),
         'domain_aliases': ('obj_list', DNS),
         'custom_error_responses': ('obj_list', CFCustomErrorResponses),
-        'origins'  : ('named_dict', CFOrigin)
+        'origins': ('named_dict', CFOrigin),
+        'viewer_certificate': ('unnamed_dict', CFViewerCertificate)
+    },
+    CFDefaultCacheBehaviour: {
+        'allowed_methods': ('str_list', zope.schema.TextLine),
+        'forwarded_values': ('unnamed_dict', CFForwardedValues)
+    },
+    CFForwardedValues: {
+        'cookies': ('unnamed_dict', CFCookies),
+    },
+    CFOrigin: {
+        'custom_origin_config': ('unnamed_dict', CFCustomOriginConfig)
     },
     CFCustomOriginConfig: {
         'ssl_protocols': ('str_list', zope.schema.TextLine)
-    },
-    CFDefaultCacheBehaviour: {
-        'allowed_methods': ('str_list', zope.schema.TextLine)
     },
     SNSTopic: {
         'subscription': ('obj_list', SNSTopicSubscription),
@@ -285,6 +295,8 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
     # throw an error if there are fields which do not match the schema
     fields = get_all_fields(obj)
     if not zope.interface.common.mapping.IMapping.providedBy(obj):
+        if type(config) == list:
+            breakpoint()
         for key in config.keys():
             if key not in fields:
                 raise UnusedAimProjectField("""Error in file at {}

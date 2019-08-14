@@ -337,6 +337,10 @@ class AWSCertificateManager(Resource):
     subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
 
     def resolve_ref(self, ref):
+        if ref.resource_ref == 'domain_name':
+            return self.domain_name
+        if ref.parts[-2] == 'resources':
+            return self
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ILambdaVariable)
@@ -404,6 +408,9 @@ class CFCustomOriginConfig():
     https_port = FieldProperty(schemas.ICFCustomOriginConfig['https_port'])
     protocol_policy = FieldProperty(schemas.ICFCustomOriginConfig['protocol_policy'])
     ssl_protocols = FieldProperty(schemas.ICFCustomOriginConfig['ssl_protocols'])
+    read_timeout = FieldProperty(schemas.ICFCustomOriginConfig['read_timeout'])
+    keepalive_timeout = FieldProperty(schemas.ICFCustomOriginConfig['keepalive_timeout'])
+
 
 @implementer(schemas.ICFCookies)
 class CFCookies():
@@ -425,8 +432,11 @@ class CFDefaultCacheBehaviour():
 @implementer(schemas.ICFViewerCertificate)
 class CFViewerCertificate():
     certificate = FieldProperty(schemas.ICFViewerCertificate['certificate'])
-    ssl_supported_methods = FieldProperty(schemas.ICFViewerCertificate['ssl_supported_methods'])
+    ssl_supported_method = FieldProperty(schemas.ICFViewerCertificate['ssl_supported_method'])
     minimum_protocol_version = FieldProperty(schemas.ICFViewerCertificate['minimum_protocol_version'])
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ICFCustomErrorResponses)
 class CFCustomErrorResponses():
@@ -437,11 +447,15 @@ class CFCustomErrorResponses():
 
 @implementer(schemas.ICFOrigin)
 class CFOrigin(Named):
-    origin = FieldProperty(schemas.ICFOrigin['origin'])
+    domain_name = FieldProperty(schemas.ICFOrigin['domain_name'])
     custom_origin_config = FieldProperty(schemas.ICFOrigin['custom_origin_config'])
 
+    def resolve_ref(self, ref):
+        if ref.parts[-2] == 'origins':
+            return ref.last_part
+
 @implementer(schemas.ICloudFront)
-class CloudFront(Resource):
+class CloudFront(Resource, Deployable):
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
     default_cache_behavior = FieldProperty(schemas.ICloudFront['default_cache_behavior'])
     viewer_certificate = FieldProperty(schemas.ICloudFront['viewer_certificate'])

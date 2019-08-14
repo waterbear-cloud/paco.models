@@ -589,73 +589,119 @@ class INotificationGroups(IServiceAccountRegion):
 
 # Logging schemas
 
-class ILogSets(INamed, IMapping):
-    """
-    A collection of information about logs to collect.
-    A mapping of ILogSet objects.
-    """
-
-class ILogSet(INamed, IMapping):
-    """
-    A mapping of ILogCategory objects
-    """
-
-class ILogCategory(INamed, IMapping):
-    """
-    A mapping of ILogSource objects
-    """
-
-class ILogSource(INamed):
-    """
-    A log source is a filesystem path where logs can be ingested from
-    """
-    path = schema.TextLine(
-        title = "Path",
-        default = "",
-        required = True,
-        description = "Must be a valid filesystem path expression. Wildcard * is allowed."
-    )
-
 class ICloudWatchLogRetention(Interface):
-    expire_events_after = schema.TextLine(
+    expire_events_after_days = schema.TextLine(
         title = "Expire Events After. Retention period of logs in this group",
         description = "",
         default = "",
         constraint = isValidCloudWatchLogRetention
     )
 
-class ICWAgentLogSource(ILogSource, ICloudWatchLogRetention):
+class ICloudWatchLogSources(INamed, IMapping):
     """
-    Log source for a CloudWatch Agent
+    A collection of Log Sources
     """
-    timezone = schema.TextLine(
-        title = "Timezone",
-        default = "Local",
-        constraint = isValidCWAgentTimezone,
-        description = "Must be one of: 'Local', 'UTC'"
-    )
-    timestamp_format = schema.TextLine(
-        title = "Timestamp format",
-        default = "",
-    )
-    multi_line_start_pattern = schema.Text(
-        title = "Multi-line start pattern",
-        default = ""
-    )
+
+class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
+    """
+    Log source for a CloudWatch agent
+    """
     encoding = schema.TextLine(
         title = "Encoding",
         default = "utf-8"
-    )
-    log_group_name = schema.TextLine(
-        title = "Log group name",
-        description = "CloudWatch Log Group name",
-        default = ""
     )
     log_stream_name = schema.TextLine(
         title = "Log stream name",
         description = "CloudWatch Log Stream name",
         default = ""
     )
+    multi_line_start_pattern = schema.Text(
+        title = "Multi-line start pattern",
+        default = ""
+    )
+    path = schema.TextLine(
+        title = "Path",
+        default = "",
+        required = True,
+        description = "Must be a valid filesystem path expression. Wildcard * is allowed."
+    )
+    timestamp_format = schema.TextLine(
+        title = "Timestamp format",
+        default = "",
+    )
+    timezone = schema.TextLine(
+        title = "Timezone",
+        default = "Local",
+        constraint = isValidCWAgentTimezone,
+        description = "Must be one of: 'Local', 'UTC'"
+    )
+
+class IMetricFilters(IMapping):
+    """
+    Metric Filters
+    """
+
+class IMetricFilter(Interface):
+    """
+    Metric filter
+    """
+    filter_pattern = schema.Text(
+        title = "Filter pattern",
+        default = ""
+    )
+    metric_transformations = schema.Text(
+        title = "Metric transformations",
+        default = ""
+    )
+
+class ICloudWatchLogGroups(INamed, IMapping):
+    """
+    A collection of Log Group objects
+    """
+
+class ICloudWatchLogGroup(INamed, ICloudWatchLogRetention):
+    """
+    A CloudWatchLogGroup is responsible for retention, access control and metric filters
+    """
+    metric_filters = schema.Object(
+        title = "Metric Filters",
+        schema = IMetricFilters
+    )
+    sources = schema.Object(
+        title = "A CloudWatchLogSources container",
+        schema = ICloudWatchLogSources
+    )
+    log_group_name = schema.TextLine(
+        title = "Log group name. Can override the LogGroup name used from the name field.",
+        description = "",
+        default = ""
+    )
+
+class ICloudWatchLogSets(INamed, IMapping):
+    """
+    A collection of information about logs to collect.
+    A mapping of ILogSet objects.
+    """
+
+class ICloudWatchLogSet(INamed, ICloudWatchLogRetention, IMapping):
+    """
+    A set of Log Group objects
+    """
+    log_groups = schema.Object(
+        title = "A CloudWatchLogGroups container",
+        schema = ICloudWatchLogGroups
+    )
+
+class ICloudWatchLogging(INamed, ICloudWatchLogRetention):
+    """
+    CloudWatch Logging configuration
+    """
+    log_sets = schema.Object(
+        title = "A CloudWatchLogSets container",
+        schema = ICloudWatchLogSets
+    )
+
+# Metric and monitoring schemas
 
 class IMetric(Interface):
     """
@@ -707,7 +753,7 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
     )
     log_sets = schema.Object(
         title="Sets of Log Sets",
-        schema=ILogSets,
+        schema=ICloudWatchLogSets,
     )
 
 
@@ -718,44 +764,6 @@ class IMonitorable(Interface):
     monitoring = schema.Object(
         schema = IMonitorConfig,
         required = False
-    )
-
-class IMetricFilters(IMapping):
-    """
-    Metric Filters
-    """
-
-class IMetricFilter(Interface):
-    """
-    Metric filter
-    """
-    filter_pattern = schema.Text(
-        title = "Filter pattern",
-        default = ""
-    )
-    metric_transformations = schema.Text(
-        title = "Metric transformations",
-        default = ""
-    )
-
-
-class ICWLogGroup(ICloudWatchLogRetention):
-    """
-    CloudWatch Log Group
-    """
-    metric_filters = schema.Object(
-        title = "Metric Filters",
-        schema = IMetricFilters
-    )
-
-class ICWLogGroups(ICloudWatchLogRetention):
-    """
-    CloudWatch Log Groups
-    """
-    log_category = schema.Dict(
-        title = "Log Category is a mapping of CWLogGroup objects.",
-        value_type = schema.Object(ICWLogGroup),
-        default = {}
     )
 
 class IS3BucketPolicy(Interface):

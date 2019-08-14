@@ -1,5 +1,6 @@
 from aim.models import schemas, vocabulary
 from aim.models.base import Deployable, Named, Name, Resource, ServiceAccountRegion
+from aim.models.logging import CloudWatchLogSets
 from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -19,65 +20,6 @@ class AlarmNotification():
     groups = FieldProperty(schemas.IAlarmNotification["groups"])
     classification = FieldProperty(schemas.IAlarmNotification["classification"])
     severity = FieldProperty(schemas.IAlarmNotification["severity"])
-
-@implementer(schemas.ICloudWatchLogRetention)
-class Retention():
-    expire_events_after = FieldProperty(schemas.ICloudWatchLogRetention["expire_events_after"])
-
-@implementer(schemas.ILogSets)
-class LogSets(Named, dict):
-    "Collections of Log Sets"
-
-    def get_all_log_sources(self):
-        "Return a list of all Log Sources in these Log Sets"
-        results = []
-        for log_set_name in self.keys():
-            for log_cat_name in self[log_set_name].keys():
-                for log_source in self[log_set_name][log_cat_name].values():
-                    results.append(log_source)
-        return results
-
-@implementer(schemas.ILogSet)
-class LogSet(Named, dict):
-    "Collection of Log Categories"
-
-@implementer(schemas.ILogCategory)
-class LogCategory(Named, dict):
-    "Collection of Log Sources"
-
-@implementer(schemas.ILogSource)
-class LogSource(Named):
-    path = FieldProperty(schemas.ILogSource["path"])
-
-@implementer(schemas.ICWAgentLogSource)
-class CWAgentLogSource(LogSource, Retention):
-    timezone = FieldProperty(schemas.ICWAgentLogSource["timezone"])
-    timestamp_format = FieldProperty(schemas.ICWAgentLogSource["timestamp_format"])
-    multi_line_start_pattern = FieldProperty(schemas.ICWAgentLogSource["multi_line_start_pattern"])
-    encoding = FieldProperty(schemas.ICWAgentLogSource["encoding"])
-    log_group_name = FieldProperty(schemas.ICWAgentLogSource["log_group_name"])
-    log_stream_name = FieldProperty(schemas.ICWAgentLogSource["log_stream_name"])
-
-@implementer(schemas.IMetricFilters)
-class MetricFilters(dict):
-    # ToDo: load these into the model
-    pass
-
-@implementer(schemas.IMetricFilter)
-class MetricFilter():
-    filter_pattern = FieldProperty(schemas.IMetricFilter["filter_pattern"])
-    metric_transformations = FieldProperty(schemas.IMetricFilter["metric_transformations"])
-
-@implementer(schemas.ICWLogGroups)
-class CWLogGroups(Retention):
-    log_category = FieldProperty(schemas.ICWLogGroups["log_category"])
-
-@implementer(schemas.ICWLogGroup)
-class CWLogGroup(Retention):
-    metric_filters = FieldProperty(schemas.ICWLogGroup["metric_filters"])
-
-    def __init__(self):
-        self.metric_filters = MetricFilters()
 
 @implementer(schemas.IAlarmSet)
 class AlarmSet(Named, dict):
@@ -190,7 +132,7 @@ class MonitorConfig(Deployable, Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets('alarm_sets', self)
-        self.log_sets = LogSets('log_sets', self)
+        self.log_sets = CloudWatchLogSets('log_sets', self)
         self.notifications = AlarmNotifications()
 
 @implementer(schemas.IMetric)

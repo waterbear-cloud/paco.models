@@ -386,9 +386,13 @@ environments:
                         severity: 'low'
                     log_sets:
                       amazon_linux:
-                        linux:
+                        expire_events_after_days: '1'
+                        log_groups:
                           audit:
                             log_group_name: "puppydog"
+                            sources:
+                              audit:
+                                log_stream_name: "audit-{instance_id}"
                     alarm_sets:
                       launch-health:
                       instance-health-core:

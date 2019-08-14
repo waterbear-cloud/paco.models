@@ -141,15 +141,22 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.ICloudWatchAlarm.providedBy(demo_webapp.monitoring.alarm_sets['launch-health']['GroupPendingInstances-Low'])
         assert demo_webapp.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].evaluation_periods == 15
 
-    def test_logging(self):
+    def test_cloudwatch_logging(self):
         demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
         demo_webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
+        linux_log_set = demo_webapp.monitoring.log_sets['amazon_linux']
 
-        # test log_set has loaded
-        assert demo_webapp.monitoring.log_sets['amazon_linux']['linux']['audit'].log_stream_name, "{instance_id}"
+        # Log Set
+        assert schemas.ICloudWatchLogSet.providedBy(linux_log_set)
+        assert linux_log_set.expire_events_after_days == '1'
 
-        # override log source settings
-        assert demo_webapp.monitoring.log_sets['amazon_linux']['linux']['audit'].log_group_name, "puppydog"
+        # Log Group
+        assert schemas.ICloudWatchLogGroup.providedBy(linux_log_set.log_groups['audit'])
+        assert linux_log_set.log_groups['audit'].log_group_name == 'puppydog'
+
+        # Log Source
+        assert schemas.ICloudWatchLogSource.providedBy(linux_log_set.log_groups['audit'].sources['audit'])
+        assert linux_log_set.log_groups['audit'].sources['audit'].log_stream_name == "audit-{instance_id}"
 
     def test_instantiate_resources(self):
         # Route53
@@ -250,10 +257,3 @@ class TestAimDemo(BaseTestModelLoader):
         # test that a version loaded ... we will fiddle with this number in fixtures
         # as we update aim.models
         assert len(self.project.aim_project_version) > 2
-
-    def test_cloudwatch_log_groups(self):
-        cw_log_groups = self.project['cloudwatch_log_groups']
-        assert cw_log_groups.expire_events_after == "7"
-        assert len(cw_log_groups.log_category.keys()) == 1
-        assert schemas.ICWLogGroup.providedBy(cw_log_groups.log_category['linux'])
-        assert cw_log_groups.log_category['linux'].expire_events_after == "Never"

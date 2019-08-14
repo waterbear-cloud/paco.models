@@ -17,8 +17,8 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
-    CloudFront, CFCustomErrorResponses, CFOrigin, CFCustomOriginConfig, CFDefaultCacheBehaviour, \
-    CFForwardedValues, CFCookies, CFViewerCertificate
+    CloudFront, CloudFrontFactory, CFCustomErrorResponse, CFOrigin, CFCustomOriginConfig, \
+    CFDefaultCacheBehaviour, CFForwardedValues, CFCookies, CFViewerCertificate
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -62,9 +62,10 @@ SUB_TYPES_CLASS_MAP = {
     CloudFront: {
         'default_cache_behavior': ('unnamed_dict', CFDefaultCacheBehaviour),
         'domain_aliases': ('obj_list', DNS),
-        'custom_error_responses': ('obj_list', CFCustomErrorResponses),
+        'custom_error_responses': ('obj_list', CFCustomErrorResponse),
         'origins': ('named_dict', CFOrigin),
-        'viewer_certificate': ('unnamed_dict', CFViewerCertificate)
+        'viewer_certificate': ('unnamed_dict', CFViewerCertificate),
+        'factory': ('named_dict', CloudFrontFactory)
     },
     CFDefaultCacheBehaviour: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
@@ -78,6 +79,10 @@ SUB_TYPES_CLASS_MAP = {
     },
     CFCustomOriginConfig: {
         'ssl_protocols': ('str_list', zope.schema.TextLine)
+    },
+    CloudFrontFactory: {
+        'domain_aliases': ('obj_list', DNS),
+        'viewer_certificate': ('unnamed_dict', CFViewerCertificate),
     },
     SNSTopic: {
         'subscription': ('obj_list', SNSTopicSubscription),

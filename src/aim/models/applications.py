@@ -438,12 +438,12 @@ class CFViewerCertificate():
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
-@implementer(schemas.ICFCustomErrorResponses)
-class CFCustomErrorResponses():
-    error_caching_min_ttl = FieldProperty(schemas.ICFCustomErrorResponses['error_caching_min_ttl'])
-    error_code = FieldProperty(schemas.ICFCustomErrorResponses['error_code'])
-    response_code = FieldProperty(schemas.ICFCustomErrorResponses['response_code'])
-    response_page_path = FieldProperty(schemas.ICFCustomErrorResponses['response_page_path'])
+@implementer(schemas.ICFCustomErrorResponse)
+class CFCustomErrorResponse():
+    error_caching_min_ttl = FieldProperty(schemas.ICFCustomErrorResponse['error_caching_min_ttl'])
+    error_code = FieldProperty(schemas.ICFCustomErrorResponse['error_code'])
+    response_code = FieldProperty(schemas.ICFCustomErrorResponse['response_code'])
+    response_page_path = FieldProperty(schemas.ICFCustomErrorResponse['response_page_path'])
 
 @implementer(schemas.ICFOrigin)
 class CFOrigin(Named):
@@ -454,6 +454,11 @@ class CFOrigin(Named):
         if ref.parts[-2] == 'origins':
             return ref.last_part
 
+@implementer(schemas.ICloudFrontFactory)
+class CloudFrontFactory(Named):
+    domain_aliases = FieldProperty(schemas.ICloudFrontFactory['domain_aliases'])
+    viewer_certificate = FieldProperty(schemas.ICloudFrontFactory['viewer_certificate'])
+
 @implementer(schemas.ICloudFront)
 class CloudFront(Resource, Deployable):
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
@@ -462,3 +467,5 @@ class CloudFront(Resource, Deployable):
     price_class = FieldProperty(schemas.ICloudFront['price_class'])
     custom_error_responses = FieldProperty(schemas.ICloudFront['custom_error_responses'])
     origins = FieldProperty(schemas.ICloudFront['origins'])
+    webacl_id = FieldProperty(schemas.ICloudFront['webacl_id'])
+    factory = FieldProperty(schemas.ICloudFront['factory'])

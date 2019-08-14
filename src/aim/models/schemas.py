@@ -1950,17 +1950,20 @@ class ICFDefaultCacheBehaviour(Interface):
 class ICFViewerCertificate(Interface):
     certificate = TextReference(
         title = "Certificate Reference",
+        required = False,
     )
     ssl_supported_method = schema.TextLine(
         title = "SSL Supported Method",
-        constraint = isValidCFSSLSupportedMethod
+        constraint = isValidCFSSLSupportedMethod,
+        required = False
     )
     minimum_protocol_version = schema.TextLine(
         title = "Minimum SSL Protocol Version",
-        constraint = isValidCFMinimumProtocolVersion
+        constraint = isValidCFMinimumProtocolVersion,
+        required = False
     )
 
-class ICFCustomErrorResponses(Interface):
+class ICFCustomErrorResponse(Interface):
     error_caching_min_ttl = schema.Int(
         title = "Error Caching Min TTL"
     )
@@ -2016,6 +2019,21 @@ class ICFOrigin(INamed):
         schema = ICFCustomOriginConfig
     )
 
+class ICloudFrontFactory(INamed):
+    """
+    CloudFront Factory
+    """
+    domain_aliases = schema.List(
+        title = "List of DNS for the Distribution",
+        value_type = schema.Object(IDNS),
+        default = []
+    )
+
+    viewer_certificate = schema.Object(
+        title = "Viewer Certificate",
+        schema = ICFViewerCertificate
+    )
+
 class ICloudFront(IResource, IDeployable):
     """
     CloudFront CDN Configuration
@@ -2039,9 +2057,18 @@ class ICloudFront(IResource, IDeployable):
     )
     custom_error_responses = schema.List(
         title = "List of Custom Error Responses",
-        value_type = schema.Object(ICFCustomErrorResponses)
+        value_type = schema.Object(ICFCustomErrorResponse),
+        default = []
     )
     origins = schema.Dict(
         title = "Map of Origins",
         value_type = schema.Object(ICFOrigin)
+    )
+    webacl_id = schema.TextLine(
+        title = "WAF WebACLId"
+    )
+    factory = schema.Dict(
+        title = "CloudFront Factory",
+        value_type = schema.Object(ICloudFrontFactory),
+        default = None
     )

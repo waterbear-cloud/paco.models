@@ -37,6 +37,27 @@ cloudwatch = {
 	}
 }
 
+cloudwatch_log_retention = {
+	'1': '1 day',
+	'3': '3 days',
+	'5': '5 days',
+	'7': '1 week',
+	'14': '2 weeks',
+	'30': '1 month',
+	'60': '2 months',
+	'90': '3 months',
+	'120': '4 months',
+	'150': '5 months',
+	'180': '6 months',
+	'365': '1 year',
+	'400': '13 months',
+	'545': '18 months',
+	'731': '2 years',
+	'1827': '5 years',
+	'3653': '10 years',
+	'Never': 'Never'
+}
+
 alarm_classifications = {
 	'health': None,
 	'performance': None,

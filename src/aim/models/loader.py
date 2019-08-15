@@ -1,14 +1,15 @@
 import aim.models.services
 import itertools, os, copy
+import logging
 import pkg_resources
 import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
-from aim.models.logging import get_logger
+from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
+    CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
     AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
-from aim.models.metrics import LogSets, LogSet, LogCategory, LogSource, CWAgentLogSource
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
     SecurityGroup, IngressRule, EgressRule
@@ -28,6 +29,11 @@ from aim.models.references import resolve_ref
 from aim.models import schemas
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
+
+def get_logger():
+    log = logging.getLogger("aim.models")
+    log.setLevel(logging.DEBUG)
+    return log
 
 
 class YAML(ruamel.yaml.YAML):
@@ -83,17 +89,29 @@ SUB_TYPES_CLASS_MAP = {
     EC2: {
         'security_groups': ('str_list', TextReference)
     },
-    MonitorConfig: {
-        'metrics': ('obj_list', Metric),
-        'alarm_sets': ('alarm_sets', AlarmSets),
-        'log_sets': ('log_sets', LogSets),
-        'notifications': ('notifications', AlarmNotifications)
-    },
     CodePipeBuildDeploy: {
         'artifacts_bucket': ('named_dict', S3Bucket),
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy)
+    },
+
+    # monitoring and logging
+    MonitorConfig: {
+        'metrics': ('obj_list', Metric),
+        'alarm_sets': ('alarm_sets', AlarmSets),
+        'log_sets': ('log_sets', CloudWatchLogSets),
+        'notifications': ('notifications', AlarmNotifications)
+    },
+    CloudWatchLogging: {
+        'log_sets': ('container', (CloudWatchLogSets, CloudWatchLogSet)),
+    },
+    CloudWatchLogGroup: {
+        'metric_filters': ('container', (MetricFilters, MetricFilter)),
+        'sources': ('container', (CloudWatchLogSources, CloudWatchLogSource)),
+    },
+    CloudWatchLogSet: {
+        'log_groups': ('container', (CloudWatchLogGroups, CloudWatchLogGroup)),
     },
 
     # Networking
@@ -354,6 +372,16 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             sub_dict[sub_key] = sub_obj
         return sub_dict
 
+    elif sub_type == 'container':
+        container_class = sub_class[0]
+        object_class = sub_class[1]
+        container = container_class(name, obj)
+        for sub_key, sub_value in value.items():
+            sub_obj = object_class(sub_key, container)
+            apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
+            container[sub_key] = sub_obj
+        return container
+
     elif sub_type == 'named_twolevel_dict':
         sub_dict = {}
         for first_key, first_value in value.items():
@@ -391,28 +419,14 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         return sub_list
 
     elif sub_type == 'log_sets':
-        # Special loading for LogSets
-        log_sets = LogSets()
-        for log_set_name in value.keys():
-            # look-up LogSet by name from base config
-            log_set = LogSet()
-            for log_category_name, log_category_config in lookup_config['logs']['log_sets'][log_set_name].items():
-                log_category = LogCategory(name=log_category_name)
-                log_set[log_category_name] = log_category
-                for log_source_name, log_source_config in log_category_config.items():
-                    log_source = CWAgentLogSource(name=log_source_name)
-                    apply_attributes_from_config(log_source, log_source_config, read_file_path=read_file_path)
-                    log_category[log_source_name] = log_source
+        # Special loading for CloudWatch Log Sets
+        default_config = lookup_config['logging']['cw_logging']
+        merged_config = merge(default_config['log_sets'], value)
+        log_sets = CloudWatchLogSets('log_sets', obj)
+        for log_set_name in merged_config.keys():
+            log_set = CloudWatchLogSet(log_set_name, log_sets)
+            apply_attributes_from_config(log_set, merged_config[log_set_name])
             log_sets[log_set_name] = log_set
-
-            # check for and apply overrides
-            if value[log_set_name] is not None:
-                for log_category_name in value[log_set_name].keys():
-                    if value[log_set_name][log_category_name] is not None:
-                        for log_source_name in value[log_set_name][log_category_name].keys():
-                            for setting_name, setting_value in value[log_set_name][log_category_name][log_source_name].items():
-                                setattr(log_sets[log_set_name][log_category_name][log_source_name], setting_name, setting_value)
-
         return log_sets
 
     elif sub_type == 'alarm_sets':
@@ -882,16 +896,23 @@ class ModelLoader():
 
     def instantiate_monitor_config(self, name, config):
         """
-        Loads LogSets and AlarmSets config
+        Loads Logging and AlarmSets config
         These do not get directly loaded into the model, their config is simply stored
-        in Loader and applied to the model when named in alarm_sets: config sections.
+        in Loader and applied to the model when named in alarm_sets and log_sets configuration
+        in a NetworkEnvironment.
         """
         if not hasattr(self, 'monitor_config'):
             self.monitor_config = {}
         if name.lower() == 'alarmsets':
             self.monitor_config['alarms'] = config
-        elif name.lower() == 'logsets':
-            self.monitor_config['logs'] = config
+        elif name.lower() == 'logging':
+            if 'cw_logging' in config:
+                # load the CloudWatch logging into the model, currently this is
+                # just done to validate the YAML
+                cw_logging = CloudWatchLogging('cw_logging', self.project)
+                apply_attributes_from_config(cw_logging, config['cw_logging'])
+                self.project['cw_logging'] = cw_logging
+            self.monitor_config['logging'] = config
         elif name.lower() == 'notificationgroups':
             groups = NotificationGroups('notificationgroups', self.project)
             self.project['notificationgroups'] = groups
@@ -909,6 +930,12 @@ class ModelLoader():
             else:
                 raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
             self.monitor_config['notificationgroups'] = config
+
+    def instantiate_cloudwatch_log_groups(self, config):
+        cw_log_groups = CWLogGroups()
+        self.project['cloudwatch_log_groups'] = cw_log_groups
+        if 'log_groups' in config:
+            apply_attributes_from_config(cw_log_groups, config['log_groups'])
 
     def instantiate_accounts(self, name, config, read_file_path=''):
         accounts = self.project['accounts']

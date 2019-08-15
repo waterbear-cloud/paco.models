@@ -2,7 +2,7 @@
 All things Resources.
 """
 
-from aim.models.base import Named, Deployable, Regionalized
+from aim.models.base import Named, Deployable, Regionalized, Resource
 from aim.models.metrics import Monitorable
 from aim.models import schemas
 from zope.interface import implementer
@@ -138,3 +138,26 @@ class CodeCommit():
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
+
+
+@implementer(schemas.ICloudTrail)
+class CloudTrail(Resource):
+    type = 'CloudTrail'
+    accounts = FieldProperty(schemas.ICloudTrail["accounts"])
+    enable_kms_encryption = FieldProperty(schemas.ICloudTrail["enable_kms_encryption"])
+    enable_log_file_validation = FieldProperty(schemas.ICloudTrail["enable_log_file_validation"])
+    include_global_service_events = FieldProperty(schemas.ICloudTrail["include_global_service_events"])
+    is_multi_region_trail = FieldProperty(schemas.ICloudTrail["is_multi_region_trail"])
+    region = FieldProperty(schemas.ICloudTrail["region"])
+    s3_key_prefix = FieldProperty(schemas.ICloudTrail["s3_key_prefix"])
+
+@implementer(schemas.ICloudTrails)
+class CloudTrails(Named, dict):
+    pass
+
+@implementer(schemas.ICloudTrailResource)
+class CloudTrailResource(Named):
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.trails = CloudTrails('trails', self)

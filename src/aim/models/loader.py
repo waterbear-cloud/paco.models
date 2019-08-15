@@ -19,7 +19,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
-    CodeCommit, CodeCommitRepository, CodeCommitUser
+    CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
@@ -94,6 +94,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy)
+    },
+    CloudTrailResource: {
+        'trails': ('container', (CloudTrails, CloudTrail)),
     },
 
     # monitoring and logging
@@ -946,6 +949,12 @@ class ModelLoader():
             config
         )
 
+    def instantiate_cloudtrail(self, config):
+        obj = CloudTrailResource('cloudtrail', self.project)
+        if config != None:
+            apply_attributes_from_config(obj, config)
+        return obj
+
     def instantiate_route53(self, config):
         obj = Route53Resource(config)
         if config != None:
@@ -1002,6 +1011,8 @@ class ModelLoader():
             self.project['ec2'] = self.instantiate_ec2(config)
         elif name == "S3":
             self.project['s3'] = self.instantiate_s3(config)
+        elif name == 'CloudTrail':
+            self.project['cloudtrail'] = self.instantiate_cloudtrail(config)
 
     def instantiate_env_region_config(
         self,

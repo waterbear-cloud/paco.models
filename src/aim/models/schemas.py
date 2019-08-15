@@ -47,6 +47,13 @@ def isValidAWSRegionName(value):
         raise InvalidAWSRegion
     return True
 
+def isValidAWSRegionNameOrNone(value):
+    if value == '':
+        return True
+    if value not in vocabulary.aws_regions:
+        raise InvalidAWSRegion
+    return True
+
 class InvalidEmailAddress(schema.ValidationError):
     __doc__ = 'Malformed email address'
 
@@ -1874,4 +1881,59 @@ class ISNSTopic(IResource):
         title = "List of SNS Topic Subscriptions",
         value_type = schema.Object(ISNSTopicSubscription),
         default = []
+    )
+
+class ICloudTrail(IResource):
+    """
+    CloudTrail resource
+    """
+    accounts = schema.List(
+        title = "Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
+        description = "A list of references to AIM Accounts.",
+        value_type = TextReference(
+            title = "Account Reference",
+        ),
+        default = []
+    )
+    enable_kms_encryption = schema.Bool(
+        title = "Enable KMS Key encryption",
+        default = False
+    )
+    enable_log_file_validation = schema.Bool(
+        title = "Enable log file validation",
+        default = True
+    )
+    include_global_service_events = schema.Bool(
+        title = "Include global service events",
+        default = True
+    )
+    is_multi_region_trail = schema.Bool(
+        title = "Is multi-region trail?",
+        default = True
+    )
+    region = schema.TextLine(
+        title = "Region to create the CloudTrail",
+        default = "",
+        description = 'Must be a valid AWS Region name or empty string',
+        constraint = isValidAWSRegionNameOrNone
+    )
+    s3_key_prefix = schema.TextLine(
+        title = "S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
+        default = "",
+        max_length = 200
+    )
+
+class ICloudTrails(INamed, IMapping):
+    """
+    Container for CloudTrail objects
+    """
+
+class ICloudTrailResource(INamed):
+    """
+    Global CloudTrail configuration
+    """
+    trails = schema.Object(
+        title = "CloudTrails",
+        schema = ICloudTrails,
+        default = None
     )

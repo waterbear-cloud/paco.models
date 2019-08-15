@@ -4,6 +4,10 @@ Changelog for aim.models
 3.2.0 (unreleased)
 ------------------
 
+### Added
+
+ - Added a CloudTrail schema configured in `Resources/CloudTrail.yaml`.
+
 ### Changed
 
  - `MonitorConfig/LogSets.yaml` has been renamed to `MonitorConfig/Logging.yaml`. CloudWatch

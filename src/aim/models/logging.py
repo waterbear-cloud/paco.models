@@ -66,7 +66,7 @@ class CloudWatchLogSets(Named, dict):
             for log_group in self[log_set.name].log_groups.values():
                 for log_source in log_group.sources.values():
                     results.append(log_source)
-        return []
+        return results
 
     def get_all_log_groups(self):
         "Return a list of all Log Groups in these Log Sets"

@@ -861,6 +861,11 @@ class IS3Bucket(IResource, IDeployable):
         default = None,
         required = False
     )
+    cloudfront_origin = schema.Bool(
+        title = "Creates and listens for a CloudFront Access Origin Identity",
+        required = False,
+        default = False
+    )
 
 class IS3Resource(INamed):
     """
@@ -1341,7 +1346,7 @@ class IListener(IPortProtocol):
 
 class IDNS(Interface):
     hosted_zone = TextReference(
-        title = "Hosted Zone Id Reference",
+        title = "Hosted Zone Id Reference"
     )
     domain_name = TextReference(
         title = "Domain name",
@@ -1914,12 +1919,14 @@ class ISNSTopic(IResource):
 class ICFCookies(Interface):
     forward = schema.TextLine(
         title = "Cookies Forward Action",
-        constraint = isValidCFCookiesForward
+        constraint = isValidCFCookiesForward,
+        default = 'all'
     )
 
 class ICFForwardedValues(Interface):
     query_string = schema.Bool(
-        title = "Forward Query Strings"
+        title = "Forward Query Strings",
+        default = True
     )
     cookies = schema.Object(
         title = "Forward Cookies",
@@ -1930,24 +1937,27 @@ class ICFDefaultCacheBehaviour(Interface):
     allowed_methods = schema.List(
         title = "List of Allowed HTTP Methods",
         value_type = schema.TextLine(),
-        default = []
+        default = [ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ]
     )
     default_ttl = schema.Int(
-        title = "Default TTTL"
+        title = "Default TTTL",
+        # Disable TTL bydefault, just pass through
+        default = 0
     )
     target_origin = TextReference(
         title = "Target Origin"
     )
     viewer_protocol_policy = schema.TextLine(
         title = "Viewer Protocol Policy",
-        constraint = isValidCFViewerProtocolPolicy
+        constraint = isValidCFViewerProtocolPolicy,
+        default = 'redirect-to-https'
     )
     forwarded_values = schema.Object(
         title = "Forwarded Values",
         schema = ICFForwardedValues
     )
 
-class ICFViewerCertificate(Interface):
+class ICFViewerCertificate(IDeployable):
     certificate = TextReference(
         title = "Certificate Reference",
         required = False,
@@ -1955,12 +1965,14 @@ class ICFViewerCertificate(Interface):
     ssl_supported_method = schema.TextLine(
         title = "SSL Supported Method",
         constraint = isValidCFSSLSupportedMethod,
-        required = False
+        required = False,
+        default = 'sni-only'
     )
     minimum_protocol_version = schema.TextLine(
         title = "Minimum SSL Protocol Version",
         constraint = isValidCFMinimumProtocolVersion,
-        required = False
+        required = False,
+        default = 'TLSv1.1_2016'
     )
 
 class ICFCustomErrorResponse(Interface):
@@ -1979,7 +1991,8 @@ class ICFCustomErrorResponse(Interface):
 
 class ICFCustomOriginConfig(Interface):
     http_port = schema.Int(
-        title = "HTTP Port"
+        title = "HTTP Port",
+        required = False
     )
     https_port = schema.Int(
         title = "HTTPS Port"
@@ -2010,9 +2023,14 @@ class ICFOrigin(INamed):
     """
     CloudFront Origin Configuration
     """
+    s3_bucket = TextReference(
+        title = "Origin S3 Bucket Reference",
+        required = False
+    )
     domain_name = TextReference(
         title = "Origin Resource Reference",
-        str_ok = True
+        str_ok = True,
+        required = False
     )
     custom_origin_config = schema.Object(
         title = "Custom Origin Configuration",
@@ -2053,7 +2071,8 @@ class ICloudFront(IResource, IDeployable):
     )
     price_class = schema.TextLine(
         title = "Price Class",
-        constraint = isValidCFPriceClass
+        constraint = isValidCFPriceClass,
+        default = 'All'
     )
     custom_error_responses = schema.List(
         title = "List of Custom Error Responses",

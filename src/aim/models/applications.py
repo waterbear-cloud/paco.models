@@ -211,6 +211,7 @@ class S3Bucket(Resource, Deployable):
     deletion_policy = FieldProperty(schemas.IS3Bucket['deletion_policy'])
     policy = FieldProperty(schemas.IS3Bucket['policy'])
     region = FieldProperty(schemas.IS3Bucket['region'])
+    cloudfront_origin = FieldProperty(schemas.IS3Bucket['cloudfront_origin'])
 
 
     def add_policy(self, policy_dict):
@@ -421,6 +422,9 @@ class CFForwardedValues():
     query_string = FieldProperty(schemas.ICFForwardedValues['query_string'])
     cookies = FieldProperty(schemas.ICFForwardedValues['cookies'])
 
+    def __init__(self):
+        self.cookies = CFCookies()
+
 @implementer(schemas.ICFDefaultCacheBehaviour)
 class CFDefaultCacheBehaviour():
     allowed_methods = FieldProperty(schemas.ICFDefaultCacheBehaviour['allowed_methods'])
@@ -429,8 +433,11 @@ class CFDefaultCacheBehaviour():
     viewer_protocol_policy = FieldProperty(schemas.ICFDefaultCacheBehaviour['viewer_protocol_policy'])
     forwarded_values = FieldProperty(schemas.ICFDefaultCacheBehaviour['forwarded_values'])
 
+    def __init__(self):
+        self.forwarded_values = CFForwardedValues()
+
 @implementer(schemas.ICFViewerCertificate)
-class CFViewerCertificate():
+class CFViewerCertificate(Deployable):
     certificate = FieldProperty(schemas.ICFViewerCertificate['certificate'])
     ssl_supported_method = FieldProperty(schemas.ICFViewerCertificate['ssl_supported_method'])
     minimum_protocol_version = FieldProperty(schemas.ICFViewerCertificate['minimum_protocol_version'])
@@ -447,6 +454,7 @@ class CFCustomErrorResponse():
 
 @implementer(schemas.ICFOrigin)
 class CFOrigin(Named):
+    s3_bucket = FieldProperty(schemas.ICFOrigin['s3_bucket'])
     domain_name = FieldProperty(schemas.ICFOrigin['domain_name'])
     custom_origin_config = FieldProperty(schemas.ICFOrigin['custom_origin_config'])
 

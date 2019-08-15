@@ -300,8 +300,6 @@ def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path
     # throw an error if there are fields which do not match the schema
     fields = get_all_fields(obj)
     if not zope.interface.common.mapping.IMapping.providedBy(obj):
-        if type(config) == list:
-            breakpoint()
         for key in config.keys():
             if key not in fields:
                 raise UnusedAimProjectField("""Error in file at {}

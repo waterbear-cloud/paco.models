@@ -212,7 +212,7 @@ class S3Bucket(Resource, Deployable):
     policy = FieldProperty(schemas.IS3Bucket['policy'])
     region = FieldProperty(schemas.IS3Bucket['region'])
     cloudfront_origin = FieldProperty(schemas.IS3Bucket['cloudfront_origin'])
-
+    external_resource = FieldProperty(schemas.IS3Bucket['external_resource'])
 
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()
@@ -416,11 +416,13 @@ class CFCustomOriginConfig():
 @implementer(schemas.ICFCookies)
 class CFCookies():
     forward = FieldProperty(schemas.ICFCookies['forward'])
+    white_listed_names = FieldProperty(schemas.ICFCookies['white_listed_names'])
 
 @implementer(schemas.ICFForwardedValues)
 class CFForwardedValues():
     query_string = FieldProperty(schemas.ICFForwardedValues['query_string'])
     cookies = FieldProperty(schemas.ICFForwardedValues['cookies'])
+    headers = FieldProperty(schemas.ICFForwardedValues['headers'])
 
     def __init__(self):
         self.cookies = CFCookies()
@@ -477,3 +479,9 @@ class CloudFront(Resource, Deployable):
     origins = FieldProperty(schemas.ICloudFront['origins'])
     webacl_id = FieldProperty(schemas.ICloudFront['webacl_id'])
     factory = FieldProperty(schemas.ICloudFront['factory'])
+
+    def s3_origin_exists(self):
+        for origin_config in self.origins.values():
+            if origin_config.s3_bucket != None:
+                return True
+        return False

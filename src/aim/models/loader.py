@@ -74,6 +74,9 @@ SUB_TYPES_CLASS_MAP = {
     CFForwardedValues: {
         'cookies': ('unnamed_dict', CFCookies),
     },
+    CFCookies: {
+        'white_listed_names': ('str_list', zope.schema.TextLine)
+    },
     CFOrigin: {
         'custom_origin_config': ('unnamed_dict', CFCustomOriginConfig)
     },

@@ -866,6 +866,10 @@ class IS3Bucket(IResource, IDeployable):
         required = False,
         default = False
     )
+    external_resource = schema.Bool(
+        title='Boolean indicating whether the S3 Bucket already exists or not',
+        default = False
+    )
 
 class IS3Resource(INamed):
     """
@@ -1922,6 +1926,12 @@ class ICFCookies(Interface):
         constraint = isValidCFCookiesForward,
         default = 'all'
     )
+    white_listed_names = schema.List(
+        title = "White Listed Names",
+        value_type = schema.TextLine(),
+        default = [],
+        required = False
+    )
 
 class ICFForwardedValues(Interface):
     query_string = schema.Bool(
@@ -1931,6 +1941,11 @@ class ICFForwardedValues(Interface):
     cookies = schema.Object(
         title = "Forward Cookies",
         schema = ICFCookies
+    )
+    headers = schema.List(
+        title = "Forward Headers",
+        value_type = schema.TextLine(),
+        default = ['*']
     )
 
 class ICFDefaultCacheBehaviour(Interface):
@@ -2034,7 +2049,8 @@ class ICFOrigin(INamed):
     )
     custom_origin_config = schema.Object(
         title = "Custom Origin Configuration",
-        schema = ICFCustomOriginConfig
+        schema = ICFCustomOriginConfig,
+        required = False
     )
 
 class ICloudFrontFactory(INamed):

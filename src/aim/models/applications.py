@@ -403,62 +403,62 @@ class SNSTopic(Resource):
 class RDS(Resource):
     pass
 
-@implementer(schemas.ICFCustomOriginConfig)
-class CFCustomOriginConfig():
-    http_port = FieldProperty(schemas.ICFCustomOriginConfig['http_port'])
-    https_port = FieldProperty(schemas.ICFCustomOriginConfig['https_port'])
-    protocol_policy = FieldProperty(schemas.ICFCustomOriginConfig['protocol_policy'])
-    ssl_protocols = FieldProperty(schemas.ICFCustomOriginConfig['ssl_protocols'])
-    read_timeout = FieldProperty(schemas.ICFCustomOriginConfig['read_timeout'])
-    keepalive_timeout = FieldProperty(schemas.ICFCustomOriginConfig['keepalive_timeout'])
+@implementer(schemas.ICloudFrontCustomOriginConfig)
+class CloudFrontCustomOriginConfig():
+    http_port = FieldProperty(schemas.ICloudFrontCustomOriginConfig['http_port'])
+    https_port = FieldProperty(schemas.ICloudFrontCustomOriginConfig['https_port'])
+    protocol_policy = FieldProperty(schemas.ICloudFrontCustomOriginConfig['protocol_policy'])
+    ssl_protocols = FieldProperty(schemas.ICloudFrontCustomOriginConfig['ssl_protocols'])
+    read_timeout = FieldProperty(schemas.ICloudFrontCustomOriginConfig['read_timeout'])
+    keepalive_timeout = FieldProperty(schemas.ICloudFrontCustomOriginConfig['keepalive_timeout'])
 
 
-@implementer(schemas.ICFCookies)
-class CFCookies():
-    forward = FieldProperty(schemas.ICFCookies['forward'])
-    white_listed_names = FieldProperty(schemas.ICFCookies['white_listed_names'])
+@implementer(schemas.ICloudFrontCookies)
+class CloudFrontCookies():
+    forward = FieldProperty(schemas.ICloudFrontCookies['forward'])
+    white_listed_names = FieldProperty(schemas.ICloudFrontCookies['white_listed_names'])
 
-@implementer(schemas.ICFForwardedValues)
-class CFForwardedValues():
-    query_string = FieldProperty(schemas.ICFForwardedValues['query_string'])
-    cookies = FieldProperty(schemas.ICFForwardedValues['cookies'])
-    headers = FieldProperty(schemas.ICFForwardedValues['headers'])
-
-    def __init__(self):
-        self.cookies = CFCookies()
-
-@implementer(schemas.ICFDefaultCacheBehaviour)
-class CFDefaultCacheBehaviour():
-    allowed_methods = FieldProperty(schemas.ICFDefaultCacheBehaviour['allowed_methods'])
-    default_ttl = FieldProperty(schemas.ICFDefaultCacheBehaviour['default_ttl'])
-    target_origin = FieldProperty(schemas.ICFDefaultCacheBehaviour['target_origin'])
-    viewer_protocol_policy = FieldProperty(schemas.ICFDefaultCacheBehaviour['viewer_protocol_policy'])
-    forwarded_values = FieldProperty(schemas.ICFDefaultCacheBehaviour['forwarded_values'])
+@implementer(schemas.ICloudFrontForwardedValues)
+class CloudFrontForwardedValues():
+    query_string = FieldProperty(schemas.ICloudFrontForwardedValues['query_string'])
+    cookies = FieldProperty(schemas.ICloudFrontForwardedValues['cookies'])
+    headers = FieldProperty(schemas.ICloudFrontForwardedValues['headers'])
 
     def __init__(self):
-        self.forwarded_values = CFForwardedValues()
+        self.cookies = CloudFrontCookies()
 
-@implementer(schemas.ICFViewerCertificate)
-class CFViewerCertificate(Deployable):
-    certificate = FieldProperty(schemas.ICFViewerCertificate['certificate'])
-    ssl_supported_method = FieldProperty(schemas.ICFViewerCertificate['ssl_supported_method'])
-    minimum_protocol_version = FieldProperty(schemas.ICFViewerCertificate['minimum_protocol_version'])
+@implementer(schemas.ICloudFrontDefaultCacheBehaviour)
+class CloudFrontDefaultCacheBehaviour():
+    allowed_methods = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['allowed_methods'])
+    default_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['default_ttl'])
+    target_origin = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['target_origin'])
+    viewer_protocol_policy = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['viewer_protocol_policy'])
+    forwarded_values = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['forwarded_values'])
+
+    def __init__(self):
+        self.forwarded_values = CloudFrontForwardedValues()
+
+@implementer(schemas.ICloudFrontViewerCertificate)
+class CloudFrontViewerCertificate(Deployable):
+    certificate = FieldProperty(schemas.ICloudFrontViewerCertificate['certificate'])
+    ssl_supported_method = FieldProperty(schemas.ICloudFrontViewerCertificate['ssl_supported_method'])
+    minimum_protocol_version = FieldProperty(schemas.ICloudFrontViewerCertificate['minimum_protocol_version'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
-@implementer(schemas.ICFCustomErrorResponse)
-class CFCustomErrorResponse():
-    error_caching_min_ttl = FieldProperty(schemas.ICFCustomErrorResponse['error_caching_min_ttl'])
-    error_code = FieldProperty(schemas.ICFCustomErrorResponse['error_code'])
-    response_code = FieldProperty(schemas.ICFCustomErrorResponse['response_code'])
-    response_page_path = FieldProperty(schemas.ICFCustomErrorResponse['response_page_path'])
+@implementer(schemas.ICloudFrontCustomErrorResponse)
+class CloudFrontCustomErrorResponse():
+    error_caching_min_ttl = FieldProperty(schemas.ICloudFrontCustomErrorResponse['error_caching_min_ttl'])
+    error_code = FieldProperty(schemas.ICloudFrontCustomErrorResponse['error_code'])
+    response_code = FieldProperty(schemas.ICloudFrontCustomErrorResponse['response_code'])
+    response_page_path = FieldProperty(schemas.ICloudFrontCustomErrorResponse['response_page_path'])
 
-@implementer(schemas.ICFOrigin)
-class CFOrigin(Named):
-    s3_bucket = FieldProperty(schemas.ICFOrigin['s3_bucket'])
-    domain_name = FieldProperty(schemas.ICFOrigin['domain_name'])
-    custom_origin_config = FieldProperty(schemas.ICFOrigin['custom_origin_config'])
+@implementer(schemas.ICloudFrontOrigin)
+class CloudFrontOrigin(Named):
+    s3_bucket = FieldProperty(schemas.ICloudFrontOrigin['s3_bucket'])
+    domain_name = FieldProperty(schemas.ICloudFrontOrigin['domain_name'])
+    custom_origin_config = FieldProperty(schemas.ICloudFrontOrigin['custom_origin_config'])
 
     def resolve_ref(self, ref):
         if ref.parts[-2] == 'origins':

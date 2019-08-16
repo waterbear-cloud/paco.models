@@ -18,8 +18,8 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
-    CloudFront, CloudFrontFactory, CFCustomErrorResponse, CFOrigin, CFCustomOriginConfig, \
-    CFDefaultCacheBehaviour, CFForwardedValues, CFCookies, CFViewerCertificate
+    CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
+    CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -66,32 +66,32 @@ RESOURCES_CLASS_MAP = {
 
 SUB_TYPES_CLASS_MAP = {
     CloudFront: {
-        'default_cache_behavior': ('unnamed_dict', CFDefaultCacheBehaviour),
+        'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehaviour),
         'domain_aliases': ('obj_list', DNS),
-        'custom_error_responses': ('obj_list', CFCustomErrorResponse),
-        'origins': ('named_dict', CFOrigin),
-        'viewer_certificate': ('unnamed_dict', CFViewerCertificate),
+        'custom_error_responses': ('obj_list', CloudFrontCustomErrorResponse),
+        'origins': ('named_dict', CloudFrontOrigin),
+        'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
         'factory': ('named_dict', CloudFrontFactory)
     },
-    CFDefaultCacheBehaviour: {
+    CloudFrontDefaultCacheBehaviour: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
-        'forwarded_values': ('unnamed_dict', CFForwardedValues)
+        'forwarded_values': ('unnamed_dict', CloudFrontForwardedValues)
     },
-    CFForwardedValues: {
-        'cookies': ('unnamed_dict', CFCookies),
+    CloudFrontForwardedValues: {
+        'cookies': ('unnamed_dict', CloudFrontCookies),
     },
-    CFCookies: {
+    CloudFrontCookies: {
         'white_listed_names': ('str_list', zope.schema.TextLine)
     },
-    CFOrigin: {
-        'custom_origin_config': ('unnamed_dict', CFCustomOriginConfig)
+    CloudFrontOrigin: {
+        'custom_origin_config': ('unnamed_dict', CloudFrontCustomOriginConfig)
     },
-    CFCustomOriginConfig: {
+    CloudFrontCustomOriginConfig: {
         'ssl_protocols': ('str_list', zope.schema.TextLine)
     },
     CloudFrontFactory: {
         'domain_aliases': ('obj_list', DNS),
-        'viewer_certificate': ('unnamed_dict', CFViewerCertificate),
+        'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
     },
     SNSTopic: {
         'subscription': ('obj_list', SNSTopicSubscription),

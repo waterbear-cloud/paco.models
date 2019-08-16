@@ -205,12 +205,12 @@ def isValidCFViewerProtocolPolicy(value):
         raise InvalidCFViewerProtocolPolicy
     return True
 
-class InvalidCFCookiesForward(schema.ValidationError):
+class InvalidCloudFrontCookiesForward(schema.ValidationError):
     __doc__ = 'Cookies Forward must be one of: all | none | whitelist'
 
-def isValidCFCookiesForward(value):
+def isValidCloudFrontCookiesForward(value):
     if value not in ('all', 'none', 'whitelist'):
-        raise InvalidCFCookiesForward
+        raise InvalidCloudFrontCookiesForward
     return True
 
 class InvalidCFSSLSupportedMethod(schema.ValidationError):
@@ -1942,10 +1942,10 @@ class ISNSTopic(IResource):
         default = []
     )
 
-class ICFCookies(Interface):
+class ICloudFrontCookies(Interface):
     forward = schema.TextLine(
         title = "Cookies Forward Action",
-        constraint = isValidCFCookiesForward,
+        constraint = isValidCloudFrontCookiesForward,
         default = 'all'
     )
     white_listed_names = schema.List(
@@ -1955,14 +1955,14 @@ class ICFCookies(Interface):
         required = False
     )
 
-class ICFForwardedValues(Interface):
+class ICloudFrontForwardedValues(Interface):
     query_string = schema.Bool(
         title = "Forward Query Strings",
         default = True
     )
     cookies = schema.Object(
         title = "Forward Cookies",
-        schema = ICFCookies
+        schema = ICloudFrontCookies
     )
     headers = schema.List(
         title = "Forward Headers",
@@ -1970,7 +1970,7 @@ class ICFForwardedValues(Interface):
         default = ['*']
     )
 
-class ICFDefaultCacheBehaviour(Interface):
+class ICloudFrontDefaultCacheBehaviour(Interface):
     allowed_methods = schema.List(
         title = "List of Allowed HTTP Methods",
         value_type = schema.TextLine(),
@@ -1991,10 +1991,10 @@ class ICFDefaultCacheBehaviour(Interface):
     )
     forwarded_values = schema.Object(
         title = "Forwarded Values",
-        schema = ICFForwardedValues
+        schema = ICloudFrontForwardedValues
     )
 
-class ICFViewerCertificate(IDeployable):
+class ICloudFrontViewerCertificate(IDeployable):
     certificate = TextReference(
         title = "Certificate Reference",
         required = False,
@@ -2012,7 +2012,7 @@ class ICFViewerCertificate(IDeployable):
         default = 'TLSv1.1_2016'
     )
 
-class ICFCustomErrorResponse(Interface):
+class ICloudFrontCustomErrorResponse(Interface):
     error_caching_min_ttl = schema.Int(
         title = "Error Caching Min TTL"
     )
@@ -2026,7 +2026,7 @@ class ICFCustomErrorResponse(Interface):
         title = "Response Page Path"
     )
 
-class ICFCustomOriginConfig(Interface):
+class ICloudFrontCustomOriginConfig(Interface):
     http_port = schema.Int(
         title = "HTTP Port",
         required = False
@@ -2056,7 +2056,7 @@ class ICFCustomOriginConfig(Interface):
         default = 5
     )
 
-class ICFOrigin(INamed):
+class ICloudFrontOrigin(INamed):
     """
     CloudFront Origin Configuration
     """
@@ -2071,7 +2071,7 @@ class ICFOrigin(INamed):
     )
     custom_origin_config = schema.Object(
         title = "Custom Origin Configuration",
-        schema = ICFCustomOriginConfig,
+        schema = ICloudFrontCustomOriginConfig,
         required = False
     )
 
@@ -2087,7 +2087,7 @@ class ICloudFrontFactory(INamed):
 
     viewer_certificate = schema.Object(
         title = "Viewer Certificate",
-        schema = ICFViewerCertificate
+        schema = ICloudFrontViewerCertificate
     )
 
 class ICloudFront(IResource, IDeployable):
@@ -2101,11 +2101,11 @@ class ICloudFront(IResource, IDeployable):
     )
     default_cache_behavior = schema.Object(
         title = "Default Cache Behavior",
-        schema = ICFDefaultCacheBehaviour
+        schema = ICloudFrontDefaultCacheBehaviour
     )
     viewer_certificate = schema.Object(
         title = "Viewer Certificate",
-        schema = ICFViewerCertificate
+        schema = ICloudFrontViewerCertificate
     )
     price_class = schema.TextLine(
         title = "Price Class",
@@ -2114,12 +2114,12 @@ class ICloudFront(IResource, IDeployable):
     )
     custom_error_responses = schema.List(
         title = "List of Custom Error Responses",
-        value_type = schema.Object(ICFCustomErrorResponse),
+        value_type = schema.Object(ICloudFrontCustomErrorResponse),
         default = []
     )
     origins = schema.Dict(
         title = "Map of Origins",
-        value_type = schema.Object(ICFOrigin)
+        value_type = schema.Object(ICloudFrontOrigin)
     )
     webacl_id = schema.TextLine(
         title = "WAF WebACLId"

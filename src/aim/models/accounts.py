@@ -3,6 +3,7 @@ Cloud accounts
 """
 from aim.models.base import Name, Named, Deployable
 from aim.models import schemas
+from aim.models.exceptions import InvalidAimReference
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -37,6 +38,15 @@ class Account(Named, dict):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
+
+    def resolve_ref(self, ref):
+        if ref.parts[1] != self.name:
+            raise InvalidAimReference("Ref of {} can not resolve.")
+        if len(ref.parts) == 2:
+            # ToDo: return account object and break things!
+            return self.account_id
+        elif ref.last_part == 'id':
+            return self.account_id
 
     @property
     def admin_delegate_role_arn(self):

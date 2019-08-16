@@ -6,4 +6,4 @@ trails:
     include_global_service_events: true
     is_multi_region_trail: true
     enable_kms_encryption: true # create the key in the CFN and ref it from the CloudTrail
-    s3_key_prefix: 'trails/allday/'
+    s3_key_prefix: 'trails/allday'

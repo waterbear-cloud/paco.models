@@ -6,7 +6,8 @@ import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
-    CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging
+    CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
+    MetricTransformation
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
     AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
@@ -112,6 +113,9 @@ SUB_TYPES_CLASS_MAP = {
     CloudWatchLogGroup: {
         'metric_filters': ('container', (MetricFilters, MetricFilter)),
         'sources': ('container', (CloudWatchLogSources, CloudWatchLogSource)),
+    },
+    MetricFilter: {
+        'metric_transformations': ('obj_list', MetricTransformation)
     },
     CloudWatchLogSet: {
         'log_groups': ('container', (CloudWatchLogGroups, CloudWatchLogGroup)),

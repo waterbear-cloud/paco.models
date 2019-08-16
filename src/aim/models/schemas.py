@@ -651,6 +651,28 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
         description = "Must be one of: 'Local', 'UTC'"
     )
 
+class IMetricTransformation(Interface):
+    """
+    Metric Transformation
+    """
+    default_value = schema.Float(
+        title = "The value to emit when a filter pattern does not match a log event.",
+        required = False,
+    )
+    metric_name = schema.TextLine(
+        title = "The name of the CloudWatch Metric.",
+        required = True,
+    )
+    metric_namespace = schema.TextLine(
+        title = "The namespace of the CloudWatch metric.",
+        required = True,
+        max_length = 255,
+    )
+    metric_value = schema.TextLine(
+        title = "The value that is published to the CloudWatch metric.",
+        required = True,
+    )
+
 class IMetricFilters(IMapping):
     """
     Metric Filters
@@ -664,9 +686,13 @@ class IMetricFilter(Interface):
         title = "Filter pattern",
         default = ""
     )
-    metric_transformations = schema.Text(
+    metric_transformations = schema.List(
         title = "Metric transformations",
-        default = ""
+        value_type=schema.Object(
+            title="Metric Transformation",
+            schema=IMetricTransformation
+        ),
+        default = []
     )
 
 class ICloudWatchLogGroups(INamed, IMapping):

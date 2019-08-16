@@ -346,12 +346,11 @@ Unneeded field '{}' in config for object type '{}'
             # Do not try to find their 'name' attr from the config.
             if name != 'name' or not schemas.INamed.providedBy(obj):
                 value = config.get(name, None)
-
-                # YAML loads "1" as an Int, cast to a Float where expected by the schema
-                if zope.schema.interfaces.IFloat.providedBy(field):
-                    value = float(value)
-
                 if value != None:
+                    # YAML loads "1" as an Int, cast to a Float where expected by the schema
+                    if zope.schema.interfaces.IFloat.providedBy(field):
+                        value = float(value)
+
                     # is the value a reference?
                     ref_field = TextReference()
                     try:
@@ -409,6 +408,11 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
             sub_dict[sub_key] = sub_obj
         return sub_dict
+
+    elif sub_type == 'obj':
+        sub_obj = sub_class(name, obj)
+        apply_attributes_from_config(sub_obj, value)
+        return sub_obj
 
     elif sub_type == 'container':
         container_class = sub_class[0]

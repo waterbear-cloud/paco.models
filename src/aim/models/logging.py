@@ -32,12 +32,11 @@ class MetricTransformation():
     metric_value = FieldProperty(schemas.IMetricTransformation["metric_value"])
 
 @implementer(schemas.IMetricFilters)
-class MetricFilters(dict):
-    # ToDo: load these into the model
+class MetricFilters(Named, dict):
     pass
 
 @implementer(schemas.IMetricFilter)
-class MetricFilter():
+class MetricFilter(Named):
     filter_pattern = FieldProperty(schemas.IMetricFilter["filter_pattern"])
     metric_transformations = FieldProperty(schemas.IMetricFilter["metric_transformations"])
 
@@ -53,7 +52,7 @@ class CloudWatchLogGroup(Named, CloudWatchLogRetention):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
-        self.metric_filters = MetricFilters()
+        self.metric_filters = MetricFilters('metric_filters', self)
         self.sources = CloudWatchLogSources(name, __parent__)
 
     def get_log_group_name(self):

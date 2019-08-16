@@ -729,12 +729,12 @@ class IMetricTransformation(Interface):
         required = True,
     )
 
-class IMetricFilters(IMapping):
+class IMetricFilters(INamed, IMapping):
     """
     Metric Filters
     """
 
-class IMetricFilter(Interface):
+class IMetricFilter(INamed):
     """
     Metric filter
     """
@@ -2062,7 +2062,7 @@ class ICloudTrailResource(INamed):
         schema = ICloudTrails,
         default = None
     )
- 
+
 class ICloudFrontCookies(Interface):
     forward = schema.TextLine(
         title = "Cookies Forward Action",

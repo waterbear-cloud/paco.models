@@ -158,6 +158,9 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.ICloudWatchLogSource.providedBy(linux_log_set.log_groups['audit'].sources['audit'])
         assert linux_log_set.log_groups['audit'].sources['audit'].log_stream_name == "audit-{instance_id}"
 
+        # metric filters
+        assert linux_log_set.log_groups['audit'].metric_filters['authorization_failures'].filter_pattern.startswith('{ ($')
+
     def test_instantiate_resources(self):
         # Route53
         assert self.project['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
@@ -264,3 +267,4 @@ class TestAimDemo(BaseTestModelLoader):
         trail = cloudtrail.trails['basic_trail']
         assert schemas.ICloudTrail.providedBy(trail)
         assert trail.enable_log_file_validation == True
+

@@ -5,6 +5,13 @@ cw_logging:
       expire_events_after_days: '30'
       log_groups:
         audit:
+          metric_filters:
+            authorization_failures:
+              filter_pattern: '{ ($.errorCode = "*unauth") || ($.errorCode = "access-bad*") }'
+              metric_transformations:
+                - metric_namespace: SecurityTest
+                  metric_name: AuthorizationFailureCount
+                  metric_value: '1'
           expire_events_after_days: '3'
           sources:
             audit:

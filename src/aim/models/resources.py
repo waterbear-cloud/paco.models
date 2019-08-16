@@ -139,7 +139,6 @@ class CodeCommit():
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
-
 @implementer(schemas.ICloudTrail)
 class CloudTrail(Resource):
     type = 'CloudTrail'

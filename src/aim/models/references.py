@@ -5,6 +5,7 @@ References
 import re
 import zope.schema
 from aim.models.exceptions import InvalidAimReference
+from aim.models import vocabulary
 from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
@@ -74,6 +75,11 @@ class Reference():
         # relevant to the Resource it references
         self.resource = None
         self.resource_ref = None
+        self.region = None
+
+        if self.type == 'netenv':
+            if self.parts[3] in vocabulary.aws_regions.keys():
+                self.region = self.parts[3]
 
         if is_ref(self.raw) == False:
             print("Invalid AIM Reference: %s" % (value))
@@ -138,6 +144,7 @@ def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
+        breakpoint()
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
     return response
 

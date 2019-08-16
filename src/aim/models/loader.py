@@ -18,7 +18,9 @@ from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
-    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription
+    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
+    CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
+    CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -59,10 +61,39 @@ RESOURCES_CLASS_MAP = {
     'Lambda': Lambda,
     'ManagedPolicy': ManagedPolicy,
     'S3Bucket': S3Bucket,
-    'SNSTopic': SNSTopic
+    'SNSTopic': SNSTopic,
+    'CloudFront': CloudFront
 }
 
 SUB_TYPES_CLASS_MAP = {
+    CloudFront: {
+        'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehaviour),
+        'domain_aliases': ('obj_list', DNS),
+        'custom_error_responses': ('obj_list', CloudFrontCustomErrorResponse),
+        'origins': ('named_dict', CloudFrontOrigin),
+        'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
+        'factory': ('named_dict', CloudFrontFactory)
+    },
+    CloudFrontDefaultCacheBehaviour: {
+        'allowed_methods': ('str_list', zope.schema.TextLine),
+        'forwarded_values': ('unnamed_dict', CloudFrontForwardedValues)
+    },
+    CloudFrontForwardedValues: {
+        'cookies': ('unnamed_dict', CloudFrontCookies),
+    },
+    CloudFrontCookies: {
+        'white_listed_names': ('str_list', zope.schema.TextLine)
+    },
+    CloudFrontOrigin: {
+        'custom_origin_config': ('unnamed_dict', CloudFrontCustomOriginConfig)
+    },
+    CloudFrontCustomOriginConfig: {
+        'ssl_protocols': ('str_list', zope.schema.TextLine)
+    },
+    CloudFrontFactory: {
+        'domain_aliases': ('obj_list', DNS),
+        'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
+    },
     SNSTopic: {
         'subscription': ('obj_list', SNSTopicSubscription),
     },

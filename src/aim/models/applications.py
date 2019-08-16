@@ -213,7 +213,8 @@ class S3Bucket(Resource, Deployable):
     deletion_policy = FieldProperty(schemas.IS3Bucket['deletion_policy'])
     policy = FieldProperty(schemas.IS3Bucket['policy'])
     region = FieldProperty(schemas.IS3Bucket['region'])
-
+    cloudfront_origin = FieldProperty(schemas.IS3Bucket['cloudfront_origin'])
+    external_resource = FieldProperty(schemas.IS3Bucket['external_resource'])
 
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()
@@ -339,6 +340,10 @@ class AWSCertificateManager(Resource):
     subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
 
     def resolve_ref(self, ref):
+        if ref.resource_ref == 'domain_name':
+            return self.domain_name
+        if ref.parts[-2] == 'resources':
+            return self
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ILambdaVariable)
@@ -399,3 +404,86 @@ class SNSTopic(Resource):
 @implementer(schemas.IRDS)
 class RDS(Resource):
     pass
+
+@implementer(schemas.ICloudFrontCustomOriginConfig)
+class CloudFrontCustomOriginConfig():
+    http_port = FieldProperty(schemas.ICloudFrontCustomOriginConfig['http_port'])
+    https_port = FieldProperty(schemas.ICloudFrontCustomOriginConfig['https_port'])
+    protocol_policy = FieldProperty(schemas.ICloudFrontCustomOriginConfig['protocol_policy'])
+    ssl_protocols = FieldProperty(schemas.ICloudFrontCustomOriginConfig['ssl_protocols'])
+    read_timeout = FieldProperty(schemas.ICloudFrontCustomOriginConfig['read_timeout'])
+    keepalive_timeout = FieldProperty(schemas.ICloudFrontCustomOriginConfig['keepalive_timeout'])
+
+
+@implementer(schemas.ICloudFrontCookies)
+class CloudFrontCookies():
+    forward = FieldProperty(schemas.ICloudFrontCookies['forward'])
+    white_listed_names = FieldProperty(schemas.ICloudFrontCookies['white_listed_names'])
+
+@implementer(schemas.ICloudFrontForwardedValues)
+class CloudFrontForwardedValues():
+    query_string = FieldProperty(schemas.ICloudFrontForwardedValues['query_string'])
+    cookies = FieldProperty(schemas.ICloudFrontForwardedValues['cookies'])
+    headers = FieldProperty(schemas.ICloudFrontForwardedValues['headers'])
+
+    def __init__(self):
+        self.cookies = CloudFrontCookies()
+
+@implementer(schemas.ICloudFrontDefaultCacheBehaviour)
+class CloudFrontDefaultCacheBehaviour():
+    allowed_methods = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['allowed_methods'])
+    default_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['default_ttl'])
+    target_origin = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['target_origin'])
+    viewer_protocol_policy = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['viewer_protocol_policy'])
+    forwarded_values = FieldProperty(schemas.ICloudFrontDefaultCacheBehaviour['forwarded_values'])
+
+    def __init__(self):
+        self.forwarded_values = CloudFrontForwardedValues()
+
+@implementer(schemas.ICloudFrontViewerCertificate)
+class CloudFrontViewerCertificate(Deployable):
+    certificate = FieldProperty(schemas.ICloudFrontViewerCertificate['certificate'])
+    ssl_supported_method = FieldProperty(schemas.ICloudFrontViewerCertificate['ssl_supported_method'])
+    minimum_protocol_version = FieldProperty(schemas.ICloudFrontViewerCertificate['minimum_protocol_version'])
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.ICloudFrontCustomErrorResponse)
+class CloudFrontCustomErrorResponse():
+    error_caching_min_ttl = FieldProperty(schemas.ICloudFrontCustomErrorResponse['error_caching_min_ttl'])
+    error_code = FieldProperty(schemas.ICloudFrontCustomErrorResponse['error_code'])
+    response_code = FieldProperty(schemas.ICloudFrontCustomErrorResponse['response_code'])
+    response_page_path = FieldProperty(schemas.ICloudFrontCustomErrorResponse['response_page_path'])
+
+@implementer(schemas.ICloudFrontOrigin)
+class CloudFrontOrigin(Named):
+    s3_bucket = FieldProperty(schemas.ICloudFrontOrigin['s3_bucket'])
+    domain_name = FieldProperty(schemas.ICloudFrontOrigin['domain_name'])
+    custom_origin_config = FieldProperty(schemas.ICloudFrontOrigin['custom_origin_config'])
+
+    def resolve_ref(self, ref):
+        if ref.parts[-2] == 'origins':
+            return ref.last_part
+
+@implementer(schemas.ICloudFrontFactory)
+class CloudFrontFactory(Named):
+    domain_aliases = FieldProperty(schemas.ICloudFrontFactory['domain_aliases'])
+    viewer_certificate = FieldProperty(schemas.ICloudFrontFactory['viewer_certificate'])
+
+@implementer(schemas.ICloudFront)
+class CloudFront(Resource, Deployable):
+    domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
+    default_cache_behavior = FieldProperty(schemas.ICloudFront['default_cache_behavior'])
+    viewer_certificate = FieldProperty(schemas.ICloudFront['viewer_certificate'])
+    price_class = FieldProperty(schemas.ICloudFront['price_class'])
+    custom_error_responses = FieldProperty(schemas.ICloudFront['custom_error_responses'])
+    origins = FieldProperty(schemas.ICloudFront['origins'])
+    webacl_id = FieldProperty(schemas.ICloudFront['webacl_id'])
+    factory = FieldProperty(schemas.ICloudFront['factory'])
+
+    def s3_origin_exists(self):
+        for origin_config in self.origins.values():
+            if origin_config.s3_bucket != None:
+                return True
+        return False

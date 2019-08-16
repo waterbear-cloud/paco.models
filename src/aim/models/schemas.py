@@ -28,6 +28,14 @@ def isListOfLayerARNs(value):
                 raise InvalidLayerARNList
     return True
 
+class InvalidS3KeyPrefix(schema.ValidationError):
+    __doc__ = 'Not a valid S3 bucket prefix. Can not start or end with /.'
+
+def isValidS3KeyPrefix(value):
+    if value.startswith('/') or value.endswith('/'):
+        raise InvalidS3KeyPrefix
+    return True
+
 class InvalidSNSSubscriptionProtocol(schema.ValidationError):
     __doc__ = 'Not a valid SNS Subscription protocol.'
 
@@ -43,6 +51,13 @@ class InvalidAWSRegion(schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
 
 def isValidAWSRegionName(value):
+    if value not in vocabulary.aws_regions:
+        raise InvalidAWSRegion
+    return True
+
+def isValidAWSRegionNameOrNone(value):
+    if value == '':
+        return True
     if value not in vocabulary.aws_regions:
         raise InvalidAWSRegion
     return True
@@ -692,6 +707,28 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
         description = "Must be one of: 'Local', 'UTC'"
     )
 
+class IMetricTransformation(Interface):
+    """
+    Metric Transformation
+    """
+    default_value = schema.Float(
+        title = "The value to emit when a filter pattern does not match a log event.",
+        required = False,
+    )
+    metric_name = schema.TextLine(
+        title = "The name of the CloudWatch Metric.",
+        required = True,
+    )
+    metric_namespace = schema.TextLine(
+        title = "The namespace of the CloudWatch metric.",
+        required = True,
+        max_length = 255,
+    )
+    metric_value = schema.TextLine(
+        title = "The value that is published to the CloudWatch metric.",
+        required = True,
+    )
+
 class IMetricFilters(IMapping):
     """
     Metric Filters
@@ -705,9 +742,13 @@ class IMetricFilter(Interface):
         title = "Filter pattern",
         default = ""
     )
-    metric_transformations = schema.Text(
+    metric_transformations = schema.List(
         title = "Metric transformations",
-        default = ""
+        value_type=schema.Object(
+            title="Metric Transformation",
+            schema=IMetricTransformation
+        ),
+        default = []
     )
 
 class ICloudWatchLogGroups(INamed, IMapping):
@@ -826,25 +867,41 @@ class IS3BucketPolicy(Interface):
     """
     S3 Bucket Policy
     """
-    aws = schema.List(
-        title="List of AWS Principles",
-        value_type=schema.TextLine(
-            title="AWS Principle"
-        ),
-        required = True
-    )
-    effect = schema.TextLine(
-        title="Effect",
-        default="Deny",
-        required = True,
-        description = "Must be one of: 'Allow', 'Deny'"
-    )
     action = schema.List(
         title="List of Actions",
         value_type=schema.TextLine(
             title="Action"
         ),
         required = True
+    )
+    aws = schema.List(
+        title = "List of AWS Principles.",
+        description = "Either this field or the principal field must be set.",
+        value_type = schema.TextLine(
+            title = "AWS Principle"
+        ),
+        default = [],
+        required = False
+    )
+    condition = schema.Dict(
+        title = "Condition",
+        description = 'Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
+        default = {},
+        required = False,
+        # ToDo: add a constraint to check for valid conditions. This is a pretty complex constraint though ...
+        # https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition.html
+    )
+    principal = schema.Dict(
+        title = "Prinicpals",
+        description = "Either this field or the aws field must be set. Key should be one of: AWS, Federated, Service or CanonicalUser. Value can be either a String or a List.",
+        default = {},
+        required = False
+    )
+    effect = schema.TextLine(
+        title="Effect",
+        default="Deny",
+        required = True,
+        description = "Must be one of: 'Allow', 'Deny'"
     )
     resource_suffix = schema.List(
         title="List of AWS Resources Suffixes",
@@ -853,6 +910,13 @@ class IS3BucketPolicy(Interface):
         ),
         required = True
     )
+    @invariant
+    def aws_or_principal(obj):
+        if obj.aws == [] and obj.principal == {}:
+            raise Invalid("Either the aws or the principal field must not be blank.")
+        if obj.aws != [] and obj.principal != {}:
+            raise Invalid("Can not set bot the aws and the principal fields.")
+
 
 class IS3Bucket(IResource, IDeployable):
     """
@@ -1942,6 +2006,63 @@ class ISNSTopic(IResource):
         default = []
     )
 
+class ICloudTrail(IResource):
+    """
+    CloudTrail resource
+    """
+    accounts = schema.List(
+        title = "Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
+        description = "A list of references to AIM Accounts.",
+        value_type = TextReference(
+            title = "Account Reference",
+        ),
+        default = []
+    )
+    enable_kms_encryption = schema.Bool(
+        title = "Enable KMS Key encryption",
+        default = False
+    )
+    enable_log_file_validation = schema.Bool(
+        title = "Enable log file validation",
+        default = True
+    )
+    include_global_service_events = schema.Bool(
+        title = "Include global service events",
+        default = True
+    )
+    is_multi_region_trail = schema.Bool(
+        title = "Is multi-region trail?",
+        default = True
+    )
+    region = schema.TextLine(
+        title = "Region to create the CloudTrail",
+        default = "",
+        description = 'Must be a valid AWS Region name or empty string',
+        constraint = isValidAWSRegionNameOrNone
+    )
+    s3_key_prefix = schema.TextLine(
+        title = "S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
+        description = "Do not include a leading or trailing / in your prefix. They are provided already.",
+        default = "",
+        max_length = 200,
+        constraint = isValidS3KeyPrefix
+    )
+
+class ICloudTrails(INamed, IMapping):
+    """
+    Container for CloudTrail objects
+    """
+
+class ICloudTrailResource(INamed):
+    """
+    Global CloudTrail configuration
+    """
+    trails = schema.Object(
+        title = "CloudTrails",
+        schema = ICloudTrails,
+        default = None
+    )
+ 
 class ICloudFrontCookies(Interface):
     forward = schema.TextLine(
         title = "Cookies Forward Action",
@@ -2127,5 +2248,4 @@ class ICloudFront(IResource, IDeployable):
     factory = schema.Dict(
         title = "CloudFront Factory",
         value_type = schema.Object(ICloudFrontFactory),
-        default = None
     )

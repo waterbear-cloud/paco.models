@@ -180,7 +180,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
 
 
     elif ref.type == "accounts":
-        return get_accounts_ref_value(ref, project)
+        return resolve_accounts_ref(ref, project)
     elif ref.type == "function":
         return resolve_function_ref(ref, project, account_ctx)
     else:
@@ -245,9 +245,13 @@ def resolve_function_ref(ref, project, account_ctx):
         ami_id = image_details[0]['ImageId']
         return ami_id
 
-def get_accounts_ref_value(ref, project):
+def resolve_accounts_ref(ref, project):
+    "Return an IAccount object from the model."
     try:
-        account_id = project[ref.parts[0]][ref.parts[1]].account_id
+        account = project[ref.parts[0]][ref.parts[1]]
     except KeyError:
         raise InvalidAimReference("Can not resolve the reference '{}'".format(ref.raw))
-    return account_id
+    account.resolve_ref(ref)
+    if ref.last_part == 'id':
+        return account.account_id
+    return account

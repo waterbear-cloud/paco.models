@@ -24,6 +24,13 @@ class CloudWatchLogSource(Named, CloudWatchLogRetention):
     timestamp_format = FieldProperty(schemas.ICloudWatchLogSource["timestamp_format"])
     timezone = FieldProperty(schemas.ICloudWatchLogSource["timezone"])
 
+@implementer(schemas.IMetricTransformation)
+class MetricTransformation():
+    default_value = FieldProperty(schemas.IMetricTransformation["default_value"])
+    metric_name = FieldProperty(schemas.IMetricTransformation["metric_name"])
+    metric_namespace = FieldProperty(schemas.IMetricTransformation["metric_namespace"])
+    metric_value = FieldProperty(schemas.IMetricTransformation["metric_value"])
+
 @implementer(schemas.IMetricFilters)
 class MetricFilters(dict):
     # ToDo: load these into the model

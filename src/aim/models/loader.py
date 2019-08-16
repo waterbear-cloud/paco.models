@@ -6,7 +6,8 @@ import ruamel.yaml
 import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
-    CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging
+    CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
+    MetricTransformation
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
     AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
@@ -21,7 +22,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
-    CodeCommit, CodeCommitRepository, CodeCommitUser
+    CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
@@ -126,6 +127,9 @@ SUB_TYPES_CLASS_MAP = {
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy)
     },
+    CloudTrailResource: {
+        'trails': ('container', (CloudTrails, CloudTrail)),
+    },
 
     # monitoring and logging
     MonitorConfig: {
@@ -140,6 +144,9 @@ SUB_TYPES_CLASS_MAP = {
     CloudWatchLogGroup: {
         'metric_filters': ('container', (MetricFilters, MetricFilter)),
         'sources': ('container', (CloudWatchLogSources, CloudWatchLogSource)),
+    },
+    MetricFilter: {
+        'metric_transformations': ('obj_list', MetricTransformation)
     },
     CloudWatchLogSet: {
         'log_groups': ('container', (CloudWatchLogGroups, CloudWatchLogGroup)),
@@ -977,6 +984,12 @@ class ModelLoader():
             config
         )
 
+    def instantiate_cloudtrail(self, config):
+        obj = CloudTrailResource('cloudtrail', self.project)
+        if config != None:
+            apply_attributes_from_config(obj, config)
+        return obj
+
     def instantiate_route53(self, config):
         obj = Route53Resource(config)
         if config != None:
@@ -1033,6 +1046,8 @@ class ModelLoader():
             self.project['ec2'] = self.instantiate_ec2(config)
         elif name == "S3":
             self.project['s3'] = self.instantiate_s3(config)
+        elif name == 'CloudTrail':
+            self.project['cloudtrail'] = self.instantiate_cloudtrail(config)
 
     def instantiate_env_region_config(
         self,

@@ -257,3 +257,10 @@ class TestAimDemo(BaseTestModelLoader):
         # test that a version loaded ... we will fiddle with this number in fixtures
         # as we update aim.models
         assert len(self.project.aim_project_version) > 2
+
+    def test_cloudtrail(self):
+        cloudtrail = self.project['cloudtrail']
+        assert schemas.ICloudTrailResource.providedBy(cloudtrail)
+        trail = cloudtrail.trails['basic_trail']
+        assert schemas.ICloudTrail.providedBy(trail)
+        assert trail.enable_log_file_validation == True

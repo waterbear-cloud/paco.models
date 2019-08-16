@@ -1,5 +1,6 @@
 from aim.models import schemas, vocabulary
 from aim.models.base import Deployable, Named, Name, Resource, ServiceAccountRegion
+from aim.models.logging import CloudWatchLogSets
 from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -19,37 +20,6 @@ class AlarmNotification():
     groups = FieldProperty(schemas.IAlarmNotification["groups"])
     classification = FieldProperty(schemas.IAlarmNotification["classification"])
     severity = FieldProperty(schemas.IAlarmNotification["severity"])
-
-@implementer(schemas.ILogSets)
-class LogSets(dict):
-    "Collections of Log Sets"
-
-@implementer(schemas.ILogSet)
-class LogSet(dict):
-    "Collection of Log Categories"
-
-@implementer(schemas.ILogCategory)
-class LogCategory(dict):
-    "Collection of Log Sources"
-
-    def __init__(self, name):
-        self.name = name
-
-@implementer(schemas.ILogSource)
-class LogSource(Name):
-    path = FieldProperty(schemas.ILogSource["path"])
-
-@implementer(schemas.ICWAgentLogSource)
-class CWAgentLogSource(LogSource):
-    timezone = FieldProperty(schemas.ICWAgentLogSource["timezone"])
-    timestamp_format = FieldProperty(schemas.ICWAgentLogSource["timestamp_format"])
-    multi_line_start_pattern = FieldProperty(schemas.ICWAgentLogSource["multi_line_start_pattern"])
-    encoding = FieldProperty(schemas.ICWAgentLogSource["encoding"])
-    log_group_name = FieldProperty(schemas.ICWAgentLogSource["log_group_name"])
-    log_stream_name = FieldProperty(schemas.ICWAgentLogSource["log_stream_name"])
-
-    def __init__(self, name):
-        self.name = name
 
 @implementer(schemas.IAlarmSet)
 class AlarmSet(Named, dict):
@@ -162,7 +132,7 @@ class MonitorConfig(Deployable, Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets('alarm_sets', self)
-        self.log_sets = LogSets()
+        self.log_sets = CloudWatchLogSets('log_sets', self)
         self.notifications = AlarmNotifications()
 
 @implementer(schemas.IMetric)

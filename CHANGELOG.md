@@ -1,10 +1,14 @@
 Changelog for aim.models
 =================
 
-3.1.1 (unreleased)
+3.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Changed
+
+ - `MonitorConfig/LogSets.yaml` has been renamed to `MonitorConfig/Logging.yaml`. CloudWatch
+   logging is under the top level `cw_logging` key. The schema has been completely reworked
+   so that LogGroups and LogSets are properly modelled.
 
 
 3.1.0 (2019-08-08)

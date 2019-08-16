@@ -8,9 +8,11 @@ Changelog for aim.models
 
  - Added a CloudTrail schema configured in `Resources/CloudTrail.yaml`.
 
- - IS3BucketPolicy now has a `principal` field. This can be a Key-Value dictionary,
-   where the key is either 'AWS', 'Service', etc. and the value can be either a String
-   or a List.
+ - IS3BucketPolicy now has `principal` and `condition` fields.
+   `principal` can be either a Key-Value dictionary, where the key is either 'AWS', 'Service', etc.
+   and the value can be either a String or a List. It is an alternate to the `aws` field, which will
+   remain for setting simpler AWS-only principals.
+   The `condition` field is a Key-Value dictionary of Key-Value filters.
 
 ### Changed
 

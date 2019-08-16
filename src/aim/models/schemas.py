@@ -28,6 +28,14 @@ def isListOfLayerARNs(value):
                 raise InvalidLayerARNList
     return True
 
+class InvalidS3KeyPrefix(schema.ValidationError):
+    __doc__ = 'Not a valid S3 bucket prefix. Can not start or end with /.'
+
+def isValidS3KeyPrefix(value):
+    if value.startswith('/') or value.endswith('/'):
+        raise InvalidS3KeyPrefix
+    return True
+
 class InvalidSNSSubscriptionProtocol(schema.ValidationError):
     __doc__ = 'Not a valid SNS Subscription protocol.'
 
@@ -792,6 +800,14 @@ class IS3BucketPolicy(Interface):
         ),
         default = [],
         required = False
+    )
+    condition = schema.Dict(
+        title = "Condition",
+        description = 'Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
+        default = {},
+        required = False,
+        # ToDo: add a constraint to check for valid conditions. This is a pretty complex constraint though ...
+        # https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition.html
     )
     principal = schema.Dict(
         title = "Prinicpals",
@@ -1934,8 +1950,10 @@ class ICloudTrail(IResource):
     )
     s3_key_prefix = schema.TextLine(
         title = "S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
+        description = "Do not include a leading or trailing / in your prefix. They are provided already.",
         default = "",
-        max_length = 200
+        max_length = 200,
+        constraint = isValidS3KeyPrefix
     )
 
 class ICloudTrails(INamed, IMapping):

@@ -199,6 +199,7 @@ class S3BucketPolicy():
     aws = FieldProperty(schemas.IS3BucketPolicy['aws'])
     effect = FieldProperty(schemas.IS3BucketPolicy['effect'])
     action = FieldProperty(schemas.IS3BucketPolicy['action'])
+    principal = FieldProperty(schemas.IS3BucketPolicy['principal'])
     resource_suffix = FieldProperty(schemas.IS3BucketPolicy['resource_suffix'])
 
     def __init__(self):

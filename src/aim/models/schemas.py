@@ -777,25 +777,33 @@ class IS3BucketPolicy(Interface):
     """
     S3 Bucket Policy
     """
-    aws = schema.List(
-        title="List of AWS Principles",
-        value_type=schema.TextLine(
-            title="AWS Principle"
-        ),
-        required = True
-    )
-    effect = schema.TextLine(
-        title="Effect",
-        default="Deny",
-        required = True,
-        description = "Must be one of: 'Allow', 'Deny'"
-    )
     action = schema.List(
         title="List of Actions",
         value_type=schema.TextLine(
             title="Action"
         ),
         required = True
+    )
+    aws = schema.List(
+        title = "List of AWS Principles.",
+        description = "Either this field or the principal field must be set.",
+        value_type = schema.TextLine(
+            title = "AWS Principle"
+        ),
+        default = [],
+        required = False
+    )
+    principal = schema.Dict(
+        title = "Prinicpals",
+        description = "Either this field or the aws field must be set. Key should be one of: AWS, Federated, Service or CanonicalUser. Value can be either a String or a List.",
+        default = {},
+        required = False
+    )
+    effect = schema.TextLine(
+        title="Effect",
+        default="Deny",
+        required = True,
+        description = "Must be one of: 'Allow', 'Deny'"
     )
     resource_suffix = schema.List(
         title="List of AWS Resources Suffixes",
@@ -804,6 +812,13 @@ class IS3BucketPolicy(Interface):
         ),
         required = True
     )
+    @invariant
+    def aws_or_principal(obj):
+        if obj.aws == [] and obj.principal == {}:
+            raise Invalid("Either the aws or the principal field must not be blank.")
+        if obj.aws != [] and obj.principal != {}:
+            raise Invalid("Can not set bot the aws and the principal fields.")
+
 
 class IS3Bucket(IResource, IDeployable):
     """

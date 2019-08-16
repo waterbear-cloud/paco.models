@@ -8,6 +8,10 @@ Changelog for aim.models
 
  - Added a CloudTrail schema configured in `Resources/CloudTrail.yaml`.
 
+ - IS3BucketPolicy now has a `principal` field. This can be a Key-Value dictionary,
+   where the key is either 'AWS', 'Service', etc. and the value can be either a String
+   or a List.
+
 ### Changed
 
  - `MonitorConfig/LogSets.yaml` has been renamed to `MonitorConfig/Logging.yaml`. CloudWatch

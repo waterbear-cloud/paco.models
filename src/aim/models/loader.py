@@ -424,6 +424,20 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             container[sub_key] = sub_obj
         return container
 
+    elif sub_type == 'twolevel_container':
+        container_class = sub_class[0]
+        first_object_class = sub_class[1]
+        second_object_class = sub_class[2]
+        container = container_class(name, obj)
+        for first_key, first_value in value.items():
+            first_obj = first_object_class(first_key, container)
+            container[first_key] = first_obj
+            for second_key, second_value in first_value.items():
+                second_obj = second_object_class(second_key, container[first_key])
+                apply_attributes_from_config(second_obj, second_value, lookup_config, read_file_path)
+                container[first_key][second_key] = second_obj
+        return container
+
     elif sub_type == 'named_twolevel_dict':
         sub_dict = {}
         for first_key, first_value in value.items():

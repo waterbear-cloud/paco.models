@@ -144,7 +144,6 @@ def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
-        breakpoint()
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
     return response
 

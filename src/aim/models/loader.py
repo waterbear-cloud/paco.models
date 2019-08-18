@@ -1,3 +1,8 @@
+"""
+The loader is responsible for reading an AIM Project and creating a tree of Python
+model objects.
+"""
+
 import aim.models.services
 import itertools, os, copy
 import logging
@@ -32,6 +37,7 @@ from aim.models.references import resolve_ref
 from aim.models import schemas
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
+
 
 def get_logger():
     log = logging.getLogger("aim.models")
@@ -430,11 +436,19 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         second_object_class = sub_class[2]
         container = container_class(name, obj)
         for first_key, first_value in value.items():
-            first_obj = first_object_class(first_key, container)
+            # special case for AlarmSet.notifications
+            if first_key == 'notifications' and schemas.IAlarmSet.implementedBy(first_object_class):
+                first_obj = instantiate_notifications(value['notifications'], read_file_path)
+            else:
+                first_obj = first_object_class(first_key, container)
             container[first_key] = first_obj
             for second_key, second_value in first_value.items():
-                second_obj = second_object_class(second_key, container[first_key])
-                apply_attributes_from_config(second_obj, second_value, lookup_config, read_file_path)
+                # special case for Alarm.notifications
+                if second_key == 'notifications' and schemas.IAlarm.implementedBy(second_object_class):
+                    second_obj = instantiate_notifications(value[first_key]['notifications'], read_file_path)
+                else:
+                    second_obj = second_object_class(second_key, container[first_key])
+                    apply_attributes_from_config(second_obj, second_value, lookup_config, read_file_path)
                 container[first_key][second_key] = second_obj
         return container
 

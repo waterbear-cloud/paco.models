@@ -4,6 +4,7 @@ All things Resources.
 
 from aim.models.base import Named, Deployable, Regionalized, Resource
 from aim.models.metrics import Monitorable
+from aim.models import references
 from aim.models import schemas
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -149,6 +150,23 @@ class CloudTrail(Resource):
     is_multi_region_trail = FieldProperty(schemas.ICloudTrail["is_multi_region_trail"])
     region = FieldProperty(schemas.ICloudTrail["region"])
     s3_key_prefix = FieldProperty(schemas.ICloudTrail["s3_key_prefix"])
+
+    def get_accounts(self):
+        """
+        Resolve the CloudTrail.accounts field to a list of IAccount objects from the model.
+        If the field is empty, then all accounts are returned.
+        """
+        project = get_parent_by_interface(self, schemas.IProject)
+        if self.accounts == []:
+            accounts = project['accounts'].values()
+        else:
+            accounts = []
+            for account_ref in self.accounts:
+                # ToDo: when accounts .get_ref returns an object, remove this workaround
+                ref = references.Reference(account_ref)
+                account = project['accounts'][ref.last_part]
+                accounts.append(account)
+        return accounts
 
 @implementer(schemas.ICloudTrails)
 class CloudTrails(Named, dict):

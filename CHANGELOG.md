@@ -14,6 +14,11 @@ Changelog for aim.models
    remain for setting simpler AWS-only principals.
    The `condition` field is a Key-Value dictionary of Key-Value filters.
 
+ - Alarm now has 'get_alarm_actions' and 'get_alarm_description' to help construct alarms.
+
+ - CloudTrail has a 'get_accounts' which will resolve the CloudTrail.accounts field to a list
+   of Account objects in the model.
+
 ### Changed
 
  - `MonitorConfig/LogSets.yaml` has been renamed to `MonitorConfig/Logging.yaml`. CloudWatch

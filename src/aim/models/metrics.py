@@ -1,5 +1,9 @@
+import aim.models.exceptions
+import aim.models.services
+import json
 from aim.models import schemas, vocabulary
 from aim.models.base import Deployable, Named, Name, Resource, ServiceAccountRegion
+from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSets
 from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
@@ -67,15 +71,102 @@ class Alarm(Named):
         alarm_set = get_parent_by_interface(self, schemas.IAlarmSet)
         groups = self._add_notifications_to_groups(alarm_set.notifications, groups)
 
+        # For Alarms that belong to an application, check IMonitorConfig and IApplication
         # add on notifications for the Resource
         monitor = get_parent_by_interface(self, schemas.IMonitorConfig)
-        groups = self._add_notifications_to_groups(monitor.notifications, groups)
+        if monitor != None:
+            groups = self._add_notifications_to_groups(monitor.notifications, groups)
 
         # add on notifications for the Application
         app = get_parent_by_interface(self, schemas.IApplication)
-        groups = self._add_notifications_to_groups(app.notifications, groups)
+        if app != None:
+            groups = self._add_notifications_to_groups(app.notifications, groups)
 
-        return list(groups.keys())
+        return [key for key in groups.keys()]
+
+    def get_alarm_actions(self, notificationgroups):
+        """Return a list of SNS Topic alarm actions.
+        This will by default be a list of SNS Topics that the alarm is subscribed to.
+        However, if a plugin is registered, it will provide the actions instead.
+        """
+        # if a service plugin provides override_alarm_actions, call that instead
+        service_plugins = aim.models.services.list_service_plugins()
+
+        # Error if more than one plugin provides override_alarm_actions
+        count = 0
+        for plugin_module in service_plugins.values():
+            if hasattr(plugin_module, 'override_alarm_actions'):
+                count += 1
+        if count > 1:
+            raise aim.models.exceptions.InvalidAimProjectFile('More than one Service plugin is overriding alarm actions')
+
+        for plugin_name, plugin_module in service_plugins.items():
+            if hasattr(plugin_module, 'override_alarm_actions'):
+                return plugin_module.override_alarm_actions(None, self)
+
+        # default behaviour is to use notification groups directly
+        notification_arns = [
+            notificationgroups[group].resource_name for group in self.notification_groups
+        ]
+        if len(notification_arns) > 5:
+            raise aim.models.exceptions.InvalidAimProjectFile("""
+    Alarm {} has {} actions, but CloudWatch Alarms allow a maximum of 5 actions.
+
+    {}""".format(self.name, len(notification_arns), get_formatted_model_context(self))
+            )
+
+        return notification_arns
+
+    def get_alarm_description(self, topic_arns):
+        """Create an Alarm Description in JSON format with AIM Alarm information"""
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        envreg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        app = get_parent_by_interface(self, schemas.IApplication)
+        group = get_parent_by_interface(self, schemas.IResourceGroup)
+        if app == None:
+            # Standalone alarms that do not belong to an application
+            description = {
+                "alarm_name": self.name,
+                "classification": self.classification,
+                "severity": self.severity,
+                "topic_arns": topic_arns
+            }
+        elif netenv == None:
+            # service applications do not live in a NetEnv, they have a shorter description
+            description = {
+                "app_name": app.name,
+                "app_title": app.title,
+                "resource_group_name": group.name,
+                "resource_group_title": group.title,
+                "resource_name": resource.name,
+                "resource_title": resource.title,
+                "alarm_name": self.name,
+                "classification": self.classification,
+                "severity": self.severity,
+                "topic_arns": topic_arns
+            }
+        else:
+            # full, normal netenv description
+            description = {
+                "netenv_name": netenv.name,
+                "netenv_title": netenv.title,
+                "env_name": env.name,
+                "env_title": env.title,
+                "envreg_name": envreg.name,
+                "envreg_title": envreg.title,
+                "app_name": app.name,
+                "app_title": app.title,
+                "resource_group_name": group.name,
+                "resource_group_title": group.title,
+                "resource_name": resource.name,
+                "resource_title": resource.title,
+                "alarm_name": self.name,
+                "classification": self.classification,
+                "severity": self.severity,
+                "topic_arns": topic_arns
+            }
+        return json.dumps(description)
 
 @implementer(schemas.IDimension)
 class Dimension():

@@ -593,21 +593,27 @@ class IAlarm(INamed, IDeployable, IName, INotifiable):
     """
     An Alarm
     """
-    severity = schema.TextLine(
-        title = "Severity",
-        default = "low",
-        constraint = isValidAlarmSeverity,
-        description = "Must be one of: 'low', 'critical'"
-    )
     classification = schema.TextLine(
         title = "Classification",
         description = "Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification
     )
+    description = schema.TextLine(
+        title = "Description",
+    )
     notification_groups = schema.List(
         readonly = True,
         title = "List of notificationn groups the alarm is subscribed to.",
         value_type=schema.TextLine(title="Notification group name")
+    )
+    runbook_url = schema.TextLine(
+        title = "Runbook URL",
+    )
+    severity = schema.TextLine(
+        title = "Severity",
+        default = "low",
+        constraint = isValidAlarmSeverity,
+        description = "Must be one of: 'low', 'critical'"
     )
 
 class ICloudWatchAlarm(IAlarm):
@@ -2017,6 +2023,10 @@ class ICloudTrail(IResource):
             title = "Account Reference",
         ),
         default = []
+    )
+    cloudwatchlogs_log_group = TextReference(
+        title = "A CloudWatch Logs LogGroup to deliver this trail to.",
+        required = False
     )
     enable_kms_encryption = schema.Bool(
         title = "Enable KMS Key encryption",

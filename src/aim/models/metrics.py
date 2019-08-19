@@ -41,6 +41,8 @@ class AlarmSets(Named, dict):
 class Alarm(Named):
     "Alarm"
     classification = FieldProperty(schemas.IAlarm["classification"])
+    description = FieldProperty(schemas.IAlarm["description"])
+    runbook_url = FieldProperty(schemas.IAlarm["runbook_url"])
     severity = FieldProperty(schemas.IAlarm["severity"])
 
     def __init__(self, name, parent):

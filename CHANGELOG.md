@@ -19,6 +19,8 @@ Changelog for aim.models
  - CloudTrail has a 'get_accounts' which will resolve the CloudTrail.accounts field to a list
    of Account objects in the model.
 
+ - IAlarm has `description` and `runbook_url` fields.
+
 ### Changed
 
  - `MonitorConfig/LogSets.yaml` has been renamed to `MonitorConfig/Logging.yaml`. CloudWatch

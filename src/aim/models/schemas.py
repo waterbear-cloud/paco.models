@@ -1353,9 +1353,6 @@ class IAWSCertificateManager(IResource):
         )
     )
 
-class IRDS(IResource):
-    """RDS is TBD"""
-
 class IPortProtocol(Interface):
     """Port and Protocol"""
     port = schema.Int(
@@ -2258,4 +2255,95 @@ class ICloudFront(IResource, IDeployable):
     factory = schema.Dict(
         title = "CloudFront Factory",
         value_type = schema.Object(ICloudFrontFactory),
+        default = None
+    )
+
+
+class IRDS(Interface):
+    """
+    RDS Common Interface
+    """
+    engine = schema.TextLine(
+        title = "RDS Engine"
+    )
+    engine_version = schema.TextLine(
+        title = "RDS Engine Version"
+    )
+    db_instance_type = schema.TextLine(
+        title = "RDS Instance Type"
+    )
+    port = schema.Int(
+        title = "DB Port"
+    )
+    segment = TextReference(
+        title="Segment"
+    )
+    storage_type = schema.TextLine(
+        title = "DB Storage Type"
+    )
+    storage_size_gb = schema.Int(
+        title = "DB Storage Size in Gigabytes"
+    )
+    storage_encrypted = schema.Bool(
+        title = "Enable Storage Encryption"
+    )
+    kms_key_id = TextReference(
+        title = "Enable Storage Encryption",
+        required = False
+    )
+    allow_major_version_upgrade = schema.Bool(
+        title = "Allow major version upgrades"
+    )
+    allow_minor_version_upgrade = schema.Bool(
+        title = "Allow minor version upgrades"
+    )
+    publically_accessible = schema.Bool(
+        title = "Assign a Public IP address"
+    )
+    master_username = schema.TextLine(
+        title = "Master Username"
+    )
+    master_user_password = schema.TextLine(
+        title = "Master User Password"
+    )
+    backup_preferred_window = schema.TextLine(
+        title = "Backup Preferred Window"
+    )
+    backup_retention_period = schema.Int(
+        title = "Backup Retention Period in days"
+    )
+    maintenance_preferred_window = schema.TextLine(
+        title = "Maintenance Preferred Window"
+    )
+    security_groups = schema.List(
+        title = "List of Security Groups",
+        value_type = TextReference()
+    )
+    primary_domain_name = TextReference(
+        title = "Primary Domain Name",
+        str_ok = True
+    )
+    primary_hosted_zone = TextReference(
+        title = "Primary Hosted Zone"
+    )
+
+class IRDSMysql(IResource, IRDS):
+    """
+    RDS Mysql
+    """
+    multi_az = schema.Bool(
+        title = "MultiAZ Support",
+        default = False
+    )
+
+class IRDSAurora(IResource, IRDS):
+    """
+    RDS Aurora
+    """
+    secondary_domain_name = TextReference(
+        title = "Secondary Domain Name",
+        str_ok = True
+    )
+    secondary_hosted_zone = TextReference(
+        title = "Secondary Hosted Zone"
     )

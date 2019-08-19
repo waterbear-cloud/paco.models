@@ -136,6 +136,11 @@ class VPC():
     security_groups = FieldProperty(schemas.IVPC["security_groups"])
     segments = FieldProperty(schemas.IVPC["segments"])
 
+    def resolve_ref(self, ref):
+        if ref.last_part == 'vpc':
+            return self
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IInternetGateway)
 class InternetGateway(Deployable):
     pass
@@ -154,6 +159,10 @@ class VPNGateway(Deployable, dict):
 class PrivateHostedZone(Deployable):
     name = FieldProperty(schemas.IPrivateHostedZone["name"])
 
+    def resolve_ref(self, ref):
+        if ref.last_part == 'private_hosted_zone':
+            return self
+        return self.resolve_ref_obj.resolve_ref(ref)
 #@implementer(schemas.ISecurityGroups)
 #class SecurityGroups(dict):
 #    pass

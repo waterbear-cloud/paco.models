@@ -511,3 +511,15 @@ lb_scheme = SimpleVocabulary.fromValues(
 iam_policy_effect = SimpleVocabulary.fromValues(
     ['Allow','Deny']
 )
+
+rds_engine_versions = {
+	'mysql': {
+		'5.7': {
+			'param_group_family': 'mysql5.7'
+		},
+		'5.6': {
+			'param_group_family': 'mysql5.6'
+		}
+
+	}
+}

@@ -126,48 +126,40 @@ class Alarm(Named):
         envreg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
         app = get_parent_by_interface(self, schemas.IApplication)
         group = get_parent_by_interface(self, schemas.IResourceGroup)
-        if app == None:
-            # Standalone alarms that do not belong to an application
-            description = {
-                "alarm_name": self.name,
-                "classification": self.classification,
-                "severity": self.severity,
-                "topic_arns": topic_arns
-            }
-        elif netenv == None:
-            # service applications do not live in a NetEnv, they have a shorter description
-            description = {
-                "app_name": app.name,
-                "app_title": app.title,
-                "resource_group_name": group.name,
-                "resource_group_title": group.title,
-                "resource_name": resource.name,
-                "resource_title": resource.title,
-                "alarm_name": self.name,
-                "classification": self.classification,
-                "severity": self.severity,
-                "topic_arns": topic_arns
-            }
-        else:
-            # full, normal netenv description
-            description = {
-                "netenv_name": netenv.name,
-                "netenv_title": netenv.title,
-                "env_name": env.name,
-                "env_title": env.title,
-                "envreg_name": envreg.name,
-                "envreg_title": envreg.title,
-                "app_name": app.name,
-                "app_title": app.title,
-                "resource_group_name": group.name,
-                "resource_group_title": group.title,
-                "resource_name": resource.name,
-                "resource_title": resource.title,
-                "alarm_name": self.name,
-                "classification": self.classification,
-                "severity": self.severity,
-                "topic_arns": topic_arns
-            }
+        resource = get_parent_by_interface(self, schemas.IResource)
+
+        # Base alarm info - used for standalone alarms not part of an application
+        description = {
+            "alarm_name": self.name,
+            "classification": self.classification,
+            "severity": self.severity,
+            "topic_arns": topic_arns
+        }
+
+        # conditional fields:
+        if self.description:
+            description['description'] = self.description
+        if self.runbook_url:
+            description['runbook_url'] = self.runbook_url
+
+        if app != None:
+            # Service applications and apps not part of a NetEnv
+            description["app_name"] = app.name
+            description["app_title"] = app.title
+            description["resource_group_name"] = group.name
+            description["resource_group_title"] = group.title
+            description["resource_name"] = resource.name
+            description["resource_title"] = resource.title
+
+        if netenv != None:
+            # NetEnv information
+            description["netenv_name"] = netenv.name
+            description["netenv_title"] = netenv.title
+            description["env_name"] = env.name
+            description["env_title"] = env.title
+            description["envreg_name"] = env.name
+            description["envreg_title"] = env.title
+
         return json.dumps(description)
 
 @implementer(schemas.IDimension)

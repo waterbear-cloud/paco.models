@@ -250,7 +250,6 @@ def resolve_accounts_ref(ref, project):
         account = project[ref.parts[0]][ref.parts[1]]
     except KeyError:
         raise InvalidAimReference("Can not resolve the reference '{}'".format(ref.raw))
-    account.resolve_ref(ref)
-    if ref.last_part == 'id':
-        return account.account_id
-    return account
+
+    return account.resolve_ref(ref)
+

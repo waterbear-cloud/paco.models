@@ -401,10 +401,6 @@ class SNSTopic(Resource):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
-@implementer(schemas.IRDS)
-class RDS(Resource):
-    pass
-
 @implementer(schemas.ICloudFrontCustomOriginConfig)
 class CloudFrontCustomOriginConfig():
     http_port = FieldProperty(schemas.ICloudFrontCustomOriginConfig['http_port'])
@@ -487,3 +483,44 @@ class CloudFront(Resource, Deployable):
             if origin_config.s3_bucket != None:
                 return True
         return False
+
+
+@implementer(schemas.IRDS)
+class RDS():
+    engine = FieldProperty(schemas.IRDS['engine'])
+    engine_version = FieldProperty(schemas.IRDS['engine_version'])
+    db_instance_type = FieldProperty(schemas.IRDS['db_instance_type'])
+    segment = FieldProperty(schemas.IRDS['segment'])
+    port = FieldProperty(schemas.IRDS['port'])
+    storage_type = FieldProperty(schemas.IRDS['storage_type'])
+    storage_size_gb = FieldProperty(schemas.IRDS['storage_size_gb'])
+    storage_encrypted = FieldProperty(schemas.IRDS['storage_encrypted'])
+    kms_key_id = FieldProperty(schemas.IRDS['kms_key_id'])
+    allow_major_version_upgrade = FieldProperty(schemas.IRDS['allow_major_version_upgrade'])
+    allow_minor_version_upgrade = FieldProperty(schemas.IRDS['allow_minor_version_upgrade'])
+    publically_accessible = FieldProperty(schemas.IRDS['publically_accessible'])
+    master_username = FieldProperty(schemas.IRDS['master_username'])
+    master_user_password = FieldProperty(schemas.IRDS['master_user_password'])
+    backup_preferred_window = FieldProperty(schemas.IRDS['backup_preferred_window'])
+    backup_retention_period = FieldProperty(schemas.IRDS['backup_retention_period'])
+    maintenance_preferred_window = FieldProperty(schemas.IRDS['maintenance_preferred_window'])
+    security_groups = FieldProperty(schemas.IRDS['security_groups'])
+    primary_domain_name = FieldProperty(schemas.IRDS['primary_domain_name'])
+    primary_hosted_zone = FieldProperty(schemas.IRDS['primary_hosted_zone'])
+
+@implementer(schemas.IRDSMysql)
+class RDSMysql(RDS, Resource):
+    multi_az = FieldProperty(schemas.IRDSMysql['multi_az'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.engine = 'mysql'
+
+@implementer(schemas.IRDSAurora)
+class RDSAurora(RDS, Resource):
+    secondary_domain_name = FieldProperty(schemas.IRDSAurora['secondary_domain_name'])
+    secondary_hosted_zone = FieldProperty(schemas.IRDSAurora['secondary_hosted_zone'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.engine = 'aurora'

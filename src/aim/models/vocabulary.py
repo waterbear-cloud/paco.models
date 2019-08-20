@@ -61,7 +61,8 @@ cloudwatch_log_retention = {
 alarm_classifications = {
 	'health': None,
 	'performance': None,
-	'security': None
+	'security': None,
+	'unset': None
 }
 
 cloudwatch_comparison_operators = {

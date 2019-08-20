@@ -27,6 +27,13 @@ Changelog for aim.models
    logging is under the top level `cw_logging` key. The schema has been completely reworked
    so that LogGroups and LogSets are properly modelled.
 
+ - IAccount.region, IEC2KeyPair.region and ICredentials.aws_default_region no longer have
+   `us-west-2` as a default. The region needs to be explicity set.
+
+### Fixed
+
+ - IAlarm.classification is now a required field.
+
 
 3.1.0 (2019-08-08)
 ------------------

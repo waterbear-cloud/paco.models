@@ -51,6 +51,8 @@ class InvalidAWSRegion(schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
 
 def isValidAWSRegionName(value):
+    # Allow for missing_value
+    if value == 'no-region-set': return True
     if value not in vocabulary.aws_regions:
         raise InvalidAWSRegion
     return True
@@ -347,7 +349,9 @@ class IAccount(INamed):
     )
     region = schema.TextLine(
         title = "Region to install AWS Account specific resources",
-        default = "us-west-2",
+        default = "no-region-set",
+        missing_value = "no-region-set",
+        required = True,
         description = 'Must be a valid AWS Region name',
         constraint = isValidAWSRegionName
     )
@@ -488,7 +492,9 @@ class IServiceAccountRegion(Interface):
     region = schema.TextLine(
         title = "AWS Region",
         description = "Must be a valid AWS Region name",
-        default = "us-west-2",
+        default = "no-region-set",
+        missing_value = "no-region-set",
+        required = True,
         constraint = isValidAWSRegionName
     )
 
@@ -545,8 +551,9 @@ class IAlarmNotification(Interface):
     )
     classification = schema.TextLine(
         title = "Classification filter",
-        description = "Must be one of: 'performance', 'security' or 'health'",
-        constraint = isValidAlarmClassificationFilter
+        description = "Must be one of: 'performance', 'security', 'health' or ''.",
+        constraint = isValidAlarmClassificationFilter,
+        default = ''
     )
     severity = schema.TextLine(
         title = "Severity filter",
@@ -596,7 +603,10 @@ class IAlarm(INamed, IDeployable, IName, INotifiable):
     classification = schema.TextLine(
         title = "Classification",
         description = "Must be one of: 'performance', 'security' or 'health'",
-        constraint = isValidAlarmClassification
+        constraint = isValidAlarmClassification,
+        required = True,
+        default = 'unset',
+        missing_value = 'unset'
     )
     description = schema.TextLine(
         title = "Description",
@@ -1074,7 +1084,9 @@ class IEC2KeyPair(INamed):
     region = schema.TextLine(
         title = "AWS Region",
         description = "Must be a valid AWS Region name",
-        default = "us-west-2",
+        default = "no-region-set",
+        missing_value = "no-region-set",
+        required = True,
         constraint = isValidAWSRegionName
         )
     account = TextReference(
@@ -1320,7 +1332,9 @@ class ICredentials(INamed):
     aws_default_region = schema.TextLine(
         title = "AWS Default Region",
         description = "Must be a valid AWS Region name",
-        default = "us-west-2",
+        default = "no-region-set",
+        missing_value = "no-region-set",
+        required = True,
         constraint = isValidAWSRegionName
         )
     master_account_id = schema.TextLine(

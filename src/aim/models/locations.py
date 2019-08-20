@@ -5,7 +5,7 @@ def get_parent_by_interface(context, interface=schemas.IProject):
     """
     Walk up the tree until an object provides the requested Interface
     """
-    max = 99
+    max = 999
     while context is not None:
         if interface.providedBy(context):
             return context
@@ -17,5 +17,4 @@ def get_parent_by_interface(context, interface=schemas.IProject):
         if max < 1:
             raise TypeError("Maximum location depth exceeded. Model is borked!")
 
-    raise TypeError("Could not find Interface")
 

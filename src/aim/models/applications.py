@@ -524,3 +524,27 @@ class RDSAurora(RDS, Resource):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.engine = 'aurora'
+
+@implementer(schemas.IElastiCache)
+class ElastiCache():
+    engine = FieldProperty(schemas.IElastiCache['engine'])
+    engine_version = FieldProperty(schemas.IElastiCache['engine_version'])
+    automatic_failover_enabled = FieldProperty(schemas.IElastiCache['automatic_failover_enabled'])
+    port = FieldProperty(schemas.IElastiCache['port'])
+    at_rest_encryption = FieldProperty(schemas.IElastiCache['at_rest_encryption'])
+    number_of_read_replicas = FieldProperty(schemas.IElastiCache['number_of_read_replicas'])
+    auto_minor_version_upgrade = FieldProperty(schemas.IElastiCache['auto_minor_version_upgrade'])
+    az_mode = FieldProperty(schemas.IElastiCache['az_mode'])
+    cache_node_type = FieldProperty(schemas.IElastiCache['cache_node_type'])
+    maintenance_preferred_window = FieldProperty(schemas.IElastiCache['maintenance_preferred_window'])
+    security_groups = FieldProperty(schemas.IElastiCache['security_groups'])
+    segment = FieldProperty(schemas.IElastiCache['segment'])
+
+@implementer(schemas.IElastiCacheRedis)
+class ElastiCacheRedis(Resource, ElastiCache):
+    cache_parameter_group_family = FieldProperty(schemas.IElastiCacheRedis['cache_parameter_group_family'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.engine = 'redis'
+        self.port = 6379

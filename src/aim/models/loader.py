@@ -26,7 +26,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql
+    RDSMysql, ElastiCacheRedis
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -70,11 +70,15 @@ RESOURCES_CLASS_MAP = {
     'S3Bucket': S3Bucket,
     'SNSTopic': SNSTopic,
     'CloudFront': CloudFront,
-    'RDSMysql': RDSMysql
+    'RDSMysql': RDSMysql,
+    'ElastiCacheRedis': ElastiCacheRedis,
 }
 
 SUB_TYPES_CLASS_MAP = {
     RDSMysql: {
+        'security_groups': ('str_list', TextReference)
+    },
+    ElastiCacheRedis: {
         'security_groups': ('str_list', TextReference)
     },
     CloudFront: {

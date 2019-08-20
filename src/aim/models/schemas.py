@@ -269,7 +269,22 @@ def isValidCFSSLProtocol(value):
             raise InvalidCFSSLProtocol
     return True
 
-#
+# ElastiCache
+class InvalidAZMode(schema.ValidationError):
+    __doc__ = 'AZMode must be one of: cross-az | single-az'
+
+def isValidAZMode(value):
+    if value not in ('cross-az', 'single-az'):
+        raise InvalidAZMode
+    return True
+
+class InvalidRedisCacheParameterGroupFamily(schema.ValidationError):
+    __doc__ = 'cache_parameter_group_family must be one of: redis2.6 | redis2.8 | redis3.2 | redis4.0 | redis5.0'
+
+def isRedisCacheParameterGroupFamilyValid(value):
+    if value not in ('redis2.6', 'redis2.8', 'redis3.2', 'redis4.0', 'redis5.0'):
+        raise InvalidRedisCacheParameterGroupFamily
+    return True
 # Here be Schemas!
 #
 
@@ -2347,3 +2362,61 @@ class IRDSAurora(IResource, IRDS):
     secondary_hosted_zone = TextReference(
         title = "Secondary Hosted Zone"
     )
+
+class IElastiCache(Interface):
+    """
+    Base ElastiCache Interface
+    """
+    engine = schema.TextLine(
+        title = "ElastiCache Engine",
+        required = False
+    )
+    engine_version = schema.TextLine(
+        title = "ElastiCache Engine Version",
+        required = False
+    )
+    automatic_failover_enabled = schema.Bool(
+        title = "Specifies whether a read-only replica is automatically promoted to read/write primary if the existing primary fails"
+    )
+    number_of_read_replicas = schema.Int(
+        title = "Number of read replicas"
+    )
+    port = schema.Int(
+        title = 'Port'
+    )
+    at_rest_encryption = schema.Bool(
+        title = "Enable encryption at rest"
+    )
+    auto_minor_version_upgrade = schema.Bool(
+        title = "Enable automatic minor version upgrades"
+    )
+    az_mode = schema.TextLine(
+        title = "AZ mode",
+        constraint = isValidAZMode
+    )
+    cache_node_type  = schema.TextLine(
+        title = "Cache Node Instance type",
+        description=""
+    )
+    maintenance_preferred_window = schema.TextLine(
+        title = 'Preferred maintenance window'
+    )
+    security_groups = schema.List(
+        title = "List of Security Groups",
+        value_type = TextReference()
+    )
+    segment =TextReference(
+        title="Segment"
+    )
+
+class IElastiCacheRedis(IResource, IElastiCache):
+    """
+    Redis ElastiCache Interface
+    """
+    cache_parameter_group_family = schema.TextLine(
+        title = 'Cache Parameter Group Family',
+        constraint = isRedisCacheParameterGroupFamilyValid,
+        required = False
+    )
+    #snapshot_retention_limit_days: 1
+    #snapshot_window: 05:00-09:00

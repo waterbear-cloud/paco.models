@@ -1,7 +1,7 @@
 Changelog for aim.models
 =================
 
-3.2.0 (unreleased)
+4.0.0 (2019-08-21)
 ------------------
 
 ### Added

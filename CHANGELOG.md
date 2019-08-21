@@ -25,6 +25,10 @@ Changelog for aim.models
 
  - CodePipeBuildDeploy.resolve_ref() function covers wider scope of ref lookups
 
+ - Added VPCPeering to the model.
+
+ - Added IElastiCache and IElastiCacheRedis to the model.
+
 ### Changed
 
  - `MonitorConfig/LogSets.yaml` has been renamed to `MonitorConfig/Logging.yaml`. CloudWatch

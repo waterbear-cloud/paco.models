@@ -123,6 +123,20 @@ class Network(NetworkEnvironment):
             return self.aws_account
         return None
 
+@implementer(schemas.IVPCPeeringRoute)
+class VPCPeeringRoute():
+    segment = FieldProperty(schemas.IVPCPeeringRoute["segment"])
+    cidr = FieldProperty(schemas.IVPCPeeringRoute["cidr"])
+
+@implementer(schemas.IVPCPeering)
+class VPCPeering(Named, Deployable):
+    "VPC Peering"
+    peer_role_name = FieldProperty(schemas.IVPCPeering["peer_role_name"])
+    peer_vpcid = FieldProperty(schemas.IVPCPeering["peer_vpcid"])
+    peer_account_id = FieldProperty(schemas.IVPCPeering["peer_account_id"])
+    peer_region = FieldProperty(schemas.IVPCPeering["peer_region"])
+    network_environment  = FieldProperty(schemas.IVPCPeering["network_environment"])
+
 @implementer(schemas.IVPC)
 class VPC():
     "VPC"
@@ -135,6 +149,7 @@ class VPC():
     private_hosted_zone = FieldProperty(schemas.IVPC["private_hosted_zone"])
     security_groups = FieldProperty(schemas.IVPC["security_groups"])
     segments = FieldProperty(schemas.IVPC["segments"])
+    peering = FieldProperty(schemas.IVPC["peering"])
 
     def resolve_ref(self, ref):
         if ref.last_part == 'vpc':

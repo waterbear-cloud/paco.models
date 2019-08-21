@@ -1261,6 +1261,55 @@ class ISegment(IDeployable):
         default = ""
     )
 
+class IVPCPeeringRoute(Interface):
+    """
+    VPC Peering Route
+    """
+    segment = TextReference(
+        title = "Segment reference"
+    )
+    cidr = schema.TextLine(
+        title = "CIDR IP",
+        default = "",
+        description = "A valid CIDR v4 block or an empty string",
+        constraint = isValidCidrIpv4orBlank
+    )
+
+class IVPCPeering(INamed, IDeployable):
+    """
+    VPC Peering
+    """
+    # peer_* is used when peering with an external VPC
+    peer_role_name = schema.TextLine(
+        title = 'Remote peer role name',
+        required = False
+    )
+    peer_vpcid = schema.TextLine(
+        title = 'Remote peer VPC Id',
+        required = False
+    )
+    peer_account_id = schema.TextLine(
+        title = 'Remote peer AWS account Id',
+        required = False
+    )
+    peer_region = schema.TextLine(
+        title = 'Remote peer AWS region',
+        required = False
+    )
+    # network_environment is used when peering with a network environment
+    # local to the project.
+    network_environment = TextReference(
+        title = 'Network Environment Reference',
+        required = False
+    )
+    # Routes forward traffic to the peering connection
+    routing = schema.List(
+        title = "Peering routes",
+        value_type = schema.Object(IVPCPeeringRoute),
+        required = True
+    )
+
+
 class IVPC(Interface):
     """
     AWS Resource: VPC
@@ -1314,6 +1363,11 @@ class IVPC(Interface):
     segments = schema.Dict(
         title="Segments",
         value_type = schema.Object(ISegment),
+        required = False
+    )
+    peering = schema.Dict(
+        title = 'VPC Peering',
+        value_type = schema.Object(IVPCPeering),
         required = False
     )
 
@@ -2419,7 +2473,7 @@ class IElastiCache(Interface):
         title = "List of Security Groups",
         value_type = TextReference()
     )
-    segment =TextReference(
+    segment = TextReference(
         title="Segment"
     )
 

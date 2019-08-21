@@ -17,8 +17,8 @@ from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
     AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
-    EnvironmentRegion, Segment, Network, VPC, NATGateway, VPNGateway, PrivateHostedZone, \
-    SecurityGroup, IngressRule, EgressRule
+    EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
+    PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
 from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
@@ -179,7 +179,11 @@ SUB_TYPES_CLASS_MAP = {
         'vpn_gateway': ('named_dict', VPNGateway),
         'private_hosted_zone': ('unnamed_dict', PrivateHostedZone),
         'segments': ('named_dict', Segment),
-        'security_groups': ('named_twolevel_dict', SecurityGroup)
+        'security_groups': ('named_twolevel_dict', SecurityGroup),
+        'peering': ('named_dict', VPCPeering)
+    },
+    VPCPeering: {
+        'routing': ('obj_list', VPCPeeringRoute)
     },
     SecurityGroup: {
         'ingress': ('obj_list', IngressRule),

@@ -179,20 +179,9 @@ class CodePipeBuildDeploy(Resource):
     deploy_instance_role = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_instance_role'])
 
     def resolve_ref(self, ref):
-        engine_lookup_refs = [  'kms',
-                                'codecommit_role.arn',
-                                'codecommit.arn',
-                                'codedeploy_application_name',
-                                'deploy.deployment_group_name',
-                                'codebuild_role.arn',
-                                'codepipeline_role.arn',
-                                'codedeploy_tools_delegate_role.arn'
-                                 ]
-        if ref.resource_ref in engine_lookup_refs:
-            return self.resolve_ref_obj.resolve_ref(ref)
-
-        return None
-
+        if ref.resource_ref == 'kms':
+            return self
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IS3BucketPolicy)
 class S3BucketPolicy():

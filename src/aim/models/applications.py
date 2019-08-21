@@ -323,6 +323,9 @@ class LBApplication(Resource, dict):
     security_groups = FieldProperty(schemas.ILBApplication['security_groups'])
     segment = FieldProperty(schemas.ILBApplication['segment'])
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IAWSCertificateManager)
 class AWSCertificateManager(Resource):
     domain_name = FieldProperty(schemas.IAWSCertificateManager['domain_name'])

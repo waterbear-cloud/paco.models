@@ -6,6 +6,8 @@ Changelog for aim.models
 
 ### Added
 
+ - IVPCPeering and IVPCPeeringRoute have been added to the model for VPC Peering support.
+
  - Added a CloudTrail schema configured in `Resources/CloudTrail.yaml`.
 
  - IS3BucketPolicy now has `principal` and `condition` fields.
@@ -20,6 +22,8 @@ Changelog for aim.models
    of Account objects in the model.
 
  - IAlarm has `description` and `runbook_url` fields.
+
+ - CodePipeBuildDeploy.resolve_ref() function covers wider scope of ref lookups
 
 ### Changed
 

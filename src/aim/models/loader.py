@@ -339,6 +339,23 @@ def interface_seen(seen, iface):
             return True
     return False
 
+def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_name):
+    "Return a value that can be used in a troposphere Properties dict"
+    #if key == 'Description': breakpoint()
+    for interface in most_specialized_interfaces(obj):
+        fields = zope.schema.getFields(interface)
+        if field_name in fields:
+            field = fields[field_name]
+            if zope.schema.interfaces.IBool.providedBy(field) and props[troposphere_name][0] == type(str()):
+                if getattr(obj, field_name):
+                    return 'true'
+                else:
+                    return 'false'
+            else:
+                if zope.schema.interfaces.IFromUnicode.providedBy(field) and not getattr(obj, field_name):
+                    return ''
+                return getattr(obj, field_name)
+
 def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path=''):
     """
     Iterates through the field an object's schema has

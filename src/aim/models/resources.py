@@ -2,6 +2,8 @@
 All things Resources.
 """
 
+import json
+import troposphere.apigateway
 from aim.models.base import Named, Deployable, Regionalized, Resource
 from aim.models.metrics import Monitorable
 from aim.models import references
@@ -16,6 +18,7 @@ from aim.models import references
 
 @implementer(schemas.IApiGatewayRestApi)
 class ApiGatewayRestApi(Resource):
+    title = "API Gateway REST API"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
     binary_media_types = FieldProperty(schemas.IApiGatewayRestApi['binary_media_types'])
     body = FieldProperty(schemas.IApiGatewayRestApi['body'])
@@ -27,6 +30,29 @@ class ApiGatewayRestApi(Resource):
     minimum_compression_size = FieldProperty(schemas.IApiGatewayRestApi['minimum_compression_size'])
     parameters = FieldProperty(schemas.IApiGatewayRestApi['parameters'])
     policy = FieldProperty(schemas.IApiGatewayRestApi['policy'])
+
+    cfn_mapping = {
+        "Description": 'description',
+        "Name": 'name',
+        "Body": 'body',
+        "FailOnWarnings": 'fail_on_warnings',
+    }
+
+    @property
+    def cfn_export_dict(self):
+        result = {}
+        for key, value in self.cfn_mapping.items():
+            if key == 'Body':
+                result[key] = json.loads(getattr(self, value))
+            else:
+                result[key] = loader.marshall_fieldname_to_troposphere_value(
+                    self,
+                    troposphere.apigateway.RestApi.props,
+                    key,
+                    value
+                )
+        return result
+
 
 @implementer(schemas.IEC2KeyPair)
 class EC2KeyPair(Named):

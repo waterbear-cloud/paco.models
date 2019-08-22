@@ -388,6 +388,8 @@ Unneeded field '{}' in config for object type '{}'
                     # YAML loads "1" as an Int, cast to a Float where expected by the schema
                     if zope.schema.interfaces.IFloat.providedBy(field):
                         value = float(value)
+                    # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
+                    # You can force a string with "field: '404'" but this removes the need to do that.
                     if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
                         value = str(value)
                     # is the value a reference?

@@ -1507,7 +1507,7 @@ class ITargetGroup(IPortProtocol, IResource):
     unhealthy_threshold = schema.Int(
         title = "Unhealthy threshold"
     )
-    health_check_http_code = schema.String(
+    health_check_http_code = schema.TextLine(
         title = "Health check HTTP codes"
     )
     health_check_path = schema.TextLine(

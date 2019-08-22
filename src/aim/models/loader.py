@@ -943,6 +943,7 @@ class ModelLoader():
     def instantiate_project(self, name, config):
         if name == 'project':
             self.project = Project(config['name'], None)
+            self.project['home'] = self.config_folder
             apply_attributes_from_config(self.project, config, read_file_path=self.read_file_path)
         elif name == '.credentials':
             apply_attributes_from_config(self.project['credentials'], config, read_file_path=self.read_file_path)

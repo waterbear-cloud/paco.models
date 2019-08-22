@@ -123,7 +123,7 @@ class Reference():
             ref=self
         )
 
-def get_resolve_ref_obj(obj, ref, value, part_idx_start):
+def get_resolve_ref_obj(obj, ref, part_idx_start):
     """
     Traverses the reference parts looking for the last child that
     is a not a string. This object is expected to be a part of the
@@ -144,7 +144,7 @@ def get_resolve_ref_obj(obj, ref, value, part_idx_start):
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
-        raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), value))
+        raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
     return response
 
 def resolve_ref(ref_str, project, account_ctx=None, ref=None):
@@ -153,12 +153,12 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         ref = Reference(ref_str)
     if ref.type == "resource":
         if ref.parts[1] == 's3':
-            return get_resolve_ref_obj(project['s3'], ref, ref_str, part_idx_start=2)
+            return get_resolve_ref_obj(project['s3'], ref, part_idx_start=2)
         return project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
         if ref.parts[4] == 'applications':
             obj = project[ref.parts[1]]
-            response = get_resolve_ref_obj(obj, ref, ref_str, part_idx_start=4)
+            response = get_resolve_ref_obj(obj, ref, part_idx_start=4)
             return response
         return project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
@@ -175,7 +175,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
         obj = project['ne'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
-        return get_resolve_ref_obj(obj, ref, ref_str, 4)
+        return get_resolve_ref_obj(obj, ref, 4)
 
 
     elif ref.type == "accounts":

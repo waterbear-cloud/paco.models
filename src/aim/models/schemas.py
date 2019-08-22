@@ -1433,7 +1433,8 @@ class IAWSCertificateManager(IResource):
         description = "",
         value_type=schema.TextLine(
             title="alternative name"
-        )
+        ),
+        default = []
     )
 
 class IPortProtocol(Interface):
@@ -1460,8 +1461,8 @@ class ITargetGroup(IPortProtocol, IResource):
     unhealthy_threshold = schema.Int(
         title = "Unhealthy threshold"
     )
-    health_check_http_code = schema.Int(
-        title = "Health check HTTP code"
+    health_check_http_code = schema.String(
+        title = "Health check HTTP codes"
     )
     health_check_path = schema.TextLine(
         title = "Health check path",
@@ -1523,6 +1524,7 @@ class IListener(IPortProtocol):
 class IDNS(Interface):
     hosted_zone = TextReference(
         title = "Hosted Zone Id Reference",
+        required = False
     )
     domain_name = TextReference(
         title = "Domain name",

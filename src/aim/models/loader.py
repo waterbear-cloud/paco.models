@@ -371,7 +371,8 @@ Unneeded field '{}' in config for object type '{}'
                     # YAML loads "1" as an Int, cast to a Float where expected by the schema
                     if zope.schema.interfaces.IFloat.providedBy(field):
                         value = float(value)
-
+                    if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
+                        value = str(value)
                     # is the value a reference?
                     ref_field = TextReference()
                     try:

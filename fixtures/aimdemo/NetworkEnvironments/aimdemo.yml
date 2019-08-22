@@ -249,6 +249,17 @@ applications:
               echo "Launch placeholder" > /var/www/html/index.html
               # Restart apache
               apachectl restart
+      restapi:
+        type: Application
+        order: 2
+        resources:
+          api_gateway_rest_api:
+            type: ApiGatewayRestApi
+            order: 1
+            enabled: true
+            body: >-
+              catdog
+
       bastion:
         type: Bastion
         order: 1

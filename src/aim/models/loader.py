@@ -28,7 +28,8 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
     RDSMysql, ElastiCacheRedis
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
-    CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail
+    CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail, \
+    ApiGatewayRestApi
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
@@ -59,6 +60,7 @@ class YAML(ruamel.yaml.YAML):
 logger = get_logger()
 
 RESOURCES_CLASS_MAP = {
+    'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
     'CodePipeBuildDeploy': CodePipeBuildDeploy,
     'ACM': AWSCertificateManager,

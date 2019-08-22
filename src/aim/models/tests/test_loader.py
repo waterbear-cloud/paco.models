@@ -268,3 +268,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.ICloudTrail.providedBy(trail)
         assert trail.enable_log_file_validation == True
 
+    def test_api_gateway_rest_api(self):
+        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
+        assert len(api_gra.body) > 1

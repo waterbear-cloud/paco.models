@@ -14,6 +14,20 @@ from aim.models.references import Reference
 from aim.models import references
 
 
+@implementer(schemas.IApiGatewayRestApi)
+class ApiGatewayRestApi(Resource):
+    api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
+    binary_media_types = FieldProperty(schemas.IApiGatewayRestApi['binary_media_types'])
+    body = FieldProperty(schemas.IApiGatewayRestApi['body'])
+    body_s3_location = FieldProperty(schemas.IApiGatewayRestApi['body_s3_location'])
+    clone_from = FieldProperty(schemas.IApiGatewayRestApi['clone_from'])
+    description = FieldProperty(schemas.IApiGatewayRestApi['description'])
+    endpoint_configuration = FieldProperty(schemas.IApiGatewayRestApi['endpoint_configuration'])
+    fail_on_warnings = FieldProperty(schemas.IApiGatewayRestApi['fail_on_warnings'])
+    minimum_compression_size = FieldProperty(schemas.IApiGatewayRestApi['minimum_compression_size'])
+    parameters = FieldProperty(schemas.IApiGatewayRestApi['parameters'])
+    policy = FieldProperty(schemas.IApiGatewayRestApi['policy'])
+
 @implementer(schemas.IEC2KeyPair)
 class EC2KeyPair(Named):
     region = FieldProperty(schemas.IEC2KeyPair['region'])

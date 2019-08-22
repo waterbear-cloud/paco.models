@@ -5,6 +5,7 @@ from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import vocabulary
 from aim.models.references import TextReference
+import json
 import re
 import ipaddress
 
@@ -46,6 +47,51 @@ def isValidSNSSubscriptionProtocol(value):
 
 class InvalidSNSSubscriptionEndpoint(schema.ValidationError):
     __doc__ = 'Not a valid SNS Endpoint.'
+
+class InvalidJSON(schema.ValidationError):
+    __doc__ = "Not a valid JSON document."
+
+def isValidJSONOrNone(value):
+    if not value:
+        return True
+    try:
+        json.load(value)
+    except json.decoder.JSONDecodeError:
+        raise InvalidJSON
+    return True
+
+class InvalidApiKeySourceType(schema.ValidationError):
+    __doc__ = 'Not a valid Api Key Source Type.'
+
+def isValidApiKeySourceType(value):
+    if value not in ('HEADER', 'AUTHORIZER'):
+        raise InvalidApiKeySourceType
+    return True
+
+class InvalidEndpointConfigurationType(schema.ValidationError):
+    __doc__ = "Not a valid endpoint configuration type, must be one of: 'EDGE', 'REGIONAL', 'PRIVATE'"
+
+def isValidEndpointConfigurationType(value):
+    if value not in ('EDGE', 'REGIONAL', 'PRIVATE'):
+        raise
+    return True
+
+class InvalidBinaryMediaTypes(schema.ValidationError):
+    __doc__ = 'Not a valid binary media types.'
+
+def isValidBinaryMediaTypes(value):
+    if len(value) == 0: return True
+    d = {}
+    # detect duplicates and / chars
+    for item in value:
+        if item not in d:
+            d[item] = None
+        else:
+            raise InvalidBinaryMediaTypes("Entry {} is provided more than once".format(item))
+        if item.find('/') != -1:
+            raise InvalidBinaryMediaTypes("Entry {} must not contain a / character.".format(item))
+
+    return True
 
 class InvalidAWSRegion(schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
@@ -1984,6 +2030,73 @@ class ILambda(IResource, IMonitorable):
         ),
         default = []
     )
+
+# API Gateway
+
+class IApiGatewayRestApi(IResource):
+    "An Api Gateway Rest API resource"
+    api_key_source_type = schema.TextLine(
+        title = "API Key Source Type",
+        description = "Must be one of 'HEADER' to read the API key from the X-API-Key header of a request or 'AUTHORIZER' to read the API key from the UsageIdentifierKey from a Lambda authorizer.",
+        constraint = isValidApiKeySourceType
+    )
+    binary_media_types = schema.List(
+        title = "Binary Media Types. The list of binary media types that are supported by the RestApi resource, such as image/png or application/octet-stream. By default, RestApi supports only UTF-8-encoded text payloads.",
+        description = "Duplicates are not allowed. Slashes must be escaped with ~1. For example, image/png would be image~1png in the BinaryMediaTypes list.",
+        constraint = isValidBinaryMediaTypes,
+        value_type = schema.TextLine(
+            title = "Binary Media Type"
+        ),
+        default = []
+    )
+    body = schema.Text(
+        title = "Body. An OpenAPI specification that defines a set of RESTful APIs in JSON or YAML format. For YAML templates, you can also provide the specification in YAML format.",
+        description = "Must be valid JSON or YAML"
+    )
+    body_s3_location = schema.TextLine(
+        title = "The Amazon Simple Storage Service (Amazon S3) location that points to an OpenAPI file, which defines a set of RESTful APIs in JSON or YAML format.",
+        description = "Valid S3Location string"
+    )
+    clone_from = schema.TextLine(
+        title = "CloneFrom. The ID of the RestApi resource that you want to clone."
+    )
+    description = schema.Text(
+        title = "Description of the RestApi resource."
+    )
+    endpoint_configuration = schema.List(
+        title = "Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",
+        description = "List of strings, each must be one of 'EDGE', 'REGIONAL', 'PRIVATE'",
+        value_type = schema.TextLine(
+            title = "Endpoint Type",
+            constraint = isValidEndpointConfigurationType
+        ),
+        default = []
+    )
+    fail_on_warnings = schema.Bool(
+        title = "Indicates whether to roll back the resource if a warning occurs while API Gateway is creating the RestApi resource.",
+        default = False
+    )
+    minimum_compression_size = schema.Int(
+        title = "An integer that is used to enable compression on an API. When compression is enabled, compression or decompression is not applied on the payload if the payload size is smaller than this value. Setting it to zero allows compression for any payload size.",
+        description = "A non-negative integer between 0 and 10485760 (10M) bytes, inclusive.",
+        default = None,
+        required = False,
+        min = 0,
+        max = 10485760
+    )
+    parameters = schema.Dict(
+        title = "Parameters. Custom header parameters for the request.",
+        description = "Dictionary of key/value pairs that are strings.",
+        value_type = schema.TextLine(title = "Value"),
+        default = {}
+    )
+    policy = schema.Text(
+        title = """A policy document that contains the permissions for the RestApi resource, in JSON format. To set the ARN for the policy, use the !Join intrinsic function with "" as delimiter and values of "execute-api:/" and "*".""",
+        description = "Valid JSON document",
+        constraint = isValidJSONOrNone
+    )
+
+# Route53
 
 class IRoute53HostedZone(IDeployable):
     """

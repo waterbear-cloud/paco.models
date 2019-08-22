@@ -121,6 +121,21 @@ class Resource(Named, Deployable, Regionalized):
         account = project[ref.parts[0]][ref.parts[1]]
         return account
 
+    @property
+    def aim_ref(self):
+        """
+        Return the aim.ref string to this object in the model
+        """
+        parts = []
+        aim_ref = 'aim.ref '
+        obj = self
+        parts.append(obj.name)
+        while self.__parent__:
+            obj = self.__parent__
+            parts.append(obj.name)
+        parts.reverse()
+        return aim_ref + '.'.join(parts)
+
 @implementer(schemas.IServiceAccountRegion)
 class ServiceAccountRegion():
     account = FieldProperty(schemas.IServiceAccountRegion['account'])

@@ -189,20 +189,19 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     """Resolve a reference"""
     if ref == None:
         ref = Reference(ref_str)
-    if 'home' in project.keys():
-        outputs_value = resolve_ref_outputs(ref, project['home'])
-    if outputs_value != None:
-        return outputs_value
+    ref_value = None
     if ref.type == "resource":
         if ref.parts[1] == 's3':
-            return get_resolve_ref_obj(project['s3'], ref, part_idx_start=2)
-        return project[ref.parts[1]].resolve_ref(ref)
+            ref_value = get_resolve_ref_obj(project['s3'], ref, part_idx_start=2)
+        else:
+            ref_value = project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
         if ref.parts[4] == 'applications':
             obj = project[ref.parts[1]]
             response = get_resolve_ref_obj(obj, ref, part_idx_start=4)
-            return response
-        return project[ref.parts[1]].resolve_ref(ref)
+            ref_value = response
+        else:
+            ref_value = project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
         # examples:
         # aim.ref netenv.aimdemo.applications.app.resources.webapp.name
@@ -217,15 +216,29 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
         obj = project['netenv'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
-        return get_resolve_ref_obj(obj, ref, 4)
+        ref_value = get_resolve_ref_obj(obj, ref, 4)
 
 
     elif ref.type == "accounts":
-        return resolve_accounts_ref(ref, project)
+        ref_value = resolve_accounts_ref(ref, project)
     elif ref.type == "function":
-        return resolve_function_ref(ref, project, account_ctx)
+        ref_value = resolve_function_ref(ref, project, account_ctx)
     else:
         raise ValueError("Unsupported ref type: {}".format(ref.type))
+
+    # If the reference returned a Stack, and that Stack has not been
+    # modified by checking is_stack_cached(), then check the outputs
+    # to see if a value is there and return it. Otherwise continue
+    # to deal with waiting for new stack outputs.
+    if 'home' in project.keys():
+        value_type = "{}".format(type(ref_value))
+        if value_type == "<class 'aim.stack_group.stack_group.Stack'>":
+            if ref_value.is_stack_cached():
+                outputs_value = resolve_ref_outputs(ref, project['home'])
+                if outputs_value != None:
+                    return outputs_value
+    return ref_value
+
 
 def resolve_function_ref(ref, project, account_ctx):
     if account_ctx == None:

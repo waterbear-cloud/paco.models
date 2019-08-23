@@ -166,6 +166,7 @@ class Resources(Named, dict):
 
 @implementer(schemas.ICodePipeBuildDeploy)
 class CodePipeBuildDeploy(Resource):
+    title = "CodePipeBuildDeploy"
     deployment_environment = FieldProperty(schemas.ICodePipeBuildDeploy['deployment_environment'])
     deployment_branch_name = FieldProperty(schemas.ICodePipeBuildDeploy['deployment_branch_name'])
     manual_approval_enabled = FieldProperty(schemas.ICodePipeBuildDeploy['manual_approval_enabled'])
@@ -202,6 +203,7 @@ class S3BucketPolicy():
 
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
+    title = "S3Bucket"
     bucket_name = FieldProperty(schemas.IS3Bucket['bucket_name'])
     account = FieldProperty(schemas.IS3Bucket['account'])
     deletion_policy = FieldProperty(schemas.IS3Bucket['deletion_policy'])
@@ -231,6 +233,7 @@ class S3Bucket(Resource, Deployable):
 
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
+    title = "AutoScalingGroup"
     desired_capacity =  FieldProperty(schemas.IASG['desired_capacity'])
     min_instances =  FieldProperty(schemas.IASG['min_instances'])
     max_instances =  FieldProperty(schemas.IASG['max_instances'])
@@ -272,6 +275,7 @@ class ASG(Resource, Monitorable):
 @implementer(schemas.IEC2)
 class EC2(Resource):
     "EC2"
+    title = "EC2"
 
 
 @implementer(schemas.IPortProtocol)
@@ -321,6 +325,7 @@ class DNS():
 
 @implementer(schemas.ILBApplication)
 class LBApplication(Resource, dict):
+    title = "LBApplication"
     target_groups = FieldProperty(schemas.ILBApplication['target_groups'])
     listeners = FieldProperty(schemas.ILBApplication['listeners'])
     dns = FieldProperty(schemas.ILBApplication['dns'])
@@ -368,6 +373,7 @@ class Lambda(Resource, Monitorable):
     """
     Lambda Function resource
     """
+    title ="Lambda"
     description = FieldProperty(schemas.ILambda['description'])
     code = FieldProperty(schemas.ILambda['code'])
     environment = FieldProperty(schemas.ILambda['environment'])
@@ -392,6 +398,7 @@ class SNSTopicSubscription():
 
 @implementer(schemas.ISNSTopic)
 class SNSTopic(Resource):
+    title = "SNSTopic"
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
 
@@ -466,6 +473,7 @@ class CloudFrontFactory(Named):
 
 @implementer(schemas.ICloudFront)
 class CloudFront(Resource, Deployable):
+    title = "CloudFront"
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
     default_cache_behavior = FieldProperty(schemas.ICloudFront['default_cache_behavior'])
     viewer_certificate = FieldProperty(schemas.ICloudFront['viewer_certificate'])
@@ -507,6 +515,7 @@ class RDS():
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDS, Resource):
+    title = "RDS Mysql"
     multi_az = FieldProperty(schemas.IRDSMysql['multi_az'])
 
     def __init__(self, name, parent):
@@ -524,6 +533,7 @@ class RDSAurora(RDS, Resource):
 
 @implementer(schemas.IElastiCache)
 class ElastiCache():
+    title = "ElastiCache Redis"
     engine = FieldProperty(schemas.IElastiCache['engine'])
     engine_version = FieldProperty(schemas.IElastiCache['engine_version'])
     automatic_failover_enabled = FieldProperty(schemas.IElastiCache['automatic_failover_enabled'])

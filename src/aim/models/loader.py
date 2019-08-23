@@ -603,7 +603,7 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         return instantiate_notifications(value, read_file_path)
 
 
-def load_resources(res_groups, groups_config, config_folder, monitor_config=None, read_file_path=''):
+def load_resources(res_groups, groups_config, config_folder=None, monitor_config=None, read_file_path=''):
     """
     Loads resources for an Application
     """

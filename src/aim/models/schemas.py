@@ -1256,9 +1256,12 @@ class INATGateway(INamed, IDeployable, IMapping):
         description = ""
     )
     default_route_segments = schema.List(
-        title="Default Route Segments",
+        title = "Default Route Segments",
         description = "",
-        default=[]
+        default = [],
+        value_type = TextReference(
+            title = "Segment"
+        )
     )
 
 class IVPNGateway(IDeployable, IMapping):

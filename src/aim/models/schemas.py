@@ -4,7 +4,7 @@ from zope.interface.common.sequence import ISequence
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import vocabulary
-from aim.models.references import TextReference
+from aim.models.references import TextReference, FileReference
 import json
 import re
 import ipaddress
@@ -438,12 +438,6 @@ class IAccount(INamed):
 
 
 class ISecurityGroupRule(IName):
-
-    @invariant
-    def cidr_v4_or_v6(obj):
-        if obj.cidr_ip == '' and obj.cidr_ip_v6 == '' and not getattr(obj, 'source_security_group', None):
-            raise Invalid("cidr_ip, cidr_ip_v6 and source_security_group can not all be blank")
-
     cidr_ip = schema.TextLine(
         title = "CIDR IP",
         default = "",
@@ -2040,6 +2034,18 @@ class ILambda(IResource, IMonitorable):
 
 class IApiGatewayRestApi(IResource):
     "An Api Gateway Rest API resource"
+    @invariant
+    def is_valid_body_location(obj):
+        "Validate that body or body_file_location or body_s3_location is set but only one."
+        count = 0
+        if obj.body: count += 1
+        if obj.body_file_location: count += 1
+        if obj.body_s3_location: count += 1
+        if count == 0:
+            raise Invalid("body, body_file_location and body_s3_location can not all be blank.")
+        if count > 1:
+            raise Invalid("Only one of body, body_file_location or body_s3_location can be set.")
+
     api_key_source_type = schema.TextLine(
         title = "API Key Source Type",
         description = "Must be one of 'HEADER' to read the API key from the X-API-Key header of a request or 'AUTHORIZER' to read the API key from the UsageIdentifierKey from a Lambda authorizer.",
@@ -2056,11 +2062,15 @@ class IApiGatewayRestApi(IResource):
     )
     body = schema.Text(
         title = "Body. An OpenAPI specification that defines a set of RESTful APIs in JSON or YAML format. For YAML templates, you can also provide the specification in YAML format.",
-        description = "Must be valid JSON or YAML"
+        description = "Must be valid JSON."
+    )
+    body_file_location = FileReference(
+        title = "Path to a file containing the Body.",
+        description = "Must be valid path to a valid JSON document."
     )
     body_s3_location = schema.TextLine(
         title = "The Amazon Simple Storage Service (Amazon S3) location that points to an OpenAPI file, which defines a set of RESTful APIs in JSON or YAML format.",
-        description = "Valid S3Location string"
+        description = "Valid S3Location string to a valid JSON or YAML document."
     )
     clone_from = schema.TextLine(
         title = "CloneFrom. The ID of the RestApi resource that you want to clone."

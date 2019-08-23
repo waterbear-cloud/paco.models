@@ -22,6 +22,7 @@ class ApiGatewayRestApi(Resource):
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
     binary_media_types = FieldProperty(schemas.IApiGatewayRestApi['binary_media_types'])
     body = FieldProperty(schemas.IApiGatewayRestApi['body'])
+    body_file_location = FieldProperty(schemas.IApiGatewayRestApi['body_file_location'])
     body_s3_location = FieldProperty(schemas.IApiGatewayRestApi['body_s3_location'])
     clone_from = FieldProperty(schemas.IApiGatewayRestApi['clone_from'])
     description = FieldProperty(schemas.IApiGatewayRestApi['description'])

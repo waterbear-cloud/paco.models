@@ -33,6 +33,19 @@ def is_ref(aim_ref):
             return True
     return False
 
+class FileReference(zope.schema.Text):
+    """Path to a file on the filesystem"""
+
+    def constraint(self, value):
+        """
+        Validate that the path resolves to a file on the filesystem
+        """
+        return True
+        # ToDo: how to get the AIM HOME and change to that directory from here?
+        #path = pathlib.Path(value)
+        #return path.exists()
+
+
 class TextReference(zope.schema.Text):
 
     def __init__(self, *args, **kwargs):

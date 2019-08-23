@@ -341,7 +341,6 @@ def interface_seen(seen, iface):
 
 def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_name):
     "Return a value that can be used in a troposphere Properties dict"
-    #if key == 'Description': breakpoint()
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         if field_name in fields:
@@ -605,6 +604,9 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
                 )
             obj = klass(res_key, res_groups[grp_key].resources)
             apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
+            # invariants need to be validated if they are not explicitly part of a schema.Object() field
+            for interface in most_specialized_interfaces(obj):
+                interface.validateInvariants(obj)
             res_groups[grp_key].resources[res_key] = obj
 
 def instantiate_notifications(value, read_file_path):

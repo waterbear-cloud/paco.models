@@ -58,7 +58,6 @@ class TestAimDemo(BaseTestModelLoader):
     def test_ne_vpc(self):
         vpc = self.project['netenv']['aimdemo'].vpc
         assert vpc.enable_dns_support == True
-        assert vpc.nat_gateway['app'].segment == 'public'
         assert vpc.vpn_gateway['app'].enabled == False
         assert vpc.private_hosted_zone.name == 'example.internal'
         assert vpc.segments['database'].enabled == True
@@ -271,4 +270,4 @@ class TestAimDemo(BaseTestModelLoader):
     def test_api_gateway_rest_api(self):
         demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
-        assert len(api_gra.body) > 1
+        assert len(api_gra.body_file_location) > 1

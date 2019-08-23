@@ -216,7 +216,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         #
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
-        obj = project['ne'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
+        obj = project['netenv'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
         return get_resolve_ref_obj(obj, ref, 4)
 
 

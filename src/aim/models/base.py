@@ -23,7 +23,6 @@ def get_all_fields(obj):
         fields.update(zope.schema.getFields(interface))
     return fields
 
-
 @implementer(schemas.INamed)
 class Named():
     """
@@ -50,6 +49,24 @@ class Named():
         if len(self.title) > 0:
             return self.title
         return self.name
+
+    @property
+    def aim_ref_parts(self):
+        obj = self
+        parts = []
+        parent = obj.__parent__
+        while parent != None:
+            parts.append(obj.name)
+            obj = parent
+
+            parent = obj.__parent__
+        parts.reverse()
+        return '.'.join(parts)
+
+    @property
+    def aim_ref(self):
+        return 'aim.ref ' + self.aim_ref_parts
+
 
 @implementer(schemas.IName)
 class Name():

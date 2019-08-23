@@ -125,6 +125,11 @@ class ResourceGroups(Named, dict):
 
 @implementer(schemas.IResourceGroup)
 class ResourceGroup(Named, dict):
+    resources = FieldProperty(schemas.IResourceGroup['resources'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.resources = Resources('resources', self)
 
     def resources_ordered(self):
         "Returns a list of a group's resources sorted by 'order'"

@@ -341,6 +341,7 @@ class INamed(Interface):
     A locatable resource
     """
     __parent__ = Attribute("Object reference to the parent in the object hierarchy")
+
     name = schema.TextLine(
         title="Name",
         default=""
@@ -485,7 +486,7 @@ class IIngressRule(ISecurityGroupRule):
 class IEgressRule(ISecurityGroupRule):
     "Security group egress"
 
-class ISecurityGroup(Interface):
+class ISecurityGroup(INamed):
     """
     AWS Resource: Security Group
     """
@@ -585,7 +586,7 @@ class IResourceGroup(INamed, IMapping):
         min = 1,  # 0 is loading ad NoneType
         required = True
     )
-    resources = schema.Object(schema=IResources)
+    resources = schema.Object(IResources)
 
 
 class IResourceGroups(INamed, IMapping):
@@ -1242,7 +1243,7 @@ class IInternetGateway(IDeployable):
     AWS Resource: IGW
     """
 
-class INATGateway(IDeployable, IMapping):
+class INATGateway(INamed, IDeployable, IMapping):
     """
     AWS Resource: NAT Gateway
     """
@@ -1250,10 +1251,9 @@ class INATGateway(IDeployable, IMapping):
         title="Availability Zone",
         description = "",
     )
-    segment = schema.TextLine(
+    segment = TextReference(
         title="Segment",
-        description = "",
-        default="public"
+        description = ""
     )
     default_route_segments = schema.List(
         title="Default Route Segments",
@@ -1356,7 +1356,7 @@ class IVPCPeering(INamed, IDeployable):
     )
 
 
-class IVPC(Interface):
+class IVPC(INamed):
     """
     AWS Resource: VPC
     """

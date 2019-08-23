@@ -2,13 +2,25 @@
 References
 """
 
-import re
+import re, os, pathlib
 import zope.schema
-from aim.models.exceptions import InvalidAimReference
 from aim.models import vocabulary
+from aim.models.exceptions import InvalidAimReference
+import ruamel.yaml
+from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
+
+class YAML(ruamel.yaml.YAML):
+    def dump(self, data, stream=None, **kw):
+        dumps = False
+        if stream is None:
+            dumps = True
+            stream = StringIO()
+        ruamel.yaml.YAML.dump(self, data, stream, **kw)
+        if dumps:
+            return stream.getvalue()
 
 def is_ref(aim_ref):
     """Determines if the string value is an AIM Reference"""
@@ -147,10 +159,40 @@ def get_resolve_ref_obj(obj, ref, part_idx_start):
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
     return response
 
+def resolve_ref_outputs(ref, project_folder):
+    key = ref.parts[0]
+    outputs_path = pathlib.Path(
+            os.path.join(
+                project_folder,
+                'Outputs',
+                key+'.yaml'
+            ))
+    if outputs_path.exists() == False:
+        return None
+
+    yaml = YAML(typ="safe", pure=True)
+    yaml.default_flow_sytle = False
+    with open(outputs_path, "r") as output_fd:
+        outputs_dict = yaml.load(output_fd)
+
+    for part in ref.parts:
+        if part not in outputs_dict.keys():
+            break
+        node = outputs_dict[part]
+        outputs_dict = node
+        if len(list(node.keys())) == 1 and '__name__' in node.keys():
+            return node['__name__']
+
+    return None
+
 def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     """Resolve a reference"""
     if ref == None:
         ref = Reference(ref_str)
+    if 'home' in project.keys():
+        outputs_value = resolve_ref_outputs(ref, project['home'])
+    if outputs_value != None:
+        return outputs_value
     if ref.type == "resource":
         if ref.parts[1] == 's3':
             return get_resolve_ref_obj(project['s3'], ref, part_idx_start=2)
@@ -174,7 +216,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         #
         # first two parts are transposed - flip them around before resolving
         #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
-        obj = project['ne'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
+        obj = project['netenv'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
         return get_resolve_ref_obj(obj, ref, 4)
 
 

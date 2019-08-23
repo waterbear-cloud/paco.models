@@ -410,6 +410,8 @@ Unneeded field '{}' in config for object type '{}'
                         # resources are loaded later based on type
                         if schemas.IApplication.providedBy(obj) and name == 'groups':
                             continue
+                        if schemas.IResourceGroup.providedBy(obj) and name == 'resources':
+                            continue
                         try:
                             if type(obj) in SUB_TYPES_CLASS_MAP:
                                 if name in SUB_TYPES_CLASS_MAP[type(obj)]:
@@ -443,7 +445,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         sub_dict = {}
         for sub_key, sub_value in value.items():
             if schemas.INamed.implementedBy(sub_class):
-                sub_obj = sub_class(name, obj)
+                sub_obj = sub_class(sub_key, obj)
             else:
                 sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
@@ -601,7 +603,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
     {}
     """.format(read_file_path, res_config['type'], res_key, res_config)
                 )
-            obj = klass(res_key, resource_group)
+            obj = klass(res_key, res_groups[grp_key].resources)
             apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
             res_groups[grp_key].resources[res_key] = obj
 
@@ -754,7 +756,7 @@ class ModelLoader():
                 env_name = info.split('-')[1]
                 region = info[len(ne_name) + len(env_name) + 2:]
 
-                env_reg = self.project['ne'][ne_name][env_name][region]
+                env_reg = self.project['netenv'][ne_name][env_name][region]
                 reg_config = self.read_yaml(ne_outputs_path, rfile)
 
                 if 'applications' in reg_config:
@@ -943,6 +945,7 @@ class ModelLoader():
     def instantiate_project(self, name, config):
         if name == 'project':
             self.project = Project(config['name'], None)
+            self.project['home'] = self.config_folder
             apply_attributes_from_config(self.project, config, read_file_path=self.read_file_path)
         elif name == '.credentials':
             apply_attributes_from_config(self.project['credentials'], config, read_file_path=self.read_file_path)
@@ -1170,7 +1173,7 @@ class ModelLoader():
         if config['network'] == None:
             return
         net_env = self.create_apply_and_save(
-            name, self.project['ne'], NetworkEnvironment, config['network']
+            name, self.project['netenv'], NetworkEnvironment, config['network']
         )
 
         # Environments

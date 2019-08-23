@@ -138,7 +138,7 @@ class VPCPeering(Named, Deployable):
     network_environment  = FieldProperty(schemas.IVPCPeering["network_environment"])
 
 @implementer(schemas.IVPC)
-class VPC():
+class VPC(Named):
     "VPC"
     cidr = FieldProperty(schemas.IVPC["cidr"])
     enable_dns_hostnames = FieldProperty(schemas.IVPC["enable_dns_hostnames"])
@@ -161,7 +161,7 @@ class InternetGateway(Deployable):
     pass
 
 @implementer(schemas.INATGateway)
-class NATGateway(Deployable, dict):
+class NATGateway(Named, Deployable, dict):
     availability_zone = FieldProperty(schemas.INATGateway["availability_zone"])
     segment = FieldProperty(schemas.INATGateway["segment"])
     default_route_segments = FieldProperty(schemas.INATGateway["default_route_segments"])

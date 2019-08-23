@@ -42,21 +42,21 @@ class TestAimDemo(BaseTestModelLoader):
         assert self.project.title.startswith('Waterbear Networks')
 
     def test_network_environment(self):
-        ne = self.project['ne']['aimdemo']
+        ne = self.project['netenv']['aimdemo']
         assert ne.availability_zones == 2
 
     def test_environment_state(self):
-        dev_alb_domain = self.project['ne']['aimdemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['alb'].dns[0].domain_name
-        dev_cert_domain = self.project['ne']['aimdemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['cert'].domain_name
+        dev_alb_domain = self.project['netenv']['aimdemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['alb'].dns[0].domain_name
+        dev_cert_domain = self.project['netenv']['aimdemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['cert'].domain_name
         assert dev_alb_domain == "dev.aimdemo.waterbear.cloud"
         assert dev_cert_domain == "dev.aimdemo.waterbear.cloud"
 
     def test_cpbd(self):
-        cpbd = self.project['ne']['aimdemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
+        cpbd = self.project['netenv']['aimdemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
         assert cpbd.asg != None
 
     def test_ne_vpc(self):
-        vpc = self.project['ne']['aimdemo'].vpc
+        vpc = self.project['netenv']['aimdemo'].vpc
         assert vpc.enable_dns_support == True
         assert vpc.nat_gateway['app'].segment == 'public'
         assert vpc.vpn_gateway['app'].enabled == False
@@ -68,7 +68,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert lb_sg.egress[0].name == 'ANY'
 
     def test_env_network_merged(self):
-        demo_env = self.project['ne']['aimdemo']['demo']
+        demo_env = self.project['netenv']['aimdemo']['demo']
         assert demo_env['us-west-2'].network.availability_zones == 2
         assert isinstance( demo_env['us-west-2']['network'].vpc, aim.models.networks.VPC)
         assert demo_env['default'].network.vpc.cidr == '10.0.0.0/16'
@@ -78,7 +78,7 @@ class TestAimDemo(BaseTestModelLoader):
 
     def test_asg_iam_roles(self):
         pass
-        #iam_role = self.project['ne']['aimdemo']['demo']['us-west-2'].applications['app'].groups['site'].resources['webapp'].instance_iam_role
+        #iam_role = self.project['netenv']['aimdemo']['demo']['us-west-2'].applications['app'].groups['site'].resources['webapp'].instance_iam_role
         #assert iam_role.assume_role_policy.effect == "Allow"
         #assert iam_role.assume_role_policy.service[0] == 'ec2.amazonaws.com'
         #assert iam_role.instance_profile == True
@@ -89,7 +89,7 @@ class TestAimDemo(BaseTestModelLoader):
         #assert iam_role.policies[0].statement[0].resource[0] == "*"
 
     def test_netenv_refs(self):
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         # Basic aim.ref netenv
         ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg
         assert ref_value == "aim.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
@@ -116,7 +116,7 @@ class TestAimDemo(BaseTestModelLoader):
                 seen[node_id] = node
 
     def test_env_override(self):
-        dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
+        dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         assert bastion.desired_capacity == 0
         #bastion = dev_env['applications']['app']['groups']['bastion']['resources']['bastion']
@@ -124,9 +124,9 @@ class TestAimDemo(BaseTestModelLoader):
         #assert bastion['desired_capacity'] == 0
 
     def test_alarms(self):
-        dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
+        dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']
         dev_bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         demo_bastion = demo_env['applications']['app'].groups['bastion'].resources['instance']
         demo_webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
 
@@ -142,7 +142,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert demo_webapp.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].evaluation_periods == 15
 
     def test_cloudwatch_logging(self):
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         demo_webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
         linux_log_set = demo_webapp.monitoring.log_sets['amazon_linux']
 
@@ -170,13 +170,13 @@ class TestAimDemo(BaseTestModelLoader):
         assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'aim.ref accounts.dev'
 
     def test_resource_account(self):
-        dev_env = self.project['ne']['aimdemo']['dev']['us-west-2']
+        dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         account = bastion.get_account()
         assert account.name, 'dev'
 
     def test_notifications(self):
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         demo_app = demo_env['applications']['app']
 
         # notifications for applications
@@ -203,7 +203,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert alarm_with_notif.notifications['singlealarm']
 
     def test_alarm_notifications(self):
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
 
         alarm_set = webapp.monitoring.alarm_sets['instance-health-cwagent']
@@ -249,7 +249,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert bob.subscriptions[7].endpoint, 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
 
     def test_lambda(self):
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         lmbda = demo_env['applications']['notification'].groups['lambda'].resources['function']
         assert schemas.ILambda.providedBy(lmbda)
         assert lmbda.handler, 'notification.lambda_handler'
@@ -269,6 +269,6 @@ class TestAimDemo(BaseTestModelLoader):
         assert trail.enable_log_file_validation == True
 
     def test_api_gateway_rest_api(self):
-        demo_env = self.project['ne']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
         assert len(api_gra.body) > 1

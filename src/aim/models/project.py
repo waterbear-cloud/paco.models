@@ -20,11 +20,11 @@ class Project(Named, dict):
         self.__setitem__('credentials', self.credentials)
 
         self.network_environments = aim.models.networks.NetworkEnvironments(
-            name='ne',
+            name='netenv',
             __parent__=self
         )
         self.network_environments.title = 'Network Environments'
-        self.__setitem__('ne', self.network_environments)
+        self.__setitem__('netenv', self.network_environments)
 
         self.accounts = aim.models.accounts.Accounts('accounts', self)
         self.accounts.title = 'Cloud Accounts'
@@ -37,7 +37,7 @@ class Project(Named, dict):
     def find_object_from_cli(self, controller_type, component_name=None, config_name=None):
         found = None
         CONTROLLER_MAPPING = {
-            'NetEnv' : 'ne'
+            'NetEnv' : 'netenv'
         }
         found = self[CONTROLLER_MAPPING[controller_type]]
         if component_name:
@@ -51,7 +51,7 @@ class Project(Named, dict):
         Return a list of all applications in the model
         """
         results = []
-        for ne in self['ne'].values():
+        for ne in self['netenv'].values():
             for env in ne.values():
                 for env_reg in env.env_regions.values():
                     for application in env_reg['applications'].values():

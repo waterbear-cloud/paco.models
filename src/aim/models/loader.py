@@ -398,7 +398,16 @@ Unneeded field '{}' in config for object type '{}'
             if name != 'name' or not schemas.INamed.providedBy(obj):
                 # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
                 if type(field) == type(FileReference()):
-                    value = load_string_from_path(config.get(name, None), base_path=config_folder)
+                    if read_file_path:
+                        # set it to the containing directory of the file
+                        path = Path(read_file_path)
+                        base_path = os.sep.join(path.parts[:-1])[1:]
+                    else:
+                        base_path = None
+                    value = load_string_from_path(
+                        config.get(name, None),
+                        base_path=base_path,
+                    )
                 else:
                     value = config.get(name, None)
                 if value != None:

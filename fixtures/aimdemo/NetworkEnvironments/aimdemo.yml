@@ -257,7 +257,7 @@ applications:
             type: ApiGatewayRestApi
             order: 1
             enabled: true
-            body_file_location: 'NetworkEnvironments/swagger/pet-store.json'
+            body_file_location: 'swagger/pet-store.json'
 
       bastion:
         type: Bastion
@@ -367,7 +367,7 @@ environments:
             restapi:
               resources:
                 api_gateway_rest_api:
-                  body_file_location: 'NetworkEnvironments/swagger/dev-pet-store.json'
+                  body_file_location: 'swagger/dev-pet-store.json'
             cicd:
               resources:
                 cpbd:

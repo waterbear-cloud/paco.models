@@ -1,11 +1,20 @@
 Changelog for aim.models
 =================
 
-4.0.1 (unreleased)
+5.0.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- New field `aim.models.reference.FileReference` which resolves the path and replaces
+  the original value with the value of the file indicated by the path.
+  IApiGatewayRestApi.body_file_location uses this new field.
+
+### Fixed
+
+ - Invariants were not being check for resources. Invariants need to be checked by the
+   loader if they are not contained in a `zope.schema.Object` field, which will run the
+   check behind the scenes.
 
 4.0.0 (2019-08-21)
 ------------------

@@ -33,10 +33,11 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields
 from aim.models.accounts import Account, AdminIAMUser
-from aim.models.references import Reference, TextReference
+from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
 from aim.models import schemas
+from pathlib import Path
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
 
@@ -242,6 +243,19 @@ SUB_TYPES_CLASS_MAP = {
 }
 
 
+def load_string_from_path(path, base_path=None):
+    if not base_path.endswith(os.sep):
+        base_path += os.sep
+    if base_path:
+        path = base_path + path
+    path = Path(path)
+    if path.is_file():
+        fh = path.open()
+        return fh.readlines()
+    else:
+        # ToDo: better error help
+        raise InvalidAimProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
+
 def merge(base, override):
     """
     Merge two dictionaries of arbitray depth
@@ -355,7 +369,7 @@ def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_
                     return ''
                 return getattr(obj, field_name)
 
-def apply_attributes_from_config(obj, config, lookup_config=None, read_file_path=''):
+def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=None, read_file_path=''):
     """
     Iterates through the field an object's schema has
     and applies the values from configuration.
@@ -382,7 +396,11 @@ Unneeded field '{}' in config for object type '{}'
             # These objects implement the INamed interface.
             # Do not try to find their 'name' attr from the config.
             if name != 'name' or not schemas.INamed.providedBy(obj):
-                value = config.get(name, None)
+                # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
+                if type(field) == type(FileReference()):
+                    value = load_string_from_path(config.get(name, None), base_path=config_folder)
+                else:
+                    value = config.get(name, None)
                 if value != None:
                     # YAML loads "1" as an Int, cast to a Float where expected by the schema
                     if zope.schema.interfaces.IFloat.providedBy(field):
@@ -414,7 +432,14 @@ Unneeded field '{}' in config for object type '{}'
                         try:
                             if type(obj) in SUB_TYPES_CLASS_MAP:
                                 if name in SUB_TYPES_CLASS_MAP[type(obj)]:
-                                    value = sub_types_loader(obj, name, value, lookup_config, read_file_path)
+                                    value = sub_types_loader(
+                                        obj,
+                                        name,
+                                        value,
+                                        config_folder,
+                                        lookup_config,
+                                        read_file_path
+                                    )
                                     setattr(obj, name, value)
                                 else:
                                     setattr(obj, name, copy.deepcopy(value))
@@ -434,7 +459,7 @@ Reason: {}
 Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, field_context_name, exc.__doc__, exc)
                             )
 
-def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
+def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, read_file_path=''):
     """
     Load sub types
     """
@@ -447,13 +472,13 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
                 sub_obj = sub_class(sub_key, obj)
             else:
                 sub_obj = sub_class()
-            apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
+            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
             sub_dict[sub_key] = sub_obj
         return sub_dict
 
     elif sub_type == 'obj':
         sub_obj = sub_class(name, obj)
-        apply_attributes_from_config(sub_obj, value)
+        apply_attributes_from_config(sub_obj, value, config_folder)
         return sub_obj
 
     elif sub_type == 'container':
@@ -462,7 +487,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         container = container_class(name, obj)
         for sub_key, sub_value in value.items():
             sub_obj = object_class(sub_key, container)
-            apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
+            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
             container[sub_key] = sub_obj
         return container
 
@@ -486,7 +511,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
                     container[first_key].notifications = notifications
                 else:
                     second_obj = second_object_class(second_key, container[first_key])
-                    apply_attributes_from_config(second_obj, second_value, lookup_config, read_file_path)
+                    apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
                     container[first_key][second_key] = second_obj
         return container
 
@@ -496,7 +521,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             sub_dict[first_key]  = {}
             for sub_key, sub_value in first_value.items():
                 sub_obj = sub_class()
-                apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
+                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
                 sub_dict[first_key][sub_key] = sub_obj
         return sub_dict
 
@@ -505,7 +530,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             sub_obj = sub_class(name, obj)
         else:
             sub_obj = sub_class()
-        apply_attributes_from_config(sub_obj, value, lookup_config, read_file_path)
+        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
         return sub_obj
 
     elif sub_type == 'obj_list':
@@ -515,7 +540,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
                 sub_obj = sub_class(name, obj)
             else:
                 sub_obj = sub_class()
-            apply_attributes_from_config(sub_obj, sub_value, lookup_config, read_file_path)
+            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
             sub_list.append(sub_obj)
         return sub_list
 
@@ -533,7 +558,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         log_sets = CloudWatchLogSets('log_sets', obj)
         for log_set_name in merged_config.keys():
             log_set = CloudWatchLogSet(log_set_name, log_sets)
-            apply_attributes_from_config(log_set, merged_config[log_set_name])
+            apply_attributes_from_config(log_set, merged_config[log_set_name], config_folder)
             log_sets[log_set_name] = log_set
         return log_sets
 
@@ -547,7 +572,7 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
             alarm_set.resource_type = resource_type
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
                 alarm = CloudWatchAlarm(alarm_name, alarm_set)
-                apply_attributes_from_config(alarm, alarm_config, read_file_path=read_file_path)
+                apply_attributes_from_config(alarm, alarm_config, config_folder, read_file_path=read_file_path)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
 
@@ -578,13 +603,13 @@ def sub_types_loader(obj, name, value, lookup_config=None, read_file_path=''):
         return instantiate_notifications(value, read_file_path)
 
 
-def load_resources(res_groups, groups_config, monitor_config=None, read_file_path=''):
+def load_resources(res_groups, groups_config, config_folder, monitor_config=None, read_file_path=''):
     """
     Loads resources for an Application
     """
     for grp_key, grp_config in groups_config.items():
         resource_group = ResourceGroup(grp_key, res_groups)
-        apply_attributes_from_config(resource_group, grp_config, read_file_path=read_file_path)
+        apply_attributes_from_config(resource_group, grp_config, config_folder, read_file_path=read_file_path)
         res_groups[grp_key] = resource_group
         for res_key, res_config in grp_config['resources'].items():
             try:
@@ -603,7 +628,7 @@ def load_resources(res_groups, groups_config, monitor_config=None, read_file_pat
     """.format(read_file_path, res_config['type'], res_key, res_config)
                 )
             obj = klass(res_key, res_groups[grp_key].resources)
-            apply_attributes_from_config(obj, res_config, lookup_config=monitor_config, read_file_path=read_file_path)
+            apply_attributes_from_config(obj, res_config, config_folder, lookup_config=monitor_config, read_file_path=read_file_path)
             # invariants need to be validated if they are not explicitly part of a schema.Object() field
             for interface in most_specialized_interfaces(obj):
                 interface.validateInvariants(obj)
@@ -809,7 +834,7 @@ class ModelLoader():
 
         for grp_key, grp_config in merged_config['groups'].items():
             obj = ResourceGroup(grp_key, res_groups)
-            apply_attributes_from_config(obj, grp_config, read_file_path=self.read_file_path)
+            apply_attributes_from_config(obj, grp_config, self.config_folder, read_file_path=self.read_file_path)
             res_groups[grp_key] = obj
             for res_key, res_config in grp_config['resources'].items():
                 try:
@@ -821,7 +846,7 @@ class ModelLoader():
                         "No mapping for type {} for {}".format(res_config['type'], res_key)
                     )
                 obj = klass(res_key, res_groups)
-                apply_attributes_from_config(obj, res_config, read_file_path=self.read_file_path)
+                apply_attributes_from_config(obj, res_config, self.config_folder, read_file_path=self.read_file_path)
                 res_groups[grp_key].resources[res_key] = obj
 
     def create_apply_and_save(self, name, parent, klass, config):
@@ -831,7 +856,7 @@ class ModelLoader():
         and save in the object hierarchy
         """
         obj = klass(name, parent)
-        apply_attributes_from_config(obj, config, read_file_path=self.read_file_path)
+        apply_attributes_from_config(obj, config, self.config_folder, read_file_path=self.read_file_path)
         parent[name] = obj
         return obj
 
@@ -948,9 +973,9 @@ class ModelLoader():
         if name == 'project':
             self.project = Project(config['name'], None)
             self.project['home'] = self.config_folder
-            apply_attributes_from_config(self.project, config, read_file_path=self.read_file_path)
+            apply_attributes_from_config(self.project, config, self.config_folder, read_file_path=self.read_file_path)
         elif name == '.credentials':
-            apply_attributes_from_config(self.project['credentials'], config, read_file_path=self.read_file_path)
+            apply_attributes_from_config(self.project['credentials'], config, self.config_folder, read_file_path=self.read_file_path)
 
     def instantiate_services(self):
         """
@@ -1061,13 +1086,13 @@ class ModelLoader():
     def instantiate_cloudtrail(self, config):
         obj = CloudTrailResource('cloudtrail', self.project)
         if config != None:
-            apply_attributes_from_config(obj, config)
+            apply_attributes_from_config(obj, config, self.config_folder)
         return obj
 
     def instantiate_route53(self, config):
         obj = Route53Resource(config)
         if config != None:
-            apply_attributes_from_config(obj, config)
+            apply_attributes_from_config(obj, config, self.config_folder)
         return obj
 
     def instantiate_codecommit(self, config):
@@ -1081,7 +1106,7 @@ class ModelLoader():
             for repo_id in group_config.keys():
                 repo_config = group_config[repo_id]
                 repo_obj = CodeCommitRepository(repo_config['repository_name'], codecommit_obj)
-                apply_attributes_from_config(repo_obj, repo_config)
+                apply_attributes_from_config(repo_obj, repo_config, self.config_folder)
                 codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
         codecommit_obj.gen_repo_by_account()
 
@@ -1095,7 +1120,7 @@ class ModelLoader():
         for keypair_id in config['keypairs'].keys():
             keypair_config = config['keypairs'][keypair_id]
             keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
-            apply_attributes_from_config(keypair_obj, keypair_config)
+            apply_attributes_from_config(keypair_obj, keypair_config, self.config_folder)
             ec2_obj.keypairs[keypair_id] = keypair_obj
         return ec2_obj
 
@@ -1107,7 +1132,7 @@ class ModelLoader():
         for bucket_id in config['buckets'].keys():
             bucket_config = config['buckets'][bucket_id]
             bucket_obj = S3Bucket(bucket_id, s3_obj)
-            apply_attributes_from_config(bucket_obj, bucket_config)
+            apply_attributes_from_config(bucket_obj, bucket_config, self.config_folder)
             s3_obj.buckets[bucket_id] = bucket_obj
         return s3_obj
 
@@ -1159,13 +1184,19 @@ class ModelLoader():
                         annotate_base_config(item, item_config, global_item_config[item_name])
 
                 env_region[config_name][item_name] = item # save
-                apply_attributes_from_config(item, item_config, read_file_path=self.read_file_path)
+                apply_attributes_from_config(item, item_config, self.config_folder, read_file_path=self.read_file_path)
 
                 if config_name == 'applications':
-                    # Load resources for application
+                    # Load resources for an application
                     if 'groups' not in item_config:
                         item_config['groups'] = {}
-                    load_resources(item.groups, item_config['groups'], self.monitor_config, self.read_file_path)
+                    load_resources(
+                        item.groups,
+                        item_config['groups'],
+                        self.config_folder,
+                        self.monitor_config,
+                        self.read_file_path
+                    )
                 elif config_name == 'iam':
                     self.load_iam_group(item.groups, item_config)
 
@@ -1238,7 +1269,7 @@ class ModelLoader():
                         )
                         if 'network' in env_reg_config:
                             net_config = merge(net_config, env_reg_config['network'])
-                    apply_attributes_from_config(network, net_config, read_file_path=self.read_file_path)
+                    apply_attributes_from_config(network, net_config, self.config_folder, read_file_path=self.read_file_path)
 
                     # Applications
                     self.instantiate_env_region_config(

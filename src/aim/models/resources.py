@@ -221,3 +221,41 @@ class CloudTrailResource(Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.trails = CloudTrails('trails', self)
+
+@implementer(schemas.IIAMUserProgrammaticAccess)
+class IAMUserProgrammaticAccess(Deployable):
+    access_key_1_of_2 = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_1_of_2'])
+    access_key_2_of_2 = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_2_of_2'])
+
+@implementer(schemas.IIAMUserPermission)
+class IAMUserPermission(Named, Deployable):
+    type = FieldProperty(schemas.IIAMUserPermission['type'])
+
+@implementer(schemas.IIAMUserPermissionCodeCommitRepository)
+class IAMUserPermissionCodeCommitRepository():
+    codecommit = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['codecommit'])
+    permission = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['permission'])
+    console_access_enabled = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['console_access_enabled'])
+    public_ssh_key = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['public_ssh_key'])
+
+@implementer(schemas.IIAMUserPermissionCodeCommit)
+class IAMUserPermissionCodeCommit(IAMUserPermission, IAMUserPermissionCodeCommitRepository):
+    repositories = FieldProperty(schemas.IIAMUserPermissionCodeCommit['repositories'])
+
+@implementer(schemas.IIAMUserPermissions)
+class IAMUserPermissions(Named, dict):
+    pass
+
+@implementer(schemas.IIAMUser)
+class IAMUser(Named):
+    account = FieldProperty(schemas.IIAMUser['account'])
+    username = FieldProperty(schemas.IIAMUser['username'])
+    description = FieldProperty(schemas.IIAMUser['description'])
+    console_access_enabled = FieldProperty(schemas.IIAMUser['console_access_enabled'])
+    programmatic_access = FieldProperty(schemas.IIAMUser['programmatic_access'])
+    permissions = FieldProperty(schemas.IIAMUser['permissions'])
+
+
+@implementer(schemas.IIAMResource)
+class IAMResource():
+    users = FieldProperty(schemas.IIAMResource['users'])

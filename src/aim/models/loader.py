@@ -29,7 +29,8 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     RDSMysql, ElastiCacheRedis
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail, \
-    ApiGatewayRestApi
+    ApiGatewayRestApi, IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
+    IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces
 from aim.models.accounts import Account, AdminIAMUser
@@ -59,6 +60,10 @@ class YAML(ruamel.yaml.YAML):
             return stream.getvalue()
 
 logger = get_logger()
+
+IAM_USER_PERMISSIONS_CLASS_MAP = {
+    'CodeCommit': IAMUserPermissionCodeCommit
+}
 
 RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
@@ -239,6 +244,16 @@ SUB_TYPES_CLASS_MAP = {
     },
     CodeCommitRepository: {
         'users': ('named_dict', CodeCommitUser)
+    },
+    IAMResource: {
+        'users': ('named_dict', IAMUser)
+    },
+    IAMUser: {
+        'programmatic_access': ('unnamed_dict', IAMUserProgrammaticAccess),
+        'permissions': ('iam_user_permissions', IAMUserPermissions)
+    },
+    IAMUserPermissionCodeCommit: {
+        'repositories': ('obj_list', IAMUserPermissionCodeCommitRepository)
     }
 }
 
@@ -571,6 +586,8 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
     elif sub_type == 'notifications':
         # Special loading for AlarmNotifications
         return instantiate_notifications(value, read_file_path)
+    elif sub_type == 'iam_user_permissions':
+        return instantiate_iam_user_permissions(value, obj, read_file_path)
 
 
 def load_resources(res_groups, groups_config, config_folder=None, monitor_config=None, read_file_path=''):
@@ -611,6 +628,16 @@ def instantiate_notifications(value, read_file_path):
         apply_attributes_from_config(notification, value[notification_name], read_file_path=read_file_path)
         notifications[notification_name] = notification
     return notifications
+
+def instantiate_iam_user_permissions(value, parent, read_file_path):
+    permissions = IAMUserPermissions('permissions', parent)
+    for permission_name in value.keys():
+        permission_config = value[permission_name]
+        permission_obj = IAM_USER_PERMISSIONS_CLASS_MAP[permission_config['type']](permission_name, permissions)
+        #breakpoint()
+        apply_attributes_from_config(permission_obj, permission_config, read_file_path=read_file_path)
+        permissions[permission_name] = permission_obj
+    return permissions
 
 class ModelLoader():
     """
@@ -1106,6 +1133,17 @@ class ModelLoader():
             s3_obj.buckets[bucket_id] = bucket_obj
         return s3_obj
 
+    def instantiate_iam(self, config):
+        iam_obj = IAMResource()
+        #for user_name in config['users']:
+        #    user_config = config['users'][user_name]
+        #    user_obj = IAMUser(user_name, iam_obj)
+        #    for access_name in user_config['permissions']:
+        #        perm_obj =
+
+        apply_attributes_from_config(iam_obj, config)
+        return iam_obj
+
     def instantiate_resources(self, name, config):
         if name == "Route53":
             self.project['route53'] = self.instantiate_route53(config)
@@ -1117,6 +1155,8 @@ class ModelLoader():
             self.project['s3'] = self.instantiate_s3(config)
         elif name == 'CloudTrail':
             self.project['cloudtrail'] = self.instantiate_cloudtrail(config)
+        elif name == 'IAM':
+            self.project['iam'] = self.instantiate_iam(config)
 
     def instantiate_env_region_config(
         self,

@@ -13,7 +13,7 @@ from zope.schema.fieldproperty import FieldProperty
 
 
 @implementer(schemas.IApplicationEngines)
-class ApplicationEngines(Named, dict):
+ases ApplicationEngines(Named, dict):
     pass
 
 @implementer(schemas.IApplicationEngine)

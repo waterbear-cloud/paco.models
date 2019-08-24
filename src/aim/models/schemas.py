@@ -333,6 +333,18 @@ def isRedisCacheParameterGroupFamilyValid(value):
     if value not in ('redis2.6', 'redis2.8', 'redis3.2', 'redis4.0', 'redis5.0'):
         raise InvalidRedisCacheParameterGroupFamily
     return True
+
+
+# IAM
+class InvalidAIMCodeCommitPermissionPolicy(schema.ValidationError):
+    __doc__ = 'permission must be one of: ReadWrite | ReadOnly'
+
+def isAIMCodeCommitPermissionPolicyValid(value):
+    if value not in ('ReadWrite', 'ReadOnly'):
+        raise InvalidAIMCodeCommitPermissionPolicy
+    return True
+
+# ----------------------------------------------------------------------------
 # Here be Schemas!
 #
 
@@ -2616,3 +2628,104 @@ class IElastiCacheRedis(IResource, IElastiCache):
     )
     #snapshot_retention_limit_days: 1
     #snapshot_window: 05:00-09:00
+
+class IIAMUserProgrammaticAccess(IDeployable):
+    """
+    IAM User Programmatic Access Configuration
+    """
+    access_key_1_of_2 = schema.TextLine(
+        title = 'Access key version id',
+        required = False
+    )
+    access_key_2_of_2 = schema.TextLine(
+        title = 'Access key version id',
+        required = False
+    )
+
+class IIAMUserPermission(INamed, IDeployable):
+    """
+    IAM User Access Definition
+    """
+    type = schema.TextLine(
+        title = "Type of IAM User Access",
+        description = "A valid AIM IAM user access type: Administrator, CodeCommit, etc."
+    )
+
+class IIAMUserPermissionCodeCommitRepository(Interface):
+    """
+    CodeCommit Repository IAM User Access Definition
+    """
+    codecommit = TextReference(
+        title = 'CodeCommit Repository Reference',
+        required = False
+    )
+    permission = schema.TextLine(
+        title = 'AIM Permission policy',
+        constraint = isAIMCodeCommitPermissionPolicyValid,
+        required = False
+    )
+    console_access_enabled = schema.Bool(
+        title = 'Console Access Boolean',
+        required = False
+    )
+    public_ssh_key = schema.TextLine(
+        title = "CodeCommit User Public SSH Key",
+        default = None,
+        required = False
+    )
+
+class IIAMUserPermissionCodeCommit(IIAMUserPermissionCodeCommitRepository):
+    """
+    CodeCommit IAM User Access Definition
+    """
+    repositories = schema.List(
+        title = 'List of repository permissions',
+        value_type = schema.Object(IIAMUserPermissionCodeCommitRepository)
+    )
+
+class IIAMUserPermissions(INamed, IMapping):
+    """
+    Group of IAM User Access Permissions
+    """
+    pass
+
+class IIAMUser(INamed):
+    """
+    IAM User
+    """
+    account = TextReference(
+        title = "AWS Account Reference",
+        required = True
+    )
+    username = schema.TextLine(
+        title = 'IAM Username'
+    )
+    description = schema.TextLine(
+        title = 'IAM User Description'
+    )
+    console_access_enabled = schema.Bool(
+        title = 'Console Access Boolean'
+    )
+    programmatic_access = schema.Object(
+        title = 'Programmatic Access',
+        schema = IIAMUserProgrammaticAccess
+    )
+    permissions = schema.Object(
+        title = 'AIM IAM User Permissions',
+        schema = IIAMUserPermissions
+    )
+    accounts = schema.List(
+        title = 'List of accounts to grant this user access to',
+        value_type = TextReference(
+            title = 'Account Reference'
+        )
+    )
+
+class IIAMResource(Interface):
+    """
+    IAM AWS Resource
+    """
+    users = schema.Dict(
+        title = 'IAM Users',
+        value_type = schema.Object(IIAMUser)
+    )

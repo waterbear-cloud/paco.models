@@ -698,6 +698,22 @@ class ICloudWatchAlarm(IAlarm):
     """
     A CloudWatch Alarm
     """
+    alarm_actions = schema.List(
+        title = "Alarm Actions",
+        readonly = True,
+        value_type = schema.TextLine(
+            title = "Alarm Action"
+        )
+    )
+    alarm_description = schema.Text(
+        title = "Alarm Description",
+        readonly = True,
+        description = "Valid JSON document with AIM fields."
+    )
+    actions_enabled = schema.Bool(
+        title = "Actions Enabled",
+        readonly = True,
+    )
     comparison_operator = schema.TextLine(
         title = "Comparison operator",
         constraint = isComparisonOperator,

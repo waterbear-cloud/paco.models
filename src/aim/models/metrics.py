@@ -1,6 +1,7 @@
 import aim.models.exceptions
 import aim.models.services
 import json
+import troposphere.cloudwatch
 from aim.models import schemas, vocabulary
 from aim.models.base import Deployable, Named, Name, Resource, ServiceAccountRegion
 from aim.models.formatter import get_formatted_model_context
@@ -86,11 +87,15 @@ class Alarm(Named):
 
         return [key for key in groups.keys()]
 
-    def get_alarm_actions(self, notificationgroups):
+    def get_alarm_actions(self, notificationgroups=None):
         """Return a list of SNS Topic alarm actions.
         This will by default be a list of SNS Topics that the alarm is subscribed to.
         However, if a plugin is registered, it will provide the actions instead.
         """
+        if not notificationgroups:
+            project = get_parent_by_interface(self, schemas.IProject)
+            notificationgroups = project['notificationgroups']
+
         # if a service plugin provides override_alarm_actions, call that instead
         service_plugins = aim.models.services.list_service_plugins()
 
@@ -119,7 +124,7 @@ class Alarm(Named):
 
         return notification_arns
 
-    def get_alarm_description(self, topic_arns):
+    def get_alarm_description(self, topic_arns=None):
         """Create an Alarm Description in JSON format with AIM Alarm information"""
         netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
         env = get_parent_by_interface(self, schemas.IEnvironment)
@@ -127,6 +132,9 @@ class Alarm(Named):
         app = get_parent_by_interface(self, schemas.IApplication)
         group = get_parent_by_interface(self, schemas.IResourceGroup)
         resource = get_parent_by_interface(self, schemas.IResource)
+
+        if not topic_arns:
+            topic_arns = self.get_alarm_actions()
 
         # Base alarm info - used for standalone alarms not part of an application
         description = {
@@ -162,6 +170,21 @@ class Alarm(Named):
 
         return json.dumps(description)
 
+    @property
+    def alarm_description(self):
+        return self.get_alarm_description()
+
+    @property
+    def alarm_actions(self):
+        return self.get_alarm_actions()
+
+    @property
+    def actions_enabled(self):
+        if hasattr(self, 'alarm_actions'):
+            if len(self.alarm_actions) > 0:
+                return True
+        return None
+
 @implementer(schemas.IDimension)
 class Dimension():
     name = FieldProperty(schemas.IDimension["name"])
@@ -181,6 +204,36 @@ class CloudWatchAlarm(Alarm):
     treat_missing_data = FieldProperty(schemas.ICloudWatchAlarm["treat_missing_data"])
     extended_statistic = FieldProperty(schemas.ICloudWatchAlarm["extended_statistic"])
     evaluate_low_sample_count_percentile = FieldProperty(schemas.ICloudWatchAlarm["evaluate_low_sample_count_percentile"])
+    #alarm_actions = FieldProperty(schemas.ICloudWatchAlarm["alarm_actions"])
+    #alarm_description = FieldProperty(schemas.ICloudWatchAlarm["alarm_description"])
+    #actions_enabled = FieldProperty(schemas.ICloudWatchAlarm["actions_enabled"])
+
+    troposphere_props = troposphere.cloudwatch.Alarm.props
+    cfn_mapping = {
+        'AlarmName': 'name',
+        'AlarmDescription': 'alarm_description',
+        'AlarmActions': 'alarm_actions',
+        'ActionsEnabled': 'actions_enabled',
+        'ComparisonOperator': 'comparison_operator',
+        'EvaluateLowSampleCountPercentile': 'evaluate_low_sample_count_percentile',
+        'EvaluationPeriods': 'evaluation_periods',
+        'ExtendedStatistic': 'extended_statistic',
+        'MetricName': 'metric_name',
+        'Namespace': 'namespace',
+        'Period': 'period',
+        'Statistic': 'statistic',
+        'Threshold': 'threshold',
+        'TreatMissingData': 'treat_missing_data',
+    }
+    # Need to be supplied externally
+    # 'Dimensions': ([MetricDimension], False),
+    #
+    # Not yet implemented:
+    # 'OKActions': ([basestring], False),
+    # 'Unit': (basestring, False),
+    # 'InsufficientDataActions': ([basestring], False),
+    # 'DatapointsToAlarm': (positive_integer, False),
+    #  'Metrics': ([MetricDataQuery], False),
 
     def threshold_human(self):
         "Human readable threshold"

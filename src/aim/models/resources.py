@@ -50,11 +50,17 @@ class ApiGatewayRestApi(Resource):
 
     troposphere_props = troposphere.apigateway.RestApi.props
     cfn_mapping = {
+        "ApiKeySourceType": 'api_key_source_type',
+        "BinaryMediaTypes": 'binary_media_types',
+        "CloneFrom": 'clone_from',
         "Description": 'description',
         "Name": 'name',
         "Body": 'body',
         "FailOnWarnings": 'fail_on_warnings',
         "EndpointConfiguration": ("endpoint_configuration", "endpoint_configuration_cfn"),
+        "MinimumCompressionSize": 'minimum_compression_size',
+        "Parameters": 'parameters',
+        "Policy": 'policy',
     }
 
 @implementer(schemas.IEC2KeyPair)

@@ -52,17 +52,21 @@ def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_
         fields = zope.schema.getFields(interface)
         if mapping_field_name in fields:
             field = fields[mapping_field_name]
+            value = getattr(obj, mapping_attr_name)
             if zope.schema.interfaces.IBool.providedBy(field) and props[troposphere_name][0] == type(str()):
-                if getattr(obj, mapping_attr_name):
+                if value:
                     return 'true'
                 else:
                     return 'false'
             if isinstance(field, zope.schema.Text) and props[troposphere_name][0] == type(dict()):
-                return json.loads(getattr(obj, mapping_attr_name))
+                try:
+                    return json.loads(value)
+                except TypeError:
+                    return None
+            if value == {} or value == []:
+                return None
             else:
-                if isinstance(field, zope.schema.Text):
-                    return getattr(obj, mapping_attr_name, '')
-                return getattr(obj, mapping_attr_name)
+                return value
         else:
             raise InvalidCFNMapping
 
@@ -126,6 +130,20 @@ class Named():
     def aim_ref(self):
         return 'aim.ref ' + self.aim_ref_parts
 
+    @property
+    def cfn_export_dict(self):
+        "CloudFormation export dictionary suitable for use in troposphere templates"
+        result = {}
+        for key, value in self.cfn_mapping.items():
+            value = marshall_fieldname_to_troposphere_value(
+                self,
+                self.troposphere_props,
+                key,
+                value
+            )
+            if value != None:
+                result[key] = value
+        return result
 
 @implementer(schemas.IName)
 class Name():
@@ -196,19 +214,6 @@ class Resource(Named, Deployable, Regionalized):
         ref = Reference(env_reg.network.aws_account)
         account = project[ref.parts[0]][ref.parts[1]]
         return account
-
-    @property
-    def cfn_export_dict(self):
-        "CloudFormation export dictionary suitable for use in troposphere templates"
-        result = {}
-        for key, value in self.cfn_mapping.items():
-            result[key] = marshall_fieldname_to_troposphere_value(
-                self,
-                self.troposphere_props,
-                key,
-                value
-            )
-        return result
 
 @implementer(schemas.IServiceAccountRegion)
 class ServiceAccountRegion():

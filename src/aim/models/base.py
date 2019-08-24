@@ -1,11 +1,70 @@
 from aim.models import schemas
 from aim.models import vocabulary
+from aim.models.exceptions import InvalidCFNMapping
 from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
-import zope.schema
 from aim.models.references import Reference
+import json
+import troposphere
+import zope.schema
+import zope.schema.interfaces
 
+
+def interface_seen(seen, iface):
+    """Return True if interface already is seen.
+    """
+    for seen_iface in seen:
+        if seen_iface.extends(iface):
+            return True
+    return False
+
+def most_specialized_interfaces(context):
+    """Get interfaces for an object without any duplicates.
+
+    Interfaces in a declaration for an object may already have been seen
+    because it is also inherited by another interface.
+    """
+    declaration = zope.interface.providedBy(context)
+    seen = []
+    for iface in declaration.flattened():
+        if interface_seen(seen, iface):
+            continue
+        seen.append(iface)
+    return seen
+
+def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_name):
+    """
+    Return a value that can be used in a troposphere Properties dict.
+
+    If field_name is a tuple, the first item is the field_name in the schema and the
+    second item is the attribute (typically a @property) to return the modified value.
+    """
+
+    if type(field_name) == type(tuple()):
+        mapping_field_name = field_name[0]
+        mapping_attr_name = field_name[1]
+    else:
+        mapping_field_name = field_name
+        mapping_attr_name = field_name
+
+    for interface in most_specialized_interfaces(obj):
+        fields = zope.schema.getFields(interface)
+        if mapping_field_name in fields:
+            field = fields[mapping_field_name]
+            if zope.schema.interfaces.IBool.providedBy(field) and props[troposphere_name][0] == type(str()):
+                if getattr(obj, mapping_attr_name):
+                    return 'true'
+                else:
+                    return 'false'
+            if isinstance(field, zope.schema.Text) and props[troposphere_name][0] == type(dict()):
+                return json.loads(getattr(obj, mapping_attr_name))
+            else:
+                if isinstance(field, zope.schema.Text):
+                    return getattr(obj, mapping_attr_name, '')
+                return getattr(obj, mapping_attr_name)
+        else:
+            raise InvalidCFNMapping
 
 def get_all_fields(obj):
     """
@@ -138,6 +197,18 @@ class Resource(Named, Deployable, Regionalized):
         account = project[ref.parts[0]][ref.parts[1]]
         return account
 
+    @property
+    def cfn_export_dict(self):
+        "CloudFormation export dictionary suitable for use in troposphere templates"
+        result = {}
+        for key, value in self.cfn_mapping.items():
+            result[key] = marshall_fieldname_to_troposphere_value(
+                self,
+                self.troposphere_props,
+                key,
+                value
+            )
+        return result
 
 @implementer(schemas.IServiceAccountRegion)
 class ServiceAccountRegion():

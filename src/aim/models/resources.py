@@ -21,7 +21,6 @@ class ApiGatewayRestApi(Resource):
     title = "API Gateway REST API"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
     binary_media_types = FieldProperty(schemas.IApiGatewayRestApi['binary_media_types'])
-    body = FieldProperty(schemas.IApiGatewayRestApi['body'])
     body_file_location = FieldProperty(schemas.IApiGatewayRestApi['body_file_location'])
     body_s3_location = FieldProperty(schemas.IApiGatewayRestApi['body_s3_location'])
     clone_from = FieldProperty(schemas.IApiGatewayRestApi['clone_from'])
@@ -31,29 +30,32 @@ class ApiGatewayRestApi(Resource):
     minimum_compression_size = FieldProperty(schemas.IApiGatewayRestApi['minimum_compression_size'])
     parameters = FieldProperty(schemas.IApiGatewayRestApi['parameters'])
     policy = FieldProperty(schemas.IApiGatewayRestApi['policy'])
+    _body = None
 
+    @property
+    def body(self):
+        "Return populated string, either body or body_file_location"
+        if self.body_file_location:
+            return self.body_file_location
+        return self._body
+
+    @body.setter
+    def body(self, value):
+        self._body = value
+
+    @property
+    def endpoint_configuration_cfn(self):
+        "Warp list with a dict with a 'Types' key for CloudFormation"
+        return {'Types': self.endpoint_configuration }
+
+    troposphere_props = troposphere.apigateway.RestApi.props
     cfn_mapping = {
         "Description": 'description',
         "Name": 'name',
         "Body": 'body',
         "FailOnWarnings": 'fail_on_warnings',
+        "EndpointConfiguration": ("endpoint_configuration", "endpoint_configuration_cfn"),
     }
-
-    @property
-    def cfn_export_dict(self):
-        result = {}
-        for key, value in self.cfn_mapping.items():
-            if key == 'Body':
-                result[key] = json.loads(getattr(self, value))
-            else:
-                result[key] = loader.marshall_fieldname_to_troposphere_value(
-                    self,
-                    troposphere.apigateway.RestApi.props,
-                    key,
-                    value
-                )
-        return result
-
 
 @implementer(schemas.IEC2KeyPair)
 class EC2KeyPair(Named):

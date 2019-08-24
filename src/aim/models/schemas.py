@@ -2038,7 +2038,7 @@ class IApiGatewayRestApi(IResource):
     def is_valid_body_location(obj):
         "Validate that body or body_file_location or body_s3_location is set but only one."
         count = 0
-        if obj.body: count += 1
+        if obj._body: count += 1
         if obj.body_file_location: count += 1
         if obj.body_s3_location: count += 1
         if count == 0:

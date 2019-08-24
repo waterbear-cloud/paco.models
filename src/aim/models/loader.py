@@ -31,7 +31,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
     CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
-from aim.models.base import get_all_fields
+from aim.models.base import get_all_fields, most_specialized_interfaces
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
@@ -251,7 +251,7 @@ def load_string_from_path(path, base_path=None):
     path = Path(path)
     if path.is_file():
         fh = path.open()
-        return fh.readlines()
+        return fh.read()
     else:
         # ToDo: better error help
         raise InvalidAimProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
@@ -329,45 +329,6 @@ def add_metric(obj, metric):
         obj.monitoring = MonitorConfig('monitoring', obj)
     obj.monitoring.metrics.insert(0, metric)
 
-
-def most_specialized_interfaces(context):
-    """Get interfaces for an object without any duplicates.
-
-    Interfaces in a declaration for an object may already have been seen
-    because it is also inherited by another interface.
-    """
-    declaration = zope.interface.providedBy(context)
-    seen = []
-    for iface in declaration.flattened():
-        if interface_seen(seen, iface):
-            continue
-        seen.append(iface)
-    return seen
-
-
-def interface_seen(seen, iface):
-    """Return True if interface already is seen.
-    """
-    for seen_iface in seen:
-        if seen_iface.extends(iface):
-            return True
-    return False
-
-def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_name):
-    "Return a value that can be used in a troposphere Properties dict"
-    for interface in most_specialized_interfaces(obj):
-        fields = zope.schema.getFields(interface)
-        if field_name in fields:
-            field = fields[field_name]
-            if zope.schema.interfaces.IBool.providedBy(field) and props[troposphere_name][0] == type(str()):
-                if getattr(obj, field_name):
-                    return 'true'
-                else:
-                    return 'false'
-            else:
-                if zope.schema.interfaces.IFromUnicode.providedBy(field) and not getattr(obj, field_name):
-                    return ''
-                return getattr(obj, field_name)
 
 def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=None, read_file_path=''):
     """

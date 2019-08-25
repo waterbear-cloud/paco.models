@@ -190,6 +190,10 @@ class Dimension():
     name = FieldProperty(schemas.IDimension["name"])
     value = FieldProperty(schemas.IDimension["value"])
 
+    def __init__(self, name='', value=''):
+        self.name = name
+        self.value = value
+
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
     "CloudWatch Alarm"
@@ -204,9 +208,6 @@ class CloudWatchAlarm(Alarm):
     treat_missing_data = FieldProperty(schemas.ICloudWatchAlarm["treat_missing_data"])
     extended_statistic = FieldProperty(schemas.ICloudWatchAlarm["extended_statistic"])
     evaluate_low_sample_count_percentile = FieldProperty(schemas.ICloudWatchAlarm["evaluate_low_sample_count_percentile"])
-    #alarm_actions = FieldProperty(schemas.ICloudWatchAlarm["alarm_actions"])
-    #alarm_description = FieldProperty(schemas.ICloudWatchAlarm["alarm_description"])
-    #actions_enabled = FieldProperty(schemas.ICloudWatchAlarm["actions_enabled"])
 
     troposphere_props = troposphere.cloudwatch.Alarm.props
     cfn_mapping = {

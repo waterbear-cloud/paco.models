@@ -387,6 +387,12 @@ environments:
                   monitoring:
                     alarm_sets:
                       instance-health:
+                        HealthyHostCount-Critical:
+                          dimensions:
+                            - name: LoadBalancer
+                              value: aim.ref netenv.anet.applications.myapp.groups.site.resources.alb
+                            - name: TargetGroup
+                              value: aim.ref netenv.anet.applications.myapp.groups.site.resources.alb.target_groups.myapp
                       response-latency:
                       response-health:
                 webapp:

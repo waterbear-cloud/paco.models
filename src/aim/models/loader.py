@@ -586,6 +586,11 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
                                 read_file_path
                             )
                         else:
+                            if setting_name == 'dimensions':
+                                setting_value = [
+                                    Dimension(item['name'], item['value'])
+                                    for item in setting_value
+                                ]
                             setattr(alarm_sets[alarm_set_name][alarm_name], setting_name, setting_value)
 
         return alarm_sets

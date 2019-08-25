@@ -237,6 +237,11 @@ class IAMUserProgrammaticAccess(Deployable):
 class IAMUserPermission(Named, Deployable):
     type = FieldProperty(schemas.IIAMUserPermission['type'])
 
+
+@implementer(schemas.IIAMUserPermissionAdministrator)
+class IAMUserPermissionAdministrator(IAMUserPermission):
+    accounts = FieldProperty(schemas.IIAMUserPermissionAdministrator['accounts'])
+
 @implementer(schemas.IIAMUserPermissionCodeCommitRepository)
 class IAMUserPermissionCodeCommitRepository():
     codecommit = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['codecommit'])
@@ -260,6 +265,7 @@ class IAMUser(Named):
     console_access_enabled = FieldProperty(schemas.IIAMUser['console_access_enabled'])
     programmatic_access = FieldProperty(schemas.IIAMUser['programmatic_access'])
     permissions = FieldProperty(schemas.IIAMUser['permissions'])
+    account_whitelist = FieldProperty(schemas.IIAMUser['account_whitelist'])
 
 
 @implementer(schemas.IIAMResource)

@@ -30,7 +30,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
-    IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit
+    IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces
 from aim.models.accounts import Account, AdminIAMUser
@@ -62,7 +62,8 @@ class YAML(ruamel.yaml.YAML):
 logger = get_logger()
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
-    'CodeCommit': IAMUserPermissionCodeCommit
+    'CodeCommit': IAMUserPermissionCodeCommit,
+    'Administrator': IAMUserPermissionAdministrator
 }
 
 RESOURCES_CLASS_MAP = {
@@ -384,6 +385,12 @@ Unneeded field '{}' in config for object type '{}'
                         config.get(name, None),
                         base_path=base_path,
                     )
+                # CommaList: Parse comma separated list into python list()
+                elif type(field) == type(schemas.CommaList()):
+
+                    value = []
+                    for list_value in config[name].split(','):
+                        value.append(list_value.strip())
                 else:
                     value = config.get(name, None)
                 if value != None:

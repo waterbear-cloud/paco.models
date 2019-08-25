@@ -348,6 +348,18 @@ def isAIMCodeCommitPermissionPolicyValid(value):
 # Here be Schemas!
 #
 
+class CommaList(schema.List):
+    """Comma separated list of valeus"""
+
+    def constraint(self, value):
+        """
+        Validate something
+        """
+        return True
+        # ToDo: how to get the AIM HOME and change to that directory from here?
+        #path = pathlib.Path(value)
+        #return path.exists()
+
 class INamed(Interface):
     """
     A locatable resource
@@ -2660,16 +2672,24 @@ class IIAMUserProgrammaticAccess(IDeployable):
 
 class IIAMUserPermission(INamed, IDeployable):
     """
-    IAM User Access Definition
+    IAM User Permission
     """
     type = schema.TextLine(
         title = "Type of IAM User Access",
         description = "A valid AIM IAM user access type: Administrator, CodeCommit, etc."
     )
 
+class IIAMUserPermissionAdministrator(IIAMUserPermission):
+    """
+    Administrator IAM User Permission
+    """
+    accounts = CommaList(
+        title = 'Comma separated list of AIM AWS account names this user has access to'
+    )
+
 class IIAMUserPermissionCodeCommitRepository(Interface):
     """
-    CodeCommit Repository IAM User Access Definition
+    CodeCommit Repository IAM User Permission Definition
     """
     codecommit = TextReference(
         title = 'CodeCommit Repository Reference',
@@ -2692,7 +2712,7 @@ class IIAMUserPermissionCodeCommitRepository(Interface):
 
 class IIAMUserPermissionCodeCommit(IIAMUserPermissionCodeCommitRepository):
     """
-    CodeCommit IAM User Access Definition
+    CodeCommit IAM User Permission
     """
     repositories = schema.List(
         title = 'List of repository permissions',
@@ -2701,7 +2721,7 @@ class IIAMUserPermissionCodeCommit(IIAMUserPermissionCodeCommitRepository):
 
 class IIAMUserPermissions(INamed, IMapping):
     """
-    Group of IAM User Access Permissions
+    Group of IAM User Permissions
     """
     pass
 
@@ -2710,7 +2730,7 @@ class IIAMUser(INamed):
     IAM User
     """
     account = TextReference(
-        title = "AWS Account Reference",
+        title = "AIM account reference to install this user",
         required = True
     )
     username = schema.TextLine(
@@ -2730,11 +2750,8 @@ class IIAMUser(INamed):
         title = 'AIM IAM User Permissions',
         schema = IIAMUserPermissions
     )
-    accounts = schema.List(
-        title = 'List of accounts to grant this user access to',
-        value_type = TextReference(
-            title = 'Account Reference'
-        )
+    account_whitelist = CommaList(
+        title = 'Comma separated list of AIM AWS account names this user has access to'
     )
 
 class IIAMResource(Interface):

@@ -230,8 +230,8 @@ class CloudTrailResource(Named):
 
 @implementer(schemas.IIAMUserProgrammaticAccess)
 class IAMUserProgrammaticAccess(Deployable):
-    access_key_1_of_2 = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_1_of_2'])
-    access_key_2_of_2 = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_2_of_2'])
+    access_key_1_version = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_1_version'])
+    access_key_2_version = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_2_version'])
 
 @implementer(schemas.IIAMUserPermission)
 class IAMUserPermission(Named, Deployable):

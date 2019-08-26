@@ -2661,12 +2661,14 @@ class IIAMUserProgrammaticAccess(IDeployable):
     """
     IAM User Programmatic Access Configuration
     """
-    access_key_1_of_2 = schema.TextLine(
+    access_key_1_version = schema.Int(
         title = 'Access key version id',
+        default = 0,
         required = False
     )
-    access_key_2_of_2 = schema.TextLine(
+    access_key_2_version = schema.Int(
         title = 'Access key version id',
+        default = 0,
         required = False
     )
 

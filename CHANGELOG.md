@@ -10,11 +10,24 @@ Changelog for aim.models
   the original value with the value of the file indicated by the path.
   IApiGatewayRestApi.body_file_location uses this new field.
 
+- Added IAMUser schemas and loading for IAM users.
+
+- Added a CommaList() schema type for loading comma separated lists into schema.List()
+
+- Moved aim reference generation into the Model. Model objects now have .aim_ref and
+  .aim_ref_parts properties which contain their aim.ref reference.
+
 ### Fixed
 
- - Invariants were not being check for resources. Invariants need to be checked by the
-   loader if they are not contained in a `zope.schema.Object` field, which will run the
-   check behind the scenes.
+- Invariants were not being check for resources. Invariants need to be checked by the
+  loader if they are not contained in a `zope.schema.Object` field, which will run the
+  check behind the scenes.
+
+### Changed
+
+- Renamed project['ne'] to project['netenv']
+
+- Modified NatGateway segments to aim references
 
 4.0.0 (2019-08-21)
 ------------------

@@ -1519,6 +1519,11 @@ class IAWSCertificateManager(IResource):
         ),
         default = []
     )
+    external_resource = schema.Bool(
+        title = "Marks this resource as external to avoid creating and validating it.",
+        default = False,
+        required = False
+    )
 
 class IPortProtocol(Interface):
     """Port and Protocol"""
@@ -2688,6 +2693,12 @@ class IIAMUserPermissionAdministrator(IIAMUserPermission):
     accounts = CommaList(
         title = 'Comma separated list of AIM AWS account names this user has access to'
     )
+    read_only = schema.Bool(
+        title = 'Enabled ReadOnly access',
+        default = False,
+        required = False
+    )
+
 
 class IIAMUserPermissionCodeCommitRepository(Interface):
     """

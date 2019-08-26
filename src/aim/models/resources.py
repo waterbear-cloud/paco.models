@@ -241,6 +241,7 @@ class IAMUserPermission(Named, Deployable):
 @implementer(schemas.IIAMUserPermissionAdministrator)
 class IAMUserPermissionAdministrator(IAMUserPermission):
     accounts = FieldProperty(schemas.IIAMUserPermissionAdministrator['accounts'])
+    read_only = FieldProperty(schemas.IIAMUserPermissionAdministrator['read_only'])
 
 @implementer(schemas.IIAMUserPermissionCodeCommitRepository)
 class IAMUserPermissionCodeCommitRepository():

@@ -340,6 +340,7 @@ class LBApplication(Resource, dict):
 class AWSCertificateManager(Resource):
     domain_name = FieldProperty(schemas.IAWSCertificateManager['domain_name'])
     subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
+    external_resource = FieldProperty(schemas.IAWSCertificateManager['external_resource'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'domain_name':

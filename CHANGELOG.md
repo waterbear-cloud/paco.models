@@ -13,6 +13,10 @@ Changelog for aim.models
 - ApiGatewayRestApi and CloudWatchAlarm have a `cfn_export_dict` property that
   returns a new dict that can be used to created Troposphere resources.
 
+- Added external_resource support to the ACM
+
+- Added ReadOnly support to the Administrator IAMUserPermission
+
 ### Changed
 
  - Multi-Dimension Alarms now need to specify an `aim.ref` as the Value.

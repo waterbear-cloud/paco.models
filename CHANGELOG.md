@@ -10,6 +10,13 @@ Changelog for aim.models
   the original value with the value of the file indicated by the path.
   IApiGatewayRestApi.body_file_location uses this new field.
 
+- ApiGatewayRestApi and CloudWatchAlarm have a `cfn_export_dict` property that
+  returns a new dict that can be used to created Troposphere resources.
+
+### Changed
+
+ - Multi-Dimension Alarms now need to specify an `aim.ref` as the Value.
+
 ### Fixed
 
  - Invariants were not being check for resources. Invariants need to be checked by the

@@ -964,7 +964,7 @@ class ModelLoader():
             for name, field in all_fields:
                 if hasattr(model, name) == False:
                     continue
-                if isinstance(field, (str, zope.schema.TextLine, zope.schema.Text)):
+                if isinstance(field, (str, zope.schema.TextLine, zope.schema.Text)) and field.readonly == False:
                     ref_name = '_ref_' + name
                     if hasattr(model, '_ref_' + name):
                         attr_name = ref_name

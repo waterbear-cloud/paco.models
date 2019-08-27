@@ -15,6 +15,42 @@ from aim.models.locations import get_parent_by_interface
 from aim.models.references import Reference
 from aim.models import references
 
+@implementer(schemas.IApiGatewayMethods)
+class ApiGatewayMethods(Named, dict):
+    pass
+
+@implementer(schemas.IApiGatewayMethod)
+class ApiGatewayMethod(Resource):
+    http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
+    resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
+    integration_uri = FieldProperty(schemas.IApiGatewayMethod['integration_uri'])
+
+@implementer(schemas.IApiGatewayResources)
+class ApiGatewayResources(Named, dict):
+    pass
+
+@implementer(schemas.IApiGatewayResource)
+class ApiGatewayResource(Resource):
+    parent_id = FieldProperty(schemas.IApiGatewayResource['parent_id'])
+    path_part = FieldProperty(schemas.IApiGatewayResource['path_part'])
+
+    troposphere_props = troposphere.apigateway.Resource.props
+    cfn_mapping = {
+        # ParentId needs to be computed from the CFNTemplate to inject the Resource's Logical Id into it
+        "PathPart": 'path_part',
+        # "RestApiId": 'rest_api_id' - Computed to CFNTemplate Logical Id
+    }
+
+@implementer(schemas.IApiGatewayStages)
+class ApiGatewayStages(Named, dict):
+    pass
+
+@implementer(schemas.IApiGatewayStage)
+class ApiGatewayStage(Resource):
+    deployment_id = FieldProperty(schemas.IApiGatewayStage['deployment_id'])
+    description = FieldProperty(schemas.IApiGatewayStage['description'])
+    stage_name = FieldProperty(schemas.IApiGatewayStage['stage_name'])
+
 
 @implementer(schemas.IApiGatewayRestApi)
 class ApiGatewayRestApi(Resource):
@@ -30,7 +66,16 @@ class ApiGatewayRestApi(Resource):
     minimum_compression_size = FieldProperty(schemas.IApiGatewayRestApi['minimum_compression_size'])
     parameters = FieldProperty(schemas.IApiGatewayRestApi['parameters'])
     policy = FieldProperty(schemas.IApiGatewayRestApi['policy'])
+    methods = FieldProperty(schemas.IApiGatewayRestApi['methods'])
+    resources = FieldProperty(schemas.IApiGatewayRestApi['resources'])
+    stages = FieldProperty(schemas.IApiGatewayRestApi['stages'])
     _body = None
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.methods = ApiGatewayMethods('methods', self)
+        self.resources = ApiGatewayResources('resources', self)
+        self.stages = ApiGatewayStages('stages', self)
 
     @property
     def body(self):

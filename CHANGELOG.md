@@ -4,7 +4,9 @@ Changelog for aim.models
 5.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Minimal API Gateway models for Methods, Resources and Stages.
 
 
 5.0.0 (2019-08-26)

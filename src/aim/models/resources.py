@@ -93,6 +93,11 @@ class ApiGatewayStage(Resource):
     description = FieldProperty(schemas.IApiGatewayStage['description'])
     stage_name = FieldProperty(schemas.IApiGatewayStage['stage_name'])
 
+    troposphere_props = troposphere.apigateway.Stage.props
+    cfn_mapping = {
+        "Description": 'description',
+        "StageName": 'stage_name',
+    }
 
 @implementer(schemas.IApiGatewayRestApi)
 class ApiGatewayRestApi(Resource):

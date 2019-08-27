@@ -561,6 +561,12 @@ class IResource(INamed, IDeployable):
         required = False
     )
 
+class IServices(INamed, IMapping):
+    """
+    Services
+    """
+    pass
+
 
 class IServiceAccountRegion(Interface):
     "An account and region for a service"

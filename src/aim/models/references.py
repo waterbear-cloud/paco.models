@@ -209,9 +209,15 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         else:
             ref_value = project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
-        if ref.parts[4] == 'applications':
-            obj = project[ref.parts[1]]
-            response = get_resolve_ref_obj(obj, ref, part_idx_start=4)
+        part_idx_start = 0
+        if ref.parts[2] == 'applications':
+            # This is the case if the ref does not contain an account and region
+            part_idx_start = 2
+        elif ref.parts[4] == 'applications':
+            part_idx_start = 4
+        if part_idx_start > 0:
+            obj = project['service'][ref.parts[1]]
+            response = get_resolve_ref_obj(obj, ref, part_idx_start=part_idx_start)
             ref_value = response
         else:
             ref_value = project[ref.parts[1]].resolve_ref(ref)

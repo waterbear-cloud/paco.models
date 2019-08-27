@@ -1019,7 +1019,7 @@ class ModelLoader():
                 self.monitor_config,
                 read_file_path=services_dir + fname
             )
-            self.project[plugin_name.lower()] = service
+            self.project['service'][plugin_name.lower()] = service
             if hasattr(plugin_module, 'load_outputs'):
                 plugin_module.load_outputs(self)
         return

@@ -138,7 +138,7 @@ class VPCPeering(Named, Deployable):
     network_environment  = FieldProperty(schemas.IVPCPeering["network_environment"])
 
 @implementer(schemas.IVPC)
-class VPC(Named):
+class VPC(Named, Deployable):
     "VPC"
     cidr = FieldProperty(schemas.IVPC["cidr"])
     enable_dns_hostnames = FieldProperty(schemas.IVPC["enable_dns_hostnames"])
@@ -183,7 +183,7 @@ class PrivateHostedZone(Deployable):
 #    pass
 
 @implementer(schemas.ISecurityGroup)
-class SecurityGroup():
+class SecurityGroup(Named, Deployable):
     group_name = FieldProperty(schemas.ISecurityGroup["group_name"])
     group_description = FieldProperty(schemas.ISecurityGroup["group_description"])
     ingress = FieldProperty(schemas.ISecurityGroup["ingress"])
@@ -213,7 +213,7 @@ class EgressRule(SecurityGroupRule):
     pass
 
 @implementer(schemas.ISegment)
-class Segment(Deployable):
+class Segment(Named, Deployable):
     internet_access = FieldProperty(schemas.ISegment["internet_access"])
     az1_cidr = FieldProperty(schemas.ISegment["az1_cidr"])
     az2_cidr = FieldProperty(schemas.ISegment["az2_cidr"])

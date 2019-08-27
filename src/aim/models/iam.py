@@ -75,7 +75,7 @@ class Statement():
 #    pass
 
 @implementer(schemas.IManagedPolicy)
-class ManagedPolicy(Named, dict):
+class ManagedPolicy(Named, Deployable, dict):
     name = FieldProperty(schemas.IManagedPolicy["name"])
     statement = FieldProperty(schemas.IManagedPolicy["statement"])
     roles = FieldProperty(schemas.IManagedPolicy["roles"])

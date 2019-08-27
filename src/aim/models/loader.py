@@ -512,7 +512,10 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         for first_key, first_value in value.items():
             sub_dict[first_key]  = {}
             for sub_key, sub_value in first_value.items():
-                sub_obj = sub_class()
+                if schemas.INamed.implementedBy(sub_class):
+                    sub_obj = sub_class(name+'.'+first_key+'.'+sub_key, obj)
+                else:
+                    sub_obj = sub_class()
                 apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
                 sub_dict[first_key][sub_key] = sub_obj
         return sub_dict
@@ -646,7 +649,6 @@ def instantiate_iam_user_permissions(value, parent, read_file_path):
     for permission_name in value.keys():
         permission_config = value[permission_name]
         permission_obj = IAM_USER_PERMISSIONS_CLASS_MAP[permission_config['type']](permission_name, permissions)
-        #breakpoint()
         apply_attributes_from_config(permission_obj, permission_config, read_file_path=read_file_path)
         permissions[permission_name] = permission_obj
     return permissions
@@ -794,7 +796,8 @@ class ModelLoader():
 
                 env_reg = self.project['netenv'][ne_name][env_name][region]
                 reg_config = self.read_yaml(ne_outputs_path, rfile)
-
+                if reg_config == None:
+                    continue
                 if 'applications' in reg_config:
                     for app_name in reg_config['applications'].keys():
                         groups_config = reg_config['applications'][app_name]['groups']

@@ -460,7 +460,6 @@ class IAccount(INamed):
         required = False
     )
 
-
 class ISecurityGroupRule(IName):
     cidr_ip = schema.TextLine(
         title = "CIDR IP",
@@ -504,7 +503,7 @@ class IIngressRule(ISecurityGroupRule):
 class IEgressRule(ISecurityGroupRule):
     "Security group egress"
 
-class ISecurityGroup(INamed):
+class ISecurityGroup(INamed, IDeployable):
     """
     AWS Resource: Security Group
     """
@@ -1311,7 +1310,7 @@ class IPrivateHostedZone(IDeployable):
         title = "Hosted zone name"
     )
 
-class ISegment(IDeployable):
+class ISegment(INamed, IDeployable):
     """
     AWS Resource: Segment
     """
@@ -1393,7 +1392,7 @@ class IVPCPeering(INamed, IDeployable):
     )
 
 
-class IVPC(INamed):
+class IVPC(INamed, IDeployable):
     """
     AWS Resource: VPC
     """
@@ -1773,7 +1772,7 @@ class IRole(IDeployable):
 #    Container of IAM Managed Policices
 #    """
 
-class IManagedPolicy(INamed, IMapping):
+class IManagedPolicy(INamed, IDeployable, IMapping):
     """
     IAM Managed Policy
     """

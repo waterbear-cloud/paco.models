@@ -15,10 +15,12 @@ class Project(Named, dict):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
+        # Credentials
         self.credentials = aim.models.project.Credentials('credentials', self)
         self.credentials.title = 'Administrator Credentials'
         self.__setitem__('credentials', self.credentials)
 
+        # Network Environments
         self.network_environments = aim.models.networks.NetworkEnvironments(
             name='netenv',
             __parent__=self
@@ -26,6 +28,15 @@ class Project(Named, dict):
         self.network_environments.title = 'Network Environments'
         self.__setitem__('netenv', self.network_environments)
 
+        # Services
+        self.services = aim.models.services.Services(
+            name='service',
+            __parent__=self
+        )
+        self.services.title = 'Services'
+        self.__setitem__('service', self.services)
+
+        # Accounts
         self.accounts = aim.models.accounts.Accounts('accounts', self)
         self.accounts.title = 'Cloud Accounts'
         self.__setitem__('accounts', self.accounts)

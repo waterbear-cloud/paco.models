@@ -175,10 +175,6 @@ class Alarm(Named):
         return self.get_alarm_description()
 
     @property
-    def alarm_actions(self):
-        return self.get_alarm_actions()
-
-    @property
     def actions_enabled(self):
         if hasattr(self, 'alarm_actions'):
             if len(self.alarm_actions) > 0:
@@ -213,7 +209,7 @@ class CloudWatchAlarm(Alarm):
     cfn_mapping = {
         'AlarmName': 'name',
         'AlarmDescription': 'alarm_description',
-        'AlarmActions': 'alarm_actions',
+        #'AlarmActions': 'alarm_actions',
         'ActionsEnabled': 'actions_enabled',
         'ComparisonOperator': 'comparison_operator',
         'EvaluateLowSampleCountPercentile': 'evaluate_low_sample_count_percentile',

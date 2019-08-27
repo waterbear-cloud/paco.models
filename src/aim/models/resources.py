@@ -21,9 +21,50 @@ class ApiGatewayMethods(Named, dict):
 
 @implementer(schemas.IApiGatewayMethod)
 class ApiGatewayMethod(Resource):
-    http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
+    type = "ApiGatewayMethod"
     resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
+    http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
+    integration_http_method = FieldProperty(schemas.IApiGatewayMethod['integration_http_method'])
+    integration_type = FieldProperty(schemas.IApiGatewayMethod['integration_type'])
+    integration_lambda = FieldProperty(schemas.IApiGatewayMethod['integration_lambda'])
     integration_uri = FieldProperty(schemas.IApiGatewayMethod['integration_uri'])
+
+    @property
+    def integration(self):
+        #troposphere.Integration.Integration
+        #"CacheKeyParameters": ([basestring], False),
+        #"CacheNamespace": (basestring, False),
+        #"ConnectionId": (basestring, False),
+        #"ConnectionType": (basestring, False),
+        #"ContentHandling": (basestring, False),
+        #"Credentials": (basestring, False),
+        #"IntegrationResponses": ([IntegrationResponse], False),
+        #"PassthroughBehavior": (basestring, False),
+        #"RequestParameters": (dict, False),
+        #"RequestTemplates": (dict, False),
+        #"TimeoutInMillis": (integer_range(50, 29000), False),
+        return {
+            "IntegrationHttpMethod": self.integration_http_method,
+            "Type": self.integration_type,
+            #"Uri": self.integration_uri_cfn,
+        }
+
+    troposphere_props = troposphere.apigateway.Method.props
+    cfn_mapping = {
+        #"ApiKeyRequired": (bool, False),
+        #"AuthorizationScopes": ([basestring], False),
+        "AuthorizationType": 'authorization_type',
+        #"AuthorizerId": (basestring, False),
+        "HttpMethod": 'http_method',
+        "Integration": 'integration',
+        #"MethodResponses": ([MethodResponse], False),
+        #"OperationName": (basestring, False),
+        #"RequestModels": (dict, False),
+        #"RequestParameters": (dict, False),
+        #"RequestValidatorId": (basestring, False),
+        # "ResourceId": computed in the template looked up via resource_id
+        # "RestApiId": computed in the template
+    }
 
 @implementer(schemas.IApiGatewayResources)
 class ApiGatewayResources(Named, dict):
@@ -31,6 +72,7 @@ class ApiGatewayResources(Named, dict):
 
 @implementer(schemas.IApiGatewayResource)
 class ApiGatewayResource(Resource):
+    type = "ApiGatewayResource"
     parent_id = FieldProperty(schemas.IApiGatewayResource['parent_id'])
     path_part = FieldProperty(schemas.IApiGatewayResource['path_part'])
 
@@ -55,6 +97,7 @@ class ApiGatewayStage(Resource):
 @implementer(schemas.IApiGatewayRestApi)
 class ApiGatewayRestApi(Resource):
     title = "API Gateway REST API"
+    type = "ApiGatewayRestApi"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
     binary_media_types = FieldProperty(schemas.IApiGatewayRestApi['binary_media_types'])
     body_file_location = FieldProperty(schemas.IApiGatewayRestApi['body_file_location'])

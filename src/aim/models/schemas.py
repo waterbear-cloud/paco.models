@@ -60,6 +60,30 @@ def isValidJSONOrNone(value):
         raise InvalidJSON
     return True
 
+class InvalidApiGatewayAuthorizationType(schema.ValidationError):
+    __doc__ = 'Not a valid Api Gateway Method Authorization Type.'
+
+def isValidApiGatewayAuthorizationType(value):
+    if value not in ('NONE', 'AWS_IAM', 'CUSTOM', 'COGNITO_USER_POOLS'):
+        raise InvalidApiGatewayAuthorizationType
+    return True
+
+class InvalidApiGatewayIntegrationType(schema.ValidationError):
+    __doc__ = 'Not a valid API Gateway Method Integration Type.'
+
+def isValidApiGatewayIntegrationType(value):
+    if value not in ('AWS', 'AWS_PROXY', 'HTTP', 'HTTP_PROXY', 'MOCK'):
+        raise InvalidApiGatewayIntegrationType
+    return True
+
+class InvalidHttpMethod(schema.ValidationError):
+    __doc__ = 'Not a valid HTTP Method.'
+
+def isValidHttpMethod(value):
+    if value not in ('ANY', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'):
+        raise InvalidHttpMethod
+    return True
+
 class InvalidApiKeySourceType(schema.ValidationError):
     __doc__ = 'Not a valid Api Key Source Type.'
 
@@ -2079,14 +2103,41 @@ class ILambda(IResource, IMonitorable):
 
 class IApiGatewayMethod(IResource):
     "API Gateway Method"
+    authorization_type = schema.TextLine(
+        title = "Authorization Type",
+        description = "Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
+        constraint = isValidApiGatewayAuthorizationType,
+        required = True
+    )
     http_method = schema.TextLine(
-        title = "HTTP Method"
+        title = "HTTP Method",
+        description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
+        constraint = isValidHttpMethod
     )
     resource_id = schema.TextLine(
         title = "Resource Id"
     )
+    integration_http_method = schema.TextLine(
+        title = "Integration HTTP Method",
+        description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
+        constraint = isValidHttpMethod,
+        required = True
+    )
+    integration_type = schema.TextLine(
+        title = "Integration Type",
+        description = "Must be one of AWS, AWS_PROXY, HTTP, HTTP_PROXY or MOCK.",
+        constraint = isValidApiGatewayIntegrationType,
+        required = True
+    )
     integration_uri = schema.TextLine(
         title = "Integration URI"
+    )
+    integration_lambda = TextReference(
+        title = "Integration Lambda"
+    )
+    integration = schema.Dict(
+        title = "Integration",
+        readonly = True
     )
 
 class IApiGatewayResource(IResource):

@@ -2077,17 +2077,61 @@ class ILambda(IResource, IMonitorable):
 
 # API Gateway
 
+class IApiGatewayMethod(IResource):
+    "API Gateway Method"
+    http_method = schema.TextLine(
+        title = "HTTP Method"
+    )
+    resource_id = schema.TextLine(
+        title = "Resource Id"
+    )
+    integration_uri = schema.TextLine(
+        title = "Integration URI"
+    )
+
+class IApiGatewayResource(IResource):
+    parent_id = schema.TextLine(
+        title = "Id of the parent resource. Default is 'RootResourceId' for a resource without a parent.",
+        default = "RootResourceId",
+    )
+    path_part = schema.TextLine(
+        title = "Path Part"
+    )
+    rest_api_id = schema.TextLine(
+        title = "Name of the API Gateway REST API this resource belongs to.",
+        readonly = True
+    )
+
+class IApiGatewayStage(IResource):
+    "API Gateway Stage"
+    deployment_id = schema.TextLine(
+        title = "Deployment ID"
+    )
+    description = schema.Text(
+        title = "Description"
+    )
+    stage_name = schema.TextLine(
+        title = "Stage name"
+    )
+
+class IApiGatewayMethods(INamed, IMapping):
+    "Container for API Gateway Method objects"
+
+class IApiGatewayResources(INamed, IMapping):
+    "Container for API Gateway Resource objects"
+
+class IApiGatewayStages(INamed, IMapping):
+    "Container for API Gateway Stage objects"
+
 class IApiGatewayRestApi(IResource):
     "An Api Gateway Rest API resource"
     @invariant
     def is_valid_body_location(obj):
-        "Validate that body or body_file_location or body_s3_location is set but only one."
+        "Validate that only one of body or body_file_location or body_s3_location is set or all are empty."
         count = 0
         if obj._body: count += 1
         if obj.body_file_location: count += 1
         if obj.body_s3_location: count += 1
-        if count == 0:
-            raise Invalid("body, body_file_location and body_s3_location can not all be blank.")
         if count > 1:
             raise Invalid("Only one of body, body_file_location or body_s3_location can be set.")
 
@@ -2136,6 +2180,9 @@ class IApiGatewayRestApi(IResource):
         title = "Indicates whether to roll back the resource if a warning occurs while API Gateway is creating the RestApi resource.",
         default = False
     )
+    methods = schema.Object(
+        schema = IApiGatewayMethods
+    )
     minimum_compression_size = schema.Int(
         title = "An integer that is used to enable compression on an API. When compression is enabled, compression or decompression is not applied on the payload if the payload size is smaller than this value. Setting it to zero allows compression for any payload size.",
         description = "A non-negative integer between 0 and 10485760 (10M) bytes, inclusive.",
@@ -2154,6 +2201,12 @@ class IApiGatewayRestApi(IResource):
         title = """A policy document that contains the permissions for the RestApi resource, in JSON format. To set the ARN for the policy, use the !Join intrinsic function with "" as delimiter and values of "execute-api:/" and "*".""",
         description = "Valid JSON document",
         constraint = isValidJSONOrNone
+    )
+    resources = schema.Object(
+        schema = IApiGatewayResources
+    )
+    stages = schema.Object(
+        schema = IApiGatewayStages
     )
 
 # Route53

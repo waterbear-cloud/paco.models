@@ -28,8 +28,11 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
     RDSMysql, ElastiCacheRedis
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
-    CodeCommit, CodeCommitRepository, CodeCommitUser, CloudTrailResource, CloudTrails, CloudTrail, \
-    ApiGatewayRestApi, IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
+    CodeCommit, CodeCommitRepository, CodeCommitUser, \
+    CloudTrailResource, CloudTrails, CloudTrail, \
+    ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
+    ApiGatewayResources, ApiGatewayResource, \
+    IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces
@@ -84,6 +87,11 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    ApiGatewayRestApi: {
+        'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
+        'resources': ('container', (ApiGatewayResources, ApiGatewayResource)),
+        'stages': ('container', (ApiGatewayStages, ApiGatewayStage)),
+    },
     RDSMysql: {
         'security_groups': ('str_list', TextReference)
     },
@@ -373,8 +381,9 @@ Unneeded field '{}' in config for object type '{}'
             # These objects implement the INamed interface.
             # Do not try to find their 'name' attr from the config.
             if name != 'name' or not schemas.INamed.providedBy(obj):
+                value = config.get(name, None)
                 # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
-                if type(field) == type(FileReference()):
+                if type(field) == type(FileReference()) and value:
                     if read_file_path:
                         # set it to the containing directory of the file
                         path = Path(read_file_path)
@@ -382,17 +391,15 @@ Unneeded field '{}' in config for object type '{}'
                     else:
                         base_path = None
                     value = load_string_from_path(
-                        config.get(name, None),
+                        value,
                         base_path=base_path,
                     )
                 # CommaList: Parse comma separated list into python list()
                 elif type(field) == type(schemas.CommaList()):
-
                     value = []
                     for list_value in config[name].split(','):
                         value.append(list_value.strip())
-                else:
-                    value = config.get(name, None)
+
                 if value != None:
                     # YAML loads "1" as an Int, cast to a Float where expected by the schema
                     if zope.schema.interfaces.IFloat.providedBy(field):

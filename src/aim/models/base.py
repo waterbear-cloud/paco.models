@@ -172,7 +172,7 @@ class Deployable():
             # once we encounter something higher in the tree with "enabled: false"
             # the lower resource is always False and we return that
             if not override: return False
-            context = context.__parent__
+            context = getattr(context, '__parent__', None)
 
         # walked right to the top and enabled is still true
         return True

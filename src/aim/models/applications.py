@@ -325,7 +325,7 @@ class DNS():
 
 @implementer(schemas.ILBApplication)
 class LBApplication(Resource, dict):
-    title = "LBApplication"
+    title = "Application ELB"
     target_groups = FieldProperty(schemas.ILBApplication['target_groups'])
     listeners = FieldProperty(schemas.ILBApplication['listeners'])
     dns = FieldProperty(schemas.ILBApplication['dns'])
@@ -338,6 +338,7 @@ class LBApplication(Resource, dict):
 
 @implementer(schemas.IAWSCertificateManager)
 class AWSCertificateManager(Resource):
+    title = 'Certificate Manager'
     domain_name = FieldProperty(schemas.IAWSCertificateManager['domain_name'])
     subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
     external_resource = FieldProperty(schemas.IAWSCertificateManager['external_resource'])
@@ -469,6 +470,7 @@ class CloudFrontOrigin(Named):
 
 @implementer(schemas.ICloudFrontFactory)
 class CloudFrontFactory(Named):
+    title = 'CloudFront Factory'
     domain_aliases = FieldProperty(schemas.ICloudFrontFactory['domain_aliases'])
     viewer_certificate = FieldProperty(schemas.ICloudFrontFactory['viewer_certificate'])
 
@@ -493,6 +495,7 @@ class CloudFront(Resource, Deployable):
 
 @implementer(schemas.IRDS)
 class RDS():
+    title = "RDS"
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])
     db_instance_type = FieldProperty(schemas.IRDS['db_instance_type'])
@@ -525,6 +528,7 @@ class RDSMysql(RDS, Resource):
 
 @implementer(schemas.IRDSAurora)
 class RDSAurora(RDS, Resource):
+    title = 'RDS Aurora'
     secondary_domain_name = FieldProperty(schemas.IRDSAurora['secondary_domain_name'])
     secondary_hosted_zone = FieldProperty(schemas.IRDSAurora['secondary_hosted_zone'])
 
@@ -534,7 +538,7 @@ class RDSAurora(RDS, Resource):
 
 @implementer(schemas.IElastiCache)
 class ElastiCache():
-    title = "ElastiCache Redis"
+    title = "ElastiCache"
     engine = FieldProperty(schemas.IElastiCache['engine'])
     engine_version = FieldProperty(schemas.IElastiCache['engine_version'])
     automatic_failover_enabled = FieldProperty(schemas.IElastiCache['automatic_failover_enabled'])
@@ -550,6 +554,7 @@ class ElastiCache():
 
 @implementer(schemas.IElastiCacheRedis)
 class ElastiCacheRedis(Resource, ElastiCache):
+    title = "ElastiCache Redis"
     cache_parameter_group_family = FieldProperty(schemas.IElastiCacheRedis['cache_parameter_group_family'])
 
     def __init__(self, name, parent):

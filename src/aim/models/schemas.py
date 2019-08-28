@@ -2026,11 +2026,29 @@ class ILambdaEnvironment(IMapping):
 
 class ILambdaFunctionCode(Interface):
     """The deployment package for a Lambda function."""
+
+    @invariant
+    def is_either_s3_or_zipfile(obj):
+        "Validate that either zipfile or s3 bucket is set."
+        if not obj.zipfile and not (obj.s3_bucket and obj.s3_key):
+            raise Invalid("Either zipfile or s3_bucket and s3_key must be set.")
+        if obj.zipfile and obj.s3_bucket:
+            raise Invalid("Can not set both zipfile and s3_bucket")
+        if obj.zipfile and len(obj.zipfile) > 4096:
+            raise Invalid("Too bad, so sad. Limit of inline code of 4096 characters exceeded. File is {} chars long.".format(len(obj.zipfile)))
+
+    zipfile = FileReference(
+        title = "The function as an external file.",
+        description = "Maximum of 4096 characters.",
+        required = False
+    )
     s3_bucket = TextReference(
-        title = "An Amazon S3 bucket in the same AWS Region as your function"
+        title = "An Amazon S3 bucket in the same AWS Region as your function",
+        required = False
     )
     s3_key = schema.TextLine(
-        title = "The Amazon S3 key of the deployment package."
+        title = "The Amazon S3 key of the deployment package.",
+        required = False
     )
 
 class ILambda(IResource, IMonitorable):

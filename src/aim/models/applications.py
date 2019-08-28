@@ -367,6 +367,7 @@ class LambdaEnvironment(dict):
 
 @implementer(schemas.ILambdaFunctionCode)
 class LambdaFunctionCode():
+    zipfile = FieldProperty(schemas.ILambdaFunctionCode['zipfile'])
     s3_bucket = FieldProperty(schemas.ILambdaFunctionCode['s3_bucket'])
     s3_key = FieldProperty(schemas.ILambdaFunctionCode['s3_key'])
 

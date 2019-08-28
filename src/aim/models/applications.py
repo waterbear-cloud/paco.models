@@ -183,6 +183,8 @@ class CodePipeBuildDeploy(Resource):
     artifacts_bucket = FieldProperty(schemas.ICodePipeBuildDeploy['artifacts_bucket'])
     codecommit_repository = FieldProperty(schemas.ICodePipeBuildDeploy['codecommit_repository'])
     deploy_instance_role = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_instance_role'])
+    codebuild_image = FieldProperty(schemas.ICodePipeBuildDeploy['codebuild_image'])
+    codebuild_compute_type = FieldProperty(schemas.ICodePipeBuildDeploy['codebuild_compute_type'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'kms':

@@ -2122,6 +2122,9 @@ class IApiGatewayMethod(IResource):
     resource_id = schema.TextLine(
         title = "Resource Id"
     )
+    integration_credentials = schema.TextLine(
+        title = "Integration Credentials",
+    )
     integration_http_method = schema.TextLine(
         title = "Integration HTTP Method",
         description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",

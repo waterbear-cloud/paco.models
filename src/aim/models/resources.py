@@ -25,6 +25,7 @@ class ApiGatewayMethod(Resource):
     resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
     http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
     integration_http_method = FieldProperty(schemas.IApiGatewayMethod['integration_http_method'])
+    integration_credentials = FieldProperty(schemas.IApiGatewayMethod['integration_credentials'])
     integration_type = FieldProperty(schemas.IApiGatewayMethod['integration_type'])
     integration_lambda = FieldProperty(schemas.IApiGatewayMethod['integration_lambda'])
     integration_uri = FieldProperty(schemas.IApiGatewayMethod['integration_uri'])
@@ -37,13 +38,13 @@ class ApiGatewayMethod(Resource):
         #"ConnectionId": (basestring, False),
         #"ConnectionType": (basestring, False),
         #"ContentHandling": (basestring, False),
-        #"Credentials": (basestring, False),
         #"IntegrationResponses": ([IntegrationResponse], False),
         #"PassthroughBehavior": (basestring, False),
         #"RequestParameters": (dict, False),
         #"RequestTemplates": (dict, False),
         #"TimeoutInMillis": (integer_range(50, 29000), False),
         return {
+            "Credentials": self.integration_credentials,
             "IntegrationHttpMethod": self.integration_http_method,
             "Type": self.integration_type,
             #"Uri": self.integration_uri_cfn,
@@ -93,6 +94,11 @@ class ApiGatewayStage(Resource):
     description = FieldProperty(schemas.IApiGatewayStage['description'])
     stage_name = FieldProperty(schemas.IApiGatewayStage['stage_name'])
 
+    troposphere_props = troposphere.apigateway.Stage.props
+    cfn_mapping = {
+        "Description": 'description',
+        "StageName": 'stage_name',
+    }
 
 @implementer(schemas.IApiGatewayRestApi)
 class ApiGatewayRestApi(Resource):

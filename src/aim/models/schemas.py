@@ -368,6 +368,15 @@ def isAIMCodeCommitPermissionPolicyValid(value):
         raise InvalidAIMCodeCommitPermissionPolicy
     return True
 
+# CodeBuild
+class InvalidCodeBuildComputeType(schema.ValidationError):
+    __doc__ = 'codebuild_compute_type must be one of: BUILD_GENERAL1_SMALL | BUILD_GENERAL1_MEDIUM | BUILD_GENERAL1_LARGE'
+
+def isValidCodeBuildComputeType(value):
+    if value not in ('BUILD_GENERAL1_SMALL', 'BUILD_GENERAL1_MEDIUM', 'BUILD_GENERAL1_LARGE'):
+        raise InvalidCodeBuildComputeType
+    return True
+
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
@@ -1200,6 +1209,13 @@ class ICodePipeBuildDeploy(IResource):
     artifacts_bucket = TextReference(
         title = "Artifacts S3 Bucket Reference",
         description=""
+    )
+    codebuild_image = schema.TextLine(
+        title = 'CodeBuild Docker Image'
+    )
+    codebuild_compute_type = schema.TextLine(
+        title = 'CodeBuild Compute Type',
+        constraint = isValidCodeBuildComputeType
     )
 
 class IEC2KeyPair(INamed):

@@ -2876,7 +2876,7 @@ class IIAMUser(INamed):
         title = 'Comma separated list of AIM AWS account names this user has access to'
     )
 
-class IIAMResource(Interface):
+class IIAMResource(INamed):
     """
     IAM AWS Resource
     """

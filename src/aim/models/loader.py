@@ -1156,7 +1156,7 @@ class ModelLoader():
         return s3_obj
 
     def instantiate_iam(self, config):
-        iam_obj = IAMResource()
+        iam_obj = IAMResource('iam', self.project)
         #for user_name in config['users']:
         #    user_config = config['users'][user_name]
         #    user_obj = IAMUser(user_name, iam_obj)

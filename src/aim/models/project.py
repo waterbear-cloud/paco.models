@@ -41,6 +41,15 @@ class Project(Named, dict):
         self.accounts.title = 'Cloud Accounts'
         self.__setitem__('accounts', self.accounts)
 
+        # IAM
+        self.iam = aim.models.resources.IAMResource(
+            name='iam',
+            __parent__=self
+        )
+        self.accounts.title = 'IAM Resource'
+        self.__setitem__('iam', self.iam)
+
+
         # Init an empty S3Resource in-case there is no Resources/S3.yaml
         self.__setitem__('s3', aim.models.resources.S3Resource())
 

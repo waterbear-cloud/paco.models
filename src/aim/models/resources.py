@@ -358,5 +358,5 @@ class IAMUser(Named):
 
 
 @implementer(schemas.IIAMResource)
-class IAMResource():
+class IAMResource(Named):
     users = FieldProperty(schemas.IIAMResource['users'])

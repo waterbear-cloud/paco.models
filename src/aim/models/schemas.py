@@ -433,6 +433,14 @@ class ITextReference(Interface):
 from zope.interface import classImplements
 classImplements(TextReference, ITextReference)
 
+class INameValuePair(Interface):
+    name = schema.TextLine(
+        title = "Name"
+    )
+    value = schema.TextLine(
+        title = "Value"
+    )
+
 class IAdminIAMUser(IDeployable):
     """An AWS Account Administerator IAM User"""
     username = schema.TextLine(
@@ -627,7 +635,7 @@ class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
 
-class IResourceGroup(INamed, IMapping):
+class IResourceGroup(INamed, IDeployable, IMapping):
     "A collection of Application Resources"
     title = schema.TextLine(
         title="Title",
@@ -2660,6 +2668,34 @@ class ICloudFront(IResource, IDeployable):
         default = None
     )
 
+class IRDSOptionConfiguration(Interface):
+    """
+    AWS::RDS::OptionGroup OptionConfiguration
+    """
+    option_name = schema.TextLine(
+        title = 'Option Name'
+    )
+    option_settings = schema.List(
+        title = 'List of option name value pairs.',
+        value_type = schema.Object(INameValuePair),
+        default = [],
+        required = False,
+    )
+    option_version = schema.TextLine(
+        title = 'Option Version',
+        required = False,
+    )
+    port = schema.TextLine(
+        title = 'Port',
+        required = False,
+    )
+    # - DBSecurityGroupMemberships
+    #   A list of DBSecurityGroupMembership name strings used for this option.
+    # - VpcSecurityGroupMemberships
+    #   A list of VpcSecurityGroupMembership name strings used for this option.
+
+
+
 
 class IRDS(Interface):
     """
@@ -2727,6 +2763,15 @@ class IRDS(Interface):
     )
     primary_hosted_zone = TextReference(
         title = "Primary Hosted Zone"
+    )
+    db_snapshot_identifier = schema.TextLine(
+        title = 'DB Snapshot Identifier to restore from'
+    )
+    option_configurations = schema.List(
+        title = "Option Configurations",
+        value_type=schema.Object(IRDSOptionConfiguration),
+        required = False,
+        default = []
     )
 
 class IRDSMysql(IResource, IRDS):

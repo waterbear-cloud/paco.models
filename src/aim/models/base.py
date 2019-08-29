@@ -177,6 +177,10 @@ class Deployable():
         # walked right to the top and enabled is still true
         return True
 
+@implementer(schemas.INameValuePair)
+class NameValuePair():
+    name = FieldProperty(schemas.INameValuePair['name'])
+    value = FieldProperty(schemas.INameValuePair['value'])
 
 class Regionalized():
     "Mix-in to allow objects to identify which region they are deployed in"

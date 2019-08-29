@@ -26,7 +26,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, ElastiCacheRedis
+    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -35,7 +35,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
     IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
-from aim.models.base import get_all_fields, most_specialized_interfaces
+from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
@@ -92,7 +92,11 @@ SUB_TYPES_CLASS_MAP = {
         'resources': ('container', (ApiGatewayResources, ApiGatewayResource)),
         'stages': ('container', (ApiGatewayStages, ApiGatewayStage)),
     },
+    RDSOptionConfiguration: {
+        'option_settings': ('obj_list', NameValuePair)
+    },
     RDSMysql: {
+        'option_configurations': ('obj_list', RDSOptionConfiguration),
         'security_groups': ('str_list', TextReference)
     },
     ElastiCacheRedis: {
@@ -1240,6 +1244,9 @@ class ModelLoader():
         net_env = self.create_apply_and_save(
             name, self.project['netenv'], NetworkEnvironment, config['network']
         )
+        # Network Environments do not have a place to store enabled, so we
+        # we froce it to true for now
+        net_env.enabled = True
 
         # Environments
         if 'environments' in config:

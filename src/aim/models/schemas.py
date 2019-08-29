@@ -2046,8 +2046,9 @@ class ILambdaFunctionCode(Interface):
     @invariant
     def is_either_s3_or_zipfile(obj):
         "Validate that either zipfile or s3 bucket is set."
+        breakpoint()
         if not obj.zipfile and not (obj.s3_bucket and obj.s3_key):
-            raise Invalid("Either zipfile or s3_bucket and s3_key must be set.")
+            raise Invalid("Either zipfile or s3_bucket and s3_key must be set. Or zipfile fle is an empty file.")
         if obj.zipfile and obj.s3_bucket:
             raise Invalid("Can not set both zipfile and s3_bucket")
         if obj.zipfile and len(obj.zipfile) > 4096:

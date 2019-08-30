@@ -573,3 +573,76 @@ class ElastiCacheRedis(Resource, ElastiCache):
         super().__init__(name, parent)
         self.engine = 'redis'
         self.port = 6379
+
+@implementer(schemas.IDeploymentPipelineConfiguration)
+class DeploymentPipelineConfiguration(Named):
+    artifacts_bucket = FieldProperty(schemas.IDeploymentPipelineConfiguration['artifacts_bucket'])
+    account = FieldProperty(schemas.IDeploymentPipelineConfiguration['account'])
+
+@implementer(schemas.IDeploymentPipelineStageAction)
+class DeploymentPipelineStageAction(Named, Deployable, dict):
+    type = FieldProperty(schemas.IDeploymentPipelineStageAction['type'])
+    run_order = FieldProperty(schemas.IDeploymentPipelineStageAction['run_order'])
+
+@implementer(schemas.IDeploymentPipelineSourceCodeCommit)
+class DeploymentPipelineSourceCodeCommit(DeploymentPipelineStageAction):
+    title = 'CodeBuild.Build'
+    codecommit_repository = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['codecommit_repository'])
+    deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['deployment_branch_name'])
+
+@implementer(schemas.IDeploymentPipelineBuildCodeBuild)
+class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
+    title = 'CodeBuild.Build'
+    deployment_environment = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['deployment_environment'])
+    codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
+    codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
+    timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
+
+@implementer(schemas.IDeploymentPipelineDeployManualApproval)
+class DeploymentPipelineDeployManualApproval(DeploymentPipelineStageAction):
+    title = 'ManualApproval.Deploy'
+    manual_approval_notification_email = FieldProperty(schemas.IDeploymentPipelineDeployManualApproval['manual_approval_notification_email'])
+
+@implementer(schemas.ICodeDeployMinimumHealthyHosts)
+class CodeDeployMinimumHealthyHosts(Named):
+    title = 'CodeDeployMinimumHealthyHosts'
+    type = FieldProperty(schemas.ICodeDeployMinimumHealthyHosts['type'])
+    value = FieldProperty(schemas.ICodeDeployMinimumHealthyHosts['value'])
+
+
+@implementer(schemas.IDeploymentPipelineDeployCodeDeploy)
+class DeploymentPipelineDeployCodeDeploy(DeploymentPipelineStageAction):
+    title = 'CodeDeploy.Source'
+    auto_scaling_group = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['auto_scaling_group'])
+    auto_rollback_enabled = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['auto_rollback_enabled'])
+    minimum_healthy_hosts = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['minimum_healthy_hosts'])
+    deploy_style_option = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['deploy_style_option'])
+    deploy_instance_role = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['deploy_instance_role'])
+    elb_name = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['elb_name'])
+    alb_target_group = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['alb_target_group'])
+
+
+@implementer(schemas.IDeploymentPipelineSourceStage)
+class DeploymentPipelineSourceStage(Named, dict):
+    pass
+
+@implementer(schemas.IDeploymentPipelineBuildStage)
+class DeploymentPipelineBuildStage(Named, dict):
+    pass
+
+@implementer(schemas.IDeploymentPipelineDeployStage)
+class DeploymentPipelineDeployStage(Named, dict):
+    pass
+
+@implementer(schemas.IDeploymentPipeline)
+class DeploymentPipeline(Resource):
+    title = "DeploymentPipeline"
+    configuration = FieldProperty(schemas.IDeploymentPipeline['configuration'])
+    source = FieldProperty(schemas.IDeploymentPipeline['source'])
+    build = FieldProperty(schemas.IDeploymentPipeline['build'])
+    deploy = FieldProperty(schemas.IDeploymentPipeline['deploy'])
+
+    def resolve_ref(self, ref):
+        if ref.resource_ref == 'kms':
+            return self
+        return self.resolve_ref_obj.resolve_ref(ref)

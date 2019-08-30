@@ -2993,3 +2993,163 @@ class IIAMResource(INamed):
         title = 'IAM Users',
         value_type = schema.Object(IIAMUser)
     )
+
+class IDeploymentPipelineConfiguration(INamed):
+    """
+    Deployment Pipeline General Configuration
+    """
+    artifacts_bucket = TextReference(
+        title = "Artifacts S3 Bucket Reference",
+        description=""
+    )
+    account = TextReference(
+        title = "The account where Pipeline tools will be provisioned."
+    )
+
+class IDeploymentPipelineStageAction(INamed, IDeployable, IMapping):
+    """
+    Deployment Pipeline Source Stage
+    """
+    type = schema.TextLine(
+        title = 'The type of DeploymentPipeline Source Stage'
+    )
+    run_order = schema.Int(
+        title = 'The order in which to run this stage',
+        min = 1,
+        max = 999
+    )
+
+
+class IDeploymentPipelineSourceCodeCommit(IDeploymentPipelineStageAction):
+    """
+    CodeCommit DeploymentPipeline Source Stage
+    """
+    codecommit_repository = TextReference(
+        title = 'CodeCommit Respository'
+    )
+
+    deployment_branch_name = schema.TextLine(
+        title = "Deployment Branch Name",
+        description = "",
+        default = ""
+    )
+
+class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
+    """
+    CodeBuild DeploymentPipeline Build Stage
+    """
+    deployment_environment = schema.TextLine(
+        title = "Deployment Environment",
+        description = "",
+        default = ""
+    )
+    codebuild_image = schema.TextLine(
+        title = 'CodeBuild Docker Image'
+    )
+    codebuild_compute_type = schema.TextLine(
+        title = 'CodeBuild Compute Type',
+        constraint = isValidCodeBuildComputeType
+    )
+    timeout_mins = schema.Int(
+        title = 'Timeout in Minutes',
+        min = 5,
+        max = 480,
+        default = 60
+    )
+
+class IDeploymentPipelineDeployManualApproval(IDeploymentPipelineStageAction):
+    """
+    ManualApproval DeploymentPipeline Deploy Stage
+    """
+    manual_approval_notification_email = schema.TextLine(
+        title = "Manual approval notification email",
+        description = "",
+        default = ""
+    )
+
+class ICodeDeployMinimumHealthyHosts(INamed):
+    """
+    CodeDeploy Minimum Healthy Hosts
+    """
+    type = schema.TextLine(
+        title = "Deploy Config Type",
+        default = "HOST_COUNT"
+    )
+    value = schema.Int(
+        title = "Deploy Config Value",
+        default = 0
+    )
+
+
+class IDeploymentPipelineDeployCodeDeploy(IDeploymentPipelineStageAction):
+    """
+    CodeDeploy DeploymentPipeline Deploy Stage
+    """
+    auto_scaling_group = TextReference(
+        title = "ASG Reference"
+    )
+    auto_rollback_enabled = schema.Bool(
+        title = "Automatic rollback enabled",
+        description = "",
+        default = True
+    )
+    minimum_healthy_hosts = schema.Object(
+        title = "The minimum number of healthy instances that should be available at any time during the deployment.",
+        schema = ICodeDeployMinimumHealthyHosts,
+        required = False
+    )
+    deploy_style_option = schema.TextLine(
+        title = "Deploy Style Option",
+        description = "",
+        default = "WITH_TRAFFIC_CONTROL"
+    )
+    deploy_instance_role = TextReference(
+        title = "Deploy Instance Role Reference"
+    )
+    elb_name = schema.TextLine(
+        title = "ELB Name",
+        description = "",
+        default = ""
+    )
+    alb_target_group = TextReference(
+        title = "ALB Target Group Reference"
+    )
+
+class IDeploymentPipelineSourceStage(INamed, IMapping):
+    """
+    A map of DeploymentPipeline source stage actions
+    """
+    pass
+
+class IDeploymentPipelineBuildStage(INamed, IMapping):
+    """
+    A map of DeploymentPipeline build stage actions
+    """
+    pass
+
+class IDeploymentPipelineDeployStage(INamed, IMapping):
+    """
+    A map of DeploymentPipeline deploy stage actions
+    """
+    pass
+
+class IDeploymentPipeline(IResource):
+    """
+    Code Pipeline: Build and Deploy
+    """
+    configuration = schema.Object(
+        title = 'Deployment Pipeline General Configuration',
+        schema = IDeploymentPipelineConfiguration
+    )
+    source = schema.Object(
+        title = 'Deployment Pipeline Source Stage',
+        schema = IDeploymentPipelineSourceStage
+    )
+    build = schema.Object(
+        title = 'Deployment Pipeline Build Stage',
+        schema = IDeploymentPipelineBuildStage
+    )
+    deploy = schema.Object(
+        title = 'Deployment Pipeline Deploy Stage',
+        schema =IDeploymentPipelineDeployStage
+    )

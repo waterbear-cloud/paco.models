@@ -6,6 +6,7 @@ model objects.
 import aim.models.services
 import itertools, os, copy
 import logging
+import pathlib
 import pkg_resources
 import ruamel.yaml
 import zope.schema
@@ -26,7 +27,10 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration
+    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
+    DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
+    DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
+    DeploymentPipelineDeployManualApproval
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -64,6 +68,13 @@ class YAML(ruamel.yaml.YAML):
 
 logger = get_logger()
 
+DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
+    'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
+    'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
+    'ManualApproval.Deploy': DeploymentPipelineDeployCodeDeploy,
+    'CodeDeploy.Deploy': DeploymentPipelineDeployManualApproval,
+}
+
 IAM_USER_PERMISSIONS_CLASS_MAP = {
     'CodeCommit': IAMUserPermissionCodeCommit,
     'Administrator': IAMUserPermissionAdministrator
@@ -84,9 +95,16 @@ RESOURCES_CLASS_MAP = {
     'CloudFront': CloudFront,
     'RDSMysql': RDSMysql,
     'ElastiCacheRedis': ElastiCacheRedis,
+    'DeploymentPipeline': DeploymentPipeline,
 }
 
 SUB_TYPES_CLASS_MAP = {
+    DeploymentPipeline: {
+        'configuration': ('unnamed_dict', DeploymentPipelineConfiguration),
+        'source': ('deployment_pipeline_stage', DeploymentPipelineSourceStage),
+        'build': ('deployment_pipeline_stage', DeploymentPipelineBuildStage),
+        'deploy': ('deployment_pipeline_stage', DeploymentPipelineDeployStage),
+    },
     ApiGatewayRestApi: {
         'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
         'resources': ('container', (ApiGatewayResources, ApiGatewayResource)),
@@ -614,6 +632,8 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         return instantiate_notifications(value, read_file_path)
     elif sub_type == 'iam_user_permissions':
         return instantiate_iam_user_permissions(value, obj, read_file_path)
+    elif sub_type == 'deployment_pipeline_stage':
+        return instantiate_deployment_pipeline_stage(name, sub_class, value, obj, read_file_path)
 
 
 def load_resources(res_groups, groups_config, config_folder=None, monitor_config=None, read_file_path=''):
@@ -656,13 +676,22 @@ def instantiate_notifications(value, read_file_path):
     return notifications
 
 def instantiate_iam_user_permissions(value, parent, read_file_path):
-    permissions = IAMUserPermissions('permissions', parent)
+    permissions_obj = IAMUserPermissions('permissions', parent)
     for permission_name in value.keys():
         permission_config = value[permission_name]
-        permission_obj = IAM_USER_PERMISSIONS_CLASS_MAP[permission_config['type']](permission_name, permissions)
+        permission_obj = IAM_USER_PERMISSIONS_CLASS_MAP[permission_config['type']](permission_name, permissions_obj)
         apply_attributes_from_config(permission_obj, permission_config, read_file_path=read_file_path)
-        permissions[permission_name] = permission_obj
-    return permissions
+        permissions_obj[permission_name] = permission_obj
+    return permissions_obj
+
+def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read_file_path):
+    stage_obj = stage_class(name, parent)
+    for action_name in value.keys():
+        action_config = value[action_name]
+        action_obj = DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP[action_config['type']](action_name, stage_obj)
+        apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
+        stage_obj[action_name] = action_obj
+    return stage_obj
 
 class ModelLoader():
     """
@@ -784,6 +813,48 @@ class ModelLoader():
             if schemas.IASG.providedBy(model):
                 add_metric(model, ec2core)
 
+    def load_outputs_file(self, rfile, ne_outputs_path):
+        # parse filename
+        info = rfile.split('.')[0]
+        ne_name = info.split('-')[0]
+        env_name = info.split('-')[1]
+        region = info[len(ne_name) + len(env_name) + 2:]
+
+        env_reg = self.project['netenv'][ne_name][env_name][region]
+        reg_config = self.read_yaml(ne_outputs_path, rfile)
+        if reg_config == None:
+            return
+        if 'applications' in reg_config:
+            for app_name in reg_config['applications'].keys():
+                groups_config = reg_config['applications'][app_name]['groups']
+                for grp_name in groups_config:
+                    for res_name in groups_config[grp_name]['resources']:
+                        # Standard AWS Resources in an Application's Resource Group
+                        resource_config = groups_config[grp_name]['resources'][res_name]
+                        resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
+
+                        if 'fullname' in resource_config:
+                            resource.resource_fullname = resource_config['fullname']['__name__']
+                        if 'name' in resource_config:
+                            # ALB have a name attribute with an embedded __name__
+                            resource.resource_name = resource_config['name']['__name__']
+                            # TargetGroups are nested in the ALB Output
+                            if 'target_groups' in resource_config:
+                                for tg_name, tg_config in resource_config['target_groups'].items():
+                                    tg_resource = resource.target_groups[tg_name]
+                                    tg_resource.resource_name = tg_config['name']['__name__']
+                                    tg_resource.resource_fullname = tg_config['arn']['__name__'].split(':')[-1:][0]
+                        elif '__name__' in resource_config:
+                            resource.resource_name = resource_config['__name__']
+
+                        # CloudWatch Alarms
+                        if 'monitoring' in resource_config:
+                            if 'alarm_sets' in resource_config['monitoring']:
+                                for alarm_set_name in resource_config['monitoring']['alarm_sets']:
+                                    for alarm_name in resource_config['monitoring']['alarm_sets'][alarm_set_name]:
+                                        alarm = resource.monitoring.alarm_sets[alarm_set_name][alarm_name]
+                                        alarm.resource_name = resource_config['monitoring']['alarm_sets'][alarm_set_name][alarm_name]['__name__']
+
     def load_outputs(self):
         "Loads resource ids from CFN Outputs"
 
@@ -799,46 +870,12 @@ class ModelLoader():
         ne_outputs_path = base_output_path + 'NetworkEnvironments'
         if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
             for rfile in os.listdir(self.config_folder + os.sep + ne_outputs_path):
-                # parse filename
-                info = rfile.split('.')[0]
-                ne_name = info.split('-')[0]
-                env_name = info.split('-')[1]
-                region = info[len(ne_name) + len(env_name) + 2:]
-
-                env_reg = self.project['netenv'][ne_name][env_name][region]
-                reg_config = self.read_yaml(ne_outputs_path, rfile)
-                if reg_config == None:
-                    continue
-                if 'applications' in reg_config:
-                    for app_name in reg_config['applications'].keys():
-                        groups_config = reg_config['applications'][app_name]['groups']
-                        for grp_name in groups_config:
-                            for res_name in groups_config[grp_name]['resources']:
-                                # Standard AWS Resources in an Application's Resource Group
-                                resource_config = groups_config[grp_name]['resources'][res_name]
-                                resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
-
-                                if 'fullname' in resource_config:
-                                    resource.resource_fullname = resource_config['fullname']['__name__']
-                                if 'name' in resource_config:
-                                    # ALB have a name attribute with an embedded __name__
-                                    resource.resource_name = resource_config['name']['__name__']
-                                    # TargetGroups are nested in the ALB Output
-                                    if 'target_groups' in resource_config:
-                                        for tg_name, tg_config in resource_config['target_groups'].items():
-                                            tg_resource = resource.target_groups[tg_name]
-                                            tg_resource.resource_name = tg_config['name']['__name__']
-                                            tg_resource.resource_fullname = tg_config['arn']['__name__'].split(':')[-1:][0]
-                                elif '__name__' in resource_config:
-                                    resource.resource_name = resource_config['__name__']
-
-                                # CloudWatch Alarms
-                                if 'monitoring' in resource_config:
-                                    if 'alarm_sets' in resource_config['monitoring']:
-                                        for alarm_set_name in resource_config['monitoring']['alarm_sets']:
-                                            for alarm_name in resource_config['monitoring']['alarm_sets'][alarm_set_name]:
-                                                alarm = resource.monitoring.alarm_sets[alarm_set_name][alarm_name]
-                                                alarm.resource_name = resource_config['monitoring']['alarm_sets'][alarm_set_name][alarm_name]['__name__']
+                try:
+                    self.load_outputs_file(rfile, ne_outputs_path)
+                except KeyError:
+                    outputs_file_path = pathlib.Path(self.config_folder + os.sep + ne_outputs_path, rfile)
+                    print("!! Outputs File: Missing key detected, removing: {}".format(outputs_file_path))
+                    outputs_file_path.unlink()
 
     def load_iam_group(self, res_groups, app_config, local_config={}):
         """

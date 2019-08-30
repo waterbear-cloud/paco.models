@@ -124,7 +124,7 @@ class ResourceGroups(Named, dict):
 
 
 @implementer(schemas.IResourceGroup)
-class ResourceGroup(Named, dict):
+class ResourceGroup(Named, Deployable, dict):
     resources = FieldProperty(schemas.IResourceGroup['resources'])
 
     def __init__(self, name, __parent__):
@@ -495,6 +495,12 @@ class CloudFront(Resource, Deployable):
                 return True
         return False
 
+@implementer(schemas.IRDSOptionConfiguration)
+class RDSOptionConfiguration():
+    option_name = FieldProperty(schemas.IRDSOptionConfiguration['option_name'])
+    option_settings = FieldProperty(schemas.IRDSOptionConfiguration['option_settings'])
+    option_version = FieldProperty(schemas.IRDSOptionConfiguration['option_version'])
+    port = FieldProperty(schemas.IRDSOptionConfiguration['port'])
 
 @implementer(schemas.IRDS)
 class RDS():
@@ -519,6 +525,8 @@ class RDS():
     security_groups = FieldProperty(schemas.IRDS['security_groups'])
     primary_domain_name = FieldProperty(schemas.IRDS['primary_domain_name'])
     primary_hosted_zone = FieldProperty(schemas.IRDS['primary_hosted_zone'])
+    db_snapshot_identifier = FieldProperty(schemas.IRDS['db_snapshot_identifier'])
+    option_configurations = FieldProperty(schemas.IRDS['option_configurations'])
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDS, Resource):

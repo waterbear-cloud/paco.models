@@ -1225,6 +1225,12 @@ class ICodePipeBuildDeploy(IResource):
         title = 'CodeBuild Compute Type',
         constraint = isValidCodeBuildComputeType
     )
+    timeout_mins = schema.Int(
+        title = 'Timeout in Minutes',
+        min = 5,
+        max = 480,
+        default = 60
+    )
 
 class IEC2KeyPair(INamed):
     """

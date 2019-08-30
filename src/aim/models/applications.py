@@ -185,6 +185,7 @@ class CodePipeBuildDeploy(Resource):
     deploy_instance_role = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_instance_role'])
     codebuild_image = FieldProperty(schemas.ICodePipeBuildDeploy['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.ICodePipeBuildDeploy['codebuild_compute_type'])
+    timeout_mins = FieldProperty(schemas.ICodePipeBuildDeploy['timeout_mins'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'kms':

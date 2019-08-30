@@ -4,7 +4,7 @@ All things Resources.
 
 import json
 import troposphere.apigateway
-from aim.models.base import Named, Deployable, Regionalized, Resource
+from aim.models.base import Named, CFNExport, Deployable, Regionalized, Resource
 from aim.models.metrics import Monitorable
 from aim.models import references
 from aim.models import schemas
@@ -19,53 +19,114 @@ from aim.models import references
 class ApiGatewayMethods(Named, dict):
     pass
 
-@implementer(schemas.IApiGatewayMethod)
-class ApiGatewayMethod(Resource):
-    type = "ApiGatewayMethod"
-    resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
-    http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
-    integration_http_method = FieldProperty(schemas.IApiGatewayMethod['integration_http_method'])
-    integration_request_parameters = FieldProperty(schemas.IApiGatewayMethod['integration_request_parameters'])
-    integration_type = FieldProperty(schemas.IApiGatewayMethod['integration_type'])
-    integration_lambda = FieldProperty(schemas.IApiGatewayMethod['integration_lambda'])
-    integration_uri = FieldProperty(schemas.IApiGatewayMethod['integration_uri'])
-    request_parameters = FieldProperty(schemas.IApiGatewayMethod['request_parameters'])
+@implementer(schemas.IApiGatewayMethodIntegrationResponse)
+class ApiGatewayMethodIntegrationResponse(CFNExport):
+    content_handling = FieldProperty(schemas.IApiGatewayMethodIntegrationResponse['content_handling'])
+    response_parameters = FieldProperty(schemas.IApiGatewayMethodIntegrationResponse['response_parameters'])
+    response_templates = FieldProperty(schemas.IApiGatewayMethodIntegrationResponse['response_templates'])
+    selection_pattern = FieldProperty(schemas.IApiGatewayMethodIntegrationResponse['selection_pattern'])
+    status_code = FieldProperty(schemas.IApiGatewayMethodIntegrationResponse['status_code'])
+
+    troposphere_props = troposphere.apigateway.IntegrationResponse.props
+    cfn_mapping = {
+        "ContentHandling": 'content_handling',
+        "ResponseParameters": 'response_parameters',
+        "ResponseTemplates": 'response_templates',
+        "SelectionPattern": 'selection_pattern',
+        "StatusCode": 'status_code'
+    }
+
+@implementer(schemas.IApiGatewayMethodIntegration)
+class ApiGatewayMethodIntegration(CFNExport):
+    integration_responses = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_responses'])
+    request_parameters = FieldProperty(schemas.IApiGatewayMethodIntegration['request_parameters'])
+    integration_http_method = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_http_method'])
+    integration_type = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_type'])
+    integration_lambda = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_lambda'])
+    uri = FieldProperty(schemas.IApiGatewayMethodIntegration['uri'])
 
     @property
-    def integration(self):
-        #troposphere.Integration.Integration
+    def integration_responses_cfn(self):
+        responses = []
+        for resp in self.integration_responses:
+            responses.append(resp.cfn_export_dict)
+        return responses
+
+    troposphere_props = troposphere.apigateway.Integration.props
+    cfn_mapping = {
         #"CacheKeyParameters": ([basestring], False),
         #"CacheNamespace": (basestring, False),
         #"ConnectionId": (basestring, False),
         #"ConnectionType": (basestring, False),
         #"ContentHandling": (basestring, False),
-        #"IntegrationResponses": ([IntegrationResponse], False),
         #"PassthroughBehavior": (basestring, False),
         #"RequestTemplates": (dict, False),
         #"TimeoutInMillis": (integer_range(50, 29000), False),
-        return {
-            "IntegrationHttpMethod": self.integration_http_method,
-            "RequestParameters": self.integration_request_parameters,
-            "Type": self.integration_type,
-            #"Credentials": computed in template according to AWS_PROXY Integration Type,
-            #"Uri": self.integration_uri_cfn,
-        }
+        "IntegrationResponses": 'integration_responses_cfn',
+        "IntegrationHttpMethod": 'integration_http_method',
+        "RequestParameters": 'request_parameters',
+        "Type": 'integration_type',
+        #"Credentials": computed in template according to AWS_PROXY Integration Type,
+        #"Uri": computed in the template,
+    }
+
+@implementer(schemas.IApiGatewayMethodMethodResponseModel)
+class ApiGatewayMethodMethodResponseModel():
+    content_type = FieldProperty(schemas.IApiGatewayMethodMethodResponseModel['content_type'])
+    model_name = FieldProperty(schemas.IApiGatewayMethodMethodResponseModel['model_name'])
+
+@implementer(schemas.IApiGatewayMethodMethodResponse)
+class ApiGatewayMethodMethodResponse():
+    status_code = FieldProperty(schemas.IApiGatewayMethodMethodResponse['status_code'])
+    response_models = FieldProperty(schemas.IApiGatewayMethodMethodResponse['response_models'])
+
+@implementer(schemas.IApiGatewayMethod)
+class ApiGatewayMethod(Resource):
+    type = "ApiGatewayMethod"
+    resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
+    http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
+    request_parameters = FieldProperty(schemas.IApiGatewayMethod['request_parameters'])
+    method_responses = FieldProperty(schemas.IApiGatewayMethod['method_responses'])
+    integration = FieldProperty(schemas.IApiGatewayMethod['integration'])
+
+    @property
+    def integration_cfn(self):
+        return self.integration.cfn_export_dict
 
     troposphere_props = troposphere.apigateway.Method.props
     cfn_mapping = {
         #"ApiKeyRequired": (bool, False),
         #"AuthorizationScopes": ([basestring], False),
         #"AuthorizerId": (basestring, False),
-        #"MethodResponses": ([MethodResponse], False),
         #"RequestModels": (dict, False),
         #"RequestValidatorId": (basestring, False),
         "AuthorizationType": 'authorization_type',
         "HttpMethod": 'http_method',
-        "Integration": 'integration',
+        "Integration": 'integration_cfn',
+        #"MethodResponses": 'method_responses',
         "OperationName": 'title',
         "RequestParameters": 'request_parameters',
         # "ResourceId": computed in the template looked up via resource_id
         # "RestApiId": computed in the template
+    }
+
+@implementer(schemas.IApiGatewayModels)
+class ApiGatewayModels(Named, dict):
+    pass
+
+@implementer(schemas.IApiGatewayModel)
+class ApiGatewayModel(Resource):
+    type = "ApiGatewayModel"
+    content_type = FieldProperty(schemas.IApiGatewayModel['content_type'])
+    description = FieldProperty(schemas.IApiGatewayModel['description'])
+    schema = FieldProperty(schemas.IApiGatewayModel['schema'])
+
+    troposphere_props = troposphere.apigateway.Model.props
+    cfn_mapping ={
+        "ContentType": 'content_type',
+        "Description": 'description',
+        "Name": 'name',
+        "Schema": 'schema',
     }
 
 @implementer(schemas.IApiGatewayResources)
@@ -117,6 +178,7 @@ class ApiGatewayRestApi(Resource):
     parameters = FieldProperty(schemas.IApiGatewayRestApi['parameters'])
     policy = FieldProperty(schemas.IApiGatewayRestApi['policy'])
     methods = FieldProperty(schemas.IApiGatewayRestApi['methods'])
+    models = FieldProperty(schemas.IApiGatewayRestApi['models'])
     resources = FieldProperty(schemas.IApiGatewayRestApi['resources'])
     stages = FieldProperty(schemas.IApiGatewayRestApi['stages'])
     _body = None

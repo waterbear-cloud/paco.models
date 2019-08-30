@@ -25,10 +25,11 @@ class ApiGatewayMethod(Resource):
     resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
     http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
     integration_http_method = FieldProperty(schemas.IApiGatewayMethod['integration_http_method'])
-    integration_credentials = FieldProperty(schemas.IApiGatewayMethod['integration_credentials'])
+    integration_request_parameters = FieldProperty(schemas.IApiGatewayMethod['integration_request_parameters'])
     integration_type = FieldProperty(schemas.IApiGatewayMethod['integration_type'])
     integration_lambda = FieldProperty(schemas.IApiGatewayMethod['integration_lambda'])
     integration_uri = FieldProperty(schemas.IApiGatewayMethod['integration_uri'])
+    request_parameters = FieldProperty(schemas.IApiGatewayMethod['request_parameters'])
 
     @property
     def integration(self):
@@ -40,13 +41,13 @@ class ApiGatewayMethod(Resource):
         #"ContentHandling": (basestring, False),
         #"IntegrationResponses": ([IntegrationResponse], False),
         #"PassthroughBehavior": (basestring, False),
-        #"RequestParameters": (dict, False),
         #"RequestTemplates": (dict, False),
         #"TimeoutInMillis": (integer_range(50, 29000), False),
         return {
-            "Credentials": self.integration_credentials,
             "IntegrationHttpMethod": self.integration_http_method,
+            "RequestParameters": self.integration_request_parameters,
             "Type": self.integration_type,
+            #"Credentials": computed in template according to AWS_PROXY Integration Type,
             #"Uri": self.integration_uri_cfn,
         }
 
@@ -54,15 +55,15 @@ class ApiGatewayMethod(Resource):
     cfn_mapping = {
         #"ApiKeyRequired": (bool, False),
         #"AuthorizationScopes": ([basestring], False),
-        "AuthorizationType": 'authorization_type',
         #"AuthorizerId": (basestring, False),
+        #"MethodResponses": ([MethodResponse], False),
+        #"RequestModels": (dict, False),
+        #"RequestValidatorId": (basestring, False),
+        "AuthorizationType": 'authorization_type',
         "HttpMethod": 'http_method',
         "Integration": 'integration',
-        #"MethodResponses": ([MethodResponse], False),
-        #"OperationName": (basestring, False),
-        #"RequestModels": (dict, False),
-        #"RequestParameters": (dict, False),
-        #"RequestValidatorId": (basestring, False),
+        "OperationName": 'title',
+        "RequestParameters": 'request_parameters',
         # "ResourceId": computed in the template looked up via resource_id
         # "RestApiId": computed in the template
     }

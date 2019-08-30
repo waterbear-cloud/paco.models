@@ -2170,8 +2170,19 @@ class IApiGatewayMethod(IResource):
     resource_id = schema.TextLine(
         title = "Resource Id"
     )
-    integration_credentials = schema.TextLine(
-        title = "Integration Credentials",
+    integration_request_parameters = schema.Dict(
+        title = "The request parameters that API Gateway sends with the backend request.",
+        description = """
+        Specify request parameters as key-value pairs (string-to-string mappings), with a
+destination as the key and a source as the value. Specify the destination by using the
+following pattern `integration.request.location.name`, where `location` is query string, path,
+or header, and `name` is a valid, unique parameter name.
+
+The source must be an existing method request parameter or a static value. You must
+enclose static values in single quotation marks and pre-encode these values based on
+their destination in the request.
+        """,
+        default = {}
     )
     integration_http_method = schema.TextLine(
         title = "Integration HTTP Method",
@@ -2183,6 +2194,7 @@ class IApiGatewayMethod(IResource):
         title = "Integration Type",
         description = "Must be one of AWS, AWS_PROXY, HTTP, HTTP_PROXY or MOCK.",
         constraint = isValidApiGatewayIntegrationType,
+        default = "AWS",
         required = True
     )
     integration_uri = schema.TextLine(
@@ -2195,6 +2207,14 @@ class IApiGatewayMethod(IResource):
         title = "Integration",
         readonly = True
     )
+    request_parameters = schema.Dict(
+        title = "Request Parameters",
+        description = """Specify request parameters as key-value pairs (string-to-Boolean mapping),
+        with a source as the key and a Boolean as the value. The Boolean specifies whether
+        a parameter is required. A source must match the format method.request.location.name,
+        where the location is query string, path, or header, and name is a valid, unique parameter name.""",
+        default = {}
+    )
 
 class IApiGatewayResource(IResource):
     parent_id = schema.TextLine(
@@ -2202,7 +2222,8 @@ class IApiGatewayResource(IResource):
         default = "RootResourceId",
     )
     path_part = schema.TextLine(
-        title = "Path Part"
+        title = "Path Part",
+        required = True
     )
     rest_api_id = schema.TextLine(
         title = "Name of the API Gateway REST API this resource belongs to.",

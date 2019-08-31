@@ -3016,7 +3016,8 @@ class IDeploymentPipelineStageAction(INamed, IDeployable, IMapping):
     run_order = schema.Int(
         title = 'The order in which to run this stage',
         min = 1,
-        max = 999
+        max = 999,
+        default = 1,
     )
 
 

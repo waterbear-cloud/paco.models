@@ -584,6 +584,9 @@ class DeploymentPipelineStageAction(Named, Deployable, dict):
     type = FieldProperty(schemas.IDeploymentPipelineStageAction['type'])
     run_order = FieldProperty(schemas.IDeploymentPipelineStageAction['run_order'])
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IDeploymentPipelineSourceCodeCommit)
 class DeploymentPipelineSourceCodeCommit(DeploymentPipelineStageAction):
     title = 'CodeBuild.Build'
@@ -597,6 +600,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
+
 
 @implementer(schemas.IDeploymentPipelineDeployManualApproval)
 class DeploymentPipelineDeployManualApproval(DeploymentPipelineStageAction):

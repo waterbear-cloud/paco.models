@@ -30,7 +30,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
-    DeploymentPipelineDeployManualApproval
+    DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -71,8 +71,8 @@ logger = get_logger()
 DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
-    'ManualApproval.Deploy': DeploymentPipelineDeployCodeDeploy,
-    'CodeDeploy.Deploy': DeploymentPipelineDeployManualApproval,
+    'ManualApproval.Deploy': DeploymentPipelineDeployManualApproval,
+    'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
@@ -99,6 +99,9 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    DeploymentPipelineDeployCodeDeploy: {
+        'minimum_healthy_hosts': ('unnamed_dict', CodeDeployMinimumHealthyHosts)
+    },
     DeploymentPipeline: {
         'configuration': ('unnamed_dict', DeploymentPipelineConfiguration),
         'source': ('deployment_pipeline_stage', DeploymentPipelineSourceStage),

@@ -2154,23 +2154,68 @@ class ILambda(IResource, IMonitorable):
 
 # API Gateway
 
-class IApiGatewayMethod(IResource):
-    "API Gateway Method"
-    authorization_type = schema.TextLine(
-        title = "Authorization Type",
-        description = "Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
-        constraint = isValidApiGatewayAuthorizationType,
+class IApiGatewayMethodMethodResponseModel(Interface):
+    content_type = schema.TextLine(
+        title = "Content Type"
+    )
+    model_name = schema.TextLine(
+        title = "Model name",
+        default = ""
+    )
+
+class IApiGatewayMethodMethodResponse(Interface):
+    status_code = schema.TextLine(
+        title = "HTTP Status code",
+        description = "",
         required = True
     )
-    http_method = schema.TextLine(
-        title = "HTTP Method",
-        description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
-        constraint = isValidHttpMethod
+    response_models = schema.List(
+        title = "The resources used for the response's content type.",
+        description = """Specify response models as key-value pairs (string-to-string maps),
+with a content type as the key and a Model AIM name as the value.""",
+        value_type = schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
+        default = [],
     )
-    resource_id = schema.TextLine(
-        title = "Resource Id"
+
+class IApiGatewayMethodIntegrationResponse(Interface):
+    content_handling = schema.TextLine(
+        title = "Specifies how to handle request payload content type conversions.",
+        description = """Valid values are:
+
+CONVERT_TO_BINARY: Converts a request payload from a base64-encoded string to a binary blob.
+
+CONVERT_TO_TEXT: Converts a request payload from a binary blob to a base64-encoded string.
+
+If this property isn't defined, the request payload is passed through from the method request
+to the integration request without modification.
+""",
+        required = False
     )
-    integration_request_parameters = schema.Dict(
+    response_parameters = schema.Dict(
+        title = "Response Parameters",
+        default = {}
+    )
+    response_templates = schema.Dict(
+        title = "Response Templates",
+        default = {}
+    )
+    selection_pattern = schema.TextLine(
+        title = "A regular expression that specifies which error strings or status codes from the backend map to the integration response.",
+        required = False
+    )
+    status_code = schema.TextLine(
+        title = "The status code that API Gateway uses to map the integration response to a MethodResponse status code.",
+        description  = "Must match a status code in the method_respones for this API Gateway REST API.",
+        required = True,
+    )
+
+class IApiGatewayMethodIntegration(Interface):
+    integration_responses = schema.List(
+        title = "Integration Responses",
+        value_type = schema.Object(IApiGatewayMethodIntegrationResponse),
+        default = []
+    )
+    request_parameters = schema.Dict(
         title = "The request parameters that API Gateway sends with the backend request.",
         description = """
         Specify request parameters as key-value pairs (string-to-string mappings), with a
@@ -2187,8 +2232,8 @@ their destination in the request.
     integration_http_method = schema.TextLine(
         title = "Integration HTTP Method",
         description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
+        default = "POST",
         constraint = isValidHttpMethod,
-        required = True
     )
     integration_type = schema.TextLine(
         title = "Integration Type",
@@ -2197,15 +2242,40 @@ their destination in the request.
         default = "AWS",
         required = True
     )
-    integration_uri = schema.TextLine(
-        title = "Integration URI"
-    )
     integration_lambda = TextReference(
         title = "Integration Lambda"
     )
-    integration = schema.Dict(
+    uri = schema.TextLine(
+        title = "Integration URI",
+        required = False
+    )
+
+
+class IApiGatewayMethod(IResource):
+    "API Gateway Method"
+    authorization_type = schema.TextLine(
+        title = "Authorization Type",
+        description = "Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
+        constraint = isValidApiGatewayAuthorizationType,
+        required = True
+    )
+    http_method = schema.TextLine(
+        title = "HTTP Method",
+        description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
+        constraint = isValidHttpMethod
+    )
+    resource_id = schema.TextLine(
+        title = "Resource Id"
+    )
+    integration = schema.Object(
         title = "Integration",
-        readonly = True
+        schema = IApiGatewayMethodIntegration,
+    )
+    method_responses = schema.List(
+        title = "Method Responses",
+        description = "List of ApiGatewayMethod MethodResponses",
+        value_type = schema.Object(IApiGatewayMethodMethodResponse),
+        default = []
     )
     request_parameters = schema.Dict(
         title = "Request Parameters",
@@ -2214,6 +2284,19 @@ their destination in the request.
         a parameter is required. A source must match the format method.request.location.name,
         where the location is query string, path, or header, and name is a valid, unique parameter name.""",
         default = {}
+    )
+
+class IApiGatewayModel(IResource):
+    content_type = schema.TextLine(
+        title = "Content Type"
+    )
+    description = schema.Text(
+        title = "Description"
+    )
+    schema = schema.Dict(
+        title = "Schema",
+        description = 'JSON format. Will use null({}) if left empty.',
+        default = {},
     )
 
 class IApiGatewayResource(IResource):
@@ -2241,6 +2324,9 @@ class IApiGatewayStage(IResource):
     stage_name = schema.TextLine(
         title = "Stage name"
     )
+
+class IApiGatewayModels(INamed, IMapping):
+    "Container for API Gateway Model objects"
 
 class IApiGatewayMethods(INamed, IMapping):
     "Container for API Gateway Method objects"
@@ -2318,6 +2404,9 @@ class IApiGatewayRestApi(IResource):
         required = False,
         min = 0,
         max = 10485760
+    )
+    models = schema.Object(
+        schema = IApiGatewayModels
     )
     parameters = schema.Dict(
         title = "Parameters. Custom header parameters for the request.",

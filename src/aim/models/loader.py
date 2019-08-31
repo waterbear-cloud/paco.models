@@ -35,7 +35,9 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
-    ApiGatewayResources, ApiGatewayResource, \
+    ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
+    ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
+    ApiGatewayMethodIntegrationResponse, \
     IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -110,8 +112,19 @@ SUB_TYPES_CLASS_MAP = {
     },
     ApiGatewayRestApi: {
         'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
+        'models': ('container', (ApiGatewayModels, ApiGatewayModel)),
         'resources': ('container', (ApiGatewayResources, ApiGatewayResource)),
         'stages': ('container', (ApiGatewayStages, ApiGatewayStage)),
+    },
+    ApiGatewayMethodIntegration: {
+        'integration_responses': ('obj_list', ApiGatewayMethodIntegrationResponse),
+    },
+    ApiGatewayMethod: {
+        'method_responses': ('obj_list', ApiGatewayMethodMethodResponse),
+        'integration': ('unnamed_dict', ApiGatewayMethodIntegration),
+    },
+    ApiGatewayMethodMethodResponse: {
+        'response_models': ('obj_list', ApiGatewayMethodMethodResponseModel)
     },
     RDSOptionConfiguration: {
         'option_settings': ('obj_list', NameValuePair)
@@ -367,7 +380,7 @@ def get_all_nodes(root):
                 # skip computed fields
                 if field.readonly: continue
                 # don't drill down into lists of strings - only lists of model objects
-                for obj in getattr(cur_node, field_name, None):
+                for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
                         stack.insert(0, obj)
     return nodes
@@ -464,7 +477,10 @@ Unneeded field '{}' in config for object type '{}'
                                         lookup_config,
                                         read_file_path
                                     )
-                                    setattr(obj, name, value)
+                                    try:
+                                        setattr(obj, name, value)
+                                    except AttributeError:
+                                        breakpoint()
                                 else:
                                     setattr(obj, name, copy.deepcopy(value))
                             else:

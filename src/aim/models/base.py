@@ -51,6 +51,7 @@ def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         if mapping_field_name in fields:
+            # Field provides type information to help convert to Troposphere type
             field = fields[mapping_field_name]
             value = getattr(obj, mapping_attr_name)
             if zope.schema.interfaces.IBool.providedBy(field) and props[troposphere_name][0] == type(str()):
@@ -67,7 +68,12 @@ def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_
                 return None
             else:
                 return value
+        elif hasattr(obj, mapping_field_name):
+            # supplied as a base property or attribute - these should return
+            # types that troposphere expects
+            return getattr(obj, mapping_field_name)
         else:
+            # Shouldn't get here unless the cfn_mapping is incorrect
             raise InvalidCFNMapping
 
 def get_all_fields(obj):
@@ -86,8 +92,24 @@ def get_all_fields(obj):
         fields.update(zope.schema.getFields(interface))
     return fields
 
+class CFNExport():
+    @property
+    def cfn_export_dict(self):
+        "CloudFormation export dictionary suitable for use in troposphere templates"
+        result = {}
+        for key, value in self.cfn_mapping.items():
+            value = marshall_fieldname_to_troposphere_value(
+                self,
+                self.troposphere_props,
+                key,
+                value
+            )
+            if value != None:
+                result[key] = value
+        return result
+
 @implementer(schemas.INamed)
-class Named():
+class Named(CFNExport):
     """
     An item which has a name and an optional title.
     A name is a unique, human-readable id.
@@ -130,20 +152,6 @@ class Named():
     def aim_ref(self):
         return 'aim.ref ' + self.aim_ref_parts
 
-    @property
-    def cfn_export_dict(self):
-        "CloudFormation export dictionary suitable for use in troposphere templates"
-        result = {}
-        for key, value in self.cfn_mapping.items():
-            value = marshall_fieldname_to_troposphere_value(
-                self,
-                self.troposphere_props,
-                key,
-                value
-            )
-            if value != None:
-                result[key] = value
-        return result
 
 @implementer(schemas.IName)
 class Name():

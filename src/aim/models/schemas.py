@@ -1083,7 +1083,7 @@ class IS3Bucket(IResource, IDeployable):
     bucket_name = schema.TextLine(
         title = "Bucket Name",
         description = "A short unique name to assign the bucket.",
-        default = "",
+        default = "bucket",
         required = True
     )
     account = TextReference(
@@ -2753,6 +2753,10 @@ class ICloudFront(IResource, IDeployable):
         value_type = schema.Object(IDNS),
         default = []
     )
+    default_root_object = schema.TextLine(
+        title = "The default path to load from the origin.",
+        default = 'index.html'
+    )
     default_cache_behavior = schema.Object(
         title = "Default Cache Behavior",
         schema = ICloudFrontDefaultCacheBehaviour
@@ -3109,7 +3113,6 @@ class IDeploymentPipelineStageAction(INamed, IDeployable, IMapping):
         default = 1,
     )
 
-
 class IDeploymentPipelineSourceCodeCommit(IDeploymentPipelineStageAction):
     """
     CodeCommit DeploymentPipeline Source Stage
@@ -3146,6 +3149,44 @@ class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
         max = 480,
         default = 60
     )
+
+class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
+    """
+    Amazon S3 Deployment Provider
+    """
+    # BucketName: Required
+    bucket = TextReference(
+        title = "S3 Bucket Reference"
+    )
+    # Extract: Required: Required if Extract = false
+    extract = schema.Bool(
+        title = "Boolean indicating whether the deployment artifact will be unarchived.",
+        default = True
+    )
+    # ObjectKey: Required if Extract = false
+    object_key = schema.TextLine(
+        title = "S3 object key to store the deployment artifact as.",
+        required = False
+    )
+    # KMSEncryptionKeyARN: Optional
+    # This is used internally for now.
+    #kms_encryption_key_arn = schema.TextLine(
+    #    title = "The KMS Key Arn used for artifact encryption.",
+    #    required = False
+    #)
+    # : CannedACL: Optional
+    # https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
+    # canned_acl =
+
+    # CacheControl: Optional
+    # cache_control = schema.TextLine()
+    # The CacheControl parameter controls caching behavior for requests/responses for objects
+    # in the bucket. For a list of valid values, see the Cache-Control header field for HTTP
+    # operations. To enter multiple values in CacheControl, use a comma between each value.
+    #
+    # You can add a space after each comma (optional), as shown in this example for the CLI:
+    #
+    # "CacheControl": "public, max-age=0, no-transform"
 
 class IDeploymentPipelineDeployManualApproval(IDeploymentPipelineStageAction):
     """

@@ -482,6 +482,7 @@ class CloudFrontFactory(Named):
 class CloudFront(Resource, Deployable):
     title = "CloudFront"
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
+    default_root_object = FieldProperty(schemas.ICloudFront['default_root_object'])
     default_cache_behavior = FieldProperty(schemas.ICloudFront['default_cache_behavior'])
     viewer_certificate = FieldProperty(schemas.ICloudFront['viewer_certificate'])
     price_class = FieldProperty(schemas.ICloudFront['price_class'])
@@ -601,6 +602,13 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
 
+@implementer(schemas.IDeploymentPipelineDeployS3)
+class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):
+    title = 'S3.Deploy'
+    bucket = FieldProperty(schemas.IDeploymentPipelineDeployS3['bucket'])
+    extract = FieldProperty(schemas.IDeploymentPipelineDeployS3['extract'])
+    object_key = FieldProperty(schemas.IDeploymentPipelineDeployS3['object_key'])
+    #kms_encryption_key_arn = FieldProperty(schemas.IDeploymentPipelineDeployS3['kms_encryption_key_arn'])
 
 @implementer(schemas.IDeploymentPipelineDeployManualApproval)
 class DeploymentPipelineDeployManualApproval(DeploymentPipelineStageAction):

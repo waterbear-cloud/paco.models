@@ -30,7 +30,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
-    DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts
+    DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -75,6 +75,7 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
     'ManualApproval.Deploy': DeploymentPipelineDeployManualApproval,
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
+    'S3.Deploy': DeploymentPipelineDeployS3
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {

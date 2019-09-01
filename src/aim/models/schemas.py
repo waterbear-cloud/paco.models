@@ -1558,6 +1558,9 @@ class ICredentials(INamed):
         description = "",
         default = ""
         )
+    admin_iam_role_name = schema.TextLine(
+        title = "Administrator IAM Role Name"
+        )
 
 class INetwork(INetworkEnvironment):
     aws_account = TextReference(

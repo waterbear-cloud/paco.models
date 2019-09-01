@@ -94,6 +94,7 @@ class Credentials(Named, dict):
     aws_default_region = FieldProperty(schemas.ICredentials["aws_default_region"])
     master_account_id = FieldProperty(schemas.ICredentials["master_account_id"])
     master_admin_iam_username = FieldProperty(schemas.ICredentials["master_admin_iam_username"])
+    admin_iam_role_name = FieldProperty(schemas.ICredentials["admin_iam_role_name"])
 
     @property
     def mfa_role_arn(self):

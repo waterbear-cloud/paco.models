@@ -380,6 +380,12 @@ def isValidCodeBuildComputeType(value):
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
+class IDNSEnablable(Interface):
+    """Provides a parent with an inheritable DNS enabled field"""
+    dns_enabled = schema.Bool(
+        title = 'Boolean indicating whether DNS record sets will be created.',
+        default = True
+    )
 
 class CommaList(schema.List):
     """Comma separated list of valeus"""
@@ -576,7 +582,7 @@ class IApplicationEngines(INamed, IMapping):
     "A collection of Application Engines"
     pass
 
-class IResource(INamed, IDeployable):
+class IResource(INamed, IDeployable, IDNSEnablable):
     """
     AWS Resource to support an Application
     """
@@ -635,7 +641,7 @@ class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
 
-class IResourceGroup(INamed, IDeployable, IMapping):
+class IResourceGroup(INamed, IDeployable, IMapping, IDNSEnablable):
     "A collection of Application Resources"
     title = schema.TextLine(
         title="Title",
@@ -651,6 +657,9 @@ class IResourceGroup(INamed, IDeployable, IMapping):
         required = True
     )
     resources = schema.Object(IResources)
+    dns_enabled = schema.Bool(
+        title = ""
+    )
 
 
 class IResourceGroups(INamed, IMapping):
@@ -1125,7 +1134,7 @@ class IS3Resource(INamed):
         default = {}
     )
 
-class IApplicationEngine(INamed, IDeployable, INotifiable):
+class IApplicationEngine(INamed, IDeployable, INotifiable, IDNSEnablable):
     """
     Application Engine : A template describing an application
     """

@@ -207,8 +207,33 @@ class Regionalized():
     def region_full_name(self):
         return vocabulary.aws_regions[self.region_name]['full_name']
 
+@implementer(schemas.IDNSEnablable)
+class DNSEnablable():
+    dns_enabled = FieldProperty(schemas.IDNSEnablable['dns_enabled'])
+
+    def is_dns_enabled(self):
+        """
+        Returns True in a deployed state, otherwise False.
+        Will walk up the tree, and if anything is set to "enabled: false"
+        this will return False.
+        """
+        state = self.dns_enabled
+        # if current resource is already "enabled: false" simlpy return that
+        if not state: return False
+
+        context = self
+        while context is not None:
+            override = getattr(context, 'dns_enabled', True)
+            # once we encounter something higher in the tree with "enabled: false"
+            # the lower resource is always False and we return that
+            if not override: return False
+            context = getattr(context, '__parent__', None)
+
+        # walked right to the top and enabled is still true
+        return True
+
 @implementer(schemas.IResource)
-class Resource(Named, Deployable, Regionalized):
+class Resource(Named, Deployable, Regionalized, DNSEnablable):
     "Resource"
     type = FieldProperty(schemas.IResource['type'])
     resource_name = FieldProperty(schemas.IResource['resource_name'])
@@ -231,4 +256,6 @@ class Resource(Named, Deployable, Regionalized):
 class ServiceAccountRegion():
     account = FieldProperty(schemas.IServiceAccountRegion['account'])
     region = FieldProperty(schemas.IServiceAccountRegion['region'])
+
+
 

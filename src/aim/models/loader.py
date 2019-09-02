@@ -340,7 +340,7 @@ def print_diff_object(diff_obj, diff_obj_key):
             for key, value in change_t.items():
                 print("\t{}: {}".format(key, value))
         else:
-            print("\t- "+change_t)
+            print("\t- {}".format(change_t))
         print("")
 
 def init_model_obj_store(model_obj, project_folder, build_folder):

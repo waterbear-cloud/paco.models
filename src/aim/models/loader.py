@@ -49,11 +49,16 @@ from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
 from aim.models import schemas
-from deepdiff import DeepDiff
 from pathlib import Path
 from ruamel.yaml.compat import StringIO
 from shutil import copyfile
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
+
+# deepdiff turns on Deprecation warnings, we need to turn them back off
+# again right after import, otherwise 3rd libs spam dep warnings all over the place
+from deepdiff import DeepDiff
+import warnings
+warnings.simplefilter("ignore")
 
 
 def get_logger():

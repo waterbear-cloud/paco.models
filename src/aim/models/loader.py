@@ -8,7 +8,9 @@ import itertools, os, copy
 import logging
 import pathlib
 import pkg_resources
+import re
 import ruamel.yaml
+import sys
 import zope.schema
 import zope.schema.interfaces
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
@@ -47,8 +49,10 @@ from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref
 from aim.models import schemas
+from deepdiff import DeepDiff
 from pathlib import Path
 from ruamel.yaml.compat import StringIO
+from shutil import copyfile
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
 
 
@@ -304,7 +308,114 @@ SUB_TYPES_CLASS_MAP = {
         'repositories': ('obj_list', IAMUserPermissionCodeCommitRepository)
     }
 }
+def getFromSquareBrackets(s):
+    return re.findall(r"\['?([A-Za-z0-9_]+)'?\]", s)
 
+def print_diff_object(diff_obj, diff_obj_key):
+    if diff_obj_key not in diff_obj.keys():
+        return
+    for root_change in diff_obj[diff_obj_key]:
+        node_str = '.'.join(getFromSquareBrackets(root_change.path()))
+        if diff_obj_key.endswith('_removed'):
+            change_t = root_change.t1
+        elif diff_obj_key.endswith('_added'):
+            change_t = root_change.t2
+        elif diff_obj_key == 'values_changed':
+            change_t = root_change.t1
+
+        print("    ({}) {}".format(type(change_t).__name__, node_str))
+        if diff_obj_key == 'values_changed':
+            print("\told: {}".format(root_change.t1))
+            print("\tnew: {}\n".format(root_change.t2))
+            return
+        if type(change_t) == list:
+            for value in change_t:
+                print("\t- "+value)
+        elif type(change_t) == dict:
+            for key, value in change_t.items():
+                print("\t{}: {}".format(key, value))
+        else:
+            print("\t- "+change_t)
+        print("")
+
+def init_model_obj_store(model_obj, project_folder, build_folder):
+    build_folder_path = pathlib.Path(build_folder, 'Applied')
+    project_folder_path = pathlib.Path(project_folder)
+    read_file_folder = model_obj._read_file_path.parent
+    applied_file_folder = build_folder_path.joinpath(read_file_folder)
+    applied_file_folder.mkdir(parents=True, exist_ok=True)
+    applied_file_path = build_folder_path.joinpath(model_obj._read_file_path)
+    new_file_path = project_folder_path.joinpath(model_obj._read_file_path)
+
+    return [applied_file_path, new_file_path]
+
+def apply_model_obj(model_obj, project_folder, build_folder):
+    applied_file_path, new_file_path = init_model_obj_store(
+        model_obj,
+        project_folder,
+        build_folder
+    )
+    copyfile(new_file_path, applied_file_path)
+
+def validate_model_obj(model_obj, project_folder, build_folder):
+    applied_file_path, new_file_path = init_model_obj_store(
+        model_obj,
+        project_folder,
+        build_folder
+    )
+
+    if applied_file_path.exists() == False:
+        return
+    yaml = YAML(typ="safe", pure=True)
+    yaml.default_flow_sytle = False
+    with open(applied_file_path, 'r') as stream:
+        applied_file_dict= yaml.load(stream)
+    with open(new_file_path, 'r') as stream:
+        new_file_dict= yaml.load(stream)
+
+    deep_diff = DeepDiff(
+        applied_file_dict,
+        new_file_dict,
+        verbose_level=1,
+         view='tree'
+    )
+    print("----------------------------------------------------")
+    print("Validate Model Object")
+    print("(file) {}".format(model_obj._read_file_path))
+    prompt_user = True
+    if len(deep_diff.keys()) > 0:
+        print("\nChanged:")
+        print_diff_object(deep_diff, 'values_changed')
+
+        print("Removed:")
+        print_diff_object(deep_diff, 'dictionary_item_removed')
+        print_diff_object(deep_diff, 'iterable_item_removed')
+        print_diff_object(deep_diff, 'set_item_added')
+
+        print("Added:")
+        print_diff_object(deep_diff, 'dictionary_item_added')
+        print_diff_object(deep_diff, 'iterable_item_added')
+        print_diff_object(deep_diff, 'set_item_removed')
+        # attribute_added
+    else:
+        print("No Changes Detected")
+        prompt_user = False
+
+    print("----------------------------------------------------")
+
+    while prompt_user:
+        answer = input("\nAre these changes acceptable? [y/N] ")
+        if answer == '':
+            answer = 'n'
+        if answer.lower() not in ['y', 'n', 'yes', 'no']:
+            print('Invalid answer: ' + answer)
+            continue
+        else:
+            if answer.lower() in ['y', 'yes']:
+                return True
+            else:
+                print("aborting...")
+                sys.exit(1)
 
 def load_string_from_path(path, base_path=None):
     if not base_path.endswith(os.sep):
@@ -776,7 +887,7 @@ class ModelLoader():
                     elif fname.endswith('.yaml'):
                         name = fname[:-5]
                     config = self.read_yaml(subdir, fname)
-                    instantiate_method(name, config)
+                    instantiate_method(name, config, os.path.join(subdir, fname))
         self.instantiate_services()
         self.check_notification_config()
         # ToDo: references only need to be loaded for things like web UIs, implementation not complete
@@ -1111,7 +1222,7 @@ class ModelLoader():
                                     )
                                 )
 
-    def instantiate_monitor_config(self, name, config):
+    def instantiate_monitor_config(self, name, config, read_file_path):
         """
         Loads Logging and AlarmSets config
         These do not get directly loaded into the model, their config is simply stored
@@ -1162,6 +1273,7 @@ class ModelLoader():
             Account,
             config
         )
+        self.project['accounts'][name]._read_file_path = read_file_path
 
     def instantiate_cloudtrail(self, config):
         obj = CloudTrailResource('cloudtrail', self.project)
@@ -1227,19 +1339,22 @@ class ModelLoader():
         apply_attributes_from_config(iam_obj, config)
         return iam_obj
 
-    def instantiate_resources(self, name, config):
-        if name == "Route53":
-            self.project['route53'] = self.instantiate_route53(config)
-        elif name == "CodeCommit":
-            self.project['codecommit'] = self.instantiate_codecommit(config)
-        elif name == "EC2":
-            self.project['ec2'] = self.instantiate_ec2(config)
-        elif name == "S3":
-            self.project['s3'] = self.instantiate_s3(config)
-        elif name == 'CloudTrail':
-            self.project['cloudtrail'] = self.instantiate_cloudtrail(config)
-        elif name == 'IAM':
-            self.project['iam'] = self.instantiate_iam(config)
+    def instantiate_resources(self, name, config, read_file_path=None):
+        name = name.lower()
+        # Functions:
+        #   route53
+        #   codecommit
+        #   ec2
+        #   s3
+        #   cloudtrail
+        #   iam
+        instantiate_method = getattr(self, 'instantiate_'+name, None)
+        if instantiate_method == None:
+            print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))
+        else:
+            self.project[name] = instantiate_method(config)
+            self.project[name]._read_file_path = read_file_path
+        return
 
     def instantiate_env_region_config(
         self,
@@ -1293,16 +1408,18 @@ class ModelLoader():
                 elif config_name == 'iam':
                     self.load_iam_group(item.groups, item_config)
 
-    def instantiate_network_environments(self, name, config):
+    def instantiate_network_environments(self, name, config, read_file_path):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
          # Network Environment
         if config['network'] == None:
             return
+
         net_env = self.create_apply_and_save(
             name, self.project['netenv'], NetworkEnvironment, config['network']
         )
+        net_env._read_file_path = pathlib.Path(read_file_path)
         # Network Environments do not have a place to store enabled, so we
-        # we froce it to true for now
+        # we force it to true for now
         net_env.enabled = True
 
         # Environments

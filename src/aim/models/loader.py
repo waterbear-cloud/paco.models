@@ -330,7 +330,7 @@ def print_diff_object(diff_obj, diff_obj_key):
             return
         if type(change_t) == list:
             for value in change_t:
-                print("\t- "+value)
+                print("\t- {}".format(value))
         elif type(change_t) == dict:
             for key, value in change_t.items():
                 print("\t{}: {}".format(key, value))

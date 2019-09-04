@@ -362,7 +362,7 @@ def apply_model_obj(model_obj, project_folder, build_folder):
     )
     copyfile(new_file_path, applied_file_path)
 
-def validate_model_obj(model_obj, project_folder, build_folder):
+def validate_model_obj(model_obj, project_folder, build_folder, yes_flag=False):
     applied_file_path, new_file_path = init_model_obj_store(
         model_obj,
         project_folder,
@@ -407,6 +407,9 @@ def validate_model_obj(model_obj, project_folder, build_folder):
         prompt_user = False
 
     print("----------------------------------------------------")
+
+    if yes_flag == True:
+        return
 
     while prompt_user:
         answer = input("\nAre these changes acceptable? [y/N] ")

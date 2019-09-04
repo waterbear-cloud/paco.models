@@ -1281,7 +1281,7 @@ class ModelLoader():
             Account,
             config
         )
-        self.project['accounts'][name]._read_file_path = read_file_path
+        self.project['accounts'][name]._read_file_path = pathlib.Path(read_file_path)
 
     def instantiate_cloudtrail(self, config):
         obj = CloudTrailResource('cloudtrail', self.project)
@@ -1361,7 +1361,7 @@ class ModelLoader():
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))
         else:
             self.project[name] = instantiate_method(config)
-            self.project[name]._read_file_path = read_file_path
+            self.project[name]._read_file_path = pathlib.Path(read_file_path)
         return
 
     def instantiate_env_region_config(

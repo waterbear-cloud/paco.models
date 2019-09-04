@@ -95,6 +95,8 @@ class Credentials(Named, dict):
     master_account_id = FieldProperty(schemas.ICredentials["master_account_id"])
     master_admin_iam_username = FieldProperty(schemas.ICredentials["master_admin_iam_username"])
     admin_iam_role_name = FieldProperty(schemas.ICredentials["admin_iam_role_name"])
+    mfa_session_expiry_secs = FieldProperty(schemas.ICredentials["mfa_session_expiry_secs"])
+    assume_role_session_expiry_secs = FieldProperty(schemas.ICredentials["assume_role_session_expiry_secs"])
 
     @property
     def mfa_role_arn(self):

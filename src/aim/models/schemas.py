@@ -1570,6 +1570,18 @@ class ICredentials(INamed):
     admin_iam_role_name = schema.TextLine(
         title = "Administrator IAM Role Name"
         )
+    mfa_session_expiry_secs = schema.Int(
+        title = 'The number of seconds before an MFA token expires.',
+        default = 60 * 60,   # 1 hour
+        min = 60 * 15,       # 15 minutes
+        max = (60 * 60) * 12 # 12 hours
+    )
+    assume_role_session_expiry_secs = schema.Int(
+        title = 'The number of seconds before an assumed role token expires.',
+        default = 60 * 15,   # 15 minuts
+        min = 60 * 15,       # 15 minutes
+        max = 60 * 60        # 1 hour
+    )
 
 class INetwork(INetworkEnvironment):
     aws_account = TextReference(

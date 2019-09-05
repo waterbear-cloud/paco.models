@@ -527,7 +527,8 @@ class ISecurityGroupRule(IName):
     from_port = schema.Int(
         title = "From port",
         description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1
+        default = -1,
+        required = False
     )
     protocol = schema.TextLine(
         title = "IP Protocol",
@@ -536,13 +537,27 @@ class ISecurityGroupRule(IName):
     to_port = schema.Int(
         title = "To port",
         description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1
+        default = -1,
+        required = False
+    )
+    port = schema.In(
+        title = "Port",
+        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
+        default = -1,
+        required = False
     )
     source_security_group = TextReference(
         title = "Source Security Group Reference",
         required = False,
         description = "An AIM Reference to a SecurityGroup"
     )
+
+    @invariant
+    def to_from_or_port(obj):
+        if obj.port == -1 and (obj.to_port == -1 and obj.from_port == -1):
+            raise Invalid("One of 'port' or 'to_port/from_port' must not be blank.")
+        elif obj.port != -1 and (obj.to_port != -1 or obj.from_port != -1):
+            raise Invalid("Both 'port' and 'to_port/from_port' must not have values.")
 
 class IIngressRule(ISecurityGroupRule):
     "Security group ingress"

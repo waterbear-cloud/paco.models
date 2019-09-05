@@ -169,6 +169,14 @@ def isValidInstanceSize(value):
         raise InvalidInstanceSizeError
     return True
 
+class InvalidInstanceAMITypeError(schema.ValidationError):
+    __doc__ = 'Not a valid instance AMI type (or update the ami_types vocabulary).'
+
+def isValidInstanceAMIType(value):
+    if value not in vocabulary.ami_types:
+        raise InvalidInstanceAMITypeError
+    return True
+
 class InvalidHealthCheckTypeError(schema.ValidationError):
     __doc__ = 'Not a valid health check type (can only be EC2 or ELB).'
 
@@ -624,6 +632,10 @@ class IResource(INamed, IDeployable, IDNSEnablable):
         min = 0,
         default = 0,
         required = False
+    )
+    change_protected = schema.Bool(
+        title = "Boolean indicating whether this resource can be modified or not.",
+        default = False
     )
 
 class IServices(INamed, IMapping):
@@ -1984,6 +1996,10 @@ class IASG(IResource, IMonitorable):
         title="Instance AMI",
         description="",
         str_ok=True
+    )
+    instance_ami_type = schema.TextLine(
+        title = "The AMI type",
+        constraint = isValidInstanceAMIType
     )
     instance_key_pair = TextReference(
         title = "Instance key pair reference",

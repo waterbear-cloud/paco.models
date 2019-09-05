@@ -524,3 +524,53 @@ rds_engine_versions = {
 
 	}
 }
+
+ami_types = [ 'amazon', 'centos', 'redhat', 'suse', 'ubuntu', 'microsoft' ]
+
+user_data_script = {
+	'update_system': {
+		'amazon': 'yum update -y',
+		'ubuntu': [
+			'export DEBIAN_FRONTEND=noninteractive',
+			'apt-get -yq update && apt-get -yq upgrade'
+		]
+	},
+	'essential_packages': {
+		'amazon': [],
+		'ubuntu': [
+			"apt-get -yq install awscli"
+		]
+	}
+}
+
+# Create the CloudWatch agent launch scripts and configuration
+cloudwatch_agent = {
+	"amazon": {
+		"path": "/amazon_linux/amd64/latest",
+		"object": "amazon-cloudwatch-agent.rpm",
+		"install": "rpm -U", },
+	"centos": {
+		"path": "/centos/amd64/latest",
+		"object": "amazon-cloudwatch-agent.rpm",
+		"install": "rpm -U" },
+	"suse": {
+		"path": "/suse/amd64/latest",
+		"object": "amazon-cloudwatch-agent.rpm",
+		"install": "rpm -U" },
+	"debian": {
+		"path": "/debian/amd64/latest",
+		"object": "amazon-cloudwatch-agent.deb" ,
+		"install": "dpkg -i -E" },
+	"ubuntu": {
+		"path": "/ubuntu/amd64/latest",
+		"object": "amazon-cloudwatch-agent.deb",
+		"install": "dpkg -i -E" },
+	"microsoft": {
+		"path": "/windows/amd64/latest",
+		"object": "amazon-cloudwatch-agent.msi",
+		"install": "msiexec /i" },
+	"redhat": {
+		"path": "/redhat/arm64/latest",
+		"object": "amazon-cloudwatch-agent.rpm",
+		"install": "rpm -U" },
+}

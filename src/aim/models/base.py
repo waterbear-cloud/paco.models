@@ -239,6 +239,7 @@ class Resource(Named, Deployable, Regionalized, DNSEnablable):
     resource_name = FieldProperty(schemas.IResource['resource_name'])
     resource_fullname = FieldProperty(schemas.IResource['resource_fullname'])
     order = FieldProperty(schemas.IResource['order'])
+    change_protected = FieldProperty(schemas.IResource['change_protected'])
 
     def get_account(self):
         """

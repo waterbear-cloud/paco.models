@@ -529,7 +529,7 @@ ami_types = [ 'amazon', 'centos', 'redhat', 'suse', 'ubuntu', 'microsoft' ]
 
 user_data_script = {
 	'update_system': {
-		'amazon': 'yum update -y',
+		'amazon': ['yum update -y'],
 		'ubuntu': [
 			'export DEBIAN_FRONTEND=noninteractive',
 			'apt-get -yq update && apt-get -yq upgrade'

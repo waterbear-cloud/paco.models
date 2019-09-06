@@ -343,30 +343,31 @@ def print_diff_object(diff_obj, diff_obj_key):
             print("\t- {}".format(change_t))
         print("")
 
-def init_model_obj_store(model_obj, project_folder, build_folder):
-    build_folder_path = pathlib.Path(build_folder, 'Applied')
+def init_model_obj_store(model_obj, project_folder):
     project_folder_path = pathlib.Path(project_folder)
-    read_file_folder = model_obj._read_file_path.parent
-    applied_file_folder = build_folder_path.joinpath(read_file_folder)
-    applied_file_folder.mkdir(parents=True, exist_ok=True)
-    applied_file_path = build_folder_path.joinpath(model_obj._read_file_path)
-    new_file_path = project_folder_path.joinpath(model_obj._read_file_path)
+    changed_file_path = project_folder_path.joinpath(model_obj._read_file_path)
+    applied_file_path = project_folder_path.joinpath(
+        'aimdata',
+        'applied',
+        'model',
+        model_obj._read_file_path
+    )
 
-    return [applied_file_path, new_file_path]
+    applied_file_path.parent.mkdir(parents=True, exist_ok=True)
 
-def apply_model_obj(model_obj, project_folder, build_folder):
+    return [applied_file_path, changed_file_path]
+
+def apply_model_obj(model_obj, project_folder):
     applied_file_path, new_file_path = init_model_obj_store(
         model_obj,
-        project_folder,
-        build_folder
+        project_folder
     )
     copyfile(new_file_path, applied_file_path)
 
-def validate_model_obj(model_obj, project_folder, build_folder, yes_flag=False):
+def validate_model_obj(model_obj, project_folder, yes_flag=False):
     applied_file_path, new_file_path = init_model_obj_store(
         model_obj,
-        project_folder,
-        build_folder
+        project_folder
     )
 
     if applied_file_path.exists() == False:

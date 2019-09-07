@@ -169,6 +169,14 @@ def isValidInstanceSize(value):
         raise InvalidInstanceSizeError
     return True
 
+class InvalidInstanceAMITypeError(schema.ValidationError):
+    __doc__ = 'Not a valid instance AMI type (or update the ami_types vocabulary).'
+
+def isValidInstanceAMIType(value):
+    if value not in vocabulary.ami_types:
+        raise InvalidInstanceAMITypeError
+    return True
+
 class InvalidHealthCheckTypeError(schema.ValidationError):
     __doc__ = 'Not a valid health check type (can only be EC2 or ELB).'
 
@@ -380,6 +388,12 @@ def isValidCodeBuildComputeType(value):
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
+class IDNSEnablable(Interface):
+    """Provides a parent with an inheritable DNS enabled field"""
+    dns_enabled = schema.Bool(
+        title = 'Boolean indicating whether DNS record sets will be created.',
+        default = True
+    )
 
 class CommaList(schema.List):
     """Comma separated list of valeus"""
@@ -521,7 +535,8 @@ class ISecurityGroupRule(IName):
     from_port = schema.Int(
         title = "From port",
         description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1
+        default = -1,
+        required = False
     )
     protocol = schema.TextLine(
         title = "IP Protocol",
@@ -530,13 +545,30 @@ class ISecurityGroupRule(IName):
     to_port = schema.Int(
         title = "To port",
         description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1
+        default = -1,
+        required = False
+    )
+    port = schema.Int(
+        title = "Port",
+        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
+        default = -1,
+        required = False
     )
     source_security_group = TextReference(
         title = "Source Security Group Reference",
         required = False,
-        description = "An AIM Reference to a SecurityGroup"
+        description = "An AIM Reference to a SecurityGroup",
+        str_ok = True
     )
+
+    @invariant
+    def to_from_or_port(obj):
+        if obj.port != -1 and (obj.to_port != -1 or obj.from_port != -1):
+            raise Invalid("Both 'port' and 'to_port/from_port' must not have values.")
+        elif obj.to_port == -1 and obj.from_port != -1:
+            raise Invalid("The 'from_port' field must not be blank when 'to_port' has a value.")
+        elif obj.from_port == -1 and obj.to_port != -1:
+            raise Invalid("The 'to_port' field must not be blank when 'from_port' has a value.")
 
 class IIngressRule(ISecurityGroupRule):
     "Security group ingress"
@@ -576,7 +608,7 @@ class IApplicationEngines(INamed, IMapping):
     "A collection of Application Engines"
     pass
 
-class IResource(INamed, IDeployable):
+class IResource(INamed, IDeployable, IDNSEnablable):
     """
     AWS Resource to support an Application
     """
@@ -600,6 +632,10 @@ class IResource(INamed, IDeployable):
         min = 0,
         default = 0,
         required = False
+    )
+    change_protected = schema.Bool(
+        title = "Boolean indicating whether this resource can be modified or not.",
+        default = False
     )
 
 class IServices(INamed, IMapping):
@@ -635,7 +671,7 @@ class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
 
-class IResourceGroup(INamed, IDeployable, IMapping):
+class IResourceGroup(INamed, IDeployable, IMapping, IDNSEnablable):
     "A collection of Application Resources"
     title = schema.TextLine(
         title="Title",
@@ -651,6 +687,9 @@ class IResourceGroup(INamed, IDeployable, IMapping):
         required = True
     )
     resources = schema.Object(IResources)
+    dns_enabled = schema.Bool(
+        title = ""
+    )
 
 
 class IResourceGroups(INamed, IMapping):
@@ -1131,7 +1170,7 @@ class IS3Resource(INamed):
         default = {}
     )
 
-class IApplicationEngine(INamed, IDeployable, INotifiable):
+class IApplicationEngine(INamed, IDeployable, INotifiable, IDNSEnablable):
     """
     Application Engine : A template describing an application
     """
@@ -1567,6 +1606,18 @@ class ICredentials(INamed):
     admin_iam_role_name = schema.TextLine(
         title = "Administrator IAM Role Name"
         )
+    mfa_session_expiry_secs = schema.Int(
+        title = 'The number of seconds before an MFA token expires.',
+        default = 60 * 60,   # 1 hour
+        min = 60 * 15,       # 15 minutes
+        max = (60 * 60) * 12 # 12 hours
+    )
+    assume_role_session_expiry_secs = schema.Int(
+        title = 'The number of seconds before an assumed role token expires.',
+        default = 60 * 15,   # 15 minuts
+        min = 60 * 15,       # 15 minutes
+        max = 60 * 60        # 1 hour
+    )
 
 class INetwork(INetworkEnvironment):
     aws_account = TextReference(
@@ -1951,6 +2002,10 @@ class IASG(IResource, IMonitorable):
         title="Instance AMI",
         description="",
         str_ok=True
+    )
+    instance_ami_type = schema.TextLine(
+        title = "The AMI type",
+        constraint = isValidInstanceAMIType
     )
     instance_key_pair = TextReference(
         title = "Instance key pair reference",

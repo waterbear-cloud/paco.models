@@ -203,6 +203,7 @@ class SecurityGroupRule():
     protocol = FieldProperty(schemas.ISecurityGroupRule["protocol"])
     to_port = FieldProperty(schemas.ISecurityGroupRule["to_port"])
     source_security_group = FieldProperty(schemas.ISecurityGroupRule["source_security_group"])
+    port = FieldProperty(schemas.ISecurityGroupRule["port"])
 
 @implementer(schemas.IIngressRule)
 class IngressRule(SecurityGroupRule):

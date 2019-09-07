@@ -326,6 +326,8 @@ class CodeCommit():
                                 #'account_ref': repo_config.account,
                                 'aws_region': repo_config.region,
                                 'repo_config': repo_config }
+                if repo_config.is_enabled() == False:
+                    continue
                 if repo_config.account in self.repo_by_account.keys():
                     if repo_config.region in self.repo_by_account[repo_config.account].keys():
                         self.repo_by_account[repo_config.account][repo_config.region].append(account_dict)

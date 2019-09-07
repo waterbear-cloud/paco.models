@@ -6,7 +6,8 @@ import troposphere
 import troposphere.s3
 from aim.models import loader
 from aim.models import schemas
-from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion
+from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion, \
+    DNSEnablable
 from aim.models.locations import get_parent_by_interface
 from aim.models.metrics import Monitorable, AlarmNotifications
 from aim.models.vocabulary import application_group_types
@@ -26,6 +27,7 @@ class ApplicationEngine(Named, Deployable, Regionalized, dict):
         super().__init__(name, parent)
         self.groups = ResourceGroups('groups', self)
         self.notifications = AlarmNotifications()
+
 
     # Returns a list of groups sorted by 'order'
     def groups_ordered(self):
@@ -126,7 +128,7 @@ class ResourceGroups(Named, dict):
 
 
 @implementer(schemas.IResourceGroup)
-class ResourceGroup(Named, Deployable, dict):
+class ResourceGroup(Named, Deployable, DNSEnablable, dict):
     resources = FieldProperty(schemas.IResourceGroup['resources'])
 
     def __init__(self, name, __parent__):
@@ -282,6 +284,7 @@ class ASG(Resource, Monitorable):
     health_check_grace_period_secs =  FieldProperty(schemas.IASG['health_check_grace_period_secs'])
     instance_iam_role =  FieldProperty(schemas.IASG['instance_iam_role'])
     instance_ami =  FieldProperty(schemas.IASG['instance_ami'])
+    instance_ami_type =  FieldProperty(schemas.IASG['instance_ami_type'])
     instance_key_pair =  FieldProperty(schemas.IASG['instance_key_pair'])
     instance_type =  FieldProperty(schemas.IASG['instance_type'])
     segment =  FieldProperty(schemas.IASG['segment'])

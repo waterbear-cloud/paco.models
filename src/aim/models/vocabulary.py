@@ -499,6 +499,12 @@ instance_size_info = {
 		'memory': 32,
 		'network': 'Moderate'
 	},
+	'm5.large': {
+		'cpu': 2,
+		'cpu_credits': None,
+		'memory': 8,
+		'network': 'Up to 10 Gbps'
+	}
 }
 
 target_group_protocol = SimpleVocabulary.fromValues(
@@ -530,6 +536,7 @@ ami_types = [ 'amazon', 'centos', 'redhat', 'suse', 'ubuntu', 'microsoft' ]
 user_data_script = {
 	'update_system': {
 		'amazon': ['yum update -y'],
+		'centos': ['yum update -y'],
 		'ubuntu': [
 			'export DEBIAN_FRONTEND=noninteractive',
 			'apt-get -yq update && apt-get -yq upgrade'
@@ -537,6 +544,10 @@ user_data_script = {
 	},
 	'essential_packages': {
 		'amazon': [],
+		'centos': [
+			'pip install --upgrade pip',
+			'pip install --upgrade awscli'
+		],
 		'ubuntu': [
 			"apt-get -yq install awscli"
 		]

@@ -137,6 +137,9 @@ class Reference():
     def set_account_name(self, account_name):
         self.sub_part('<account>', account_name)
 
+    def set_environment_name(self, environment_name):
+        self.sub_part('<environment>', environment_name)
+
     def set_region(self, region):
         self.sub_part('<region>', region)
 

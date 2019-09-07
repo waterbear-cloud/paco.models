@@ -316,6 +316,29 @@ SUB_TYPES_CLASS_MAP = {
 def getFromSquareBrackets(s):
     return re.findall(r"\['?([A-Za-z0-9_]+)'?\]", s)
 
+
+def print_diff_list(change_t, level=1):
+    print('', end='\n')
+    for value in change_t:
+        print("  {}-".format(' '*(level*2)), end='')
+        if isinstance(value, list) == True:
+            print_diff_list(value, level+1)
+        elif isinstance(value, dict) == True:
+            print_diff_dict(value, level+1)
+        else:
+            print("  {}".format(value))
+
+def print_diff_dict(change_t, level=1):
+    print('', end='\n')
+    for key, value in change_t.items():
+        print("  {}{}:".format(' '*(level*2), key), end='')
+        if isinstance(value, list) == True:
+            print_diff_list(value, level+1)
+        elif isinstance(value, dict) == True:
+            print_diff_dict(value, level+1)
+        else:
+            print("  {}".format(value))
+
 def print_diff_object(diff_obj, diff_obj_key):
     if diff_obj_key not in diff_obj.keys():
         return
@@ -333,15 +356,18 @@ def print_diff_object(diff_obj, diff_obj_key):
             print("\told: {}".format(root_change.t1))
             print("\tnew: {}\n".format(root_change.t2))
             return
-        if type(change_t) == list:
-            for value in change_t:
-                print("\t- {}".format(value))
-        elif type(change_t) == dict:
-            for key, value in change_t.items():
-                print("\t{}: {}".format(key, value))
+        if isinstance(change_t, list) == True:
+            print_diff_list(change_t)
+            #for value in change_t:
+            #    print("\t- {}".format(value))
+        elif isinstance(change_t, dict) == True:
+            print_diff_dict(change_t)
+            #for key, value in change_t.items():
+            #    print("\t{}: {}".format(key, value))
         else:
-            print("\t- {}".format(change_t))
-        print("")
+            #print("\t- {}".format(change_t))
+            print("{}".format(change_t))
+        print('')
 
 def init_model_obj_store(model_obj, project_folder):
     project_folder_path = pathlib.Path(project_folder)
@@ -364,7 +390,14 @@ def apply_model_obj(model_obj, project_folder):
     )
     copyfile(new_file_path, applied_file_path)
 
-def validate_model_obj(model_obj, project_folder, yes_flag=False):
+def validate_model_obj(
+    model_obj,
+    project_folder,
+    disable_validation,
+    yes_flag=False
+):
+    if disable_validation == True:
+        return
     applied_file_path, new_file_path = init_model_obj_store(
         model_obj,
         project_folder
@@ -375,7 +408,7 @@ def validate_model_obj(model_obj, project_folder, yes_flag=False):
     yaml = YAML(typ="safe", pure=True)
     yaml.default_flow_sytle = False
     with open(applied_file_path, 'r') as stream:
-        applied_file_dict= yaml.load(stream)
+        applied_file_dict = yaml.load(stream)
     with open(new_file_path, 'r') as stream:
         new_file_dict= yaml.load(stream)
 
@@ -385,6 +418,7 @@ def validate_model_obj(model_obj, project_folder, yes_flag=False):
         verbose_level=1,
          view='tree'
     )
+    #breakpoint()
     print("----------------------------------------------------")
     print("Validate Model Object")
     print("(file) {}".format(model_obj._read_file_path))

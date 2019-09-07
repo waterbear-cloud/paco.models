@@ -1766,6 +1766,12 @@ class ILBApplication(IResource, IMonitorable, IMapping):
     segment = schema.TextLine(
         title = "Id of the segment stack"
     )
+    idle_timeout_secs = schema.Int(
+        title = 'Idle timeout in seconds',
+        description = 'The idle timeout value, in seconds.',
+        default = 60
+    )
+
 
 class IIAMs(INamed, IMapping):
     "Container for IAM Groups"

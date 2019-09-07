@@ -338,6 +338,7 @@ class LBApplication(Resource, dict):
     scheme = FieldProperty(schemas.ILBApplication['scheme'])
     security_groups = FieldProperty(schemas.ILBApplication['security_groups'])
     segment = FieldProperty(schemas.ILBApplication['segment'])
+    idle_timeout_secs = FieldProperty(schemas.ILBApplication['idle_timeout_secs'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

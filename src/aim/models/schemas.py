@@ -1025,6 +1025,7 @@ class IS3BucketPolicy(Interface):
     """
     S3 Bucket Policy
     """
+    # ToDo: Validate actions using awacs
     action = schema.List(
         title="List of Actions",
         value_type=schema.TextLine(
@@ -1046,9 +1047,10 @@ class IS3BucketPolicy(Interface):
         description = 'Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
         default = {},
         required = False,
-        # ToDo: add a constraint to check for valid conditions. This is a pretty complex constraint though ...
-        # https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition.html
+        # ToDo: Use awacs to add a constraint to check for valid conditions
     )
+    # ToDo: validate principal using awacs
+    # ToDo: validate that only one principal type is supplied, as that is all that is currently supported by aim.cftemplates.s3.py
     principal = schema.Dict(
         title = "Prinicpals",
         description = "Either this field or the aws field must be set. Key should be one of: AWS, Federated, Service or CanonicalUser. Value can be either a String or a List.",
@@ -1112,6 +1114,10 @@ class IS3Bucket(IResource, IDeployable):
     )
     external_resource = schema.Bool(
         title='Boolean indicating whether the S3 Bucket already exists or not',
+        default = False
+    )
+    versioning = schema.Bool(
+        title = "Enable Versioning on the bucket.",
         default = False
     )
 

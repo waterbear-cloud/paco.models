@@ -2,6 +2,8 @@
 All things Application Engine.
 """
 
+import troposphere
+import troposphere.s3
 from aim.models import loader
 from aim.models import schemas
 from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion
@@ -228,6 +230,37 @@ class S3Bucket(Resource, Deployable):
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
+
+    @property
+    def versioning_cfn(self):
+        if self.versioning:
+            status = 'Enabled'
+        else:
+            status = 'Suspended'
+
+        return { "Status": status }
+
+    troposphere_props = troposphere.s3.Bucket.props
+    cfn_mapping = {
+        #'AccessControl': (basestring, False),
+        #'AccelerateConfiguration': (AccelerateConfiguration, False),
+        #'AnalyticsConfigurations': ([AnalyticsConfiguration], False),
+        #'BucketEncryption': (BucketEncryption, False),
+        #'CorsConfiguration': (CorsConfiguration, False),
+        #'InventoryConfigurations': ([InventoryConfiguration], False),
+        #'LifecycleConfiguration': (LifecycleConfiguration, False),
+        #'LoggingConfiguration': (LoggingConfiguration, False),
+        #'MetricsConfigurations': ([MetricsConfiguration], False),
+        #'NotificationConfiguration': (NotificationConfiguration, False),
+        #'ObjectLockConfiguration': (ObjectLockConfiguration, False),
+        #'ObjectLockEnabled': (boolean, False),
+        #'PublicAccessBlockConfiguration': (PublicAccessBlockConfiguration, False),
+        #'ReplicationConfiguration': (ReplicationConfiguration, False),
+        #'Tags': (Tags, False),
+        #'WebsiteConfiguration': (WebsiteConfiguration, False),
+        'BucketName': 'bucket_name',
+        'VersioningConfiguration': 'versioning_cfn',
+    }
 
 #@implementer(schemas.IService)
 #class Service(Named, dict):

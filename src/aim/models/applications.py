@@ -235,6 +235,8 @@ class S3Bucket(Resource, Deployable):
 
     @property
     def versioning_cfn(self):
+        if not hasattr(self, 'versioning'):
+            return {}
         if self.versioning:
             status = 'Enabled'
         else:

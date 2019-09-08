@@ -2010,8 +2010,10 @@ class IASG(IResource, IMonitorable):
         str_ok=True
     )
     instance_ami_type = schema.TextLine(
-        title = "The AMI type",
-        constraint = isValidInstanceAMIType
+        title = "The AMI Operating System family",
+        description = "Must be one of amazon, centos, suse, debian, ubuntu, microsoft or redhat.",
+        constraint = isValidInstanceAMIType,
+        default = "amazon"
     )
     instance_key_pair = TextReference(
         title = "Instance key pair reference",

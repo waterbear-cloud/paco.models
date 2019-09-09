@@ -218,6 +218,7 @@ class S3Bucket(Resource, Deployable):
     region = FieldProperty(schemas.IS3Bucket['region'])
     cloudfront_origin = FieldProperty(schemas.IS3Bucket['cloudfront_origin'])
     external_resource = FieldProperty(schemas.IS3Bucket['external_resource'])
+    versioning = FieldProperty(schemas.IS3Bucket['versioning'])
 
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()

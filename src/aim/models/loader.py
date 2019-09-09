@@ -355,8 +355,7 @@ def print_diff_object(diff_obj, diff_obj_key):
         if diff_obj_key == 'values_changed':
             print("\told: {}".format(root_change.t1))
             print("\tnew: {}\n".format(root_change.t2))
-            return
-        if isinstance(change_t, list) == True:
+        elif isinstance(change_t, list) == True:
             print_diff_list(change_t)
             #for value in change_t:
             #    print("\t- {}".format(value))
@@ -421,7 +420,8 @@ def validate_model_obj(
     #breakpoint()
     print("----------------------------------------------------")
     print("Validate Model Object")
-    print("(file) {}".format(model_obj._read_file_path))
+    print("(file) {}".format(new_file_path))
+    print("(applied file) {}".format(applied_file_path))
     prompt_user = True
     if len(deep_diff.keys()) > 0:
         print("\nChanged:")

@@ -544,10 +544,7 @@ user_data_script = {
 	},
 	'essential_packages': {
 		'amazon': [],
-		'centos': [
-			'pip install --upgrade pip',
-			'pip install --upgrade awscli'
-		],
+		'centos': [],
 		'ubuntu': [
 			"apt-get -yq install awscli"
 		]

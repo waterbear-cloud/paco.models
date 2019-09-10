@@ -1564,7 +1564,8 @@ class IVPC(INamed, IDeployable):
     private_hosted_zone = schema.Object(
         title = "Private hosted zone",
         description = "",
-        schema = IPrivateHostedZone
+        schema = IPrivateHostedZone,
+        required = False
     )
     security_groups = schema.Dict(
         # This is a dict of dicts ...

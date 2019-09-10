@@ -162,11 +162,11 @@ class TestAimDemo(BaseTestModelLoader):
 
     def test_instantiate_resources(self):
         # Route53
-        assert self.project['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
+        assert self.project['resource']['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
         # CodeCommit
-        assert self.project['codecommit'].repository_groups['aimdemo']['app'].account, 'aim.ref accounts.data'
+        assert self.project['resource']['codecommit'].repository_groups['aimdemo']['app'].account, 'aim.ref accounts.data'
         # EC2
-        assert self.project['ec2'].keypairs['aimdemo_dev'].account, 'aim.ref accounts.dev'
+        assert self.project['resource']['ec2'].keypairs['aimdemo_dev'].account, 'aim.ref accounts.dev'
 
     def test_resource_account(self):
         dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']

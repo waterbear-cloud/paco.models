@@ -140,19 +140,27 @@ class Named(CFNExport):
 
     @property
     def aim_ref_parts(self):
+        "Bare aim.ref string to the object"
         obj = self
         parts = []
+
+        # special case for global buckets
+        if get_parent_by_interface(obj, schemas.IGlobalResources) and schemas.IS3Bucket.providedBy(obj):
+            account = obj.account.split('.')[-1:][0]
+            parts = ['resource','s3','buckets', account, obj.region, obj.name]
+            return '.'.join(parts)
+
         parent = obj.__parent__
         while parent != None:
             parts.append(obj.name)
             obj = parent
-
             parent = obj.__parent__
         parts.reverse()
         return '.'.join(parts)
 
     @property
     def aim_ref(self):
+        "aim.ref string to the object"
         return 'aim.ref ' + self.aim_ref_parts
 
 
@@ -202,6 +210,9 @@ class Regionalized():
         env_region = get_parent_by_interface(self, schemas.IEnvironmentRegion)
         if env_region:
             return env_region.region
+        # Global buckets have a region field
+        if schemas.IS3Bucket.providedBy(self):
+            return self.region
         # services don't belong to an EnviromentRegion but can have an IServiceAccountRegion
         service_region = get_parent_by_interface(self, schemas.IServiceAccountRegion)
         return service_region.region
@@ -209,6 +220,10 @@ class Regionalized():
     @property
     def region_full_name(self):
         return vocabulary.aws_regions[self.region_name]['full_name']
+
+    @property
+    def region_short_name(self):
+        return vocabulary.aws_regions[self.region_name]['short_name']
 
 @implementer(schemas.IDNSEnablable)
 class DNSEnablable():

@@ -208,9 +208,9 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     ref_value = None
     if ref.type == "resource":
         if ref.parts[1] == 's3':
-            ref_value = get_resolve_ref_obj(project['s3'], ref, part_idx_start=2)
+            ref_value = get_resolve_ref_obj(project['resource']['s3'], ref, part_idx_start=2)
         else:
-            ref_value = project[ref.parts[1]].resolve_ref(ref)
+            ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
         part_idx_start = 0
         if ref.parts[2] == 'applications':

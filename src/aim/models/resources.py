@@ -15,6 +15,10 @@ from aim.models.locations import get_parent_by_interface
 from aim.models.references import Reference
 from aim.models import references
 
+@implementer(schemas.IGlobalResources)
+class GlobalResources(Named, dict):
+    "Global Resources"
+
 @implementer(schemas.IApiGatewayMethods)
 class ApiGatewayMethods(Named, dict):
     pass
@@ -226,7 +230,7 @@ class EC2KeyPair(Named):
     account = FieldProperty(schemas.IEC2KeyPair['account'])
 
 @implementer(schemas.IEC2Resource)
-class EC2Resource():
+class EC2Resource(Named):
     keypairs = FieldProperty(schemas.IEC2Resource['keypairs'])
 
     def resolve_ref(self, ref):
@@ -246,7 +250,7 @@ class EC2Resource():
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IS3Resource)
-class S3Resource():
+class S3Resource(Named):
     buckets = FieldProperty(schemas.IS3Resource['buckets'])
 
     def resolve_ref(self, ref):

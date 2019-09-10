@@ -10,6 +10,11 @@ Changelog for aim.models
 
 - S3Bucket NotificationConfiguration for Lambdas.
 
+- S3Bucket has `get_bucket_name()` to return the full computed bucket name.
+
+- IGlobalResources for project['resource'] to contain config from the ./Resources/ directory.
+  Resources such as S3 and EC2 now implement INamed and are loaded into project['resource'].
+
 
 5.0.0 (2019-08-26)
 ------------------

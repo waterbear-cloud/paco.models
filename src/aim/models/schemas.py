@@ -667,6 +667,9 @@ class IServiceEnvironment(IServiceAccountRegion, INamed):
         schema = IApplicationEngines,
     )
 
+class IGlobalResources(INamed, IMapping):
+    "A collection of global Resources"
+
 class IResources(INamed, IMapping):
     "A collection of Application Resources"
     pass
@@ -1315,7 +1318,7 @@ class IEC2KeyPair(INamed):
         title = 'AWS Account Reference'
     )
 
-class IEC2Resource(Interface):
+class IEC2Resource(INamed):
     """
     EC2 Resource Configuration
     """

@@ -21,18 +21,12 @@ class Project(Named, dict):
         self.__setitem__('credentials', self.credentials)
 
         # Network Environments
-        self.network_environments = aim.models.networks.NetworkEnvironments(
-            name='netenv',
-            __parent__=self
-        )
+        self.network_environments = aim.models.networks.NetworkEnvironments('netenv', self)
         self.network_environments.title = 'Network Environments'
         self.__setitem__('netenv', self.network_environments)
 
         # Services
-        self.services = aim.models.services.Services(
-            name='service',
-            __parent__=self
-        )
+        self.services = aim.models.services.Services('service', self)
         self.services.title = 'Services'
         self.__setitem__('service', self.services)
 
@@ -41,17 +35,17 @@ class Project(Named, dict):
         self.accounts.title = 'Cloud Accounts'
         self.__setitem__('accounts', self.accounts)
 
-        # IAM
-        self.iam = aim.models.resources.IAMResource(
-            name='iam',
-            __parent__=self
-        )
-        self.accounts.title = 'IAM Resource'
-        self.__setitem__('iam', self.iam)
-
+        # Global Resources
+        self.resource = aim.models.resources.GlobalResources('resource', self)
+        self.resource.title = 'Global Resources'
+        self.__setitem__('resource', self.resource)
 
         # Init an empty S3Resource in-case there is no Resources/S3.yaml
-        self.__setitem__('s3', aim.models.resources.S3Resource())
+        self.resource['s3'] = aim.models.resources.S3Resource('s3', self.resource)
+
+        # IAM
+        self.resource['iam'] = aim.models.resources.IAMResource('iam', self.resource)
+        self.resource['iam'].title = 'IAM Resource'
 
 
     def find_object_from_cli(self, controller_type, component_name=None, config_name=None):

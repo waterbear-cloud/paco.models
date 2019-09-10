@@ -422,7 +422,7 @@ def validate_model_obj(
         verbose_level=1,
          view='tree'
     )
-    #breakpoint()
+
     print("----------------------------------------------------")
     print("Validate Model Object")
     print("(file) {}".format(new_file_path))
@@ -1324,7 +1324,7 @@ class ModelLoader():
         self.project['accounts'][name]._read_file_path = pathlib.Path(read_file_path)
 
     def instantiate_cloudtrail(self, config):
-        obj = CloudTrailResource('cloudtrail', self.project)
+        obj = CloudTrailResource('cloudtrail', self.project.resources)
         if config != None:
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj
@@ -1355,7 +1355,7 @@ class ModelLoader():
     def instantiate_ec2(self, config):
         if config == None or 'keypairs' not in config.keys():
             return
-        ec2_obj = EC2Resource()
+        ec2_obj = EC2Resource('ec2', self.project.resource)
         ec2_obj.keypairs = {}
         for keypair_id in config['keypairs'].keys():
             keypair_config = config['keypairs'][keypair_id]
@@ -1367,7 +1367,7 @@ class ModelLoader():
     def instantiate_s3(self, config):
         if config == None or 'buckets' not in config.keys():
             return
-        s3_obj = S3Resource()
+        s3_obj = S3Resource('s3', self.project.resource)
         s3_obj.buckets = {}
         for bucket_id in config['buckets'].keys():
             bucket_config = config['buckets'][bucket_id]
@@ -1377,13 +1377,7 @@ class ModelLoader():
         return s3_obj
 
     def instantiate_iam(self, config):
-        iam_obj = IAMResource('iam', self.project)
-        #for user_name in config['users']:
-        #    user_config = config['users'][user_name]
-        #    user_obj = IAMUser(user_name, iam_obj)
-        #    for access_name in user_config['permissions']:
-        #        perm_obj =
-
+        iam_obj = IAMResource('iam', self.project.resource)
         apply_attributes_from_config(iam_obj, config)
         return iam_obj
 
@@ -1400,8 +1394,8 @@ class ModelLoader():
         if instantiate_method == None:
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))
         else:
-            self.project[name] = instantiate_method(config)
-            self.project[name]._read_file_path = pathlib.Path(read_file_path)
+            self.project['resource'][name] = instantiate_method(config)
+            self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
         return
 
     def instantiate_env_region_config(

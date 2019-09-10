@@ -9,3 +9,6 @@ class InvalidAimReference(Exception):
 
 class InvalidCFNMapping(Exception):
     pass
+
+class InvalidAimBucket(Exception):
+    pass

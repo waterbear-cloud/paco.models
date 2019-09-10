@@ -71,7 +71,10 @@ def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_
         elif hasattr(obj, mapping_field_name):
             # supplied as a base property or attribute - these should return
             # types that troposphere expects
-            return getattr(obj, mapping_field_name)
+            value = getattr(obj, mapping_field_name)
+            if value == {} or value == []:
+                return None
+            else: return value
         else:
             # Shouldn't get here unless the cfn_mapping is incorrect
             raise InvalidCFNMapping

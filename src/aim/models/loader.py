@@ -25,6 +25,7 @@ from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefa
 from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
+    S3NotificationConfiguration, S3LambdaConfiguration, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
@@ -205,7 +206,11 @@ SUB_TYPES_CLASS_MAP = {
         'artifacts_bucket': ('named_dict', S3Bucket),
     },
     S3Bucket: {
-        'policy': ('obj_list', S3BucketPolicy)
+        'policy': ('obj_list', S3BucketPolicy),
+        'notifications': ('unnamed_dict', S3NotificationConfiguration)
+    },
+    S3NotificationConfiguration: {
+        'lambdas': ('obj_list', S3LambdaConfiguration)
     },
     CloudTrailResource: {
         'trails': ('container', (CloudTrails, CloudTrail)),

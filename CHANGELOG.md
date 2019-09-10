@@ -8,6 +8,8 @@ Changelog for aim.models
 
 - Minimal API Gateway models for Methods, Resources, Models and Stages.
 
+- S3Bucket NotificationConfiguration for Lambdas.
+
 
 5.0.0 (2019-08-26)
 ------------------

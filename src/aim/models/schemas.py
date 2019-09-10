@@ -1117,6 +1117,24 @@ class IS3BucketPolicy(Interface):
             raise Invalid("Can not set bot the aws and the principal fields.")
 
 
+class IS3LambdaConfiguration(Interface):
+    # ToDo: add constraint
+    event = schema.TextLine(
+        title = "S3 bucket event for which to invoke the AWS Lambda function",
+        description = "Must be a supported event type: https://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html",
+    )
+    # ToDo: constraint to validate the ref is to a Lambda type (tricky?)
+    function = TextReference(
+        title = "Reference to a Lambda"
+    )
+
+class IS3NotificationConfiguration(Interface):
+    lambdas = schema.List(
+        title = "Lambda configurations",
+        value_type = schema.Object(IS3LambdaConfiguration),
+        default = []
+    )
+
 class IS3Bucket(IResource, IDeployable):
     """
     S3 Bucket : A template describing an S3 Bbucket
@@ -1134,6 +1152,10 @@ class IS3Bucket(IResource, IDeployable):
         title = "Bucket Deletion Policy",
         default = "delete",
         required = False
+    )
+    notifications = schema.Object(
+        title = "Notification configuration",
+        schema = IS3NotificationConfiguration,
     )
     policy = schema.List(
         title="List of S3 Bucket Policies",

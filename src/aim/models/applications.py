@@ -208,6 +208,15 @@ class S3BucketPolicy():
     def __init__(self):
         self.processed = False
 
+@implementer(schemas.IS3LambdaConfiguration)
+class S3LambdaConfiguration():
+    event = FieldProperty(schemas.IS3LambdaConfiguration['event'])
+    function = FieldProperty(schemas.IS3LambdaConfiguration['function'])
+
+@implementer(schemas.IS3NotificationConfiguration)
+class S3NotificationConfiguration():
+    lambdas = FieldProperty(schemas.IS3NotificationConfiguration['lambdas'])
+
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
     title = "S3Bucket"
@@ -255,13 +264,13 @@ class S3Bucket(Resource, Deployable):
         #'LifecycleConfiguration': (LifecycleConfiguration, False),
         #'LoggingConfiguration': (LoggingConfiguration, False),
         #'MetricsConfigurations': ([MetricsConfiguration], False),
-        #'NotificationConfiguration': (NotificationConfiguration, False),
         #'ObjectLockConfiguration': (ObjectLockConfiguration, False),
         #'ObjectLockEnabled': (boolean, False),
         #'PublicAccessBlockConfiguration': (PublicAccessBlockConfiguration, False),
         #'ReplicationConfiguration': (ReplicationConfiguration, False),
         #'Tags': (Tags, False),
         #'WebsiteConfiguration': (WebsiteConfiguration, False),
+        #'NotificationConfiguration': computed in template for ARNs
         'BucketName': 'bucket_name',
         'VersioningConfiguration': 'versioning_cfn',
     }

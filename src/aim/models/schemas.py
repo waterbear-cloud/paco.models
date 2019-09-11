@@ -710,7 +710,7 @@ class IResourceGroup(INamed, IDeployable, IMapping, IDNSEnablable):
     order = schema.Int(
         title = "The order in which the group will be deployed",
         description = "",
-        min = 1,  # 0 is loading ad NoneType
+        min = 0,
         required = True
     )
     resources = schema.Object(IResources)

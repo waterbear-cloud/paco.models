@@ -11,7 +11,7 @@ def get_formatted_model_context(obj):
     envreg = get_parent_by_interface(obj, schemas.IEnvironmentRegion)
     app = get_parent_by_interface(obj, schemas.IApplication)
     group = get_parent_by_interface(obj, schemas.IResourceGroup)
-    out = ""
+    out = "AIM reference: {}\n".format(obj.aim_ref)
     if netenv != None:
         if netenv.title:
             out += "Network Environment: {} ({})\n".format(netenv.title, netenv.name)

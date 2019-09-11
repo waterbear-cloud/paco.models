@@ -641,18 +641,7 @@ Unneeded field '{}' in config for object type '{}'
                         else:
                             setattr(obj, name, copy.deepcopy(value))
                     except ValidationError as exc:
-                        try:
-                            field_context_name = exc.field.context.name
-                        except AttributeError:
-                            field_context_name = 'Not applicable'
-                        raise InvalidAimProjectFile(
-                            """Error in file at {}
-Invalid config for field '{}' for object type '{}'.
-Value supplied: {}
-Field Context name: {}
-Reason: {}
-Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, field_context_name, exc.__doc__, exc)
-                        )
+                        raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object
     # don't validate credentials as sometimes it's left blank
@@ -669,13 +658,31 @@ Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, 
             try:
                 if not field.readonly:
                     field.validate(getattr(obj, name, None))
-            except ValidationError:
-                raise InvalidAimProjectFile(
-                    """Error in file at {}\nInvalid schema for object:\n{}""".format(
-                        read_file_path, get_formatted_model_context(obj)
-                    )
-                )
+            except ValidationError as exc:
+                raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
+def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
+    """
+    Raise an InvalidAimProjectFile error with helpful information
+    """
+    try:
+        field_context_name = exc.field.context.name
+    except AttributeError:
+        field_context_name = 'Not applicable'
+    raise InvalidAimProjectFile(
+        """Error in file at {}
+
+Invalid config for field '{}' for object type '{}'.
+Exception: {}
+Value supplied: {}
+Field Context name: {}
+Reason: {}
+
+Object
+------
+{}
+""".format(read_file_path, name, obj.__class__.__name__, exc, value, field_context_name, exc.__doc__, get_formatted_model_context(obj))
+    )
 
 def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, read_file_path=''):
     """

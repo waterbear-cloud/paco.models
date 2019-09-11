@@ -13,6 +13,7 @@ import ruamel.yaml
 import sys
 import zope.schema
 import zope.schema.interfaces
+from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
@@ -48,7 +49,7 @@ from aim.models.base import get_all_fields, most_specialized_interfaces, NameVal
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
-from aim.models.references import resolve_ref
+from aim.models.references import resolve_ref, is_ref
 from aim.models import schemas
 from pathlib import Path
 from ruamel.yaml.compat import StringIO
@@ -607,57 +608,74 @@ Unneeded field '{}' in config for object type '{}'
                     if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
                         value = str(value)
                     # is the value a reference?
-                    ref_field = TextReference()
-                    try:
-                        ref_field._validate(value)
+                    if type(value) == type(str()) and is_ref(value):
                         # some fields are meant to be reference only
                         if schemas.ITextReference.providedBy(field):
                             setattr(obj, name, value)
                         else:
                             # reference - set a special _ref_ attribute for later look-up
                             setattr(obj, '_ref_' + name, copy.deepcopy(value))
+                        continue
 
-                    except (ValidationError, ConstraintNotSatisfied):
-                        # not a reference - set the attribute on the object
-
-                        # ToDo: resources could be loaded here?
-                        # resources are loaded later based on type
-                        if schemas.IApplication.providedBy(obj) and name == 'groups':
-                            continue
-                        if schemas.IResourceGroup.providedBy(obj) and name == 'resources':
-                            continue
-                        try:
-                            if type(obj) in SUB_TYPES_CLASS_MAP:
-                                if name in SUB_TYPES_CLASS_MAP[type(obj)]:
-                                    value = sub_types_loader(
-                                        obj,
-                                        name,
-                                        value,
-                                        config_folder,
-                                        lookup_config,
-                                        read_file_path
-                                    )
-                                    try:
-                                        setattr(obj, name, value)
-                                    except AttributeError:
-                                        breakpoint()
-                                else:
-                                    setattr(obj, name, copy.deepcopy(value))
+                    # set the attribute on the object
+                    # ToDo: resources could be loaded here?
+                    # resources are loaded later based on type
+                    if schemas.IApplication.providedBy(obj) and name == 'groups':
+                        continue
+                    if schemas.IResourceGroup.providedBy(obj) and name == 'resources':
+                        continue
+                    try:
+                        if type(obj) in SUB_TYPES_CLASS_MAP:
+                            if name in SUB_TYPES_CLASS_MAP[type(obj)]:
+                                value = sub_types_loader(
+                                    obj,
+                                    name,
+                                    value,
+                                    config_folder,
+                                    lookup_config,
+                                    read_file_path
+                                )
+                                setattr(obj, name, value)
                             else:
                                 setattr(obj, name, copy.deepcopy(value))
-                        except ValidationError as exc:
-                            try:
-                                field_context_name = exc.field.context.name
-                            except AttributeError:
-                                field_context_name = 'Not applicable'
-                            raise InvalidAimProjectFile(
-                                """Error in file at {}
+                        else:
+                            setattr(obj, name, copy.deepcopy(value))
+                    except ValidationError as exc:
+                        try:
+                            field_context_name = exc.field.context.name
+                        except AttributeError:
+                            field_context_name = 'Not applicable'
+                        raise InvalidAimProjectFile(
+                            """Error in file at {}
 Invalid config for field '{}' for object type '{}'.
 Value supplied: {}
 Field Context name: {}
 Reason: {}
 Schema error: {}""".format(read_file_path, name, obj.__class__.__name__, value, field_context_name, exc.__doc__, exc)
-                            )
+                        )
+
+    # validate the object
+    # don't validate credentials as sometimes it's left blank
+    # ToDo: validate it if exists ...
+    if schemas.ICredentials.providedBy(obj):
+        return
+    for interface in most_specialized_interfaces(obj):
+        # invariants (these are also validate if they are explicitly part of a schema.Object() field)
+        interface.validateInvariants(obj)
+
+        # validate all fields - this catches validation for required fields
+        fields = zope.schema.getFields(interface)
+        for name, field in fields.items():
+            try:
+                if not field.readonly:
+                    field.validate(getattr(obj, name, None))
+            except ValidationError:
+                raise InvalidAimProjectFile(
+                    """Error in file at {}\nInvalid schema for object:\n{}""".format(
+                        read_file_path, get_formatted_model_context(obj)
+                    )
+                )
+
 
 def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, read_file_path=''):
     """
@@ -841,9 +859,6 @@ def load_resources(res_groups, groups_config, config_folder=None, monitor_config
                 )
             obj = klass(res_key, res_groups[grp_key].resources)
             apply_attributes_from_config(obj, res_config, config_folder, lookup_config=monitor_config, read_file_path=read_file_path)
-            # invariants need to be validated if they are not explicitly part of a schema.Object() field
-            for interface in most_specialized_interfaces(obj):
-                interface.validateInvariants(obj)
             res_groups[grp_key].resources[res_key] = obj
 
 def instantiate_notifications(value, read_file_path):
@@ -948,7 +963,7 @@ class ModelLoader():
         version_file = self.config_folder + os.sep + 'aim-project-version.txt'
         if not os.path.isfile(version_file):
             raise InvalidAimProjectFile(
-                'You need a <project>/aim-project-version.txt file that declares your AIM Project file foramt version.'
+                'You need a <project>/aim-project-version.txt file that declares your AIM Project file format version.'
             )
         with open(version_file) as f:
             version = f.read()
@@ -1324,7 +1339,7 @@ class ModelLoader():
         self.project['accounts'][name]._read_file_path = pathlib.Path(read_file_path)
 
     def instantiate_cloudtrail(self, config):
-        obj = CloudTrailResource('cloudtrail', self.project.resources)
+        obj = CloudTrailResource('cloudtrail', self.project.resource)
         if config != None:
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj

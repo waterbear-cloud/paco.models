@@ -261,7 +261,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert len(self.project.aim_project_version) > 2
 
     def test_cloudtrail(self):
-        cloudtrail = self.project['cloudtrail']
+        cloudtrail = self.project['resource']['cloudtrail']
         assert schemas.ICloudTrailResource.providedBy(cloudtrail)
         trail = cloudtrail.trails['basic_trail']
         assert schemas.ICloudTrail.providedBy(trail)

@@ -2,7 +2,7 @@
 References
 """
 
-import re, os, pathlib
+import os, pathlib
 import zope.schema
 from aim.models import vocabulary
 from aim.models.exceptions import InvalidAimReference
@@ -24,7 +24,6 @@ class YAML(ruamel.yaml.YAML):
 
 def is_ref(aim_ref):
     """Determines if the string value is an AIM Reference"""
-
     if aim_ref.startswith('aim.ref ') == False:
         return False
     ref_types = ["netenv", "resource", "accounts", "function", "service"]
@@ -59,7 +58,6 @@ class TextReference(zope.schema.Text):
         """
         Limit text to the format 'word.ref chars_here.more-chars.finalchars100'
         """
-#        if value.find('patch.<account>.<region>.applications.patch.groups.lambda.resources.snstopic.arn') != -1:
         if self.str_ok and is_ref(value) == False:
             if isinstance(value, str) == False:
                 return False
@@ -67,17 +65,6 @@ class TextReference(zope.schema.Text):
 
         return is_ref(value)
 
-        match = re.match("(\w+)\.ref\s+(.*)", value)
-        if match:
-            ref_type, ref_value = match.groups()
-            if ref_type not in ('resource','service','netenv','config', 'function'):
-                return False
-            for part in ref_value.split('.'):
-                if not re.match("[\w-]+", part):
-                    return False
-            return True
-        else:
-            return False
 
 class Reference():
     """
@@ -92,7 +79,6 @@ class Reference():
 
     def __init__(self, value):
         self.raw = value
-        #match = re.match("aim\.ref\s+(.*)", value)
         self.ref = value.split(' ', 2)[1]
         self.parts = self.ref.split('.')
         self.type = self.parts[0]

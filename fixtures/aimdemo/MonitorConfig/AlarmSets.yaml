@@ -165,6 +165,7 @@ LBApplication:
   response-latency:
     TargetResponseTimeP95-Low:
       severity: low
+      classification: health
       metric_name: "TargetResponseTime"
       period: 60
       evaluation_periods: 5

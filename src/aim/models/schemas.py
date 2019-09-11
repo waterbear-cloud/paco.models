@@ -2172,7 +2172,8 @@ class ILambdaFunctionCode(Interface):
     )
     s3_bucket = TextReference(
         title = "An Amazon S3 bucket in the same AWS Region as your function",
-        required = False
+        required = False,
+        str_ok=True
     )
     s3_key = schema.TextLine(
         title = "The Amazon S3 key of the deployment package.",

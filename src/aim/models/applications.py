@@ -231,6 +231,8 @@ class S3Bucket(Resource, Deployable):
     external_resource = FieldProperty(schemas.IS3Bucket['external_resource'])
     versioning = FieldProperty(schemas.IS3Bucket['versioning'])
     notifications = FieldProperty(schemas.IS3Bucket['notifications'])
+    bucket_name_prefix = None
+    bucket_name_suffix = None
 
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()

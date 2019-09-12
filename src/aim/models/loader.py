@@ -1420,6 +1420,13 @@ class ModelLoader():
             self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
         return
 
+    def raise_env_name_mismatch(self, item_name, config_name, env_region):
+        raise InvalidAimProjectFile(
+            "Could not find config for '{}' in '{}', for environment '{}' in netenv '{}'.".format(
+                item_name, config_name, env_region.__parent__.name, env_region.__parent__.__parent__.name
+            )
+        )
+
     def instantiate_env_region_config(
         self,
         config_name, # iam, applications
@@ -1440,18 +1447,30 @@ class ModelLoader():
                 item = item_klass(item_name, getattr(env_region, config_name))
                 if env_region.name == 'default':
                     # merge global with default
+                    try:
+                        global_config[config_name][item_name]
+                    except KeyError:
+                        raise_env_name_mismatch(item_name, config_name, env_region)
                     item_config = merge(global_config[config_name][item_name], env_region_config[config_name][item_name])
                     annotate_base_config(item, item_config, global_item_config[item_name])
                 else:
                     # merge global with default, then merge that with local config
                     env_default = global_config['environments'][env_region.__parent__.name]['default']
                     if config_name in env_default:
-                        default_region_config = env_default[config_name][item_name]
+                        try:
+                            default_region_config = env_default[config_name][item_name]
+                            global_item_config[item_name]
+                        except KeyError:
+                            raise_env_name_mismatch(item_name, config_name, env_region)
                         default_config = merge(global_item_config[item_name], default_region_config)
                         item_config = merge(default_config, item_config)
                         annotate_base_config(item, item_config, default_config)
                     # no default config, merge local with global
                     else:
+                        try:
+                            global_item_config[item_name]
+                        except KeyError:
+                            raise_env_name_mismatch(item_name, config_name, env_region)
                         item_config = merge(global_item_config[item_name], item_config)
                         annotate_base_config(item, item_config, global_item_config[item_name])
 

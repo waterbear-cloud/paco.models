@@ -504,7 +504,13 @@ instance_size_info = {
 		'cpu_credits': None,
 		'memory': 8,
 		'network': 'Up to 10 Gbps'
-	}
+	},
+	'c5.xlarge': {
+		'cpu': 4,
+		'cpu_credits': None,
+		'memory': 8,
+		'network': 'Up to 10 Gbps'
+	},
 }
 
 target_group_protocol = SimpleVocabulary.fromValues(

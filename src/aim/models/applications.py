@@ -9,7 +9,7 @@ from aim.models import schemas
 from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion, \
     DNSEnablable
 from aim.models.exceptions import InvalidAimBucket
-from aim.models.formatter import get_formatted_model_context
+from aim.models.formatter import get_formatted_model_context, smart_join
 from aim.models.locations import get_parent_by_interface
 from aim.models.metrics import Monitorable, AlarmNotifications
 from aim.models.vocabulary import application_group_types, aws_regions
@@ -265,63 +265,72 @@ class S3Bucket(Resource, Deployable):
 
         ne = get_parent_by_interface(self, schemas.INetworkEnvironment)
         app = get_parent_by_interface(self, schemas.IApplication)
+
+
+        bucket_name_list_standard = [
+                self.bucket_name_prefix,
+                self.bucket_name,
+                self.bucket_name_suffix,
+                self.region_short_name
+            ]
+        if schemas.IResource.providedBy(self.__parent__):
+            bucket_name_list_standard.insert(0, self.__parent__.name)
+            bucket_name_list_standard.insert(4, self.name)
+        else:
+            bucket_name_list_standard.insert(0, self.name)
+
+        bucket_name_list = []
         # Bucket in a NetworkEnvironment contained Application
         if ne != None and app != None:
             # NE buckets are in the format:
-            # ne-<netenv>-<env>-app-<app>-<resourcegroup>-<resource>-<bucketname>-<shortregionname>
-            bucket_name = '-'.join([
+            # ne-<netenv>-<env>-app-<app>-<resourcegroup>-<resource>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
+            bucket_name_list.extend([
                 'ne',
                 ne.name,
                 get_parent_by_interface(self, schemas.IEnvironment).name,
                 'app',
                 app.name,
                 get_parent_by_interface(self, schemas.IResourceGroup).name,
-                self.name,
-                self.bucket_name,
-                self.region_short_name
             ])
-            return bucket_name.replace('_', '-').lower()
-        # Bucket in an Application
+            bucket_name_list.extend(bucket_name_list_standard)
         # currently only seen in Services ... ToDo: allow these names to add an additional prefix?
         elif app != None:
             # Application buckets are in the format:
-            # app-<app>-<resourcegroup>-<resource>-<bucketname>-<shortregionname>
-            bucket_name = '-'.join([
+            # app-<app>-<resourcegroup>-<resource>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
+            bucket_name_list.extend([
                 'app',
                 app.name,
                 get_parent_by_interface(self, schemas.IResourceGroup).name,
-                self.name,
-                self.bucket_name,
-                self.region_short_name
             ])
-            return bucket_name.replace('_', '-').lower()
+            bucket_name_list.extend(bucket_name_list_standard)
         # Bucket as a global Resource
         elif get_parent_by_interface(self, schemas.IS3Resource):
             # Global buckets have the format:
-            # aim-s3-<resourcename>-<bucketname>-<shortregionname>
-            bucket_name = '-'.join([
-                'aim-s3',
-                self.name,
-                self.bucket_name,
-                self.region_short_name
-            ])
-            return bucket_name.replace('_', '-').lower()
+            # aim-s3-<resourcename>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
+            bucket_name_list.append('aim-s3')
+            bucket_name_list.extend(bucket_name_list_standard)
+
         # Custom buckets are created with internal API calls e.g. EC2 LaunchMangaer, CloudTrail
         # They rely on bucket_name_prefix and bucket_name_suffix attributes being set on the S3Bucket object
         else:
-            if not hasattr(self, 'bucket_name_prefix') or not hasattr(self, 'bucket_name_suffix'):
+            if self.bucket_name_prefix == None or self.bucket_name_suffix == None:
                 raise InvalidAimBucket("""
                 Custom named bucket requires a bucket_name_prefix and bucket_name_suffix attributes to be set.
 
                 {}
                 """.format(get_formatted_model_context(self)))
-            bucket_name = '-'.join([
+            bucket_name_list.extend([
                 self.bucket_name_prefix,
                 self.name,
                 self.bucket_name,
                 self.bucket_name_suffix
             ])
-            return bucket_name.replace('_', '-').lower()
+
+        bucket_name = smart_join('-', bucket_name_list)
+
+        bucket_name = bucket_name.replace('_', '-').lower()
+
+        return bucket_name
 
     troposphere_props = troposphere.s3.Bucket.props
     cfn_mapping = {

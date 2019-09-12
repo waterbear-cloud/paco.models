@@ -39,3 +39,17 @@ def get_formatted_model_context(obj):
         else:
             out += "Resource Group: " + group.name + "\n"
     return out
+
+def smart_join(sep, list_of_strings):
+    """
+    Joins a list of strings and silently skips None entries
+    """
+    joined_string = ""
+    first = True
+    for item in list_of_strings:
+        if item != None:
+            if first == False:
+                joined_string += sep
+            joined_string += item
+            first = False
+    return joined_string

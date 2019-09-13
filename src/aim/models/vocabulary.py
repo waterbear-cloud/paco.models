@@ -541,19 +541,14 @@ ami_types = [ 'amazon', 'centos', 'redhat', 'suse', 'ubuntu', 'microsoft' ]
 
 user_data_script = {
 	'update_system': {
-		'amazon': ['yum update -y'],
-		'centos': ['yum update -y'],
-		'ubuntu': [
-			'export DEBIAN_FRONTEND=noninteractive',
-			'apt-get -yq update && apt-get -yq upgrade'
-		]
+		'amazon': [],
+		'centos': [],
+		'ubuntu': [],
 	},
 	'essential_packages': {
 		'amazon': [],
 		'centos': [],
-		'ubuntu': [
-			"apt-get -yq install awscli"
-		]
+		'ubuntu': [],
 	}
 }
 

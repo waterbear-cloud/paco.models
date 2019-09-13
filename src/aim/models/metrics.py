@@ -87,8 +87,11 @@ class Alarm(Named):
 
         return [key for key in groups.keys()]
 
-    def get_alarm_actions(self, notificationgroups=None):
-        """Return a list of SNS Topic alarm actions.
+    def get_alarm_actions_aim_refs(self, notificationgroups=None):
+        """Return a list of alarm actions in the form of aim.ref SNS Topic ARNs, e.g.
+
+        'aim.ref service.notification.applications.notification.groups.lambda.resources.snstopic.arn'
+
         This will by default be a list of SNS Topics that the alarm is subscribed to.
         However, if a plugin is registered, it will provide the actions instead.
         """
@@ -113,7 +116,7 @@ class Alarm(Named):
 
         # default behaviour is to use notification groups directly
         notification_arns = [
-            notificationgroups[group].resource_name for group in self.notification_groups
+            notificationgroups[group].aim_ref + '.arn' for group in self.notification_groups
         ]
         if len(notification_arns) > 5:
             raise aim.models.exceptions.InvalidAimProjectFile("""
@@ -123,56 +126,6 @@ class Alarm(Named):
             )
 
         return notification_arns
-
-    def get_alarm_description(self, topic_arns=None):
-        """Create an Alarm Description in JSON format with AIM Alarm information"""
-        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
-        env = get_parent_by_interface(self, schemas.IEnvironment)
-        envreg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
-        app = get_parent_by_interface(self, schemas.IApplication)
-        group = get_parent_by_interface(self, schemas.IResourceGroup)
-        resource = get_parent_by_interface(self, schemas.IResource)
-
-        if not topic_arns:
-            topic_arns = self.get_alarm_actions()
-
-        # Base alarm info - used for standalone alarms not part of an application
-        description = {
-            "alarm_name": self.name,
-            "classification": self.classification,
-            "severity": self.severity,
-            "topic_arns": topic_arns
-        }
-
-        # conditional fields:
-        if self.description:
-            description['description'] = self.description
-        if self.runbook_url:
-            description['runbook_url'] = self.runbook_url
-
-        if app != None:
-            # Service applications and apps not part of a NetEnv
-            description["app_name"] = app.name
-            description["app_title"] = app.title
-            description["resource_group_name"] = group.name
-            description["resource_group_title"] = group.title
-            description["resource_name"] = resource.name
-            description["resource_title"] = resource.title
-
-        if netenv != None:
-            # NetEnv information
-            description["netenv_name"] = netenv.name
-            description["netenv_title"] = netenv.title
-            description["env_name"] = env.name
-            description["env_title"] = env.title
-            description["envreg_name"] = env.name
-            description["envreg_title"] = env.title
-
-        return json.dumps(description)
-
-    @property
-    def alarm_description(self):
-        return self.get_alarm_description()
 
     @property
     def actions_enabled(self):
@@ -207,9 +160,9 @@ class CloudWatchAlarm(Alarm):
 
     troposphere_props = troposphere.cloudwatch.Alarm.props
     cfn_mapping = {
-        'AlarmName': 'name',
-        'AlarmDescription': 'alarm_description',
-        #'AlarmActions': 'alarm_actions',
+        # 'AlarmName': computed by CloudFormation service so you can specify updates
+        # 'AlarmDescription': computed in template for the SNS Topic ARNs
+        # 'AlarmActions': computed in template,
         'ActionsEnabled': 'actions_enabled',
         'ComparisonOperator': 'comparison_operator',
         'EvaluateLowSampleCountPercentile': 'evaluate_low_sample_count_percentile',

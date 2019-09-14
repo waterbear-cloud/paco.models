@@ -672,22 +672,14 @@ class IServices(INamed, IMapping):
     pass
 
 
-class IServiceAccountRegion(Interface):
+class IAccountRef(Interface):
     "An account and region for a service"
     account = TextReference(
         title = "Account Reference",
         required = False,
     )
-    region = schema.TextLine(
-        title = "AWS Region",
-        description = "Must be a valid AWS Region name",
-        default = "no-region-set",
-        missing_value = "no-region-set",
-        required = True,
-        constraint = isValidAWSRegionName
-    )
 
-class IServiceEnvironment(IServiceAccountRegion, INamed):
+class IServiceEnvironment(IAccountRef, INamed):
     "A service composed of one or more applications"
     applications = schema.Object(
         title = "Applications",

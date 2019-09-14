@@ -1,5 +1,4 @@
 account: aim.ref accounts.master
-region: eu-central-1
 groups:
   bob:
     display_name: "Bob is on the job"

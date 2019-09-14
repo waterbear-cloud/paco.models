@@ -232,7 +232,6 @@ class TestAimDemo(BaseTestModelLoader):
     def test_notification_groups(self):
         groups = self.project['notificationgroups']
         assert schemas.INotificationGroups.providedBy(groups)
-        assert groups.region, 'eu-central-1'
         assert groups.account, 'aim.ref accounts.master'
         assert groups['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
         assert len(groups['bobs_team'].subscriptions), 2

@@ -3,7 +3,7 @@ import aim.models.services
 import json
 import troposphere.cloudwatch
 from aim.models import schemas, vocabulary
-from aim.models.base import Deployable, Named, Name, Resource, ServiceAccountRegion
+from aim.models.base import Deployable, Named, Name, Resource, AccountRef
 from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSets
 from aim.models.locations import get_parent_by_interface
@@ -12,7 +12,7 @@ from zope.schema.fieldproperty import FieldProperty
 
 
 @implementer(schemas.INotificationGroups)
-class NotificationGroups(ServiceAccountRegion, Named, dict):
+class NotificationGroups(AccountRef, Named, dict):
     "Container for NotificationGroups"
 
 @implementer(schemas.IAlarmNotifications)

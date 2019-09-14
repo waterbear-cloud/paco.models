@@ -271,10 +271,9 @@ class Resource(Named, Deployable, Regionalized, DNSEnablable):
         account = project[ref.parts[0]][ref.parts[1]]
         return account
 
-@implementer(schemas.IServiceAccountRegion)
-class ServiceAccountRegion():
-    account = FieldProperty(schemas.IServiceAccountRegion['account'])
-    region = FieldProperty(schemas.IServiceAccountRegion['region'])
+@implementer(schemas.IAccountRef)
+class AccountRef():
+    account = FieldProperty(schemas.IAccountRef['account'])
 
 
 

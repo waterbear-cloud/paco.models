@@ -900,7 +900,7 @@ class ICloudWatchAlarm(IAlarm):
         required = False,
     )
 
-class INotificationGroups(IServiceAccountRegion):
+class INotificationGroups(IAccountRef):
     "Container for Notification Groups"
 
 # Logging schemas

@@ -6,7 +6,7 @@ import troposphere
 import troposphere.s3
 from aim.models import loader
 from aim.models import schemas
-from aim.models.base import Named, Deployable, Regionalized, Resource, ServiceAccountRegion, \
+from aim.models.base import Named, Deployable, Regionalized, Resource, AccountRef, \
     DNSEnablable
 from aim.models.exceptions import InvalidAimBucket
 from aim.models.formatter import get_formatted_model_context, smart_join
@@ -109,7 +109,7 @@ class Application(ApplicationEngine, Regionalized):
         pass
 
 @implementer(schemas.IServiceEnvironment)
-class ServiceEnvironment(ServiceAccountRegion, Named):
+class ServiceEnvironment(AccountRef, Named):
     applications = FieldProperty(schemas.IServiceEnvironment['applications'])
 
     def __init__(self, name, __parent__):

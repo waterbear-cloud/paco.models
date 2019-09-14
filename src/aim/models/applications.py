@@ -536,6 +536,7 @@ class SNSTopic(Resource):
     title = "SNSTopic"
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
+    cross_account_access = FieldProperty(schemas.ISNSTopic['cross_account_access'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

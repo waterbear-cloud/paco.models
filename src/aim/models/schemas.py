@@ -2878,6 +2878,12 @@ class ISNSTopic(IResource):
         default = [],
         required = False,
     )
+    cross_account_access = schema.Bool(
+        title = "Cross-account access from all other accounts in this project.",
+        description = "",
+        required = False,
+        default = False,
+    )
 
 class ICloudTrail(IResource):
     """

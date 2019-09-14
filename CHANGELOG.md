@@ -15,6 +15,8 @@ Changelog for aim.models
 - IGlobalResources for project['resource'] to contain config from the ./Resources/ directory.
   Resources such as S3 and EC2 now implement INamed and are loaded into project['resource'].
 
+- ISNSTopic has `cross_account_access` which grants `sns:Publish` to all accounts in the AIM Project.
+
 
 5.0.0 (2019-08-26)
 ------------------

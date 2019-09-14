@@ -134,6 +134,11 @@ def isValidAWSRegionNameOrNone(value):
         raise InvalidAWSRegion
     return True
 
+def isValidAWSRegionList(value):
+    for region in value:
+        isValidAWSRegionName(region)
+    return True
+
 class InvalidEmailAddress(schema.ValidationError):
     __doc__ = 'Malformed email address'
 
@@ -1508,6 +1513,12 @@ class IProject(INamed, IMapping):
     aim_project_version = schema.TextLine(
         title = "AIM Project version",
         default = "",
+        required = False,
+    )
+    active_regions = schema.List(
+        title = "Regions that resources can be provisioned in",
+        value_type = schema.TextLine(),
+        constraint = isValidAWSRegionList,
         required = False,
     )
 

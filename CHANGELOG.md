@@ -17,6 +17,11 @@ Changelog for aim.models
 
 - ISNSTopic has `cross_account_access` which grants `sns:Publish` to all accounts in the AIM Project.
 
+### Changed
+
+- Alarms have `get_alarm_actions_aim_refs` renamed from `get_alarm_actions` as alarms can only provide
+  aim.refs and need to get the ARNs from the stacks.
+
 
 5.0.0 (2019-08-26)
 ------------------

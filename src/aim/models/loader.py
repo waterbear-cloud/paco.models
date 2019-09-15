@@ -573,6 +573,18 @@ Unneeded field '{}' in config for object type '{}'
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         for name, field in fields.items():
+            # ToDo: these items are loaded specially elsewhere - some of these could be refactored
+            # to load here though ...
+            # resources are loaded later based on type
+            if schemas.IApplication.providedBy(obj) and name == 'groups':
+                continue
+            if schemas.IResourceGroup.providedBy(obj) and name == 'resources':
+                continue
+            if schemas.IEnvironmentDefault.providedBy(obj) and name == 'applications':
+                continue
+            if schemas.IEnvironmentDefault.providedBy(obj) and name == 'network':
+                continue
+
             # Locatable Objects get their name from their key in the config, for example:
             #   environments:
             #     demo:
@@ -618,12 +630,6 @@ Unneeded field '{}' in config for object type '{}'
                         continue
 
                     # set the attribute on the object
-                    # ToDo: resources could be loaded here?
-                    # resources are loaded later based on type
-                    if schemas.IApplication.providedBy(obj) and name == 'groups':
-                        continue
-                    if schemas.IResourceGroup.providedBy(obj) and name == 'resources':
-                        continue
                     try:
                         if type(obj) in SUB_TYPES_CLASS_MAP:
                             if name in SUB_TYPES_CLASS_MAP[type(obj)]:
@@ -1427,83 +1433,79 @@ class ModelLoader():
             )
         )
 
-    def instantiate_env_region_config(
+    def instantiate_applications(
         self,
-        config_name, # iam, applications
-        item_klass,
         env_region_config,
         env_region,
         global_config
     ):
-        """Load applications and IAM into an EnvironmentRegion
+        """Load applications into an EnvironmentRegion
 
         Applications merge the global ApplicationEngine configuration
         with the EnvironmentDefault configuration with the final
         EnvironmentRegion configuration.
         """
-        if config_name in env_region_config:
-            global_item_config = global_config[config_name]
-            for item_name, item_config in env_region_config[config_name].items():
-                item = item_klass(item_name, getattr(env_region, config_name))
-                if env_region.name == 'default':
-                    # merge global with default
+        if 'applications' not in env_region_config:
+            return
+        global_item_config = global_config['applications']
+        for item_name, item_config in env_region_config['applications'].items():
+            item = Application(item_name, getattr(env_region, 'applications'))
+            if env_region.name == 'default':
+                # merge global with default
+                try:
+                    global_config['applications'][item_name]
+                except KeyError:
+                    raise_env_name_mismatch(item_name, 'applications', env_region)
+                item_config = merge(global_config['applications'][item_name], env_region_config['applications'][item_name])
+                annotate_base_config(item, item_config, global_item_config[item_name])
+            else:
+                # merge global with default, then merge that with local config
+                env_default = global_config['environments'][env_region.__parent__.name]['default']
+                if 'applications' in env_default:
                     try:
-                        global_config[config_name][item_name]
+                        default_region_config = env_default['applications'][item_name]
+                        global_item_config[item_name]
                     except KeyError:
-                        raise_env_name_mismatch(item_name, config_name, env_region)
-                    item_config = merge(global_config[config_name][item_name], env_region_config[config_name][item_name])
-                    annotate_base_config(item, item_config, global_item_config[item_name])
+                        raise_env_name_mismatch(item_name, 'applications', env_region)
+                    default_config = merge(global_item_config[item_name], default_region_config)
+                    item_config = merge(default_config, item_config)
+                    annotate_base_config(item, item_config, default_config)
+                # no default config, merge local with global
                 else:
-                    # merge global with default, then merge that with local config
-                    env_default = global_config['environments'][env_region.__parent__.name]['default']
-                    if config_name in env_default:
-                        try:
-                            default_region_config = env_default[config_name][item_name]
-                            global_item_config[item_name]
-                        except KeyError:
-                            raise_env_name_mismatch(item_name, config_name, env_region)
-                        default_config = merge(global_item_config[item_name], default_region_config)
-                        item_config = merge(default_config, item_config)
-                        annotate_base_config(item, item_config, default_config)
-                    # no default config, merge local with global
-                    else:
-                        try:
-                            global_item_config[item_name]
-                        except KeyError:
-                            raise_env_name_mismatch(item_name, config_name, env_region)
-                        item_config = merge(global_item_config[item_name], item_config)
-                        annotate_base_config(item, item_config, global_item_config[item_name])
+                    try:
+                        global_item_config[item_name]
+                    except KeyError:
+                        raise_env_name_mismatch(item_name, 'applications', env_region)
+                    item_config = merge(global_item_config[item_name], item_config)
+                    annotate_base_config(item, item_config, global_item_config[item_name])
 
-                env_region[config_name][item_name] = item # save
-                apply_attributes_from_config(item, item_config, self.config_folder, read_file_path=self.read_file_path)
+            env_region.applications[item_name] = item # save
+            apply_attributes_from_config(item, item_config, self.config_folder, read_file_path=self.read_file_path)
 
-                if config_name == 'applications':
-                    # Load resources for an application
-                    if 'groups' not in item_config:
-                        item_config['groups'] = {}
-                    load_resources(
-                        item.groups,
-                        item_config['groups'],
-                        self.config_folder,
-                        self.monitor_config,
-                        self.read_file_path
-                    )
-                elif config_name == 'iam':
-                    self.load_iam_group(item.groups, item_config)
+            # Load resources for an application
+            if 'groups' not in item_config:
+                item_config['groups'] = {}
+            load_resources(
+                item.groups,
+                item_config['groups'],
+                self.config_folder,
+                self.monitor_config,
+                self.read_file_path
+            )
+
 
     def instantiate_network_environments(self, name, config, read_file_path):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
          # Network Environment
         if config['network'] == None:
-            return
-
+            raise InvalidAimProjectFile("NetworkEnvironment {} has no network".format(name))
         net_env = self.create_apply_and_save(
-            name, self.project['netenv'], NetworkEnvironment, config['network']
+            name,
+            self.project['netenv'],
+            NetworkEnvironment,
+            config['network']
         )
         net_env._read_file_path = pathlib.Path(read_file_path)
-        # Network Environments do not have a place to store enabled, so we
-        # we force it to true for now
-        net_env.enabled = True
 
         # Environments
         if 'environments' in config:
@@ -1528,20 +1530,15 @@ class ModelLoader():
                     else:
                         env_region_config = env_config['default']
 
+                    klass = EnvironmentRegion
                     if env_reg_name == 'default':
-                        env_region = self.create_apply_and_save(
-                            env_reg_name,
-                            env,
-                            EnvironmentDefault,
-                            env_region_config
-                        )
-                    else:
-                        env_region = self.create_apply_and_save(
-                            env_reg_name,
-                            env,
-                            EnvironmentRegion,
-                            env_region_config
-                        )
+                        klass = EnvironmentDefault
+                    env_region = self.create_apply_and_save(
+                        env_reg_name,
+                        env,
+                        klass,
+                        env_region_config
+                    )
 
                     # Network
                     network = env_region.network
@@ -1568,9 +1565,7 @@ class ModelLoader():
                     apply_attributes_from_config(network, net_config, self.config_folder, read_file_path=self.read_file_path)
 
                     # Applications
-                    self.instantiate_env_region_config(
-                        'applications',
-                        Application,
+                    self.instantiate_applications(
                         env_region_config,
                         env_region,
                         config

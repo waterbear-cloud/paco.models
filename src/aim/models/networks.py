@@ -74,28 +74,12 @@ class EnvironmentDefault(Named, dict):
         super().__init__(name, __parent__)
 
         # applications
-        self.applications = aim.models.applications.ApplicationEngines(
-            name='applications',
-            __parent__=self
-        )
+        self.applications = aim.models.applications.ApplicationEngines('applications', self)
         self.applications.title = 'Applications'
-        self.__setitem__('applications', self.applications)
 
         # network
-        self.network = Network(
-            name='network',
-            __parent__=self
-        )
+        self.network = Network('network', self)
         self.network.title = 'Network'
-        self.__setitem__('network', self.network)
-
-        # IAM
-        self.iam = aim.models.iam.IAMs(
-            name='iam',
-            __parent__=self
-        )
-        self.iam.title = 'Identity and Access Management'
-        self.__setitem__('iam', self.iam)
 
 
 @implementer(schemas.IEnvironmentRegion)
@@ -113,6 +97,10 @@ class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
     @property
     def region_full_name(self):
         return vocabulary.aws_regions[self.__name__]['full_name']
+
+@implementer(schemas.IEnvironmentAccount)
+class EnvironmentAccount(Named, Deployable, dict):
+    pass
 
 @implementer(schemas.INetwork)
 class Network(NetworkEnvironment):

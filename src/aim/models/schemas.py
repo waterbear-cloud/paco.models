@@ -686,6 +686,11 @@ class IServiceEnvironment(IAccountRef, INamed):
         schema = IApplicationEngines,
         required = False,
     )
+    region = schema.TextLine(
+        title = "Region",
+        required = False,
+        constraint = isValidAWSRegionName,
+    )
 
 class IGlobalResources(INamed, IMapping):
     "A collection of global Resources"
@@ -1407,7 +1412,7 @@ class IEC2KeyPair(INamed):
         missing_value = "no-region-set",
         required = True,
         constraint = isValidAWSRegionName,
-        )
+    )
     account = TextReference(
         title = 'AWS Account Reference',
         required = False,
@@ -2304,20 +2309,33 @@ class IASG(IResource, IMonitorable):
 
 class IEnvironmentDefault(INamed, IMapping):
     """
-    Default values for an Environments configuration
+    Default values for an Environment's configuration
     """
+    applications = schema.Object(
+        title = "Application container",
+        required = True,
+        schema = IApplicationEngines,
+    )
+    network = schema.Object(
+        title = "Network",
+        required = False,
+        schema = INetwork,
+    )
 
 class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
     """
-    An actual deployed Environment in a specific region.
+    An actual provisioned Environment in a specific region.
     May contains overrides of the IEnvironmentDefault where needed.
     """
 
 class IEnvironment(INamed, IMapping):
     """
-    Environment: Logical group of deployments
+    Environment
     """
     #default = schema.Object(IEnvironmentDefault)
+
+class IEnvironmentAccount(INamed, IMapping):
+    """A container for IEnvironmentRegion"""
 
 
 class ILambdaVariable(Interface):

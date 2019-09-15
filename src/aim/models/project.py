@@ -68,7 +68,7 @@ class Project(Named, dict):
         for ne in self['netenv'].values():
             for env in ne.values():
                 for env_reg in env.env_regions.values():
-                    for application in env_reg['applications'].values():
+                    for application in env_reg.applications.values():
                         results.append(application)
         return results
 

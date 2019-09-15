@@ -211,21 +211,8 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         else:
             ref_value = project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
-        # examples:
-        # aim.ref netenv.aimdemo.applications.app.resources.webapp.name
-        # aim.ref netenv.aimdemo.applications.app.resources.alb.dns.ssl_certificate.arn
-        # aim.ref netenv.aimdemo.iam.app.roles.instance_role.name
-        # aim.ref netenv.aimdemo.iam.app.roles.instance_role.arn
-        # aim.ref netenv.aimdemo.iam.app.roles.instance_role.profile
-        # aim.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
-        # aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
-        # aim.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
-        #
-        # first two parts are transposed - flip them around before resolving
-        #ref.parts[0], ref.parts[1] = ref.parts[1], ref.parts[0]
         obj = project['netenv'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
         ref_value = get_resolve_ref_obj(obj, ref, 4)
-
 
     elif ref.type == "accounts":
         ref_value = resolve_accounts_ref(ref, project)

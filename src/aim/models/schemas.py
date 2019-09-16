@@ -2148,6 +2148,19 @@ class IIAM(INamed, IMapping):
         required = False,
     )
 
+class IEFSMount(IDeployable):
+    """
+    EFS Mount Folder and Target Configuration
+    """
+    folder = schema.TextLine(
+        title = 'Folder to mount the EFS target',
+        required = True
+    )
+    target = TextReference(
+        title = 'EFS Target Resoruce Reference',
+        required = True
+    )
+
 class IASG(IResource, IMonitorable):
     """
     Auto-scaling group
@@ -2305,6 +2318,12 @@ class IASG(IResource, IMonitorable):
         min=0,
         max=100,
         required = False,
+    )
+    efs_mounts = schema.List(
+        title = 'Elastic Filesystem Configuration',
+        value_type = schema.Object(IEFSMount),
+        required = False,
+        default = []
     )
 
 class IEnvironmentDefault(INamed, IMapping):
@@ -3756,5 +3775,27 @@ class IDeploymentPipeline(IResource):
     deploy = schema.Object(
         title = 'Deployment Pipeline Deploy Stage',
         schema =IDeploymentPipelineDeployStage,
+        required = False,
+    )
+
+class IEFS(IResource):
+    """
+    Elastic File System Resource
+    """
+    encrypted = schema.Bool(
+        title = 'Encryption at Rest',
+        default = False
+    )
+    security_groups = schema.List(
+        title="Security groups",
+        description="",
+        value_type=TextReference(
+            title="AIM Reference"
+        ),
+        required = True,
+    )
+    segment = schema.TextLine(
+        title="Segment",
+        description="",
         required = False,
     )

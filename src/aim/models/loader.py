@@ -34,7 +34,8 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
-    DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3
+    DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
+    EFS, EFSMount
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -110,9 +111,13 @@ RESOURCES_CLASS_MAP = {
     'RDSMysql': RDSMysql,
     'ElastiCacheRedis': ElastiCacheRedis,
     'DeploymentPipeline': DeploymentPipeline,
+    'EFS': EFS
 }
 
 SUB_TYPES_CLASS_MAP = {
+    EFS: {
+        'security_groups': ('str_list', TextReference)
+    },
     DeploymentPipelineDeployCodeDeploy: {
         'minimum_healthy_hosts': ('unnamed_dict', CodeDeployMinimumHealthyHosts)
     },
@@ -194,7 +199,8 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('str_list', TextReference),
         'target_groups': ('str_list', TextReference),
         'monitoring': ('unnamed_dict', MonitorConfig),
-        'instance_iam_role': ('unnamed_dict', Role)
+        'instance_iam_role': ('unnamed_dict', Role),
+        'efs_mounts': ('obj_list', EFSMount),
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),
@@ -646,7 +652,7 @@ Unneeded field '{}' in config for object type '{}'
                                 setattr(obj, name, copy.deepcopy(value))
                         else:
                             setattr(obj, name, copy.deepcopy(value))
-                    except ValidationError as exc:
+                    except (ValidationError, AttributeError) as exc:
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object

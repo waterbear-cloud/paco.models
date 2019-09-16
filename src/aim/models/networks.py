@@ -214,12 +214,7 @@ class Segment(Named, Deployable):
     def resolve_ref(self, ref):
         if ref.resource_ref == 'az1_cidr':
             return self.az1_cidr
-        #elif ref_parts[1] == 'subnet_id':
         else:
-            # XXX: Load az1.subnet_id from Resources YAML
-            # XXX: If not in Resources YAML return the Engine Object
-            # else return the Stack() for future StackOutput retrieval. The stack still needs
-            # to be created.
             stack = self.resolve_ref_obj.resolve_ref(ref)
             if stack == None:
                 raise StackException(AimErrorCode.Unknown)

@@ -137,6 +137,24 @@ class Reference():
             ref=self
         )
 
+def get_model_obj_from_ref(ref, project):
+    """Resolves the reference to an object in a model.
+    ref can be either a string or a Reference object.
+    project is an Project object.
+    """
+    # ToDo: initial implementation - do we have ref corner cases to consider?
+    if isinstance(ref, str):
+        ref = Reference(ref)
+    obj = project
+    for part_idx in range(0, len(ref.parts)):
+        try:
+            next_obj = obj[ref.parts[part_idx]]
+        except (TypeError, KeyError):
+            next_obj = getattr(obj, ref.parts[part_idx], None)
+        if next_obj != None and isinstance(next_obj, str) == False:
+            obj = next_obj
+    return obj
+
 def get_resolve_ref_obj(obj, ref, part_idx_start):
     """
     Traverses the reference parts looking for the last child that
@@ -151,6 +169,7 @@ def get_resolve_ref_obj(obj, ref, part_idx_start):
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
         else:
+            # ToDo: Should this throw an error instead?
             break
 
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
@@ -198,6 +217,8 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         else:
             ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
+        ref_value = get_resolve_ref_obj(project, ref, part_idx_start=0)
+        return ref_value
         part_idx_start = 0
         if ref.parts[2] == 'applications':
             # This is the case if the ref does not contain an account and region

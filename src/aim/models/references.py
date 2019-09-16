@@ -238,7 +238,8 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     # modified by checking is_stack_cached(), then check the outputs
     # to see if a value is there and return it. Otherwise continue
     # to deal with waiting for new stack outputs.
-    if 'home' in project.keys():
+    # XXX: Disabled
+    if True == False and 'home' in project.keys():
         value_type = "{}".format(type(ref_value))
         if value_type == "<class 'aim.stack_group.stack_group.Stack'>":
             # TODO: This is only useful when we are looking up values

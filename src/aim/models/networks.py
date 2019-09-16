@@ -76,10 +76,12 @@ class EnvironmentDefault(Named, dict):
         # applications
         self.applications = aim.models.applications.ApplicationEngines('applications', self)
         self.applications.title = 'Applications'
+        self.__setitem__('applications', self.applications)
 
         # network
         self.network = Network('network', self)
         self.network.title = 'Network'
+        self.__setitem__('network', self.network)
 
 
 @implementer(schemas.IEnvironmentRegion)

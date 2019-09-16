@@ -1173,6 +1173,8 @@ class ModelLoader():
 
                 new_ref = self.insert_env_ref_str(sub_ref, env_id, region)
                 sub_var = str_value[sub_ref_idx:sub_ref_end_idx]
+                if sub_var == new_ref:
+                    break
                 str_value = str_value.replace(sub_var, new_ref, 1)
             else:
                 break
@@ -1202,7 +1204,7 @@ class ModelLoader():
 
         return new_ref
 
-    def normalize_environment_refs(self, env_config, env_name, env_region):
+    def normalize_environment_refs(self, env_config, env_name, env_region, breakit=False):
         """
         Resolves all references
         A reference is a string that refers to another value in the model. The original
@@ -1578,4 +1580,7 @@ class ModelLoader():
                     )
                     if env_reg_name != 'default':
                         # Insert the environment and region into any Refs
-                        self.normalize_environment_refs(env_region, env_name, env_reg_name)
+                        breakit=False
+                        if name == 'aimdemo' and env_name == 'prod':
+                            breakit=True
+                        self.normalize_environment_refs(env_region, env_name, env_reg_name, breakit)

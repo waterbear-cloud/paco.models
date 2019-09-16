@@ -388,6 +388,7 @@ class ASG(Resource, Monitorable):
     user_data_script =  FieldProperty(schemas.IASG['user_data_script'])
     instance_monitoring = FieldProperty(schemas.IASG['instance_monitoring'])
     scaling_policy_cpu_average = FieldProperty(schemas.IASG['scaling_policy_cpu_average'])
+    efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':
@@ -786,4 +787,20 @@ class DeploymentPipeline(Resource):
     def resolve_ref(self, ref):
         if ref.resource_ref == 'kms':
             return self
+        return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.IEFSMount)
+class EFSMount(Resource):
+    title = 'EFS Mount Folder and Target'
+    folder = FieldProperty(schemas.IEFSMount['folder'])
+    target = FieldProperty(schemas.IEFSMount['target'])
+
+@implementer(schemas.IEFS)
+class EFS(Resource):
+    title = 'EFS'
+    encrypted = FieldProperty(schemas.IEFS['encrypted'])
+    security_groups = FieldProperty(schemas.IEFS['security_groups'])
+    segment = FieldProperty(schemas.IEFS['segment'])
+
+    def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

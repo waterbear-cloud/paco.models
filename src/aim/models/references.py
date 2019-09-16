@@ -241,10 +241,18 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     if 'home' in project.keys():
         value_type = "{}".format(type(ref_value))
         if value_type == "<class 'aim.stack_group.stack_group.Stack'>":
-            if ref_value.is_stack_cached():
-                outputs_value = resolve_ref_outputs(ref, project['home'])
-                if outputs_value != None:
-                    return outputs_value
+            # TODO: This is only useful when we are looking up values
+            # for stacks that will not be provisioned. ie. SNS Topic Arns
+            # from NotificationGroups referenced by code in Network Environments.
+            # XXX: For now we are only looking at cached outputs for stacks
+            # outside of NetworkEnvironments.
+            # XXX: This check causes a Stack cache check which queries
+            # cloudformation which incurs a delay
+            if ref.ref.startswith('netenv') == False:
+                if ref_value.is_stack_cached():
+                    outputs_value = resolve_ref_outputs(ref, project['home'])
+                    if outputs_value != None:
+                        return outputs_value
     return ref_value
 
 

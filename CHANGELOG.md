@@ -17,11 +17,15 @@ Changelog for aim.models
 
 - ISNSTopic has `cross_account_access` which grants `sns:Publish` to all accounts in the AIM Project.
 
+- IAccountContainer and IRegionContainer are lightweight containers for account and region information.
+  They can be used by Services that want to set-up Resources in a multi-account, multi-region manner.
+
 ### Changed
 
 - Alarms have `get_alarm_actions_aim_refs` renamed from `get_alarm_actions` as alarms can only provide
   aim.refs and need to get the ARNs from the stacks.
 
+- NotificationGroups are now Resources. Now they have regular working aim.ref's.
 
 5.0.0 (2019-08-26)
 ------------------

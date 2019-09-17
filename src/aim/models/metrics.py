@@ -3,7 +3,7 @@ import aim.models.services
 import json
 import troposphere.cloudwatch
 from aim.models import schemas, vocabulary
-from aim.models.base import Deployable, Named, Name, Resource, AccountRef
+from aim.models.base import Deployable, Named, Name, Resource, AccountRef, Regionalized
 from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSets
 from aim.models.locations import get_parent_by_interface
@@ -14,6 +14,9 @@ from zope.schema.fieldproperty import FieldProperty
 @implementer(schemas.INotificationGroups)
 class NotificationGroups(AccountRef, Named, dict):
     "Container for NotificationGroups"
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IAlarmNotifications)
 class AlarmNotifications(dict):
@@ -39,7 +42,7 @@ class AlarmSets(Named, dict):
     "Collection of Alarms"
 
 @implementer(schemas.IAlarm)
-class Alarm(Named):
+class Alarm(Named, Regionalized):
     "Alarm"
     classification = FieldProperty(schemas.IAlarm["classification"])
     description = FieldProperty(schemas.IAlarm["description"])
@@ -97,7 +100,7 @@ class Alarm(Named):
         """
         if not notificationgroups:
             project = get_parent_by_interface(self, schemas.IProject)
-            notificationgroups = project['notificationgroups']
+            notificationgroups = project['resource']['notificationgroups']
 
         # if a service plugin provides override_alarm_actions, call that instead
         service_plugins = aim.models.services.list_service_plugins()

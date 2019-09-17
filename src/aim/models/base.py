@@ -207,15 +207,13 @@ class Regionalized():
     @property
     def region_name(self):
         # region the resource is deployed in
-        env_region = get_parent_by_interface(self, schemas.IEnvironmentRegion)
-        if env_region:
-            return env_region.region
+        region = get_parent_by_interface(self, schemas.IRegionContainer)
+        if region != None:
+            return region.name
         # Global buckets have a region field
         if schemas.IS3Bucket.providedBy(self):
             return self.region
-        # services don't belong to an EnviromentRegion but can have an IServiceAccountRegion
-        service_region = get_parent_by_interface(self, schemas.IServiceAccountRegion)
-        return service_region.region
+        raise AttributeError('Could not determine region for {}'.format(self.name))
 
     @property
     def region_full_name(self):
@@ -276,4 +274,10 @@ class AccountRef():
     account = FieldProperty(schemas.IAccountRef['account'])
 
 
+@implementer(schemas.IAccountContainer)
+class AccountContainer(Named, Regionalized, dict):
+    pass
 
+@implementer(schemas.IRegionContainer)
+class RegionContainer(Named, Regionalized, dict):
+    pass

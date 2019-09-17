@@ -46,7 +46,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
     IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
-from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair
+from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
@@ -1072,13 +1072,13 @@ class ModelLoader():
         "Loads resource ids from CFN Outputs"
 
         base_output_path = 'Outputs' + os.sep
-        monitor_config_output_path = base_output_path + 'MonitorConfig'
-        if os.path.isfile(self.config_folder + os.sep + monitor_config_output_path + os.sep + 'NotificationGroups.yaml'):
-            notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
-            if 'groups' in notif_groups_config:
-                notif_groups = self.project['notificationgroups']
-                for group_name in notif_groups_config['groups'].keys():
-                    notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
+        # monitor_config_output_path = base_output_path + 'MonitorConfig'
+        # if os.path.isfile(self.config_folder + os.sep + monitor_config_output_path + os.sep + 'NotificationGroups.yaml'):
+        #     notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
+        #     if 'groups' in notif_groups_config:
+        #         notif_groups = self.project['notificationgroups']
+        #         for group_name in notif_groups_config['groups'].keys():
+        #             notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
 
         ne_outputs_path = base_output_path + 'NetworkEnvironments'
         if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
@@ -1284,7 +1284,7 @@ class ModelLoader():
         """Detect misconfigured alarm notification situations.
         This happens after both MonitorConfig and NetworkEnvironments have loaded.
         """
-        if 'notificationgroups' in self.project:
+        if 'notificationgroups' in self.project['resource']:
             for app in self.project.get_all_applications():
                 if app.is_enabled():
                     for alarm_info in app.list_alarm_info():
@@ -1296,8 +1296,9 @@ class ModelLoader():
                                 app.name
                             ))
                         # alarms with groups that do not exist
+                        region = self.project.active_regions[0] # regions are all the same, just choose the first
                         for groupname in alarm.notification_groups:
-                            if groupname not in self.project['notificationgroups']:
+                            if groupname not in self.project['resource']['notificationgroups'][region]:
                                 raise InvalidAimProjectFile(
                                     "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
                                         alarm.name,
@@ -1325,23 +1326,26 @@ class ModelLoader():
                 apply_attributes_from_config(cw_logging, config['cw_logging'])
                 self.project['cw_logging'] = cw_logging
             self.monitor_config['logging'] = config
-        elif name.lower() == 'notificationgroups':
-            groups = NotificationGroups('notificationgroups', self.project)
-            self.project['notificationgroups'] = groups
-            if 'groups' in config:
-                # top-level 'groups:' gets absorbed into a top-level NotificationGroups mapping
-                # fiddle with the data to make apply_attrs happy ...
-                groups_config = copy.deepcopy(config['groups'])
-                del config['groups']
-                apply_attributes_from_config(groups, config, read_file_path=self.read_file_path)
-                # load SNS Topics
+
+    def instantiate_notificationgroups(self, config):
+        notificationgroups = NotificationGroups('notificationgroups', self.project.resource)
+        if 'groups' in config:
+            # 'groups' gets duplicated and placed into a region_name key for every active region
+            groups_config = copy.deepcopy(config['groups'])
+            del config['groups']
+            apply_attributes_from_config(notificationgroups, config, read_file_path=self.read_file_path)
+            # load SNS Topics
+            for region_name in self.project.active_regions:
+                region = RegionContainer(region_name, notificationgroups)
+                notificationgroups[region_name] = region
                 for topicname, topic_config in groups_config.items():
-                    topic = SNSTopic(topicname, groups)
-                    apply_attributes_from_config(topic, topic_config)
-                    groups[topicname] = topic
-            else:
-                raise InvalidAimProjectFile("MonitorConfig/NotificationGroups.yaml does not have a top-level `groups:`.")
-            self.monitor_config['notificationgroups'] = config
+                    topic = SNSTopic(topicname, region)
+                    apply_attributes_from_config(topic, topic_config, read_file_path=self.read_file_path)
+                    region[topicname] = topic
+        else:
+            raise InvalidAimProjectFile("Resource/NotificationGroups.yaml does not have a top-level `groups:`.")
+
+        return notificationgroups
 
     def instantiate_cloudwatch_log_groups(self, config):
         cw_log_groups = CWLogGroups()
@@ -1426,6 +1430,7 @@ class ModelLoader():
         #   s3
         #   cloudtrail
         #   iam
+        #   notificationgroups
         instantiate_method = getattr(self, 'instantiate_'+name, None)
         if instantiate_method == None:
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))

@@ -100,9 +100,6 @@ class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
     def region_full_name(self):
         return vocabulary.aws_regions[self.__name__]['full_name']
 
-@implementer(schemas.IEnvironmentAccount)
-class EnvironmentAccount(Named, Deployable, dict):
-    pass
 
 @implementer(schemas.INetwork)
 class Network(NetworkEnvironment):

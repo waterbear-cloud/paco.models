@@ -230,12 +230,12 @@ class TestAimDemo(BaseTestModelLoader):
         assert alarm_five.notification_groups, ['santa']
 
     def test_notification_groups(self):
-        groups = self.project['notificationgroups']
+        groups = self.project['resource']['notificationgroups']
         assert schemas.INotificationGroups.providedBy(groups)
         assert groups.account, 'aim.ref accounts.master'
-        assert groups['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
-        assert len(groups['bobs_team'].subscriptions), 2
-        bob = groups['bob']
+        assert groups['us-west-2']['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
+        assert len(groups['us-west-2']['bobs_team'].subscriptions), 2
+        bob = groups['ca-central-1']['bob']
         assert bob.subscriptions[0].protocol, 'http'
         assert bob.subscriptions[0].endpoint, 'http://example.com/yes'
         assert bob.subscriptions[1].endpoint, 'https://example.com/orno'

@@ -1736,6 +1736,7 @@ class INetworkEnvironment(INamed, IDeployable, IMapping):
         required=False,
     )
 
+
 class ICredentials(INamed):
     aws_access_key_id = schema.TextLine(
         title = "AWS Access Key ID",
@@ -1793,6 +1794,43 @@ class INetwork(INetworkEnvironment):
         title = 'AWS Account Reference',
         required = False,
     )
+
+# Environment, Account and Region containers
+
+class IAccountContainer(INamed, IMapping):
+    """A lightweight Account container"""
+
+class IRegionContainer(INamed, IMapping):
+    "A lightweight Region container"
+
+class IEnvironmentDefault(IRegionContainer):
+    """
+    Default values for an Environment's configuration
+    """
+    applications = schema.Object(
+        title = "Application container",
+        required = True,
+        schema = IApplicationEngines,
+    )
+    network = schema.Object(
+        title = "Network",
+        required = False,
+        schema = INetwork,
+    )
+
+class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
+    """
+    An actual provisioned Environment in a specific region.
+    May contains overrides of the IEnvironmentDefault where needed.
+    """
+
+class IEnvironment(INamed, IMapping):
+    """
+    Environment
+    """
+    #default = schema.Object(IEnvironmentDefault)
+
+# Networking
 
 class IAWSCertificateManager(IResource):
     domain_name = schema.TextLine(
@@ -2326,36 +2364,7 @@ class IASG(IResource, IMonitorable):
         default = []
     )
 
-class IEnvironmentDefault(INamed, IMapping):
-    """
-    Default values for an Environment's configuration
-    """
-    applications = schema.Object(
-        title = "Application container",
-        required = True,
-        schema = IApplicationEngines,
-    )
-    network = schema.Object(
-        title = "Network",
-        required = False,
-        schema = INetwork,
-    )
-
-class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
-    """
-    An actual provisioned Environment in a specific region.
-    May contains overrides of the IEnvironmentDefault where needed.
-    """
-
-class IEnvironment(INamed, IMapping):
-    """
-    Environment
-    """
-    #default = schema.Object(IEnvironmentDefault)
-
-class IEnvironmentAccount(INamed, IMapping):
-    """A container for IEnvironmentRegion"""
-
+# Lambda
 
 class ILambdaVariable(Interface):
     """

@@ -118,6 +118,9 @@ SUB_TYPES_CLASS_MAP = {
     EFS: {
         'security_groups': ('str_list', TextReference)
     },
+    DeploymentPipelineBuildCodeBuild: {
+        'role_policies': ('obj_list', Policy)
+    },
     DeploymentPipelineDeployCodeDeploy: {
         'minimum_healthy_hosts': ('unnamed_dict', CodeDeployMinimumHealthyHosts)
     },

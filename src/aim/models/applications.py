@@ -732,6 +732,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
+    role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
 
 @implementer(schemas.IDeploymentPipelineDeployS3)
 class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):

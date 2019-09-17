@@ -3637,6 +3637,12 @@ class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
         default = 60,
         required = False,
     )
+    role_policies = schema.List(
+        title = 'Project IAM Role Policies',
+        value_type=schema.Object(IPolicy),
+        required = False,
+        default = []
+    )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
     """

@@ -146,6 +146,20 @@ class Dimension():
         self.name = name
         self.value = value
 
+@implementer(schemas.ISimpleCloudWatchAlarm)
+class SimpleCloudWatchAlarm():
+    "CloudWatch Alarm"
+    alarm_description = FieldProperty(schemas.ICloudWatchAlarm["alarm_description"])
+    actions_enabled = FieldProperty(schemas.ICloudWatchAlarm["actions_enabled"])
+    metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
+    namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
+    period = FieldProperty(schemas.ICloudWatchAlarm["period"])
+    evaluation_periods = FieldProperty(schemas.ICloudWatchAlarm["evaluation_periods"])
+    threshold = FieldProperty(schemas.ICloudWatchAlarm["threshold"])
+    comparison_operator = FieldProperty(schemas.ICloudWatchAlarm["comparison_operator"])
+    statistic = FieldProperty(schemas.ICloudWatchAlarm["statistic"])
+
+
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
     "CloudWatch Alarm"

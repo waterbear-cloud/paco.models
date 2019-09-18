@@ -390,6 +390,24 @@ def isValidCodeBuildComputeType(value):
         raise InvalidCodeBuildComputeType
     return True
 
+# ASG Scaling Policy Type
+class InvalidASGScalignPolicyType(schema.ValidationError):
+    __doc__ = 'policy_type must be one of: SimpleScaling | StepScaling | TargetTrackingScaling'
+
+def IsValidASGScalignPolicyType(value):
+    if value not in ('SimpleScaling', 'StepScaling', 'TargetTrackingScaling'):
+        raise InvalidASGScalignPolicyType
+    return True
+
+# ASG Scaling Policy Adjustment Type
+class InvalidASGScalingPolicyAdjustmentType(schema.ValidationError):
+    __doc__ = 'policy_type must be one of: ChangeInCapacity | ExactCapacity | PercentChangeInCapacity'
+
+def IsValidASGScalingPolicyAdjustmentType(value):
+    if value not in ('ChangeInCapacity', 'ExactCapacity', 'PercentChangeInCapacity'):
+        raise InvalidASGScalingPolicyAdjustmentType
+    return True
+
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
@@ -841,7 +859,8 @@ class ICloudWatchAlarm(IAlarm):
         value_type = schema.TextLine(
             title = "Alarm Action",
             required = False,
-        )
+        ),
+        required = False,
     )
     alarm_description = schema.Text(
         title = "Alarm Description",
@@ -2199,9 +2218,103 @@ class IEFSMount(IDeployable):
         required = True
     )
 
+class ISimpleCloudWatchAlarm(Interface):
+    """
+    A Simple CloudWatch Alarm
+    """
+    alarm_description = schema.Text(
+        title = "Alarm Description",
+        description = "Valid JSON document with AIM fields.",
+        required = False,
+    )
+    actions_enabled = schema.Bool(
+        title = "Actions Enabled",
+        required = False,
+    )
+    comparison_operator = schema.TextLine(
+        title = "Comparison operator",
+        constraint = isComparisonOperator,
+        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
+        required = False,
+    )
+    evaluation_periods = schema.Int(
+        title = "Evaluation periods",
+        required = False,
+    )
+    metric_name = schema.TextLine(
+        title = "Metric name",
+        required = True,
+    )
+    namespace = schema.TextLine(
+        title = "Namespace",
+        required = False,
+    )
+    period = schema.Int(
+        title = "Period in seconds",
+        constraint = isValidPeriod,
+        description = "Must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000",
+        required = False,
+    )
+    statistic = schema.TextLine(
+        title = "Statistic",
+        required = False,
+    )
+    threshold = schema.Float(
+        title = "Threshold",
+        required = False,
+    )
+
+class IASGScalingPolicies(INamed, IMapping):
+    """
+    Container of Auto Scaling Group Scaling Policies
+    """
+    pass
+
+class IASGScalingPolicy(INamed, IDeployable):
+    """
+    Auto Scaling Group Scaling Policy
+    """
+    policy_type = schema.TextLine(
+        title='Policy Type',
+        default='SimpleScaling',
+        # SimpleScaling, StepScaling, and TargetTrackingScaling
+        constraint=IsValidASGScalignPolicyType,
+    )
+    adjustment_type = schema.TextLine(
+        title='Adjustment Type',
+        default='ChangeInCapacity',
+        # ChangeInCapacity, ExactCapacity, and PercentChangeInCapacity
+        constraint=IsValidASGScalingPolicyAdjustmentType,
+    )
+    scaling_adjustment = schema.Int(
+        title='Scaling Adjustment'
+    )
+    cooldown = schema.Int(
+        title='Scaling Cooldown in Seconds',
+        default = 300,
+        min=0,
+        required=False
+    )
+    alarms = schema.List(
+        title = 'Alarms',
+        value_type=schema.Object(ISimpleCloudWatchAlarm),
+        default = []
+    )
+
+    @invariant
+    def required_simple_scaling_properties(obj):
+        if obj.policy_type == 'SimpleScaling':
+            if obj.scaling_adjustment == None:
+                raise Invalid("'scaling_adjustment' must be specified when policy_type is 'SimpleScaling'")
+        if obj.policy_type != 'SimpleScaling':
+            if obj.scaling_adjustment != None:
+                raise Invalid("'policy_type' must be 'SimpleScaling' when 'scaling_adjustment' is used.")
+            if obj.cooldown != None:
+                raise Invalid("'cooldown' may only be used when policy_type is 'SimpleScaling'")
+
 class IASG(IResource, IMonitorable):
     """
-    Auto-scaling group
+    Auto Scaling Group
     """
     desired_capacity = schema.Int(
         title="Desired capacity",
@@ -2362,6 +2475,11 @@ class IASG(IResource, IMonitorable):
         value_type = schema.Object(IEFSMount),
         required = False,
         default = []
+    )
+    scaling_policies = schema.Object(
+        title='Scaling Policies',
+        schema=IASGScalingPolicies,
+        required = False,
     )
 
 # Lambda

@@ -18,8 +18,8 @@ from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metric
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
-from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, AlarmSet, \
-    AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
+from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, SimpleCloudWatchAlarm, \
+    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
@@ -35,7 +35,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
     DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
-    EFS, EFSMount
+    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -198,12 +198,16 @@ SUB_TYPES_CLASS_MAP = {
         'dns': ('obj_list', DNS),
         'monitoring': ('unnamed_dict', MonitorConfig)
     },
+    ASGScalingPolicy: {
+        'alarms': ('obj_list', SimpleCloudWatchAlarm)
+    },
     ASG: {
         'security_groups': ('str_list', TextReference),
         'target_groups': ('str_list', TextReference),
         'monitoring': ('unnamed_dict', MonitorConfig),
         'instance_iam_role': ('unnamed_dict', Role),
         'efs_mounts': ('obj_list', EFSMount),
+        'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy))
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),
@@ -684,6 +688,7 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
         field_context_name = exc.field.context.name
     except AttributeError:
         field_context_name = 'Not applicable'
+    breakpoint()
     raise InvalidAimProjectFile(
         """Error in file at {}
 

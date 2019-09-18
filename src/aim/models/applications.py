@@ -360,6 +360,20 @@ class S3Bucket(Resource, Deployable):
 #class Service(Named, dict):
 #    pass
 
+@implementer(schemas.IASGScalingPolicies)
+class ASGScalingPolicies(Named, dict):
+    title = "ASGSCalingPolices"
+    pass
+
+
+@implementer(schemas.IASGScalingPolicy)
+class ASGScalingPolicy(Named, Deployable):
+    title = "ASGScalingPolicy"
+    policy_type = FieldProperty(schemas.IASGScalingPolicy['policy_type'])
+    adjustment_type = FieldProperty(schemas.IASGScalingPolicy['adjustment_type'])
+    scaling_adjustment = FieldProperty(schemas.IASGScalingPolicy['scaling_adjustment'])
+    cooldown = FieldProperty(schemas.IASGScalingPolicy['cooldown'])
+    alarms = FieldProperty(schemas.IASGScalingPolicy['alarms'])
 
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
@@ -389,6 +403,7 @@ class ASG(Resource, Monitorable):
     instance_monitoring = FieldProperty(schemas.IASG['instance_monitoring'])
     scaling_policy_cpu_average = FieldProperty(schemas.IASG['scaling_policy_cpu_average'])
     efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])
+    scaling_policies = FieldProperty(schemas.IASG['scaling_policies'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':

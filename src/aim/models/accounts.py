@@ -49,6 +49,8 @@ class Account(Named, dict):
             return self.account_id
         elif ref.last_part == 'name':
             return self.name
+        elif ref.last_part == 'region':
+            return self.region
 
     @property
     def admin_delegate_role_arn(self):

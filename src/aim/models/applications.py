@@ -360,6 +360,19 @@ class S3Bucket(Resource, Deployable):
 #class Service(Named, dict):
 #    pass
 
+@implementer(schemas.IASGLifecycleHooks)
+class ASGLifecycleHooks(Named, dict):
+    title = 'ASGLifecycleHooks'
+    pass
+
+@implementer(schemas.IASGLifecycleHook)
+class ASGLifecycleHook(Named, Deployable):
+    title = 'ASGLifecycleHook'
+    lifecycle_transition = FieldProperty(schemas.IASGLifecycleHook['lifecycle_transition'])
+    notification_target_arn = FieldProperty(schemas.IASGLifecycleHook['notification_target_arn'])
+    role_arn = FieldProperty(schemas.IASGLifecycleHook['role_arn'])
+    default_result = FieldProperty(schemas.IASGLifecycleHook['default_result'])
+
 @implementer(schemas.IASGScalingPolicies)
 class ASGScalingPolicies(Named, dict):
     title = "ASGSCalingPolices"
@@ -404,6 +417,7 @@ class ASG(Resource, Monitorable):
     scaling_policy_cpu_average = FieldProperty(schemas.IASG['scaling_policy_cpu_average'])
     efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])
     scaling_policies = FieldProperty(schemas.IASG['scaling_policies'])
+    lifecycle_hooks = FieldProperty(schemas.IASG['lifecycle_hooks'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':

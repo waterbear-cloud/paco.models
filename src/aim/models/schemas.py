@@ -408,6 +408,24 @@ def IsValidASGScalingPolicyAdjustmentType(value):
         raise InvalidASGScalingPolicyAdjustmentType
     return True
 
+# ASG Scaling Policy Adjustment Type
+class InvalidASGLifecycleTransition(schema.ValidationError):
+    __doc__ = 'lifecycle_transition must be one of: autoscaling:EC2_INSTANCE_LAUNCHING | autoscaling:EC2_INSTANCE_TERMINATING'
+
+def IsValidASGLifecycleTransition(value):
+    if value not in ('autoscaling:EC2_INSTANCE_LAUNCHING', 'autoscaling:EC2_INSTANCE_TERMINATING'):
+        raise InvalidASGLifecycleTransition
+    return True
+
+# ASG Scaling Policy Adjustment Type
+class InvalidASGLifecycleDefaultResult(schema.ValidationError):
+    __doc__ = 'default_result must be one of: CONTINUE | ABANDON'
+
+def IsValidASGLifecycleDefaultResult(value):
+    if value not in ('CONTINUE', 'ABANDON'):
+        raise InvalidASGLifecycleTransition
+    return True
+
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
@@ -2263,6 +2281,34 @@ class ISimpleCloudWatchAlarm(Interface):
         title = "Threshold",
         required = False,
     )
+class IASGLifecycleHooks(INamed, IMapping):
+    """
+    Container of ASG LifecycleHOoks
+    """
+    pass
+
+class IASGLifecycleHook(INamed, IDeployable):
+    """
+    ASG Lifecycle Hook
+    """
+    lifecycle_transition = schema.TextLine(
+        title = 'ASG Lifecycle Transition',
+        constraint = IsValidASGLifecycleTransition,
+        required = True
+    )
+    notification_target_arn = schema.TextLine(
+        title = 'Lifecycle Notification Target Arn',
+        required = True
+    )
+    role_arn = schema.TextLine(
+        title = 'Licecycel Publish Role ARN',
+        required = True
+    )
+    default_result = schema.TextLine(
+        title = 'Default Result',
+        required = False,
+        constraint = IsValidASGLifecycleDefaultResult
+    )
 
 class IASGScalingPolicies(INamed, IMapping):
     """
@@ -2480,6 +2526,11 @@ class IASG(IResource, IMonitorable):
         title='Scaling Policies',
         schema=IASGScalingPolicies,
         required = False,
+    )
+    lifecycle_hooks = schema.Object(
+        title='Lifecycle Hooks',
+        schema=IASGLifecycleHooks,
+        required = False
     )
 
 # Lambda

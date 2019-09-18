@@ -422,7 +422,7 @@ class IAMUserPermissions(Named, dict):
     pass
 
 @implementer(schemas.IIAMUser)
-class IAMUser(Named):
+class IAMUser(Named, Deployable):
     account = FieldProperty(schemas.IIAMUser['account'])
     username = FieldProperty(schemas.IIAMUser['username'])
     description = FieldProperty(schemas.IIAMUser['description'])

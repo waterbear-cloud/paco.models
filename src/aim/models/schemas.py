@@ -139,6 +139,19 @@ def isValidAWSRegionList(value):
         isValidAWSRegionName(region)
     return True
 
+class InvalidLegacyFlag(schema.ValidationError):
+    __doc__ = 'Not a valid legacy flag. Must be one of: cftemplate_aws_name_2019_09_17'
+
+def isValidLegacyFlag(value):
+    if value not in ('cftemplate_aws_name_2019_09_17'):
+        raise InvalidLegacyFlag
+    return True
+
+def isValidLegacyFlagList(value):
+    for flag in value:
+        isValidLegacyFlag(flag)
+    return True
+
 class InvalidEmailAddress(schema.ValidationError):
     __doc__ = 'Malformed email address'
 
@@ -525,7 +538,7 @@ class IAccount(INamed):
     account_id = schema.TextLine(
         title = "Account ID",
         description = "Can only contain digits.",
-        required = True,
+        required = False,
         constraint = isOnlyDigits
     )
     admin_delegate_role_name = schema.TextLine(
@@ -1554,6 +1567,12 @@ class IProject(INamed, IMapping):
         value_type = schema.TextLine(),
         constraint = isValidAWSRegionList,
         required = False,
+    )
+    legacy_flags = schema.List(
+        title = 'List of Legacy Flags',
+        value_type = schema.TextLine(),
+        constraint = isValidLegacyFlagList,
+        required = False
     )
 
 class IInternetGateway(IDeployable):
@@ -3690,7 +3709,7 @@ class IIAMUserPermissions(INamed, IMapping):
     """
     pass
 
-class IIAMUser(INamed):
+class IIAMUser(INamed, IDeployable):
     """
     IAM User
     """

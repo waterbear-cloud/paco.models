@@ -35,7 +35,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
     DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
-    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy
+    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -207,7 +207,8 @@ SUB_TYPES_CLASS_MAP = {
         'monitoring': ('unnamed_dict', MonitorConfig),
         'instance_iam_role': ('unnamed_dict', Role),
         'efs_mounts': ('obj_list', EFSMount),
-        'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy))
+        'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy)),
+        'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),
@@ -688,7 +689,6 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
         field_context_name = exc.field.context.name
     except AttributeError:
         field_context_name = 'Not applicable'
-    breakpoint()
     raise InvalidAimProjectFile(
         """Error in file at {}
 

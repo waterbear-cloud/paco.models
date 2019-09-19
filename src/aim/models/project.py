@@ -12,6 +12,7 @@ from zope.schema.fieldproperty import FieldProperty
 class Project(Named, dict):
     """AIM Project"""
     aim_project_version = FieldProperty(schemas.IProject["aim_project_version"])
+    legacy_flags = FieldProperty(schemas.IProject["legacy_flags"])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)

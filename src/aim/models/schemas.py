@@ -139,6 +139,32 @@ def isValidAWSRegionList(value):
         isValidAWSRegionName(region)
     return True
 
+valid_legacy_flags = (
+        'cftemplate_aws_name_2019_09_17',
+        'route53_controller_type_2019_09_18',
+        'codecommit_controller_type_2019_09_18',
+        'lambda_controller_type_2019_09_18',
+        'cloudwatch_controller_type_2019_09_18'
+    )
+class InvalidLegacyFlag(schema.ValidationError):
+    __doc__ = 'Not a valid legacy flag. Must be one of: '
+    first = True
+    for flag in valid_legacy_flags:
+        if first == False:
+            __doc__ += ' | '
+        __doc__ += flag
+        first = False
+
+def isValidLegacyFlag(value):
+    if value not in valid_legacy_flags:
+        raise InvalidLegacyFlag
+    return True
+
+def isValidLegacyFlagList(value):
+    for flag in value:
+        isValidLegacyFlag(flag)
+    return True
+
 class InvalidEmailAddress(schema.ValidationError):
     __doc__ = 'Malformed email address'
 
@@ -408,6 +434,24 @@ def IsValidASGScalingPolicyAdjustmentType(value):
         raise InvalidASGScalingPolicyAdjustmentType
     return True
 
+# ASG Scaling Policy Adjustment Type
+class InvalidASGLifecycleTransition(schema.ValidationError):
+    __doc__ = 'lifecycle_transition must be one of: autoscaling:EC2_INSTANCE_LAUNCHING | autoscaling:EC2_INSTANCE_TERMINATING'
+
+def IsValidASGLifecycleTransition(value):
+    if value not in ('autoscaling:EC2_INSTANCE_LAUNCHING', 'autoscaling:EC2_INSTANCE_TERMINATING'):
+        raise InvalidASGLifecycleTransition
+    return True
+
+# ASG Scaling Policy Adjustment Type
+class InvalidASGLifecycleDefaultResult(schema.ValidationError):
+    __doc__ = 'default_result must be one of: CONTINUE | ABANDON'
+
+def IsValidASGLifecycleDefaultResult(value):
+    if value not in ('CONTINUE', 'ABANDON'):
+        raise InvalidASGLifecycleTransition
+    return True
+
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
@@ -507,7 +551,7 @@ class IAccount(INamed):
     account_id = schema.TextLine(
         title = "Account ID",
         description = "Can only contain digits.",
-        required = True,
+        required = False,
         constraint = isOnlyDigits
     )
     admin_delegate_role_name = schema.TextLine(
@@ -1537,6 +1581,12 @@ class IProject(INamed, IMapping):
         constraint = isValidAWSRegionList,
         required = False,
     )
+    legacy_flags = schema.List(
+        title = 'List of Legacy Flags',
+        value_type = schema.TextLine(),
+        constraint = isValidLegacyFlagList,
+        required = False
+    )
 
 class IInternetGateway(IDeployable):
     """
@@ -2263,6 +2313,34 @@ class ISimpleCloudWatchAlarm(Interface):
         title = "Threshold",
         required = False,
     )
+class IASGLifecycleHooks(INamed, IMapping):
+    """
+    Container of ASG LifecycleHOoks
+    """
+    pass
+
+class IASGLifecycleHook(INamed, IDeployable):
+    """
+    ASG Lifecycle Hook
+    """
+    lifecycle_transition = schema.TextLine(
+        title = 'ASG Lifecycle Transition',
+        constraint = IsValidASGLifecycleTransition,
+        required = True
+    )
+    notification_target_arn = schema.TextLine(
+        title = 'Lifecycle Notification Target Arn',
+        required = True
+    )
+    role_arn = schema.TextLine(
+        title = 'Licecycel Publish Role ARN',
+        required = True
+    )
+    default_result = schema.TextLine(
+        title = 'Default Result',
+        required = False,
+        constraint = IsValidASGLifecycleDefaultResult
+    )
 
 class IASGScalingPolicies(INamed, IMapping):
     """
@@ -2480,6 +2558,11 @@ class IASG(IResource, IMonitorable):
         title='Scaling Policies',
         schema=IASGScalingPolicies,
         required = False,
+    )
+    lifecycle_hooks = schema.Object(
+        title='Lifecycle Hooks',
+        schema=IASGLifecycleHooks,
+        required = False
     )
 
 # Lambda
@@ -3639,7 +3722,7 @@ class IIAMUserPermissions(INamed, IMapping):
     """
     pass
 
-class IIAMUser(INamed):
+class IIAMUser(INamed, IDeployable):
     """
     IAM User
     """

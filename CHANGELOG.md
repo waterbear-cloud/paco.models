@@ -6,6 +6,13 @@ Changelog for aim.models
 
 ### Added
 
+- `references.get_model_obj_ref` will resolve an aim.ref to a model object
+  and won't attempt to do Stack output lookups.
+
+- Service plug-ins are loaded according to an `initilization_order` integer
+  that each plug-in can supply. If no integer is supplied, loading for unordered
+  plug-ins count up from 1000.
+
 - Minimal API Gateway models for Methods, Resources, Models and Stages.
 
 - S3Bucket NotificationConfiguration for Lambdas.

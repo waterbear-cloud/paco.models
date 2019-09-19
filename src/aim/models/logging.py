@@ -61,6 +61,9 @@ class CloudWatchLogGroup(Named, CloudWatchLogRetention):
             return self.log_group_name
         return self.name
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.ICloudWatchLogSets)
 class CloudWatchLogSets(Named, dict):
     "Collection of Log Set objects"

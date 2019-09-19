@@ -43,7 +43,8 @@ class Account(Named, dict):
         if ref.parts[1] != self.name:
             raise InvalidAimReference("Ref of {} can not resolve.")
         if len(ref.parts) == 2:
-            # ToDo: return account object and break things!
+            # This may return an account object in the future
+            # but you can use get_model_obj_from_ref for that instead
             return self.account_id
         elif ref.last_part == 'id':
             return self.account_id

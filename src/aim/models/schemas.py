@@ -1585,7 +1585,8 @@ class IProject(INamed, IMapping):
         title = 'List of Legacy Flags',
         value_type = schema.TextLine(),
         constraint = isValidLegacyFlagList,
-        required = False
+        required = False,
+        default = []
     )
 
 class IInternetGateway(IDeployable):

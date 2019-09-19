@@ -16,6 +16,8 @@ class Project(Named, dict):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
+        self.legacy_flags = []
+
         # Credentials
         self.credentials = aim.models.project.Credentials('credentials', self)
         self.credentials.title = 'Administrator Credentials'

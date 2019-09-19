@@ -374,9 +374,7 @@ class CloudTrail(Resource):
         else:
             accounts = []
             for account_ref in self.accounts:
-                # ToDo: when accounts .get_ref returns an object, remove this workaround
-                ref = references.Reference(account_ref)
-                account = project['accounts'][ref.last_part]
+                account = references.get_model_obj_from_ref(account_ref, project)
                 accounts.append(account)
         return accounts
 

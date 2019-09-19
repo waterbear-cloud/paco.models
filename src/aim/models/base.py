@@ -4,7 +4,7 @@ from aim.models.exceptions import InvalidCFNMapping
 from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
-from aim.models.references import Reference
+from aim.models.references import Reference, get_model_obj_from_ref
 import json
 import troposphere
 import zope.schema
@@ -263,11 +263,7 @@ class Resource(Named, Deployable, Regionalized, DNSEnablable):
         """
         env_reg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
         project = get_parent_by_interface(self, schemas.IProject)
-        # ToDo: rework account references so that they resolve to Account objs
-        # and not just the account_id
-        ref = Reference(env_reg.network.aws_account)
-        account = project[ref.parts[0]][ref.parts[1]]
-        return account
+        return get_model_obj_from_ref(env_reg.network.aws_account, project)
 
 @implementer(schemas.IAccountRef)
 class AccountRef():

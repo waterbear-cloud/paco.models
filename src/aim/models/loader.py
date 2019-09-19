@@ -980,8 +980,6 @@ class ModelLoader():
                     instantiate_method(name, config, os.path.join(subdir, fname))
         self.instantiate_services()
         self.check_notification_config()
-        # ToDo: references only need to be loaded for things like web UIs, implementation not complete
-        #self.load_references()
         self.load_outputs()
         self.load_core_monitoring()
 

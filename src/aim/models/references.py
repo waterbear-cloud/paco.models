@@ -153,6 +153,8 @@ def get_model_obj_from_ref(ref, project):
             next_obj = getattr(obj, ref.parts[part_idx], None)
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
+        else:
+            raise InvalidAimReference("Could not find model at {}".format(ref.raw))
     return obj
 
 def get_resolve_ref_obj(obj, ref, part_idx_start):

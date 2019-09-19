@@ -689,7 +689,6 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
         field_context_name = exc.field.context.name
     except AttributeError:
         field_context_name = 'Not applicable'
-    breakpoint()
     raise InvalidAimProjectFile(
         """Error in file at {}
 

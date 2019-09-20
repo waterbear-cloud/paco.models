@@ -7,3 +7,6 @@ trails:
     is_multi_region_trail: true
     enable_kms_encryption: true # create the key in the CFN and ref it from the CloudTrail
     s3_key_prefix: 'trails/allday'
+    cloudwatchlogs_log_group:
+      expire_events_after_days: '14'
+      log_group_name: 'CloudTrail'

@@ -230,6 +230,9 @@ SUB_TYPES_CLASS_MAP = {
     CloudTrailResource: {
         'trails': ('container', (CloudTrails, CloudTrail)),
     },
+    CloudTrail: {
+        'cloudwatchlogs_log_group': ('unnamed_dict', CloudWatchLogGroup),
+    },
 
     # monitoring and logging
     MonitorConfig: {

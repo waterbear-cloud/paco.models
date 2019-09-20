@@ -269,6 +269,8 @@ class TestAimDemo(BaseTestModelLoader):
         trail = cloudtrail.trails['basic_trail']
         assert schemas.ICloudTrail.providedBy(trail)
         assert trail.enable_log_file_validation == True
+        assert trail.cloudwatchlogs_log_group.log_group_name, 'CloudTrail'
+        assert trail.cloudwatchlogs_log_group.expire_events_after_days, '14'
 
     def test_api_gateway_rest_api(self):
         demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']

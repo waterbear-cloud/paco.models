@@ -3149,9 +3149,11 @@ class ICloudTrail(IResource):
         default = [],
         required = False,
     )
-    cloudwatchlogs_log_group = TextReference(
-        title = "A CloudWatch Logs LogGroup to deliver this trail to.",
+    cloudwatchlogs_log_group = schema.Object(
+        title = "CloudWatch Logs LogGroup to deliver this trail to.",
         required = False,
+        default = None,
+        schema = ICloudWatchLogGroup,
     )
     enable_kms_encryption = schema.Bool(
         title = "Enable KMS Key encryption",

@@ -29,6 +29,8 @@ Changelog for aim.models
 
 ### Changed
 
+- CloudTrail defines CloudWatchLogGroup as a sub-object rather than an aim.ref.
+
 - Alarms have `get_alarm_actions_aim_refs` renamed from `get_alarm_actions` as alarms can only provide
   aim.refs and need to get the ARNs from the stacks.
 

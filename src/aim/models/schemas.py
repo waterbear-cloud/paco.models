@@ -3180,6 +3180,11 @@ class ICloudTrail(IResource):
         constraint = isValidAWSRegionNameOrNone,
         required = False,
     )
+    s3_bucket_account = TextReference(
+        title = "Account which will contain the S3 Bucket that the CloudTrails will be stored in",
+        description = 'Must be an aim.ref to an account',
+        required = True,
+    )
     s3_key_prefix = schema.TextLine(
         title = "S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
         description = "Do not include a leading or trailing / in your prefix. They are provided already.",

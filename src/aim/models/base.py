@@ -202,7 +202,18 @@ class NameValuePair():
     value = FieldProperty(schemas.INameValuePair['value'])
 
 class Regionalized():
-    "Mix-in to allow objects to identify which region they are deployed in"
+    "Mix-in to allow objects to identify which account and region they are deployed in"
+
+    @property
+    def account_name(self):
+        account_cont = get_parent_by_interface(self, schemas.IAccountContainer)
+        if account_cont != None:
+            return account_cont.name
+        env_region = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        project = get_parent_by_interface(self)
+        if env_region != None:
+            return get_model_obj_from_ref(env_region.network.aws_account, project).name
+        raise AttributeError('Could not determine account for {}'.format(self.name))
 
     @property
     def region_name(self):

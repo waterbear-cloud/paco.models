@@ -1302,7 +1302,6 @@ class IS3Bucket(IResource, IDeployable):
         title="List of S3 Bucket Policies",
         description="",
         value_type=schema.Object(IS3BucketPolicy),
-        default=[],
         required = False,
     )
     region = schema.TextLine(

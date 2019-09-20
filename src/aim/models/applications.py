@@ -234,6 +234,10 @@ class S3Bucket(Resource, Deployable):
     bucket_name_prefix = None
     bucket_name_suffix = None
 
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.policy = []
+
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()
         loader.apply_attributes_from_config(policy_obj, policy_dict)

@@ -1845,16 +1845,16 @@ class ICredentials(INamed):
     )
     mfa_session_expiry_secs = schema.Int(
         title = 'The number of seconds before an MFA token expires.',
-        default = 60 * 60,    # 1 hour
-        min = 60 * 15,        # 15 minutes
-        max = (60 * 60) * 12, # 12 hours
+        default = 60 * 60,    # 1 hour: 3600 seconds
+        min = 60 * 15,        # 15 minutes: 900 seconds
+        max = (60 * 60) * 12, # 12 hours: 43200 seconds
         required = False,
     )
     assume_role_session_expiry_secs = schema.Int(
         title = 'The number of seconds before an assumed role token expires.',
-        default = 60 * 15,   # 15 minuts
-        min = 60 * 15,       # 15 minutes
-        max = 60 * 60,       # 1 hour
+        default = 60 * 15,   # 15 minutes: 900 seconds
+        min = 60 * 15,       # 15 minutes: 900 seconds
+        max = 60 * 60,       # 1 hour: 3600 seconds
         required = False,
     )
 
@@ -3210,68 +3210,81 @@ class ICloudTrailResource(INamed):
         required = False,
     )
 
-class ICloudFrontCookies(Interface):
+class ICloudFrontCookies(INamed):
     forward = schema.TextLine(
         title = "Cookies Forward Action",
         constraint = isValidCloudFrontCookiesForward,
         default = 'all',
-        required = False,
+        required = False
     )
-    white_listed_names = schema.List(
+    whitelisted_names = schema.List(
         title = "White Listed Names",
         value_type = schema.TextLine(),
-        default = [],
-        required = False,
+        required = False
     )
 
-class ICloudFrontForwardedValues(Interface):
+class ICloudFrontForwardedValues(INamed):
     query_string = schema.Bool(
         title = "Forward Query Strings",
         default = True,
-        required = False,
+        required = False
     )
     cookies = schema.Object(
         title = "Forward Cookies",
         schema = ICloudFrontCookies,
-        required = False,
+        required = False
     )
     headers = schema.List(
         title = "Forward Headers",
         value_type = schema.TextLine(),
         default = ['*'],
-        required = False,
+        required = False
     )
 
-class ICloudFrontDefaultCacheBehaviour(Interface):
+class ICloudFrontDefaultCacheBehavior(INamed):
     allowed_methods = schema.List(
         title = "List of Allowed HTTP Methods",
         value_type = schema.TextLine(),
         default = [ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ],
-        required = False,
+        required = False
+    )
+    cached_methods = schema.List(
+        title = "List of HTTP Methods to cache",
+        value_type = schema.TextLine(),
+        default = [ 'GET', 'HEAD', 'OPTIONS' ],
+        required = False
     )
     default_ttl = schema.Int(
         title = "Default TTTL",
         # Disable TTL bydefault, just pass through
-        default = 0,
-        required = False,
+        default = 0
     )
     target_origin = TextReference(
-        title = "Target Origin",
-        required = False,
+        title = "Target Origin"
     )
     viewer_protocol_policy = schema.TextLine(
         title = "Viewer Protocol Policy",
         constraint = isValidCFViewerProtocolPolicy,
-        default = 'redirect-to-https',
-        required = False,
+        default = 'redirect-to-https'
     )
     forwarded_values = schema.Object(
         title = "Forwarded Values",
         schema = ICloudFrontForwardedValues,
+        required = False
+    )
+    compress = schema.Bool(
+        title = "Compress certain files automatically",
         required = False,
+        default = False
     )
 
-class ICloudFrontViewerCertificate(IDeployable):
+class ICloudFrontCacheBehavior(ICloudFrontDefaultCacheBehavior):
+    path_pattern = schema.TextLine(
+        title = "Path Pattern",
+        required = True
+    )
+
+class ICloudFrontViewerCertificate(INamed):
     certificate = TextReference(
         title = "Certificate Reference",
         required = False,
@@ -3292,22 +3305,22 @@ class ICloudFrontViewerCertificate(IDeployable):
 class ICloudFrontCustomErrorResponse(Interface):
     error_caching_min_ttl = schema.Int(
         title = "Error Caching Min TTL",
-        required = False,
+        required = False
     )
     error_code = schema.Int(
         title = "HTTP Error Code",
-        required = False,
+        required = False
     )
     response_code = schema.Int(
         title = "HTTP Response Code",
-        required = False,
+        required = False
     )
     response_page_path = schema.TextLine(
         title = "Response Page Path",
-        required = False,
+        required = False
     )
 
-class ICloudFrontCustomOriginConfig(Interface):
+class ICloudFrontCustomOriginConfig(INamed):
     http_port = schema.Int(
         title = "HTTP Port",
         required = False
@@ -3395,8 +3408,13 @@ class ICloudFront(IResource, IDeployable):
     )
     default_cache_behavior = schema.Object(
         title = "Default Cache Behavior",
-        schema = ICloudFrontDefaultCacheBehaviour,
+        schema = ICloudFrontDefaultCacheBehavior,
         required = False,
+    )
+    cache_behaviors = schema.List(
+        title = 'List of Cache Behaviors',
+        value_type = schema.Object(ICloudFrontCacheBehavior),
+        required = False
     )
     viewer_certificate = schema.Object(
         title = "Viewer Certificate",
@@ -3412,7 +3430,7 @@ class ICloudFront(IResource, IDeployable):
     custom_error_responses = schema.List(
         title = "List of Custom Error Responses",
         value_type = schema.Object(ICloudFrontCustomErrorResponse),
-        default = [],
+        default = None,
         required = False,
     )
     origins = schema.Dict(

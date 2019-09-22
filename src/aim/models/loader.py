@@ -30,7 +30,7 @@ from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBui
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
-    CloudFrontDefaultCacheBehaviour, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
+    CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
     RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
@@ -157,22 +157,28 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('str_list', TextReference)
     },
     CloudFront: {
-        'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehaviour),
+        'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehavior),
+        'cache_behaviors': ('obj_list', CloudFrontCacheBehavior),
         'domain_aliases': ('obj_list', DNS),
         'custom_error_responses': ('obj_list', CloudFrontCustomErrorResponse),
         'origins': ('named_dict', CloudFrontOrigin),
         'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
         'factory': ('named_dict', CloudFrontFactory)
     },
-    CloudFrontDefaultCacheBehaviour: {
+    CloudFrontDefaultCacheBehavior: {
+        'allowed_methods': ('str_list', zope.schema.TextLine),
+        'forwarded_values': ('unnamed_dict', CloudFrontForwardedValues)
+    },
+    CloudFrontCacheBehavior: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
         'forwarded_values': ('unnamed_dict', CloudFrontForwardedValues)
     },
     CloudFrontForwardedValues: {
-        'cookies': ('unnamed_dict', CloudFrontCookies),
+        'cookies': ('obj', CloudFrontCookies),
+        'headers': ('str_list', zope.schema.TextLine),
     },
     CloudFrontCookies: {
-        'white_listed_names': ('str_list', zope.schema.TextLine)
+        'whitelisted_names': ('str_list', zope.schema.TextLine)
     },
     CloudFrontOrigin: {
         'custom_origin_config': ('unnamed_dict', CloudFrontCustomOriginConfig)
@@ -558,6 +564,11 @@ def get_all_nodes(root):
                 # skip computed fields
                 if field.readonly: continue
                 # don't drill down into lists of strings - only lists of model objects
+                if getattr(cur_node, field_name, []) == None:
+                    message = "Field name is None: {}\n".format(field_name)
+                    if hasattr(cur_node, 'aim_ref_parts'):
+                        message += "Ref: {}\n".format(cur_node.aim_ref_parts)
+                    raise InvalidAimProjectFile(message)
                 for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
                         stack.insert(0, obj)
@@ -582,9 +593,16 @@ def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=
     if not zope.interface.common.mapping.IMapping.providedBy(obj):
         for key in config.keys():
             if key not in fields:
-                raise UnusedAimProjectField("""Error in file at {}
-Unneeded field '{}' in config for object type '{}'
-""".format(read_file_path, key, obj.__class__.__name__))
+                raise UnusedAimProjectField("""Error in config file at: {}
+Unneeded field: {}.{}
+
+!! Hints: 1) Verify that '{}' has the correct indentation in the config file.
+          2) Devs: Add a FieldProperty for '{}' to the {} model object.
+
+""".format(
+    read_file_path,
+    obj.__class__.__name__, key,
+    key, obj.__class__.__name__))
 
     # all most-specialized interfaces implemented by obj
     for interface in most_specialized_interfaces(obj):
@@ -647,6 +665,9 @@ Unneeded field '{}' in config for object type '{}'
                         continue
 
                     # set the attribute on the object
+                    #if read_file_path == '/Users/klindsay/git/waterbear-cloud/internal-projects/waterbear-aim-project//NetworkEnvironments/websites.yml' and \
+                    #    name == 'cache_behaviors':
+                    #    breakpoint()
                     try:
                         if type(obj) in SUB_TYPES_CLASS_MAP:
                             if name in SUB_TYPES_CLASS_MAP[type(obj)]:
@@ -692,6 +713,13 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
         field_context_name = exc.field.context.name
     except AttributeError:
         field_context_name = 'Not applicable'
+
+    hint = "none"
+    if type(obj) not in SUB_TYPES_CLASS_MAP:
+        hint = "{} was not found in the SUB_TYPES_CLASS_MAP\n".format(obj.__class__.__name__)
+    elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
+        hint = "{} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
+
     raise InvalidAimProjectFile(
         """Error in file at {}
 
@@ -701,10 +729,12 @@ Value supplied: {}
 Field Context name: {}
 Reason: {}
 
+!! Hint: {}
+
 Object
 ------
 {}
-""".format(read_file_path, name, obj.__class__.__name__, exc, value, field_context_name, exc.__doc__, get_formatted_model_context(obj))
+""".format(read_file_path, name, obj.__class__.__name__, exc, value, field_context_name, exc.__doc__, hint, get_formatted_model_context(obj))
     )
 
 def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, read_file_path=''):
@@ -726,7 +756,7 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
 
     elif sub_type == 'obj':
         sub_obj = sub_class(name, obj)
-        apply_attributes_from_config(sub_obj, value, config_folder)
+        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
         return sub_obj
 
     elif sub_type == 'container':
@@ -1477,7 +1507,7 @@ class ModelLoader():
                 try:
                     global_config['applications'][item_name]
                 except KeyError:
-                    raise_env_name_mismatch(item_name, 'applications', env_region)
+                    self.raise_env_name_mismatch(item_name, 'applications', env_region)
                 item_config = merge(global_config['applications'][item_name], env_region_config['applications'][item_name])
                 annotate_base_config(item, item_config, global_item_config[item_name])
             else:
@@ -1488,7 +1518,7 @@ class ModelLoader():
                         default_region_config = env_default['applications'][item_name]
                         global_item_config[item_name]
                     except KeyError:
-                        raise_env_name_mismatch(item_name, 'applications', env_region)
+                        self.raise_env_name_mismatch(item_name, 'applications', env_region)
                     default_config = merge(global_item_config[item_name], default_region_config)
                     item_config = merge(default_config, item_config)
                     annotate_base_config(item, item_config, default_config)
@@ -1497,7 +1527,7 @@ class ModelLoader():
                     try:
                         global_item_config[item_name]
                     except KeyError:
-                        raise_env_name_mismatch(item_name, 'applications', env_region)
+                        self.raise_env_name_mismatch(item_name, 'applications', env_region)
                     item_config = merge(global_item_config[item_name], item_config)
                     annotate_base_config(item, item_config, global_item_config[item_name])
 

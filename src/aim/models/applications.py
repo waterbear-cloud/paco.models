@@ -603,7 +603,7 @@ class CloudFrontForwardedValues(Named):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         #self.cookies = CloudFrontCookies('cookies', self)
-        self.headers = []
+        #self.headers = []
 
 @implementer(schemas.ICloudFrontDefaultCacheBehavior)
 class CloudFrontDefaultCacheBehavior(Named):
@@ -701,7 +701,7 @@ class RDS():
     storage_encrypted = FieldProperty(schemas.IRDS['storage_encrypted'])
     kms_key_id = FieldProperty(schemas.IRDS['kms_key_id'])
     allow_major_version_upgrade = FieldProperty(schemas.IRDS['allow_major_version_upgrade'])
-    allow_minor_version_upgrade = FieldProperty(schemas.IRDS['allow_minor_version_upgrade'])
+    auto_minor_version_upgrade = FieldProperty(schemas.IRDS['auto_minor_version_upgrade'])
     publically_accessible = FieldProperty(schemas.IRDS['publically_accessible'])
     master_username = FieldProperty(schemas.IRDS['master_username'])
     master_user_password = FieldProperty(schemas.IRDS['master_user_password'])

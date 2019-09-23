@@ -602,7 +602,7 @@ Unneeded field: {}.{}
 """.format(
     read_file_path,
     obj.__class__.__name__, key,
-    key, obj.__class__.__name__))
+    key, key, obj.__class__.__name__))
 
     # all most-specialized interfaces implemented by obj
     for interface in most_specialized_interfaces(obj):

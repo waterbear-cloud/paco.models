@@ -3523,8 +3523,8 @@ class IRDS(Interface):
         title = "Allow major version upgrades",
         required = False,
     )
-    allow_minor_version_upgrade = schema.Bool(
-        title = "Allow minor version upgrades",
+    auto_minor_version_upgrade = schema.Bool(
+        title = "Automatic minor version upgrades",
         required = False,
     )
     publically_accessible = schema.Bool(
@@ -3552,7 +3552,7 @@ class IRDS(Interface):
         required = False,
     )
     security_groups = schema.List(
-        title = "List of Security Groups",
+        title = "List of VPC Security Group Ids",
         value_type = TextReference(),
         required = False,
     )

@@ -596,13 +596,8 @@ def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=
                 raise UnusedAimProjectField("""Error in config file at: {}
 Unneeded field: {}.{}
 
-!! Hints: 1) Verify that '{}' has the correct indentation in the config file.
-          2) Devs: Add a FieldProperty for '{}' to the {} model object.
-
-""".format(
-    read_file_path,
-    obj.__class__.__name__, key,
-    key, obj.__class__.__name__))
+Verify that '{}' has the correct indentation in the config file.
+""".format(read_file_path, obj.__class__.__name__, key, key))
 
     # all most-specialized interfaces implemented by obj
     for interface in most_specialized_interfaces(obj):

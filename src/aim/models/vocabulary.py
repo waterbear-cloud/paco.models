@@ -34,7 +34,11 @@ cloudwatch = {
 	'Lambda': {
 		'dimension': 'FunctionName',
 		'namespace': 'AWS/Lambda'
-	}
+	},
+	'ElastiCacheRedis': {
+		'dimension': 'CacheClusterId',
+		'namespace': 'AWS/ElastiCache'
+	},
 }
 
 cloudwatch_log_retention = {

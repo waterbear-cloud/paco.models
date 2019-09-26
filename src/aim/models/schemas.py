@@ -938,6 +938,13 @@ class ICloudWatchAlarm(IAlarm):
             if not getattr(obj, 'extended_statistic', None):
                 raise Invalid('Field `evaluate_low_sample_count_percentile` requires field `extended_statistic` to be a valid percentile value.')
 
+    @invariant
+    def check_statistic(obj):
+        "Must be one of ExtendedStatistic, Metrics or Statistic"
+        # ToDo: implement Metrics
+        if not getattr(obj, 'statistic', None) and not getattr(obj, 'extended_statistic', None):
+            raise Invalid('Must include one of `statistic` or `extended_statistic`.')
+
     alarm_actions = schema.List(
         title = "Alarm Actions",
         readonly = True,
@@ -987,6 +994,8 @@ class ICloudWatchAlarm(IAlarm):
         required = False,
         constraint = isValidExtendedStatisticValue,
     )
+    # ToDo: implement Metrics - also update invariant
+    # metrics = schema.List()
     metric_name = schema.TextLine(
         title = "Metric name",
         required = True,

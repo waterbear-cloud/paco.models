@@ -39,6 +39,10 @@ cloudwatch = {
 		'dimension': 'CacheClusterId',
 		'namespace': 'AWS/ElastiCache'
 	},
+	'CloudFront': {
+		'dimension': 'DistributionId',
+		'namespace': 'AWS/CloudFront'
+	}
 }
 
 cloudwatch_log_retention = {

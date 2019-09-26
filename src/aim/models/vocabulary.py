@@ -35,7 +35,7 @@ cloudwatch = {
 		'dimension': 'FunctionName',
 		'namespace': 'AWS/Lambda'
 	},
-	'ElastiCacheRedis': {
+	'ElastiCacheRedis': {
 		'dimension': 'CacheClusterId',
 		'namespace': 'AWS/ElastiCache'
 	},

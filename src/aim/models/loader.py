@@ -13,6 +13,7 @@ import ruamel.yaml
 import sys
 import zope.schema
 import zope.schema.interfaces
+import zope.interface.exceptions
 from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
@@ -689,7 +690,10 @@ Verify that '{}' has the correct indentation in the config file.
         return
     for interface in most_specialized_interfaces(obj):
         # invariants (these are also validate if they are explicitly part of a schema.Object() field)
-        interface.validateInvariants(obj)
+        try:
+            interface.validateInvariants(obj)
+        except zope.interface.exceptions.Invalid as exc:
+            raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
         # validate all fields - this catches validation for required fields
         fields = zope.schema.getFields(interface)

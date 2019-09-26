@@ -293,6 +293,39 @@ def isValidAlarmSeverityFilter(value):
     if not value: return True
     return isValidAlarmSeverity(value)
 
+class InvalidMissingDataValue(schema.ValidationError):
+    __doc__ = 'treat_missing_data must be one of: breaching, notBreaching, ignore or missing'
+
+def isMissingDataValue(value):
+    if value not in ('breaching', 'notBreaching', 'ignore', 'missing'):
+        raise InvalidMissingDataValue
+    return True
+
+class InvalidAlarmStatistic(schema.ValidationError):
+    __doc__ = 'statistic must be one of: Average, Maximum, Minimum, SampleCount or Sum.'
+
+def isValidAlarmStatisticValue(value):
+    if value not in ('Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'):
+        raise InvalidAlarmStatistic
+    return True
+
+class InvalidExtendedStatisticValue(schema.ValidationError):
+    __doc__ = '`extended_statistic` must match pattern p(\d{1,2}(\.\d{0,2})?|100). Examlpes: p95, p0.0, p98.59, p100'
+
+def isValidExtendedStatisticValue(value):
+    if re.match('^p\d{1,2}((\.\d{0,2})?|100)$', value):
+        return True
+    else:
+        raise InvalidExtendedStatisticValue
+
+class InvalidEvaluateLowSampleCountPercentileValue(schema.ValidationError):
+    __doc__ = 'evaluate_low_sample_count_percentile must be one of: evaluate or ignore.'
+
+def isValidEvaluateLowSampleCountPercentileValue(value):
+    if value not in ('evaluate', 'ignore'):
+        raise InvalidEvaluateLowSampleCountPercentileValue
+    return True
+
 class InvalidAlarmClassification(schema.ValidationError):
     __doc__ = 'Classification must be one of: health, performance, security'
 
@@ -897,6 +930,14 @@ class ICloudWatchAlarm(IAlarm):
     """
     A CloudWatch Alarm
     """
+    @invariant
+    def evaluate_low_sample_statistic(obj):
+        if getattr(obj, 'evaluate_low_sample_count_percentile', None):
+            if getattr(obj, 'statistic', None):
+                raise Invalid('Field `evaluate_low_sample_count_percentile` can not be used with the `statistic` field, only with the `extended_statistic` field.')
+            if not getattr(obj, 'extended_statistic', None):
+                raise Invalid('Field `evaluate_low_sample_count_percentile` requires field `extended_statistic` to be a valid percentile value.')
+
     alarm_actions = schema.List(
         title = "Alarm Actions",
         readonly = True,
@@ -931,15 +972,20 @@ class ICloudWatchAlarm(IAlarm):
     )
     evaluate_low_sample_count_percentile = schema.TextLine(
         title = "Evaluate low sample count percentile",
+        description = "Must be one of `evaluate` or `ignore`.",
         required = False,
+        constraint = isValidEvaluateLowSampleCountPercentileValue,
     )
     evaluation_periods = schema.Int(
         title = "Evaluation periods",
+        min = 1,
         required = False,
     )
     extended_statistic = schema.TextLine(
         title = "Extended statistic",
+        description = "A value between p0.0 and p100.",
         required = False,
+        constraint = isValidExtendedStatisticValue,
     )
     metric_name = schema.TextLine(
         title = "Metric name",
@@ -958,6 +1004,8 @@ class ICloudWatchAlarm(IAlarm):
     statistic = schema.TextLine(
         title = "Statistic",
         required = False,
+        description = "Must be one of `Maximum`, `SampleCount`, `Sum`, `Minimum`, `Average`.",
+        constraint = isValidAlarmStatisticValue,
     )
     threshold = schema.Float(
         title = "Threshold",
@@ -965,7 +1013,9 @@ class ICloudWatchAlarm(IAlarm):
     )
     treat_missing_data = schema.TextLine(
         title = "Treat missing data",
+        description = "Must be one of `breaching`, `notBreaching`, `ignore` or `missing`.",
         required = False,
+        constraint = isMissingDataValue,
     )
 
 class INotificationGroups(IAccountRef):

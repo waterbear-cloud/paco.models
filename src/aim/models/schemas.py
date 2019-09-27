@@ -266,20 +266,6 @@ def isComparisonOperator(value):
         raise InvalidComparisonOperator
     return True
 
-class InvalidPeriod(schema.ValidationError):
-    __doc__ = 'Period must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000'
-
-def isValidPeriod(value):
-    """
-    CloudWatch Period is limited to fixed intervals.
-    These are the same intervals offered by the AWS Console.
-    If you want to allow another value, need to ensrue the CloudWatchAlarm class
-    can represent a human-readable value of it.
-    """
-    if value not in (10, 30, 60, 300, 900, 3600, 21600, 90000):
-        raise InvalidPeriod
-    return True
-
 class InvalidAlarmSeverity(schema.ValidationError):
     __doc__ = 'Severity must be one of: low, critical'
 
@@ -977,6 +963,16 @@ class ICloudWatchAlarm(IAlarm):
         default = [],
         required = False,
     )
+    enable_ok_actions = schema.Bool(
+        title = "Enable Actions when alarm transitions to the OK state.",
+        default = False,
+        required = False,
+    )
+    enable_insufficient_data_actions = schema.Bool(
+        title = "Enable Actions when alarm transitions to the INSUFFICIENT_DATA state.",
+        default = False,
+        required = False,
+    )
     evaluate_low_sample_count_percentile = schema.TextLine(
         title = "Evaluate low sample count percentile",
         description = "Must be one of `evaluate` or `ignore`.",
@@ -1006,9 +1002,8 @@ class ICloudWatchAlarm(IAlarm):
     )
     period = schema.Int(
         title = "Period in seconds",
-        constraint = isValidPeriod,
-        description = "Must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000",
         required = False,
+        min = 1,
     )
     statistic = schema.TextLine(
         title = "Statistic",
@@ -2360,8 +2355,6 @@ class ISimpleCloudWatchAlarm(Interface):
     )
     period = schema.Int(
         title = "Period in seconds",
-        constraint = isValidPeriod,
-        description = "Must be one of: 10, 30, 60, 300, 900, 3600, 21600, 90000",
         required = False,
     )
     statistic = schema.TextLine(
@@ -3450,7 +3443,7 @@ class ICloudFrontFactory(INamed):
         required = False,
     )
 
-class ICloudFront(IResource, IDeployable):
+class ICloudFront(IResource, IDeployable, IMonitorable):
     """
     CloudFront CDN Configuration
     """
@@ -3715,7 +3708,7 @@ class IElastiCache(Interface):
         required = False,
     )
 
-class IElastiCacheRedis(IResource, IElastiCache):
+class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
     """
     Redis ElastiCache Interface
     """

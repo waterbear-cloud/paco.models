@@ -6,6 +6,9 @@ Changelog for aim.models
 
 ### Added
 
+- ICloudWatchAlarms have `enable_ok_actions` and `enable_insufficient_data_actions` booleans
+  that will send to the notification groups when the alarm enters the OK or INSUFFICIENT_DATA states.
+
 - `references.get_model_obj_ref` will resolve an aim.ref to a model object
   and won't attempt to do Stack output lookups.
 

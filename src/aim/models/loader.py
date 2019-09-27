@@ -155,7 +155,8 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('str_list', TextReference)
     },
     ElastiCacheRedis: {
-        'security_groups': ('str_list', TextReference)
+        'security_groups': ('str_list', TextReference),
+        'monitoring': ('unnamed_dict', MonitorConfig),
     },
     CloudFront: {
         'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehavior),
@@ -164,7 +165,8 @@ SUB_TYPES_CLASS_MAP = {
         'custom_error_responses': ('obj_list', CloudFrontCustomErrorResponse),
         'origins': ('named_dict', CloudFrontOrigin),
         'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
-        'factory': ('named_dict', CloudFrontFactory)
+        'factory': ('named_dict', CloudFrontFactory),
+        'monitoring': ('unnamed_dict', MonitorConfig),
     },
     CloudFrontDefaultCacheBehavior: {
         'allowed_methods': ('str_list', zope.schema.TextLine),

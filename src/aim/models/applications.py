@@ -656,7 +656,7 @@ class CloudFrontFactory(Named):
         self.domain_aliases = []
 
 @implementer(schemas.ICloudFront)
-class CloudFront(Resource, Deployable):
+class CloudFront(Resource, Deployable, Monitorable):
     title = "CloudFront"
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
     default_root_object = FieldProperty(schemas.ICloudFront['default_root_object'])
@@ -750,7 +750,7 @@ class ElastiCache():
     segment = FieldProperty(schemas.IElastiCache['segment'])
 
 @implementer(schemas.IElastiCacheRedis)
-class ElastiCacheRedis(Resource, ElastiCache):
+class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
     title = "ElastiCache Redis"
     cache_parameter_group_family = FieldProperty(schemas.IElastiCacheRedis['cache_parameter_group_family'])
 

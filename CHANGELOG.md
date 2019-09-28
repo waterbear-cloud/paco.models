@@ -4,7 +4,9 @@ Changelog for aim.models
 6.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Changed
+
+- Moved deepdiff CLI functions into `aim` project.
 
 
 6.0.0 (2019-09-27)
@@ -72,17 +74,16 @@ Changelog for aim.models
 - Moved aim reference generation into the Model. Model objects now have .aim_ref and
   .aim_ref_parts properties which contain their aim.ref reference.
 
+- Renamed project['ne'] to project['netenv']
+
+- Modified NatGateway segments to aim references
+
 ### Fixed
 
 - Invariants were not being check for resources. Invariants need to be checked by the
   loader if they are not contained in a `zope.schema.Object` field, which will run the
   check behind the scenes.
 
-### Changed
-
-- Renamed project['ne'] to project['netenv']
-
-- Modified NatGateway segments to aim references
 
 4.0.0 (2019-08-21)
 ------------------

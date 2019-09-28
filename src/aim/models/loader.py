@@ -55,14 +55,7 @@ from aim.models.references import resolve_ref, is_ref
 from aim.models import schemas
 from pathlib import Path
 from ruamel.yaml.compat import StringIO
-from shutil import copyfile
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
-
-# deepdiff turns on Deprecation warnings, we need to turn them back off
-# again right after import, otherwise 3rd libs spam dep warnings all over the place
-from deepdiff import DeepDiff
-import warnings
-warnings.simplefilter("ignore")
 
 
 def get_logger():
@@ -345,152 +338,6 @@ SUB_TYPES_CLASS_MAP = {
         'repositories': ('obj_list', IAMUserPermissionCodeCommitRepository)
     }
 }
-def getFromSquareBrackets(s):
-    return re.findall(r"\['?([A-Za-z0-9_]+)'?\]", s)
-
-
-def print_diff_list(change_t, level=1):
-    print('', end='\n')
-    for value in change_t:
-        print("  {}-".format(' '*(level*2)), end='')
-        if isinstance(value, list) == True:
-            print_diff_list(value, level+1)
-        elif isinstance(value, dict) == True:
-            print_diff_dict(value, level+1)
-        else:
-            print("  {}".format(value))
-
-def print_diff_dict(change_t, level=1):
-    print('', end='\n')
-    for key, value in change_t.items():
-        print("  {}{}:".format(' '*(level*2), key), end='')
-        if isinstance(value, list) == True:
-            print_diff_list(value, level+1)
-        elif isinstance(value, dict) == True:
-            print_diff_dict(value, level+1)
-        else:
-            print("  {}".format(value))
-
-def print_diff_object(diff_obj, diff_obj_key):
-    if diff_obj_key not in diff_obj.keys():
-        return
-    for root_change in diff_obj[diff_obj_key]:
-        node_str = '.'.join(getFromSquareBrackets(root_change.path()))
-        if diff_obj_key.endswith('_removed'):
-            change_t = root_change.t1
-        elif diff_obj_key.endswith('_added'):
-            change_t = root_change.t2
-        elif diff_obj_key == 'values_changed':
-            change_t = root_change.t1
-
-        print("    ({}) {}".format(type(change_t).__name__, node_str))
-        if diff_obj_key == 'values_changed':
-            print("\told: {}".format(root_change.t1))
-            print("\tnew: {}\n".format(root_change.t2))
-        elif isinstance(change_t, list) == True:
-            print_diff_list(change_t)
-            #for value in change_t:
-            #    print("\t- {}".format(value))
-        elif isinstance(change_t, dict) == True:
-            print_diff_dict(change_t)
-            #for key, value in change_t.items():
-            #    print("\t{}: {}".format(key, value))
-        else:
-            #print("\t- {}".format(change_t))
-            print("{}".format(change_t))
-        print('')
-
-def init_model_obj_store(model_obj, project_folder):
-    project_folder_path = pathlib.Path(project_folder)
-    changed_file_path = project_folder_path.joinpath(model_obj._read_file_path)
-    applied_file_path = project_folder_path.joinpath(
-        'aimdata',
-        'applied',
-        'model',
-        model_obj._read_file_path
-    )
-
-    applied_file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    return [applied_file_path, changed_file_path]
-
-def apply_model_obj(model_obj, project_folder):
-    applied_file_path, new_file_path = init_model_obj_store(
-        model_obj,
-        project_folder
-    )
-    copyfile(new_file_path, applied_file_path)
-
-def validate_model_obj(
-    model_obj,
-    project_folder,
-    disable_validation,
-    yes_flag=False
-):
-    if disable_validation == True:
-        return
-    applied_file_path, new_file_path = init_model_obj_store(
-        model_obj,
-        project_folder
-    )
-
-    if applied_file_path.exists() == False:
-        return
-    yaml = YAML(typ="safe", pure=True)
-    yaml.default_flow_sytle = False
-    with open(applied_file_path, 'r') as stream:
-        applied_file_dict = yaml.load(stream)
-    with open(new_file_path, 'r') as stream:
-        new_file_dict= yaml.load(stream)
-
-    deep_diff = DeepDiff(
-        applied_file_dict,
-        new_file_dict,
-        verbose_level=1,
-         view='tree'
-    )
-
-    print("----------------------------------------------------")
-    print("Validate Model Object")
-    print("(file) {}".format(new_file_path))
-    print("(applied file) {}".format(applied_file_path))
-    prompt_user = True
-    if len(deep_diff.keys()) > 0:
-        print("\nChanged:")
-        print_diff_object(deep_diff, 'values_changed')
-
-        print("Removed:")
-        print_diff_object(deep_diff, 'dictionary_item_removed')
-        print_diff_object(deep_diff, 'iterable_item_removed')
-        print_diff_object(deep_diff, 'set_item_added')
-
-        print("Added:")
-        print_diff_object(deep_diff, 'dictionary_item_added')
-        print_diff_object(deep_diff, 'iterable_item_added')
-        print_diff_object(deep_diff, 'set_item_removed')
-        # attribute_added
-    else:
-        print("No Changes Detected")
-        prompt_user = False
-
-    print("----------------------------------------------------")
-
-    if yes_flag == True:
-        return
-
-    while prompt_user:
-        answer = input("\nAre these changes acceptable? [y/N] ")
-        if answer == '':
-            answer = 'n'
-        if answer.lower() not in ['y', 'n', 'yes', 'no']:
-            print('Invalid answer: ' + answer)
-            continue
-        else:
-            if answer.lower() in ['y', 'yes']:
-                return True
-            else:
-                print("aborting...")
-                sys.exit(1)
 
 def load_string_from_path(path, base_path=None):
     if not base_path.endswith(os.sep):
@@ -948,6 +795,14 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
         stage_obj[action_name] = action_obj
     return stage_obj
 
+def read_yaml_file(path):
+    yaml = YAML(typ="safe", pure=True)
+    yaml.default_flow_sytle = False
+    with open(path, 'r') as stream:
+        data = yaml.load(stream)
+    return data
+
+
 class ModelLoader():
     """
     Loads YAML config files into aim.model instances
@@ -961,8 +816,6 @@ class ModelLoader():
             "NetworkEnvironments": self.instantiate_network_environments,
             "Resources": self.instantiate_resources,
         }
-        self.yaml = YAML(typ="safe", pure=True)
-        self.yaml.default_flow_sytle = False
         self.config_processor = config_processor
         self.project = None
 
@@ -990,9 +843,7 @@ class ModelLoader():
         self.read_file_path = path
 
         # read the YAML!
-        with open(path, 'r') as stream:
-            config = self.yaml.load(stream)
-        return config
+        return read_yaml_file(path)
 
     def load_all(self):
         'Basically does a LOAD "*",8,1'

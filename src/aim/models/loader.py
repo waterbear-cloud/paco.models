@@ -45,7 +45,8 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
     ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
     ApiGatewayMethodIntegrationResponse, \
     IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
-    IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator
+    IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
+    IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from aim.models.accounts import Account, AdminIAMUser
@@ -85,6 +86,7 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
+    'CodeBuild': IAMUserPermissionCodeBuild,
     'CodeCommit': IAMUserPermissionCodeCommit,
     'Administrator': IAMUserPermissionAdministrator
 }
@@ -333,6 +335,9 @@ SUB_TYPES_CLASS_MAP = {
     IAMUser: {
         'programmatic_access': ('unnamed_dict', IAMUserProgrammaticAccess),
         'permissions': ('iam_user_permissions', IAMUserPermissions)
+    },
+    IAMUserPermissionCodeBuild: {
+        'resources': ('obj_list', IAMUserPermissionCodeBuildResource)
     },
     IAMUserPermissionCodeCommit: {
         'repositories': ('obj_list', IAMUserPermissionCodeCommitRepository)

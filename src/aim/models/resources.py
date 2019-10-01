@@ -412,8 +412,18 @@ class IAMUserPermissionCodeCommitRepository():
     public_ssh_key = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['public_ssh_key'])
 
 @implementer(schemas.IIAMUserPermissionCodeCommit)
-class IAMUserPermissionCodeCommit(IAMUserPermission, IAMUserPermissionCodeCommitRepository):
+class IAMUserPermissionCodeCommit(IAMUserPermission):
     repositories = FieldProperty(schemas.IIAMUserPermissionCodeCommit['repositories'])
+
+@implementer(schemas.IIAMUserPermissionCodeBuildResource)
+class IAMUserPermissionCodeBuildResource():
+    codebuild = FieldProperty(schemas.IIAMUserPermissionCodeBuildResource['codebuild'])
+    permission = FieldProperty(schemas.IIAMUserPermissionCodeBuildResource['permission'])
+    console_access_enabled = FieldProperty(schemas.IIAMUserPermissionCodeBuildResource['console_access_enabled'])
+
+@implementer(schemas.IIAMUserPermissionCodeBuild)
+class IAMUserPermissionCodeBuild(IAMUserPermission):
+    resources = FieldProperty(schemas.IIAMUserPermissionCodeBuild['resources'])
 
 @implementer(schemas.IIAMUserPermissions)
 class IAMUserPermissions(Named, dict):

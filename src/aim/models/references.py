@@ -4,7 +4,7 @@ References
 
 import os, pathlib
 import zope.schema
-from aim.models import vocabulary
+from aim.models import vocabulary, schemas
 from aim.models.exceptions import InvalidAimReference
 import ruamel.yaml
 from ruamel.yaml.compat import StringIO
@@ -157,7 +157,7 @@ def get_model_obj_from_ref(ref, project):
             raise InvalidAimReference("Could not find model at {}".format(ref.raw))
     return obj
 
-def get_resolve_ref_obj(obj, ref, part_idx_start):
+def get_resolve_ref_obj(project, obj, ref, part_idx_start):
     """
     Traverses the reference parts looking for the last child that
     is a not a string. This object is expected to be a part of the
@@ -177,8 +177,14 @@ def get_resolve_ref_obj(obj, ref, part_idx_start):
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
     try:
+        #if schemas.IDeploymentPipelineBuildCodeBuild.providedBy(ref.resource):
+        #    breakpoint()
         response = obj.resolve_ref(ref)
     except AttributeError:
+        # Check if we have something stored in Outputs
+        outputs_value = resolve_ref_outputs(ref, project['home'])
+        if outputs_value != None:
+            return outputs_value
         raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
     return response
 
@@ -215,11 +221,11 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     ref_value = None
     if ref.type == "resource":
         if ref.parts[1] == 's3':
-            ref_value = get_resolve_ref_obj(project['resource']['s3'], ref, part_idx_start=2)
+            ref_value = get_resolve_ref_obj(project, project['resource']['s3'], ref, part_idx_start=2)
         else:
             ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
     elif ref.type == "service":
-        ref_value = get_resolve_ref_obj(project, ref, part_idx_start=0)
+        ref_value = get_resolve_ref_obj(project, project, ref, part_idx_start=0)
         return ref_value
         part_idx_start = 0
         if ref.parts[2] == 'applications':
@@ -229,13 +235,13 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
             part_idx_start = 4
         if part_idx_start > 0:
             obj = project['service'][ref.parts[1]]
-            response = get_resolve_ref_obj(obj, ref, part_idx_start=part_idx_start)
+            response = get_resolve_ref_obj(project, obj, ref, part_idx_start=part_idx_start)
             ref_value = response
         else:
             ref_value = project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
         obj = project['netenv'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
-        ref_value = get_resolve_ref_obj(obj, ref, 4)
+        ref_value = get_resolve_ref_obj(project, obj, ref, 4)
 
     elif ref.type == "accounts":
         ref_value = resolve_accounts_ref(ref, project)

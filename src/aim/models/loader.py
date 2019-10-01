@@ -685,9 +685,9 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         default_config = lookup_config['logging']['cw_logging']
         merged_config = merge(default_config['log_sets'], value)
         log_sets = CloudWatchLogSets('log_sets', obj)
-        for log_set_name in merged_config.keys():
+        for log_set_name in value.keys():
             log_set = CloudWatchLogSet(log_set_name, log_sets)
-            apply_attributes_from_config(log_set, merged_config[log_set_name], config_folder)
+            apply_attributes_from_config(log_set, merged_config[log_set_name], config_folder, read_file_path=read_file_path)
             log_sets[log_set_name] = log_set
         return log_sets
 

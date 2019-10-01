@@ -764,6 +764,12 @@ class DeploymentPipelineConfiguration(Named):
     artifacts_bucket = FieldProperty(schemas.IDeploymentPipelineConfiguration['artifacts_bucket'])
     account = FieldProperty(schemas.IDeploymentPipelineConfiguration['account'])
 
+    def resolve_ref(self, ref):
+        value = getattr(self, ref.resource_ref, None)
+        if value != None:
+            return value
+        return self.resolve_ref_obj(ref)
+
 @implementer(schemas.IDeploymentPipelineStageAction)
 class DeploymentPipelineStageAction(Named, Deployable, dict):
     type = FieldProperty(schemas.IDeploymentPipelineStageAction['type'])

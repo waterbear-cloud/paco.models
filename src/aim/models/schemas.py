@@ -3783,7 +3783,7 @@ class IIAMUserPermissionCodeCommitRepository(Interface):
         required = False,
     )
 
-class IIAMUserPermissionCodeCommit(IIAMUserPermissionCodeCommitRepository):
+class IIAMUserPermissionCodeCommit(IIAMUserPermission):
     """
     CodeCommit IAM User Permission
     """
@@ -3791,6 +3791,34 @@ class IIAMUserPermissionCodeCommit(IIAMUserPermissionCodeCommitRepository):
         title = 'List of repository permissions',
         value_type = schema.Object(IIAMUserPermissionCodeCommitRepository),
         required = False,
+    )
+
+class IIAMUserPermissionCodeBuildResource(Interface):
+    """
+    CodeBuild Resource IAM User Permission Definition
+    """
+    codebuild = TextReference(
+        title = 'CodeBuild Resource Reference',
+        required = False,
+    )
+    permission = schema.TextLine(
+        title = 'AIM Permission policy',
+        constraint = isAIMCodeCommitPermissionPolicyValid,
+        required = False,
+    )
+    console_access_enabled = schema.Bool(
+        title = 'Console Access Boolean',
+        required = False,
+    )
+
+class IIAMUserPermissionCodeBuild(IIAMUserPermission):
+    """
+    CodeBuild IAM User Permission
+    """
+    resources = schema.List(
+        title = 'List of CodeBuild resources',
+        value_type = schema.Object(IIAMUserPermissionCodeBuildResource),
+        required = False
     )
 
 class IIAMUserPermissions(INamed, IMapping):

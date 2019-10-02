@@ -23,6 +23,10 @@ application_group_types = [
 ]
 
 cloudwatch = {
+	'App': {
+		'dimension': '',
+		'namespace': ''
+	},
 	'ASG': {
 		'dimension': 'AutoScalingGroupName',
 		'namespace': 'AWS/AutoScaling'
@@ -557,21 +561,12 @@ user_data_script = {
 	'update_system': {
 		'amazon': [],
 		'centos': [],
-		'ubuntu': [
-			'apt-get update',
-			'apt-get upgrade -y'
-		],
+		'ubuntu': [],
 	},
 	'essential_packages': {
 		'amazon': [],
-		'centos': [
-			'curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"',
-			'unzip awscli-bundle.zip',
-			'./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws',
-		],
-		'ubuntu': [
-			'apt install awscli -y'
-		],
+		'centos': [],
+		'ubuntu': [],
 	}
 }
 

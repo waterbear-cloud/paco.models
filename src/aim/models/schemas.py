@@ -1390,7 +1390,7 @@ class IS3Resource(INamed):
         required = False,
     )
 
-class IApplicationEngine(INamed, IDeployable, INotifiable, IDNSEnablable):
+class IApplicationEngine(INamed, IDeployable, INotifiable, IMonitorable, IDNSEnablable):
     """
     Application Engine : A template describing an application
     """

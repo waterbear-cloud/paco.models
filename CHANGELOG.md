@@ -8,6 +8,8 @@ Changelog for aim.models
 
 - Moved deepdiff CLI functions into `aim` project.
 
+- IApplication is now IMonitorable. Alarms at the Application level must
+  specify their Namespace and Dimensions.
 
 6.0.0 (2019-09-27)
 ------------------

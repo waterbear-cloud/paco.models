@@ -282,7 +282,8 @@ SUB_TYPES_CLASS_MAP = {
 
     # Application
     Application: {
-        'notifications': ('notifications', AlarmNotifications)
+        'notifications': ('notifications', AlarmNotifications),
+        'monitoring': ('unnamed_dict', MonitorConfig),
     },
 
     # IAM
@@ -1384,7 +1385,13 @@ class ModelLoader():
                     annotate_base_config(item, item_config, global_item_config[item_name])
 
             env_region.applications[item_name] = item # save
-            apply_attributes_from_config(item, item_config, self.config_folder, read_file_path=self.read_file_path)
+            apply_attributes_from_config(
+                item,
+                item_config,
+                self.config_folder,
+                lookup_config=self.monitor_config,
+                read_file_path=self.read_file_path
+            )
 
             # Load resources for an application
             if 'groups' not in item_config:

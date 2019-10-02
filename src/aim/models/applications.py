@@ -22,14 +22,13 @@ class ApplicationEngines(Named, dict):
     pass
 
 @implementer(schemas.IApplicationEngine)
-class ApplicationEngine(Named, Deployable, Regionalized, dict):
+class ApplicationEngine(Named, Deployable, Regionalized, Monitorable, dict):
     groups = FieldProperty(schemas.IApplicationEngine['groups'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.groups = ResourceGroups('groups', self)
         self.notifications = AlarmNotifications()
-
 
     # Returns a list of groups sorted by 'order'
     def groups_ordered(self):
@@ -49,6 +48,7 @@ class ApplicationEngine(Named, Deployable, Regionalized, dict):
 
 @implementer(schemas.IApplication)
 class Application(ApplicationEngine, Regionalized):
+    type = "App"
 
     def get_resource_by_name(self, resource_name):
         """

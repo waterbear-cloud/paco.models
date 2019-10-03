@@ -144,7 +144,8 @@ valid_legacy_flags = (
         'route53_controller_type_2019_09_18',
         'codecommit_controller_type_2019_09_18',
         'lambda_controller_type_2019_09_18',
-        'cloudwatch_controller_type_2019_09_18'
+        'cloudwatch_controller_type_2019_09_18',
+        'cftemplate_iam_user_delegates_2019_10_02'
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '

@@ -363,6 +363,23 @@ environments:
               groups:
               - jim_is_the_new_bob
               classification: 'performance'
+          monitoring:
+            enabled: true
+            health_checks:
+              external_ping:
+                type: Route53HealthCheck
+                load_balancer: "AnetDevMyappWebAlb-1313099095.eu-central-1.elb.amazonaws.com" # make an aim.ref
+                health_check_type: 'HTTP'
+                port: 80
+                resource_path: /
+                match_string: "alive!"
+                failure_threshold: 3
+                request_interval: 25
+                latency_graphs: false
+                health_checker_regions:
+                  - us-west-2
+                  - ca-central-1
+                  - eu-central-1
           groups:
             restapi:
               resources:

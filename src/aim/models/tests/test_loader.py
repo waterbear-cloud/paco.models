@@ -276,3 +276,11 @@ class TestAimDemo(BaseTestModelLoader):
         demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
         api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
         assert len(api_gra.body_file_location) > 1
+
+    def test_health_checks(self):
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        health_checks = demo_env['applications']['app'].monitoring.health_checks
+        assert schemas.IHealthChecks.providedBy(health_checks)
+        pinger = health_checks['external_ping']
+        assert pinger.match_string, 'alive!'
+        assert pinger.port, 80

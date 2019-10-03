@@ -20,13 +20,14 @@ from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metric
     MetricTransformation
 from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, SimpleCloudWatchAlarm, \
-    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension
+    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
+    HealthChecks
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
 from aim.models.project import Project, Credentials
-from aim.models.applications import Application, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
-    Resource, Resources,LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
+from aim.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
+    Resource, Resources, LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
@@ -46,7 +47,8 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Res
     ApiGatewayMethodIntegrationResponse, \
     IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
-    IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource
+    IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, \
+    Route53HealthCheck
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from aim.models.accounts import Account, AdminIAMUser
@@ -91,7 +93,7 @@ IAM_USER_PERMISSIONS_CLASS_MAP = {
     'Administrator': IAMUserPermissionAdministrator
 }
 
-APPLICATION_RESOURCES_CLASS_MAP = {
+RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
     'CodePipeBuildDeploy': CodePipeBuildDeploy,
@@ -108,7 +110,8 @@ APPLICATION_RESOURCES_CLASS_MAP = {
     'ElastiCacheRedis': ElastiCacheRedis,
     'DeploymentPipeline': DeploymentPipeline,
     'EFS': EFS,
-    'EIP': EIP
+    'EIP': EIP,
+    'Route53HealthCheck': Route53HealthCheck,
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -246,6 +249,7 @@ SUB_TYPES_CLASS_MAP = {
     MonitorConfig: {
         'metrics': ('obj_list', Metric),
         'alarm_sets': ('alarm_sets', AlarmSets),
+        'health_checks': ('resource_container', HealthChecks),
         'log_sets': ('log_sets', CloudWatchLogSets),
         'notifications': ('notifications', AlarmNotifications)
     },
@@ -288,8 +292,12 @@ SUB_TYPES_CLASS_MAP = {
 
     # Application
     Application: {
+        'groups': ('container', (ResourceGroups, ResourceGroup)),
         'notifications': ('notifications', AlarmNotifications),
         'monitoring': ('unnamed_dict', MonitorConfig),
+    },
+    ResourceGroup: {
+        'resources': ('resource_container', Resources),
     },
 
     # IAM
@@ -463,13 +471,6 @@ Verify that '{}' has the correct indentation in the config file.
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         for name, field in fields.items():
-            # ToDo: these items are loaded specially elsewhere - some of these could be refactored
-            # to load here though ...
-            # resources are loaded later based on type
-            if schemas.IApplication.providedBy(obj) and name == 'groups':
-                continue
-            if schemas.IResourceGroup.providedBy(obj) and name == 'resources':
-                continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'applications':
                 continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'network':
@@ -519,10 +520,6 @@ Verify that '{}' has the correct indentation in the config file.
                             setattr(obj, '_ref_' + name, copy.deepcopy(value))
                         continue
 
-                    # set the attribute on the object
-                    #if read_file_path == '/Users/klindsay/git/waterbear-cloud/internal-projects/waterbear-aim-project//NetworkEnvironments/websites.yml' and \
-                    #    name == 'cache_behaviors':
-                    #    breakpoint()
                     try:
                         if type(obj) in SUB_TYPES_CLASS_MAP:
                             if name in SUB_TYPES_CLASS_MAP[type(obj)]:
@@ -627,6 +624,37 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
             container[sub_key] = sub_obj
         return container
 
+    elif sub_type == 'resource_container':
+        container = sub_class(name, obj)
+        for resource_name, resource_config in value.items():
+            try:
+                klass = RESOURCES_CLASS_MAP[resource_config['type']]
+            except KeyError:
+                if 'type' not in resource_config:
+                    raise InvalidAimProjectFile("""
+Error in file at {}
+No type specified for resource '{}'.
+
+Configuration section:
+{}""".format(read_file_path, resource_name, resource_config))
+                raise InvalidAimProjectFile("""
+Error in file at {}
+Type of '{}' does not exist for resource '{}'
+
+Configuration section:
+{}
+""".format(read_file_path, res_config['type'], resource_name, resource_config))
+            sub_obj = klass(resource_name, container)
+            apply_attributes_from_config(
+                sub_obj,
+                resource_config,
+                config_folder,
+                lookup_config,
+                read_file_path
+            )
+            container[resource_name] = sub_obj
+        return container
+
     elif sub_type == 'twolevel_container':
         container_class = sub_class[0]
         first_object_class = sub_class[1]
@@ -709,6 +737,7 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
             resource_type = obj.__parent__.type
             alarm_set = AlarmSet(alarm_set_name, alarm_sets)
             alarm_set.resource_type = resource_type
+            lookup_config['alarms'][resource_type][alarm_set_name]
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
                 alarm = CloudWatchAlarm(alarm_name, alarm_set)
                 apply_attributes_from_config(alarm, alarm_config, config_folder, read_file_path=read_file_path)
@@ -749,35 +778,6 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         return instantiate_iam_user_permissions(value, obj, read_file_path)
     elif sub_type == 'deployment_pipeline_stage':
         return instantiate_deployment_pipeline_stage(name, sub_class, value, obj, read_file_path)
-
-
-def load_resources(res_groups, groups_config, config_folder=None, monitor_config=None, read_file_path=''):
-    """
-    Loads resources for an Application
-    """
-    for grp_key, grp_config in groups_config.items():
-        resource_group = ResourceGroup(grp_key, res_groups)
-        apply_attributes_from_config(resource_group, grp_config, config_folder, read_file_path=read_file_path)
-        res_groups[grp_key] = resource_group
-        for res_key, res_config in grp_config['resources'].items():
-            try:
-                klass = APPLICATION_RESOURCES_CLASS_MAP[res_config['type']]
-            except KeyError:
-                if 'type' not in res_config:
-                    raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
-                        read_file_path, res_key, res_config)
-                    )
-                raise InvalidAimProjectFile(
-                    """Error in file at {}
-    No mapping for type '{}' for resource named '{}'
-
-    Configuration section:
-    {}
-    """.format(read_file_path, res_config['type'], res_key, res_config)
-                )
-            obj = klass(res_key, res_groups[grp_key].resources)
-            apply_attributes_from_config(obj, res_config, config_folder, lookup_config=monitor_config, read_file_path=read_file_path)
-            res_groups[grp_key].resources[res_key] = obj
 
 def instantiate_notifications(value, read_file_path):
     notifications = AlarmNotifications()
@@ -1012,7 +1012,7 @@ class ModelLoader():
             res_groups[grp_key] = obj
             for res_key, res_config in grp_config['resources'].items():
                 try:
-                    klass = APPLICATION_RESOURCES_CLASS_MAP[res_config['type']]
+                    klass = RESOURCES_CLASS_MAP[res_config['type']]
                 except KeyError:
                     if 'type' not in res_config:
                         raise InvalidAimProjectFile("No type for resource {}".format(res_key))
@@ -1401,18 +1401,6 @@ class ModelLoader():
                 lookup_config=self.monitor_config,
                 read_file_path=self.read_file_path
             )
-
-            # Load resources for an application
-            if 'groups' not in item_config:
-                item_config['groups'] = {}
-            load_resources(
-                item.groups,
-                item_config['groups'],
-                self.config_folder,
-                self.monitor_config,
-                self.read_file_path
-            )
-
 
     def instantiate_network_environments(self, name, config, read_file_path):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"

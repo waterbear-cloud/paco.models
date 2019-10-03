@@ -4,7 +4,16 @@ Changelog for aim.models
 6.0.1 (unreleased)
 ------------------
 
+### Added
+
+- `monitoring.health_checks` which can contain HealthCheck Resources.
+  IRoute53HealthCheck resource for Route53 health checks.
+
 ### Changed
+
+- `load_resources` was removed and you can now simply apply_attributes to
+  an Application and it will recurse through app.groups.<groupname>.resources.<resourcename>
+  without any external fiddling.
 
 - Moved deepdiff CLI functions into `aim` project.
 

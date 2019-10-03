@@ -303,6 +303,23 @@ class Route53Resource():
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IRoute53HealthCheck)
+class Route53HealthCheck(Resource):
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.health_checker_regions = []
+
+    load_balancer = FieldProperty(schemas.IRoute53HealthCheck["load_balancer"])
+    health_check_type = FieldProperty(schemas.IRoute53HealthCheck["health_check_type"])
+    port = FieldProperty(schemas.IRoute53HealthCheck["port"])
+    resource_path = FieldProperty(schemas.IRoute53HealthCheck["resource_path"])
+    match_string = FieldProperty(schemas.IRoute53HealthCheck["match_string"])
+    failure_threshold = FieldProperty(schemas.IRoute53HealthCheck["failure_threshold"])
+    request_interval = FieldProperty(schemas.IRoute53HealthCheck["request_interval"])
+    latency_graphs = FieldProperty(schemas.IRoute53HealthCheck["latency_graphs"])
+    health_checker_regions = FieldProperty(schemas.IRoute53HealthCheck["health_checker_regions"])
+
 @implementer(schemas.ICodeCommitUser)
 class CodeCommitUser():
     username = FieldProperty(schemas.ICodeCommitUser["username"])

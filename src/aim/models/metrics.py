@@ -18,6 +18,10 @@ class NotificationGroups(AccountRef, Named, dict):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IHealthChecks)
+class HealthChecks(Named, dict):
+    pass
+
 @implementer(schemas.IAlarmNotifications)
 class AlarmNotifications(dict):
     "Container of AlarmNotifications"
@@ -237,6 +241,7 @@ class MonitorConfig(Deployable, Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.alarm_sets = AlarmSets('alarm_sets', self)
+        self.health_checks = HealthChecks('health_checks', self)
         self.log_sets = CloudWatchLogSets('log_sets', self)
         self.notifications = AlarmNotifications()
 

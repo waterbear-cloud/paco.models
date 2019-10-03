@@ -217,6 +217,14 @@ def isValidHealthCheckType(value):
         raise InvalidHealthCheckTypeError
     return True
 
+class InvalidRoute53HealthCheckTypeError(schema.ValidationError):
+    __doc__ = 'Route53 health check type must be one of HTTP, HTTPS or TCP.'
+
+def isValidRoute53HealthCheckType(value):
+    if value not in ('HTTP', 'HTTPS', 'TCP'):
+        raise InvalidRoute53HealthCheckTypeError
+    return True
+
 class InvalidStringCanOnlyContainDigits(schema.ValidationError):
     __doc__ = 'String must only contain digits.'
 
@@ -1206,41 +1214,48 @@ class IMetric(Interface):
         required = False,
     )
 
+class IHealthChecks(INamed, IMapping):
+    "Container for HealthChecks"
+
 class IMonitorConfig(IDeployable, INamed, INotifiable):
     """
     A set of metrics and a default collection interval
     """
-    collection_interval = schema.Int(
-        title = "Collection interval",
-        min = 1,
-        default = 60,
-        required = False,
-    )
-    metrics = schema.List(
-        title = "Metrics",
-        value_type=schema.Object(IMetric),
-        default = [],
-        required = False,
-    )
     asg_metrics = schema.List(
-        title = "ASG Metrics",
+        title="ASG Metrics",
         value_type=schema.TextLine(),
-        default= [],
-        constraint = isValidASGMetricNames,
-        description = "Must be one of: 'GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'",
-        required = False,
+        default=[],
+        constraint=isValidASGMetricNames,
+        description="Must be one of: 'GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'",
+        required=False,
     )
     alarm_sets = schema.Object(
         title="Sets of Alarm Sets",
         schema=IAlarmSets,
         required = False,
     )
+    collection_interval = schema.Int(
+        title="Collection interval",
+        min=1,
+        default=60,
+        required=False,
+    )
+    health_checks = schema.Object(
+        title="Set of Health Checks",
+        schema=IHealthChecks,
+        required=False,
+    )
     log_sets = schema.Object(
         title="Sets of Log Sets",
         schema=ICloudWatchLogSets,
         required = False,
     )
-
+    metrics = schema.List(
+        title="Metrics",
+        value_type=schema.Object(IMetric),
+        default=[],
+        required=False,
+    )
 
 class IMonitorable(Interface):
     """
@@ -3100,6 +3115,77 @@ class IRoute53Resource(Interface):
         default = None,
         required = False,
     )
+
+class IRoute53HealthCheck(IResource):
+    """Route53 Health Check"""
+    # ToDo: Add fields for IP address or FQDN and invariant for load_balancer, IP address or FQDN field.
+    @invariant
+    def is_match_string_health_check(obj):
+        if getattr(obj, 'match_string', None) != None:
+            if obj.health_check_type not in ('HTTP', 'HTTPS'):
+                raise Invalid("If match_string field supplied, health_check_type must be HTTP or HTTPS.")
+
+    load_balancer = TextReference(
+        title="Load Balancer Endpoint",
+        str_ok=True,
+        required=False,
+    )
+    health_check_type = schema.TextLine(
+        title="Health Check Type",
+        description="Must be one of HTTP, HTTPS or TCP",
+        required=True,
+        constraint=isValidRoute53HealthCheckType,
+    )
+    port = schema.Int(
+        title="Port",
+        min=1,
+        max=65535,
+        required=False,
+        default=80,
+    )
+    resource_path = schema.TextLine(
+        title="Resource Path",
+        description="String such as '/health.html'. Path should return a 2xx or 3xx. Query string parameters are allowed: '/search?query=health'",
+        max_length=255,
+        default="/",
+        required=False,
+    )
+    match_string = schema.TextLine(
+        title = "String to match in the first 5120 bytes of the response",
+        min_length=1,
+        max_length=255,
+        required=False,
+    )
+    failure_threshold = schema.Int(
+        title = "Number of consecutive health checks that an endpoint must pass or fail for Amazon Route 53 to change the current status of the endpoint from unhealthy to healthy or vice versa.",
+        min=1,
+        max=10,
+        required=False,
+        default=3,
+    )
+    request_interval = schema.Int(
+        title="Number of seconds between the time that Amazon Route 53 gets a response from your endpoint and the time that it sends the next health check request.",
+        min=10,
+        max=30,
+        default=30,
+        required=False,
+    )
+    latency_graphs = schema.Bool(
+        title="Measure latency and display CloudWatch graph in the AWS Console",
+        required=False,
+        default=False,
+    )
+    health_checker_regions = schema.List(
+        title="Health checker regions",
+        description="List of AWS Region names (e.g. us-west-2) from which to make health checks.",
+        required=False,
+        default=[],
+        value_type=schema.TextLine(title="AWS Region"),
+        constraint=isValidAWSRegionList,
+    )
+
+
+# CodeCommit
 
 class ICodeCommitUser(Interface):
     """

@@ -91,7 +91,7 @@ IAM_USER_PERMISSIONS_CLASS_MAP = {
     'Administrator': IAMUserPermissionAdministrator
 }
 
-RESOURCES_CLASS_MAP = {
+APPLICATION_RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
     'CodePipeBuildDeploy': CodePipeBuildDeploy,
@@ -112,6 +112,9 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    EIP: {
+        'dns': ('obj_list', DNS)
+    },
     EFS: {
         'security_groups': ('str_list', TextReference)
     },
@@ -758,7 +761,7 @@ def load_resources(res_groups, groups_config, config_folder=None, monitor_config
         res_groups[grp_key] = resource_group
         for res_key, res_config in grp_config['resources'].items():
             try:
-                klass = RESOURCES_CLASS_MAP[res_config['type']]
+                klass = APPLICATION_RESOURCES_CLASS_MAP[res_config['type']]
             except KeyError:
                 if 'type' not in res_config:
                     raise InvalidAimProjectFile("Error in file at {}\nNo type for resource '{}'.\n\nConfiguration section:\n{}".format(
@@ -1009,7 +1012,7 @@ class ModelLoader():
             res_groups[grp_key] = obj
             for res_key, res_config in grp_config['resources'].items():
                 try:
-                    klass = RESOURCES_CLASS_MAP[res_config['type']]
+                    klass = APPLICATION_RESOURCES_CLASS_MAP[res_config['type']]
                 except KeyError:
                     if 'type' not in res_config:
                         raise InvalidAimProjectFile("No type for resource {}".format(res_key))

@@ -395,6 +395,11 @@ class ASGScalingPolicy(Named, Deployable):
 @implementer(schemas.IEIP)
 class EIP(Resource):
     title = "Elastic IP"
+    dns = FieldProperty(schemas.IEIP['dns'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.dns = []
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

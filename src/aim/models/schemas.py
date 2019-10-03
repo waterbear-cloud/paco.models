@@ -2446,7 +2446,12 @@ class IEIP(IResource):
     """
     Elastic IP
     """
-    pass
+    dns = schema.List(
+        title = "List of DNS for the EIP",
+        value_type = schema.Object(IDNS),
+        default = [],
+        required = False
+    )
 
 class IASG(IResource, IMonitorable):
     """
@@ -2515,7 +2520,8 @@ class IASG(IResource, IMonitorable):
     )
     eip = TextReference(
         title="Elastic IP Reference or AllocationId",
-        required = False
+        required = False,
+        str_ok = True
     )
     instance_iam_role = schema.Object(IRole)
     instance_ami = TextReference(

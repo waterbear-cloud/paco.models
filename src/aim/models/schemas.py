@@ -2442,6 +2442,12 @@ class IASGScalingPolicy(INamed, IDeployable):
             if obj.cooldown != None:
                 raise Invalid("'cooldown' may only be used when policy_type is 'SimpleScaling'")
 
+class IEIP(IResource):
+    """
+    Elastic IP
+    """
+    pass
+
 class IASG(IResource, IMonitorable):
     """
     Auto Scaling Group
@@ -2506,6 +2512,10 @@ class IASG(IResource, IMonitorable):
         description="",
         default=300,
         required = False,
+    )
+    eip = TextReference(
+        title="Elastic IP Reference or AllocationId",
+        required = False
     )
     instance_iam_role = schema.Object(IRole)
     instance_ami = TextReference(

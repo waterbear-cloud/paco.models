@@ -566,7 +566,13 @@ user_data_script = {
 	'essential_packages': {
 		'amazon': [],
 		'centos': [],
-		'ubuntu': [],
+		'ubuntu': [
+		],
+	},
+	'install_aws_cli': {
+		'amazon': '', # AWS is installed by default on Amazon linux
+		'ubuntu': 'apt install awscli -y',
+		'centos': 'pip install awscli'
 	}
 }
 

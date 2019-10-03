@@ -392,6 +392,13 @@ class ASGScalingPolicy(Named, Deployable):
     cooldown = FieldProperty(schemas.IASGScalingPolicy['cooldown'])
     alarms = FieldProperty(schemas.IASGScalingPolicy['alarms'])
 
+@implementer(schemas.IEIP)
+class EIP(Resource):
+    title = "Elastic IP"
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
@@ -405,6 +412,7 @@ class ASG(Resource, Monitorable):
     ebs_optimized =  FieldProperty(schemas.IASG['ebs_optimized'])
     health_check_type =  FieldProperty(schemas.IASG['health_check_type'])
     health_check_grace_period_secs =  FieldProperty(schemas.IASG['health_check_grace_period_secs'])
+    eip =  FieldProperty(schemas.IASG['eip'])
     instance_iam_role =  FieldProperty(schemas.IASG['instance_iam_role'])
     instance_ami =  FieldProperty(schemas.IASG['instance_ami'])
     instance_ami_type =  FieldProperty(schemas.IASG['instance_ami_type'])

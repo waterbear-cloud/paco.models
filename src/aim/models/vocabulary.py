@@ -27,6 +27,10 @@ cloudwatch = {
 		'dimension': '',
 		'namespace': ''
 	},
+	'Route53HealthCheck': {
+		'dimension': 'HealthCheckId',
+		'namespace': 'AWS/Route53',
+	},
 	'ASG': {
 		'dimension': 'AutoScalingGroupName',
 		'namespace': 'AWS/AutoScaling'

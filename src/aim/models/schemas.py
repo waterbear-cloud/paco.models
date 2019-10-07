@@ -139,6 +139,20 @@ def isValidAWSRegionList(value):
         isValidAWSRegionName(region)
     return True
 
+class InvalidAWSHealthCheckRegion(schema.ValidationError):
+    __doc__ = "AWS Health Check regions are: 'sa-east-1', 'us-west-1', 'us-west-2', 'ap-northeast-1', 'ap-southeast-1', 'eu-west-1', 'us-east-1', 'ap-southeast-2'"
+
+def isValidHealthCheckAWSRegionList(value):
+    # must be at least 3 but 0 is Okay too
+    if len(value) == 1 or len(value) == 2:
+        raise InvalidAWSHealthCheckRegion("If health_check_regions is specified, it must contain at least 3 regions.")
+    regions = ('sa-east-1', 'us-west-1', 'us-west-2', 'ap-northeast-1', 'ap-southeast-1', 'eu-west-1', 'us-east-1', 'ap-southeast-2')
+    for region in value:
+        if region not in regions:
+            raise InvalidAWSHealthCheckRegion("Region {} is not a valid Route53 health check region.".format(region))
+    return True
+
+
 valid_legacy_flags = (
         'cftemplate_aws_name_2019_09_17',
         'route53_controller_type_2019_09_18',
@@ -3163,11 +3177,9 @@ class IRoute53HealthCheck(IResource):
         required=False,
         default=3,
     )
-    request_interval = schema.Int(
-        title="Number of seconds between the time that Amazon Route 53 gets a response from your endpoint and the time that it sends the next health check request.",
-        min=10,
-        max=30,
-        default=30,
+    request_interval_fast = schema.Bool(
+        title="Fast request interval will only wait 10 seconds between each health check response instead of the standard 30",
+        default=False,
         required=False,
     )
     latency_graphs = schema.Bool(
@@ -3181,7 +3193,7 @@ class IRoute53HealthCheck(IResource):
         required=False,
         default=[],
         value_type=schema.TextLine(title="AWS Region"),
-        constraint=isValidAWSRegionList,
+        constraint=isValidHealthCheckAWSRegionList,
     )
 
 

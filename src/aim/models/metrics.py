@@ -1,6 +1,7 @@
 import aim.models.exceptions
 import aim.models.services
 import json
+import troposphere
 import troposphere.cloudwatch
 from aim.models import schemas, vocabulary
 from aim.models.base import Deployable, Named, Name, Resource, AccountRef, Regionalized
@@ -78,8 +79,10 @@ class Alarm(Named, Regionalized):
         groups = self._add_notifications_to_groups(self.notifications, groups)
 
         # add on notifications for the AlarmSet
+        # does not exist for certain Alarms (e.g. Route53HealthCheck Alarm)
         alarm_set = get_parent_by_interface(self, schemas.IAlarmSet)
-        groups = self._add_notifications_to_groups(alarm_set.notifications, groups)
+        if alarm_set != None:
+            groups = self._add_notifications_to_groups(alarm_set.notifications, groups)
 
         # For Alarms that belong to an application, check IMonitorConfig and IApplication
         # add on notifications for the Resource
@@ -183,7 +186,10 @@ class CloudWatchAlarm(Alarm):
     cfn_mapping = {
         # 'AlarmName': computed by CloudFormation service so you can specify updates
         # 'AlarmDescription': computed in template for the SNS Topic ARNs
+        # 'Dimensions': computed in template,
         # 'AlarmActions': computed in template,
+        # 'OKActions': computed in template,
+        # 'InsufficientDataActions': copmuted in template,
         'ActionsEnabled': 'actions_enabled',
         'ComparisonOperator': 'comparison_operator',
         'EvaluateLowSampleCountPercentile': 'evaluate_low_sample_count_percentile',
@@ -195,16 +201,10 @@ class CloudWatchAlarm(Alarm):
         'Statistic': 'statistic',
         'Threshold': 'threshold',
         'TreatMissingData': 'treat_missing_data',
+        # 'Unit': (basestring, False),
+        # 'DatapointsToAlarm': (positive_integer, False),
+        #  'Metrics': ([MetricDataQuery], False),
     }
-    # Need to be supplied externally
-    # 'Dimensions': ([MetricDimension], False),
-    #
-    # Not yet implemented:
-    # 'OKActions': ([basestring], False),
-    # 'Unit': (basestring, False),
-    # 'InsufficientDataActions': ([basestring], False),
-    # 'DatapointsToAlarm': (positive_integer, False),
-    #  'Metrics': ([MetricDataQuery], False),
 
     def threshold_human(self):
         "Human readable threshold"
@@ -225,6 +225,68 @@ class CloudWatchAlarm(Alarm):
             self.threshold,
             self.evaluation_periods,
             period_human
+        )
+
+    def get_alarm_description(self, notification_cfn_refs):
+        """Create an Alarm Description in JSON format with AIM Alarm information"""
+        project = get_parent_by_interface(self, schemas.IProject)
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        envreg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        app = get_parent_by_interface(self, schemas.IApplication)
+        group = get_parent_by_interface(self, schemas.IResourceGroup)
+        resource = get_parent_by_interface(self, schemas.IResource)
+
+        # SNS Topic ARNs are supplied Paramter Refs
+        topic_arn_subs = []
+        sub_dict = {}
+        for action_ref in notification_cfn_refs:
+            ref_id = action_ref.data['Ref']
+            topic_arn_subs.append('${%s}' % ref_id)
+            sub_dict[ref_id] = action_ref
+
+        # Base alarm info - used for standalone alarms not part of an application
+        description = {
+            "project_name": project.name,
+            "project_title": project.title,
+            "account_name": self.account_name,
+            "alarm_name": self.name,
+            "classification": self.classification,
+            "severity": self.severity,
+            "topic_arns": topic_arn_subs
+        }
+
+        # conditional fields:
+        if self.description:
+            description['description'] = self.description
+        if self.runbook_url:
+            description['runbook_url'] = self.runbook_url
+
+        if app != None:
+            # Service applications and apps not part of a NetEnv
+            description["app_name"] = app.name
+            description["app_title"] = app.title
+        if group != None:
+            # Application level Alarms do not have resource group and resource
+            description["resource_group_name"] = group.name
+            description["resource_group_title"] = group.title
+            description["resource_name"] = resource.name
+            description["resource_title"] = resource.title
+
+        if netenv != None:
+            # NetEnv information
+            description["netenv_name"] = netenv.name
+            description["netenv_title"] = netenv.title
+            description["env_name"] = env.name
+            description["env_title"] = env.title
+            description["envreg_name"] = envreg.name
+            description["envreg_title"] = envreg.title
+
+        description_json = json.dumps(description)
+
+        return troposphere.Sub(
+            description_json,
+            sub_dict
         )
 
 @implementer(schemas.IMonitorable)

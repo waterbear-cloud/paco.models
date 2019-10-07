@@ -569,11 +569,12 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
     except AttributeError:
         field_context_name = 'Not applicable'
 
-    hint = "none"
-    if type(obj) not in SUB_TYPES_CLASS_MAP:
-        hint = "{} was not found in the SUB_TYPES_CLASS_MAP\n".format(obj.__class__.__name__)
-    elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
-        hint = "{} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
+    hint = ""
+    if not schemas.IResource.providedBy(obj):
+        if type(obj) not in SUB_TYPES_CLASS_MAP:
+            hint = "Hint: {} was not found in the SUB_TYPES_CLASS_MAP or RESOURCES_CLASS_MAP\n".format(obj.__class__.__name__)
+        elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
+            hint = "Hint: {} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
 
     raise InvalidAimProjectFile(
         """Error in file at {}
@@ -584,8 +585,7 @@ Value supplied: {}
 Field Context name: {}
 Reason: {}
 
-!! Hint: {}
-
+{}
 Object
 ------
 {}

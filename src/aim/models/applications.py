@@ -435,6 +435,7 @@ class ASG(Resource, Monitorable):
     efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])
     scaling_policies = FieldProperty(schemas.IASG['scaling_policies'])
     lifecycle_hooks = FieldProperty(schemas.IASG['lifecycle_hooks'])
+    availability_zone = FieldProperty(schemas.IASG['availability_zone'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':

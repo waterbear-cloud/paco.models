@@ -480,6 +480,20 @@ def IsValidASGLifecycleDefaultResult(value):
         raise InvalidASGLifecycleTransition
     return True
 
+# ASG AvailabilityZones
+class InvalidASGAvailabilityZone(schema.ValidationError):
+    __doc__ = 'availability_zone must of: all | 1 | 2 | 3 | 4 | ...'
+
+def IsValidASGAvailabilityZone(value):
+    if value == 'all':
+        return True
+    if value.isnumeric() == False:
+        raise InvalidASGAvailabilityZone
+    if int(value) < 0 or int(value) > 10:
+        raise InvalidASGAvailabilityZone
+    return True
+
+
 # ----------------------------------------------------------------------------
 # Here be Schemas!
 #
@@ -2647,6 +2661,13 @@ class IASG(IResource, IMonitorable):
         title='Lifecycle Hooks',
         schema=IASGLifecycleHooks,
         required = False
+    )
+    availability_zone = schema.TextLine(
+        # Can be: all | 1 | 2 | 3 | 4 | ...
+        title = 'Availability Zones to launch instances in.',
+        default = 'all',
+        required = False,
+        constraint = IsValidASGAvailabilityZone
     )
 
 # Lambda

@@ -9,6 +9,8 @@ Changelog for aim.models
 - `monitoring.health_checks` which can contain HealthCheck Resources.
   IRoute53HealthCheck resource for Route53 health checks.
 
+- `region_name` property can be overrode if a `overrode_region_name` attribute is set.
+
 ### Changed
 
 - `load_resources` was removed and you can now simply apply_attributes to

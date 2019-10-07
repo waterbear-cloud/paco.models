@@ -217,6 +217,10 @@ class Regionalized():
 
     @property
     def region_name(self):
+        # ALlow an object to override it's region_name
+        # for example, Route53HealthCheck hard-codes Metrics to us-east-1
+        if hasattr(self, 'overrode_region_name'):
+            return self.overrode_region_name
         # region the resource is deployed in
         region = get_parent_by_interface(self, schemas.IRegionContainer)
         if region != None:

@@ -4,6 +4,7 @@ All things Resources.
 
 import json
 import troposphere.apigateway
+import troposphere.route53
 from aim.models.base import Named, CFNExport, Deployable, Regionalized, Resource
 from aim.models.metrics import Monitorable
 from aim.models import references
@@ -316,9 +317,50 @@ class Route53HealthCheck(Resource):
     resource_path = FieldProperty(schemas.IRoute53HealthCheck["resource_path"])
     match_string = FieldProperty(schemas.IRoute53HealthCheck["match_string"])
     failure_threshold = FieldProperty(schemas.IRoute53HealthCheck["failure_threshold"])
-    request_interval = FieldProperty(schemas.IRoute53HealthCheck["request_interval"])
+    request_interval_fast = FieldProperty(schemas.IRoute53HealthCheck["request_interval_fast"])
     latency_graphs = FieldProperty(schemas.IRoute53HealthCheck["latency_graphs"])
     health_checker_regions = FieldProperty(schemas.IRoute53HealthCheck["health_checker_regions"])
+
+    # All of the configuration is nested in the HealthCheckConfig prop
+    # cfn_export_dict will be a HealthCheckConfig dict, this needs to be
+    # wrapped in cfn_export_dict['HealthCheckConfig'] in the template
+    troposphere_props = troposphere.route53.HealthCheckConfiguration.props
+    cfn_mapping = {
+        # 'AlarmIdentifier': (AlarmIdentifier, False),
+        # 'ChildHealthChecks': ([basestring], False),
+        # 'EnableSNI': (boolean, False),
+        'FailureThreshold': 'failure_threshold',
+        # 'FullyQualifiedDomainName': # computed in template,
+        # 'HealthThreshold': ,
+        # 'InsufficientDataHealthStatus': (basestring, False),
+        # 'Inverted': (boolean, False),
+        # 'IPAddress': (basestring, False),
+        'MeasureLatency': 'latency_graphs',
+        'Port': 'port',
+        'Regions': 'health_checker_regions',
+        'RequestInterval': 'request_interval_cfn',
+        'ResourcePath': 'resource_path',
+        'SearchString': 'match_string',
+        'Type': 'type_cfn',
+    }
+
+    @property
+    def request_interval_cfn(self):
+        if self.request_interval_fast:
+            return 10
+        else:
+            return 30
+
+    @property
+    def type_cfn(self):
+        # ToDo: implement CLOUDWATCH_METRIC and CALCULATED
+        if getattr(self, 'match_string', None) != None:
+            if self.health_check_type == 'HTTP':
+                return 'HTTP_STR_MATCH'
+            elif self.health_check_type == 'HTTPS':
+                return 'HTTPS_STR_MATCH'
+        else:
+            return self.health_check_type
 
 @implementer(schemas.ICodeCommitUser)
 class CodeCommitUser():

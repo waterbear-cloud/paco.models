@@ -521,6 +521,12 @@ instance_size_info = {
 		'memory': 8,
 		'network': 'Up to 10 Gbps'
 	},
+	'm4.large': {
+		'cpu': 2,
+		'cpu_credits': None,
+		'memory': 8,
+		'network': 'Moderate'
+	},
 	'm4.xlarge': {
 		'cpu': 4,
 		'cpu_credits': None,

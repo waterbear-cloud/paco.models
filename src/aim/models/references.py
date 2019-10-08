@@ -12,6 +12,8 @@ from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
 
+ami_cache = {}
+
 class YAML(ruamel.yaml.YAML):
     def dump(self, data, stream=None, **kw):
         dumps = False
@@ -288,6 +290,10 @@ def resolve_function_ref(ref, project, account_ctx):
         else:
             raise ValueError("Unsupported AMI Name: {}".format(ref.last_part))
 
+        cache_id = ami_name + ami_description
+        if cache_id in ami_cache.keys():
+            return ami_cache[cache_id]
+
         ec2_client = account_ctx.get_aws_client('ec2')
         filters = [ {
             'Name': 'name',
@@ -330,6 +336,9 @@ def resolve_function_ref(ref, project, account_ctx):
         # Sort on Creation date Desc
         image_details = sorted(ami_list['Images'],key=itemgetter('CreationDate'),reverse=True)
         ami_id = image_details[0]['ImageId']
+
+        ami_cache[cache_id] = ami_id
+
         return ami_id
 
 def resolve_accounts_ref(ref, project):

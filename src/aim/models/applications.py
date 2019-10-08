@@ -762,6 +762,7 @@ class ElastiCache():
     maintenance_preferred_window = FieldProperty(schemas.IElastiCache['maintenance_preferred_window'])
     security_groups = FieldProperty(schemas.IElastiCache['security_groups'])
     segment = FieldProperty(schemas.IElastiCache['segment'])
+    parameter_group = FieldProperty(schemas.IElastiCache['parameter_group'])
 
 @implementer(schemas.IElastiCacheRedis)
 class ElastiCacheRedis(Resource, ElastiCache, Monitorable):

@@ -3843,6 +3843,11 @@ class IElastiCache(Interface):
         title="Segment",
         required = False,
     )
+    parameter_group = TextReference(
+        title = 'Parameter Group name or reference',
+        str_ok = True,
+        required = False
+    )
 
 class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
     """

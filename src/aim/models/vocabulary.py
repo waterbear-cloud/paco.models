@@ -582,7 +582,7 @@ user_data_script = {
 	'install_aws_cli': {
 		'amazon': '', # AWS is installed by default on Amazon linux
 		'ubuntu': 'apt install awscli -y',
-		'centos': 'pip install awscli'
+		'centos': 'pip3 install awscli'
 	}
 }
 

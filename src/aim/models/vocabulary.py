@@ -605,7 +605,13 @@ user_data_script = {
 		'amazon': '', # AWS is installed by default on Amazon linux
 		'ubuntu': 'apt install awscli -y',
 		'centos': 'pip3 install awscli'
+	},
+	'install_wget': {
+		'amazon': 'yum install wget -y',
+		'centos': 'yum install wget -y',
+		'ubuntu': 'apt-get install wget -y'
 	}
+
 }
 
 # Create the CloudWatch agent launch scripts and configuration

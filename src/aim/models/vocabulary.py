@@ -332,6 +332,17 @@ aws_regions = {
     		"sa-east-1c"
     	]
     },
+	'me-south-1': {
+		"name": "Bahrain",
+		"full_name": "Middle East (Bahrain)",
+		"code": "me-south-1",
+		"public": True,
+		"zones": [
+			"me-south-1a",
+			"me-south-1b",
+			"me-south-1c"
+		]
+	},
     'ap-southeast-1': {
     	"name": "Singapore",
     	"full_name": "Asia Pacific (Singapore)",
@@ -355,7 +366,18 @@ aws_regions = {
     		"ap-southeast-2b",
     		"ap-southeast-2c"
     	]
-    }
+    },
+	'ap-east-1': {
+		"name": "Hong Kong",
+		"full_name": "Asia Pacific (Hong Kong)",
+		"code": "ap-east-1",
+		"public": True,
+		"zones": [
+			"ap-east-1a",
+			"ap-east-1b",
+			"ap-east-1c"
+		]
+	},
 }
 
 instance_size_info = {

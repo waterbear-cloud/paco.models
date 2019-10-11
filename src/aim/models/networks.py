@@ -160,6 +160,10 @@ class VPNGateway(Deployable, dict):
 @implementer(schemas.IPrivateHostedZone)
 class PrivateHostedZone(Deployable):
     name = FieldProperty(schemas.IPrivateHostedZone["name"])
+    vpc_associations = FieldProperty(schemas.IPrivateHostedZone["vpc_associations"])
+
+    def __init__(self):
+        self.vpc_associations = []
 
     def resolve_ref(self, ref):
         if ref.last_part == 'private_hosted_zone':

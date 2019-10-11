@@ -282,6 +282,9 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('named_twolevel_dict', SecurityGroup),
         'peering': ('named_dict', VPCPeering)
     },
+    PrivateHostedZone: {
+        'vpc_associations': ('str_list', zope.schema.TextLine)
+    },
     VPCPeering: {
         'routing': ('obj_list', VPCPeeringRoute)
     },

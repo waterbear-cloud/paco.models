@@ -1728,6 +1728,14 @@ class IPrivateHostedZone(IDeployable):
         title = "Hosted zone name",
         required = False,
     )
+    vpc_associations = schema.List(
+        title = "List of VPC Ids",
+        required = False,
+        value_type = schema.TextLine(
+            title = "VPC ID"
+        ),
+        default = None
+    )
 
 class ISegment(INamed, IDeployable):
     """

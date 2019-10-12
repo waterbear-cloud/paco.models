@@ -38,7 +38,8 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
     DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP
-from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, Route53Resource, Route53HostedZone, \
+from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
+    Route53Resource, Route53HostedZone, Route53RecordSet, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
@@ -341,6 +342,12 @@ SUB_TYPES_CLASS_MAP = {
     Account: {
         'admin_iam_users': ('named_dict', AdminIAMUser)
     },
+    Route53RecordSet: {
+        'values': ('str_list', zope.schema.TextLine)
+    },
+    Route53HostedZone: {
+        'record_sets': ('obj_list', Route53RecordSet)
+    },
     Route53Resource: {
         'hosted_zones': ('named_dict', Route53HostedZone)
     },
@@ -583,7 +590,6 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
             hint = "Hint: {} was not found in the SUB_TYPES_CLASS_MAP or RESOURCES_CLASS_MAP\n".format(obj.__class__.__name__)
         elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
             hint = "Hint: {} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
-
     raise InvalidAimProjectFile(
         """Error in file at {}
 
@@ -1279,7 +1285,7 @@ class ModelLoader():
         return obj
 
     def instantiate_route53(self, config):
-        obj = Route53Resource(config)
+        obj = Route53Resource('route53', self.project.resource, config)
         if config != None:
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj

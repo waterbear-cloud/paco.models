@@ -159,7 +159,8 @@ valid_legacy_flags = (
         'codecommit_controller_type_2019_09_18',
         'lambda_controller_type_2019_09_18',
         'cloudwatch_controller_type_2019_09_18',
-        'cftemplate_iam_user_delegates_2019_10_02'
+        'cftemplate_iam_user_delegates_2019_10_02',
+        'route53_hosted_zone_2019_10_12'
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '
@@ -237,6 +238,14 @@ class InvalidRoute53HealthCheckTypeError(schema.ValidationError):
 def isValidRoute53HealthCheckType(value):
     if value not in ('HTTP', 'HTTPS', 'TCP'):
         raise InvalidRoute53HealthCheckTypeError
+    return True
+
+class InvalidRoute53RecordSetTypeError(schema.ValidationError):
+    __doc__ = 'Route53 RecordSet "type" be one of: A | MX | CNAME | Alias | SRV | TXT | NS | SOA'
+
+def isValidRoute53RecordSetType(value):
+    if value not in ('A', 'MX', 'CNAME', 'Alias', 'SRV', 'TXT', 'NS', 'SOA'):
+        raise InvalidRoute53RecordSetTypeError
     return True
 
 class InvalidStringCanOnlyContainDigits(schema.ValidationError):
@@ -3160,20 +3169,61 @@ class IApiGatewayRestApi(IResource):
 
 # Route53
 
-class IRoute53HostedZone(IDeployable):
+class IRoute53RecordSet(Interface):
+    """
+    Route53 Record Set
+    """
+    record_name = schema.TextLine(
+        title = 'Record Set Full Name',
+        required = True
+    )
+    type = schema.TextLine(
+        title = 'Record Set Type',
+        required = True,
+        constraint = isValidRoute53RecordSetType
+    )
+    resource_records = schema.List(
+        title = 'Record Set Values',
+        required = True,
+        value_type = schema.TextLine(title='Resource Record')
+    )
+    ttl = schema.Int(
+        title = 'Record TTL',
+        required = False,
+        default = 300
+    )
+
+    @invariant
+    def is_valid_values_check(obj):
+        if obj.type in ['CNAME', 'SOA']:
+            if len(obj.resource_records) > 1:
+                raise Invalid("If 'type' is {}, you may only specify one 'value'.".format(obj.type))
+
+
+
+class IRoute53HostedZone(INamed, IDeployable):
     """
     Route53 Hosted Zone
     """
     domain_name = schema.TextLine(
         title = "Domain Name",
-        required = True,
+        required = True
     )
     account = TextReference(
         title = "AWS Account Reference",
-        required = True,
+        required = True
+    )
+    record_sets = schema.List(
+        title = 'List of Record Sets',
+        value_type = schema.Object(IRoute53RecordSet),
+        required = True
+    )
+    parent_zone = schema.TextLine(
+        title = 'Parent Hozed Zone name',
+        required = False
     )
 
-class IRoute53Resource(Interface):
+class IRoute53Resource(INamed):
     """
     Route53 Service Configuration
     """

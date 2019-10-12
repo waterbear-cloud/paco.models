@@ -257,22 +257,37 @@ class S3Resource(Named):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IRoute53RecordSet)
+class Route53RecordSet():
+    record_name = FieldProperty(schemas.IRoute53RecordSet["record_name"])
+    type = FieldProperty(schemas.IRoute53RecordSet["type"])
+    resource_records = FieldProperty(schemas.IRoute53RecordSet["resource_records"])
+    ttl = FieldProperty(schemas.IRoute53RecordSet["ttl"])
 
 @implementer(schemas.IRoute53HostedZone)
-class Route53HostedZone(Deployable):
+class Route53HostedZone(Named, Deployable):
     domain_name = FieldProperty(schemas.IRoute53HostedZone["domain_name"])
     account = FieldProperty(schemas.IRoute53HostedZone["account"])
+    record_sets = FieldProperty(schemas.IRoute53HostedZone["record_sets"])
+    parent_zone = FieldProperty(schemas.IRoute53HostedZone["parent_zone"])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.record_sets = []
 
     def has_record_sets(self):
+        if self.record_sets != None and len(self.record_sets) > 0:
+            return True
         return False
 
 @implementer(schemas.IRoute53Resource)
-class Route53Resource():
-
+class Route53Resource(Named):
+    name = 'route53'
+    title = 'Route53'
     hosted_zones = FieldProperty(schemas.IRoute53Resource["hosted_zones"])
 
-    def __init__(self, config_dict):
-        super().__init__()
+    def __init__(self, name, parent, config_dict):
+        super().__init__(name, parent)
 
         self.zones_by_account = {}
         if config_dict == None:

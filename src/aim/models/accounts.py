@@ -20,7 +20,7 @@ class Accounts(Named, dict):
     pass
 
 @implementer(schemas.IAccount)
-class Account(Named, dict):
+class Account(Named, Deployable, dict):
     """
     Object attrs:
         - account_type : string : Cloud account type
@@ -38,6 +38,7 @@ class Account(Named, dict):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
+        self.enabled = True
 
     def resolve_ref(self, ref):
         if ref.parts[1] != self.name:

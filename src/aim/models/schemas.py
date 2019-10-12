@@ -596,7 +596,7 @@ class IAccounts(IMapping):
     "Collection of Accounts"
     pass
 
-class IAccount(INamed):
+class IAccount(INamed, IDeployable):
     "Cloud account information"
     account_type = schema.TextLine(
         title = "Account Type",

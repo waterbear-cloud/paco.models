@@ -1345,7 +1345,8 @@ class ModelLoader():
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))
         else:
             self.project['resource'][name] = instantiate_method(config)
-            self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
+            if self.project['resource'][name] != None:
+                self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
         return
 
     def raise_env_name_mismatch(self, item_name, config_name, env_region):

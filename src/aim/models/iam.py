@@ -34,6 +34,9 @@ class Role(Deployable):
     role_name = FieldProperty(schemas.IRole["role_name"])
     policies = FieldProperty(schemas.IRole["policies"])
 
+    def __init__(self):
+        self.policies = []
+
     def apply_config(self, config_dict):
         loader.apply_attributes_from_config(self, config_dict)
 

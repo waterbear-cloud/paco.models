@@ -2747,6 +2747,26 @@ class ILambdaFunctionCode(Interface):
         required = False,
     )
 
+
+class ILambdaVpcConfig(INamed):
+    """
+    Lambda Environment
+    """
+    segments = schema.List(
+        title = "VPC Segments to attach the function",
+        description = "",
+        default = [],
+        value_type = TextReference(
+            title = "Segment",
+        ),
+        required = False
+    )
+    security_groups = schema.List(
+        title = "List of VPC Security Group Ids",
+        value_type = TextReference(),
+        required = False
+    )
+
 class ILambda(IResource, IMonitorable):
     """
     Lambda Function resource
@@ -2821,6 +2841,11 @@ class ILambda(IResource, IMonitorable):
         ),
         default = [],
         required = False,
+    )
+    vpc_config = schema.Object(
+        title = "Vpc Configuration",
+        required=False,
+        schema = ILambdaVpcConfig
     )
 
 # API Gateway

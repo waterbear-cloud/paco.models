@@ -551,6 +551,11 @@ class LambdaFunctionCode():
     s3_bucket = FieldProperty(schemas.ILambdaFunctionCode['s3_bucket'])
     s3_key = FieldProperty(schemas.ILambdaFunctionCode['s3_key'])
 
+@implementer(schemas.ILambdaVpcConfig)
+class LambdaVpcConfig(Named):
+    segments = FieldProperty(schemas.ILambdaVpcConfig['segments'])
+    security_groups = FieldProperty(schemas.ILambdaVpcConfig['security_groups'])
+
 @implementer(schemas.ILambda)
 class Lambda(Resource, Monitorable):
     """
@@ -570,6 +575,7 @@ class Lambda(Resource, Monitorable):
     sdb_cache = FieldProperty(schemas.ILambda['sdb_cache'])
     layers = FieldProperty(schemas.ILambda['layers'])
     sns_topics = FieldProperty(schemas.ILambda['sns_topics'])
+    vpc_config = FieldProperty(schemas.ILambda['vpc_config'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
@@ -807,6 +813,10 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
     role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.role_policies = []
 
 @implementer(schemas.IDeploymentPipelineDeployS3)
 class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):

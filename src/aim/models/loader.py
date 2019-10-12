@@ -29,7 +29,7 @@ from aim.models.project import Project, Credentials
 from aim.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources, LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, \
-    S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, \
+    S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
@@ -323,7 +323,12 @@ SUB_TYPES_CLASS_MAP = {
         'environment': ('unnamed_dict', LambdaEnvironment),
         'code': ('unnamed_dict', LambdaFunctionCode),
         'iam_role': ('unnamed_dict', Role),
-        'monitoring': ('unnamed_dict', MonitorConfig)
+        'monitoring': ('unnamed_dict', MonitorConfig),
+        'vpc_config': ('obj', LambdaVpcConfig)
+    },
+    LambdaVpcConfig: {
+        'security_groups': ('str_list', TextReference),
+        'segments': ('str_list', TextReference)
     },
     LambdaEnvironment: {
         'variables': ('obj_list', LambdaVariable)

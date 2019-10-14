@@ -603,13 +603,36 @@ user_data_script = {
 	},
 	'install_aws_cli': {
 		'amazon': '', # AWS is installed by default on Amazon linux
-		'ubuntu': 'apt install awscli -y',
+		'ubuntu': 'apt-get install awscli -y',
 		'centos': 'pip3 install awscli'
 	},
 	'install_wget': {
 		'amazon': 'yum install wget -y',
 		'centos': 'yum install wget -y',
 		'ubuntu': 'apt-get install wget -y'
+	},
+	'install_efs_utils': {
+		'amazon': 'yum install -y amazon-efs-utils cachefilesd',
+		'centos': 'yum install -y amazon-efs-utils cachefilesd',
+		'ubuntu': 'apt-get install cachefilesd -y'
+	},
+	'enable_efs_utils': {
+		'amazon': """
+/sbin/service cachefilesd start
+systemctl enable cachefilesd
+""",
+		'ubuntu': """
+sed -i 's/#RUN=yes/RUN=yes/g' /etc/default/cachefilesd
+/etc/init.d/cachefilesd start
+""",
+		'centos': """
+/sbin/service cachefilesd start
+systemctl enable cachefilesd
+""" },
+	'mount_efs': {
+		'amazon': 'mount -a -t efs',
+		'ubuntu': 'mount -a -t nfs',
+		'centos': 'mount -a -t nfs'
 	}
 
 }

@@ -160,7 +160,8 @@ valid_legacy_flags = (
         'lambda_controller_type_2019_09_18',
         'cloudwatch_controller_type_2019_09_18',
         'cftemplate_iam_user_delegates_2019_10_02',
-        'route53_hosted_zone_2019_10_12'
+        'route53_hosted_zone_2019_10_12',
+        'netenv_loggroup_name_2019_10_13'
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '
@@ -1704,10 +1705,12 @@ class INATGateway(INamed, IDeployable, IMapping):
     """
     AWS Resource: NAT Gateway
     """
-    availability_zone = schema.Int(
-        title="Availability Zone",
-        description = "",
+    availability_zone = schema.TextLine(
+        # Can be: all | 1 | 2 | 3 | 4 | ...
+        title = 'Availability Zones to launch instances in.',
+        default = 'all',
         required = False,
+        constraint = IsValidASGAvailabilityZone
     )
     segment = TextReference(
         title="Segment",
@@ -1979,6 +1982,18 @@ class INetwork(INetworkEnvironment):
         required = False,
     )
 
+class ISecretsManagerSecret(INamed, IDeployable):
+    """Secrets Manager Application Name"""
+
+class ISecretsManagerGroup(INamed, IMapping):
+    """Secrets Manager Group"""
+
+class ISecretsManagerApplication(INamed, IMapping):
+    """Secrets Manager Application"""
+
+class ISecretsManager(INamed, IMapping):
+    """Secrets Manager"""
+
 # Environment, Account and Region containers
 
 class IAccountContainer(INamed, IMapping):
@@ -2000,6 +2015,11 @@ class IEnvironmentDefault(IRegionContainer):
         title = "Network",
         required = False,
         schema = INetwork,
+    )
+    secrets_manager = schema.Object(
+        title = "Secrets Manager",
+        required = False,
+        schema = ISecretsManager
     )
 
 class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
@@ -2379,8 +2399,9 @@ class IEFSMount(IDeployable):
         required = True
     )
     target = TextReference(
-        title = 'EFS Target Resoruce Reference',
-        required = True
+        title = 'EFS Target Resource Reference',
+        required = True,
+        str_ok = True
     )
 
 class ISimpleCloudWatchAlarm(Interface):
@@ -2699,6 +2720,13 @@ class IASG(IResource, IMonitorable):
         default = 'all',
         required = False,
         constraint = IsValidASGAvailabilityZone
+    )
+    secrets = schema.List(
+        title = 'List of Secrets Manager References',
+        value_type = TextReference(
+            title = 'Secrets Manager Reference'
+        ),
+        required = False
     )
 
 # Lambda

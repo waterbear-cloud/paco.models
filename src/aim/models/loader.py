@@ -37,7 +37,8 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
     DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
-    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP
+    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
+    SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
@@ -221,6 +222,7 @@ SUB_TYPES_CLASS_MAP = {
         'efs_mounts': ('obj_list', EFSMount),
         'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy)),
         'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
+        'secrets': ('str_list', TextReference),
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),
@@ -274,6 +276,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     Network: {
         'vpc': ('unnamed_dict', VPC)
+    },
+    NATGateway: {
+        'default_route_segments': ('str_list', TextReference)
     },
     VPC: {
         'nat_gateway': ('named_dict', NATGateway),
@@ -486,6 +491,8 @@ Verify that '{}' has the correct indentation in the config file.
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         for name, field in fields.items():
+            if schemas.IEnvironmentDefault.providedBy(obj) and name == 'secrets_manager':
+                continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'applications':
                 continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'network':
@@ -573,6 +580,7 @@ Verify that '{}' has the correct indentation in the config file.
                 if not field.readonly:
                     field.validate(getattr(obj, name, None))
             except ValidationError as exc:
+                breakpoint()
                 raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
 def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
@@ -1417,6 +1425,71 @@ class ModelLoader():
                 read_file_path=self.read_file_path
             )
 
+    def instantiate_secrets_manager(
+        self,
+        env_region_config,
+        env_region,
+        global_config
+    ):
+        """Load secrets_manager into an EnvironmentRegion
+
+        SecretsManager merge the global ApplicationEngine configuration
+        with the EnvironmentDefault configuration with the final
+        EnvironmentRegion configuration.
+        """
+        if 'secrets_manager' not in env_region_config:
+            return
+        global_app_config = global_config['secrets_manager']
+        for app_name, app_config in env_region_config['secrets_manager'].items():
+            secrets_app = SecretsManagerApplication(app_name, getattr(env_region, 'secrets_manager'))
+            for group_name, group_config in app_config.items():
+                secrets_group = SecretsManagerGroup(group_name, secrets_app)
+                for secret_name, secret_config in group_config.items():
+                    secret = SecretsManagerSecret(secret_name, secrets_group)
+
+                    if env_region.name == 'default':
+                        # merge global with default
+                        try:
+                            global_secret_config = global_config['secrets_manager'][app_name][group_name][secret_name]
+                        except KeyError:
+                            self.raise_env_name_mismatch('{}.{}.{}'.format(app_name, group_name, secret_name), 'secrets_manager', env_region)
+                        secret_config = merge(
+                            global_secret_config,
+                            env_region_config['secrets_manager'][app_name][group_name][secret_name])
+                        annotate_base_config(secret, secret_config, global_secret_config)
+                    else:
+                        # merge global with default, then merge that with local config
+                        env_default = global_config['environments'][env_region.__parent__.name]['default']
+                        if 'secrets_manager' in env_default:
+                            try:
+                                default_region_config = env_default['secrets_manager'][app_name][group_name][secret_name]
+                                global_secret_config = global_app_config[app_name][group_name][secret_name]
+                            except KeyError:
+                                self.raise_env_name_mismatch('{}.{}.{}'.format(app_name, group_name, secret_name), 'secrets_manager', env_region)
+                            default_config = merge(global_secret_config, default_region_config)
+                            secret_config = merge(default_config, secret_config)
+                            annotate_base_config(secret, secret_config, default_config)
+                        # no default config, merge local with global
+                        else:
+                            try:
+                                global_secret_config = global_app_config[app_name][group_name][secret_name]
+                            except KeyError:
+                                self.raise_env_name_mismatch('{}.{}.{}'.format(app_name, group_name, secret_name), 'secrets_manager', env_region)
+                            secret_config = merge(global_secret_config, secret_config)
+                            annotate_base_config(secret, secret_config, global_secret_config)
+
+                    apply_attributes_from_config(
+                        secret,
+                        secret_config,
+                        self.config_folder,
+                        lookup_config=self.monitor_config,
+                        read_file_path=self.read_file_path
+                    )
+                    secrets_group[secret_name] = secret
+                secrets_app[group_name] = secrets_group
+
+            env_region.secrets_manager[app_name] = secrets_app # save
+
     def instantiate_network_environments(self, name, config, read_file_path):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
          # Network Environment
@@ -1489,6 +1562,11 @@ class ModelLoader():
 
                     # Applications
                     self.instantiate_applications(
+                        env_region_config,
+                        env_region,
+                        config
+                    )
+                    self.instantiate_secrets_manager(
                         env_region_config,
                         env_region,
                         config

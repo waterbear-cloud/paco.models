@@ -83,6 +83,11 @@ class EnvironmentDefault(Named, dict):
         self.network.title = 'Network'
         self.__setitem__('network', self.network)
 
+        # secrets_manager
+        self.secrets_manager = aim.models.applications.SecretsManager('secrets_manager', self)
+        self.secrets_manager.title = 'SecretsManager'
+        self.__setitem__('secrets_manager', self.secrets_manager)
+
 
 @implementer(schemas.IEnvironmentRegion)
 class EnvironmentRegion(EnvironmentDefault, Deployable, dict):

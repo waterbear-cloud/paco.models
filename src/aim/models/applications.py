@@ -436,6 +436,14 @@ class ASG(Resource, Monitorable):
     scaling_policies = FieldProperty(schemas.IASG['scaling_policies'])
     lifecycle_hooks = FieldProperty(schemas.IASG['lifecycle_hooks'])
     availability_zone = FieldProperty(schemas.IASG['availability_zone'])
+    secrets = FieldProperty(schemas.IASG['secrets'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.secrets = []
+        self.target_groups = []
+        self.load_balancers = []
+        self.efs_mounts = []
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':
@@ -890,3 +898,22 @@ class EFS(Resource):
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.ISecretsManagerSecret)
+class SecretsManagerSecret(Named, Deployable):
+    """Secrets Manager Application Name"""
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.ISecretsManagerGroup)
+class SecretsManagerGroup(Named, dict):
+    """Secrets Manager Group"""
+
+@implementer(schemas.ISecretsManagerApplication)
+class SecretsManagerApplication(Named, dict):
+    """Secrets Manager Application"""
+
+@implementer(schemas.ISecretsManager)
+class SecretsManager(Named, dict):
+    """Secrets Manager"""

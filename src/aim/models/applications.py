@@ -263,6 +263,10 @@ class S3Bucket(Resource, Deployable):
 
         return { "Status": status }
 
+    def get_aws_name(self):
+        "Name of the S3 Bucket in AWS"
+        return self.get_bucket_name()
+
     def get_bucket_name(self):
         "Returns the complete computed bucket name"
         # external_resource buckets are simply the name of the bucket
@@ -445,6 +449,24 @@ class ASG(Resource, Monitorable):
         self.load_balancers = []
         self.efs_mounts = []
 
+    def get_aws_name(self):
+        "AutoScalingGroup Name for AWS"
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        app = get_parent_by_interface(self, schemas.IApplication)
+        resource_group = get_parent_by_interface(self, schemas.IResourceGroup)
+        return self.create_resource_name_join(
+                name_list=[
+                    netenv.name,
+                    env.name,
+                    app.name,
+                    resource_group.name,
+                    self.name
+                ],
+                separator='-',
+                camel_case=True
+        )
+
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':
             return self.resolve_ref_obj.resolve_ref(ref)
@@ -546,12 +568,19 @@ class LambdaVariable():
     key = FieldProperty(schemas.ILambdaVariable['key'])
     value = FieldProperty(schemas.ILambdaVariable['value'])
 
+    def __init__(self, key='', value=''):
+        self.key = key
+        self.value = value
+
 @implementer(schemas.ILambdaEnvironment)
 class LambdaEnvironment(dict):
     """
     Lambda Environment
     """
     variables = FieldProperty(schemas.ILambdaEnvironment['variables'])
+
+    def __init__(self):
+        self.variables = []
 
 @implementer(schemas.ILambdaFunctionCode)
 class LambdaFunctionCode():
@@ -584,6 +613,20 @@ class Lambda(Resource, Monitorable):
     layers = FieldProperty(schemas.ILambda['layers'])
     sns_topics = FieldProperty(schemas.ILambda['sns_topics'])
     vpc_config = FieldProperty(schemas.ILambda['vpc_config'])
+
+    def add_environment_variable(self, name, value):
+        """Adds a Name-Value pair to the environment field.
+        If an environment variable with the name already exists, it will be set to the new value."""
+        if self.environment == None:
+            self.environment = LambdaEnvironment()
+
+        for variable in self.environment.variables:
+            if variable.key == name:
+                variable.value = value
+                return
+        self.environment.variables.append(
+            LambdaVariable(name, value)
+        )
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

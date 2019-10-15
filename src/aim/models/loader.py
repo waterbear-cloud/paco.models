@@ -561,6 +561,7 @@ Verify that '{}' has the correct indentation in the config file.
                         else:
                             setattr(obj, name, copy.deepcopy(value))
                     except (ValidationError, AttributeError) as exc:
+                        breakpoint()
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object
@@ -582,7 +583,6 @@ Verify that '{}' has the correct indentation in the config file.
                 if not field.readonly:
                     field.validate(getattr(obj, name, None))
             except ValidationError as exc:
-                breakpoint()
                 raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
 def raise_invalid_schema_error(obj, name, value, read_file_path, exc):

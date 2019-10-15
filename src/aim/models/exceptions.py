@@ -12,3 +12,6 @@ class InvalidCFNMapping(Exception):
 
 class InvalidAimBucket(Exception):
     pass
+
+class InvalidAWSResourceName(Exception):
+    pass

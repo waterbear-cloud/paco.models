@@ -2327,6 +2327,11 @@ class IRole(IDeployable):
         default = "",
         required = False
     )
+    global_role_name = schema.Bool(
+        title = "Role name is globally unique and will not be hashed",
+        required = False,
+        default = False,
+    )
     policies = schema.List(
         title = "Policies",
         value_type=schema.Object(

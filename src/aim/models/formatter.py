@@ -6,11 +6,14 @@ def get_formatted_model_context(obj):
     """
     # ToDo: should work for all NetEnv objects, will need expanding to
     # handle Services and other objects
-    netenv = get_parent_by_interface(obj, schemas.INetworkEnvironment)
-    env = get_parent_by_interface(obj, schemas.IEnvironment)
-    envreg = get_parent_by_interface(obj, schemas.IEnvironmentRegion)
-    app = get_parent_by_interface(obj, schemas.IApplication)
-    group = get_parent_by_interface(obj, schemas.IResourceGroup)
+    try:
+        netenv = get_parent_by_interface(obj, schemas.INetworkEnvironment)
+        env = get_parent_by_interface(obj, schemas.IEnvironment)
+        envreg = get_parent_by_interface(obj, schemas.IEnvironmentRegion)
+        app = get_parent_by_interface(obj, schemas.IApplication)
+        group = get_parent_by_interface(obj, schemas.IResourceGroup)
+    except AttributeError:
+        return 'Obj has no parent in model'
     out = "AIM reference: {}\n".format(obj.aim_ref)
     if netenv != None:
         if netenv.title:

@@ -1,10 +1,14 @@
 Changelog for aim.models
 =================
 
-6.0.1 (unreleased)
+6.1.0 (unreleased)
 ------------------
 
 ### Added
+
+- `global_role_name` field for IAM Role can be set to True and the RoleName
+  will not be hashed. Can only be used for global Roles, otherwise if these
+  Roles overlap per-environment, things will break!
 
 - `monitoring.health_checks` which can contain HealthCheck Resources.
   IRoute53HealthCheck resource for Route53 health checks.

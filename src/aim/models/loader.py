@@ -51,6 +51,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, \
     Route53HealthCheck
+from aim.models.events import EventsRule
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from aim.models.accounts import Account, AdminIAMUser
@@ -114,6 +115,7 @@ RESOURCES_CLASS_MAP = {
     'EFS': EFS,
     'EIP': EIP,
     'Route53HealthCheck': Route53HealthCheck,
+    'EventsRule': EventsRule,
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -581,7 +583,6 @@ Verify that '{}' has the correct indentation in the config file.
                 if not field.readonly:
                     field.validate(getattr(obj, name, None))
             except ValidationError as exc:
-                breakpoint()
                 raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
 def raise_invalid_schema_error(obj, name, value, read_file_path, exc):

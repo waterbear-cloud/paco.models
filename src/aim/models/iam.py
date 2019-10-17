@@ -32,6 +32,7 @@ class Role(Deployable):
     permissions_boundary = FieldProperty(schemas.IRole["permissions_boundary"])
     assume_role_policy = FieldProperty(schemas.IRole["assume_role_policy"])
     role_name = FieldProperty(schemas.IRole["role_name"])
+    global_role_name = FieldProperty(schemas.IRole["global_role_name"])
     policies = FieldProperty(schemas.IRole["policies"])
 
     def __init__(self):

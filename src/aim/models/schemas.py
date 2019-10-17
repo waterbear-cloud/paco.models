@@ -1226,6 +1226,34 @@ class ICloudWatchLogging(INamed, ICloudWatchLogRetention):
         required = False,
     )
 
+# Events
+
+class IEventsRule(IResource):
+    """
+    Events Rule
+    """
+    # ToDo: add event_pattern field and invariant to make schedule_expression conditional
+    # ToDo: constraint regex that validates schedule_expression
+    description = schema.Text(
+        title = "Description",
+        required = False,
+        default = '',
+        max_length=512,
+    )
+    schedule_expression = schema.TextLine(
+        title = "Schedule Expression",
+        required = True
+    )
+    # ToDo: constrain List to not be empty
+    targets = schema.List(
+        title = "The AWS Resources that are invoked when the Rule is triggered.",
+        description = "",
+        required = True,
+        value_type=TextReference(
+            title = "AIM Reference to an AWS Resource to invoke"
+        ),
+    )
+
 # Metric and monitoring schemas
 
 class IMetric(Interface):
@@ -2305,6 +2333,11 @@ class IRole(IDeployable):
         title = "Role name",
         default = "",
         required = False
+    )
+    global_role_name = schema.Bool(
+        title = "Role name is globally unique and will not be hashed",
+        required = False,
+        default = False,
     )
     policies = schema.List(
         title = "Policies",

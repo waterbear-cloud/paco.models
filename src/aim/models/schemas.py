@@ -161,7 +161,8 @@ valid_legacy_flags = (
         'cloudwatch_controller_type_2019_09_18',
         'cftemplate_iam_user_delegates_2019_10_02',
         'route53_hosted_zone_2019_10_12',
-        'netenv_loggroup_name_2019_10_13'
+        'netenv_loggroup_name_2019_10_13',
+        'route53_record_set_2019_10_16'
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '
@@ -2155,8 +2156,9 @@ class IListener(IPortProtocol):
 
 class IDNS(Interface):
     hosted_zone = TextReference(
-        title = "Hosted Zone Id Reference",
-        required = False
+        title = "Hosted Zone Id",
+        required = False,
+        str_ok = True
     )
     domain_name = TextReference(
         title = "Domain name",
@@ -2165,6 +2167,11 @@ class IDNS(Interface):
      )
     ssl_certificate = TextReference(
         title = "SSL certificate Reference",
+        required = False
+    )
+    ttl = schema.Int(
+        title = "TTL",
+        default = 300,
         required = False
     )
 
@@ -3778,7 +3785,7 @@ class IRDSOptionConfiguration(Interface):
 
 
 
-class IRDS(Interface):
+class IRDS(IResource):
     """
     RDS Common Interface
     """
@@ -3855,6 +3862,13 @@ class IRDS(Interface):
         value_type = TextReference(),
         required = False,
     )
+    dns = schema.List(
+        title = "List of DNS for the RDS",
+        value_type = schema.Object(IDNS),
+        default = [],
+        required = False
+    )
+
     primary_domain_name = TextReference(
         title = "Primary Domain Name",
         str_ok = True,

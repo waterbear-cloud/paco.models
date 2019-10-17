@@ -156,7 +156,8 @@ SUB_TYPES_CLASS_MAP = {
     },
     RDSMysql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
-        'security_groups': ('str_list', TextReference)
+        'security_groups': ('str_list', TextReference),
+        'dns': ('obj_list', DNS)
     },
     ElastiCacheRedis: {
         'security_groups': ('str_list', TextReference),

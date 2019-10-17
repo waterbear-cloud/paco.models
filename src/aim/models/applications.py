@@ -504,6 +504,7 @@ class DNS():
     hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
     domain_name = FieldProperty(schemas.IDNS['domain_name'])
     ssl_certificate = FieldProperty(schemas.IDNS['ssl_certificate'])
+    ttl = FieldProperty(schemas.IDNS['ttl'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == "ssl_certificate.arn":
@@ -683,6 +684,9 @@ class CloudFrontFactory(Named):
         super().__init__(name, parent)
         self.domain_aliases = []
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.ICloudFront)
 class CloudFront(Resource, Deployable, Monitorable):
     title = "CloudFront"
@@ -717,7 +721,7 @@ class RDSOptionConfiguration():
     port = FieldProperty(schemas.IRDSOptionConfiguration['port'])
 
 @implementer(schemas.IRDS)
-class RDS():
+class RDS(Resource):
     title = "RDS"
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])
@@ -737,10 +741,17 @@ class RDS():
     backup_retention_period = FieldProperty(schemas.IRDS['backup_retention_period'])
     maintenance_preferred_window = FieldProperty(schemas.IRDS['maintenance_preferred_window'])
     security_groups = FieldProperty(schemas.IRDS['security_groups'])
-    primary_domain_name = FieldProperty(schemas.IRDS['primary_domain_name'])
-    primary_hosted_zone = FieldProperty(schemas.IRDS['primary_hosted_zone'])
+    dns = FieldProperty(schemas.IRDS['dns'])
     db_snapshot_identifier = FieldProperty(schemas.IRDS['db_snapshot_identifier'])
     option_configurations = FieldProperty(schemas.IRDS['option_configurations'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.dns = []
+        self.option_configurations = []
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDS, Resource):

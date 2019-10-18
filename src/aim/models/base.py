@@ -272,6 +272,9 @@ class Resource(Named, Deployable, Regionalized, DNSEnablable):
     order = FieldProperty(schemas.IResource['order'])
     change_protected = FieldProperty(schemas.IResource['change_protected'])
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
     def get_account(self):
         """
         Return the Account object that this resource is provisioned to

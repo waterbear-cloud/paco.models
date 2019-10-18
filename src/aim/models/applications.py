@@ -408,6 +408,26 @@ class EIP(Resource):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IEBSVolumeMount)
+class EBSVolumeMount(Deployable):
+    title = 'EBS Volume Mount Folder and Volume reference'
+    folder = FieldProperty(schemas.IEBSVolumeMount['folder'])
+    volume = FieldProperty(schemas.IEBSVolumeMount['volume'])
+    device = FieldProperty(schemas.IEBSVolumeMount['device'])
+    filesystem = FieldProperty(schemas.IEBSVolumeMount['filesystem'])
+
+@implementer(schemas.IEBS)
+class EBS(Resource):
+    title = "Elastic Block Store Volume"
+    size_gib = FieldProperty(schemas.IEBS['size_gib'])
+    availability_zone = FieldProperty(schemas.IEBS['availability_zone'])
+    volume_type = FieldProperty(schemas.IEBS['volume_type'])
+
+@implementer(schemas.IEC2LaunchOptions)
+class EC2LaunchOptions(Resource):
+    title = "EC2 Launch Options"
+    update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
+
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
@@ -437,10 +457,12 @@ class ASG(Resource, Monitorable):
     instance_monitoring = FieldProperty(schemas.IASG['instance_monitoring'])
     scaling_policy_cpu_average = FieldProperty(schemas.IASG['scaling_policy_cpu_average'])
     efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])
+    ebs_volume_mounts = FieldProperty(schemas.IASG['ebs_volume_mounts'])
     scaling_policies = FieldProperty(schemas.IASG['scaling_policies'])
     lifecycle_hooks = FieldProperty(schemas.IASG['lifecycle_hooks'])
     availability_zone = FieldProperty(schemas.IASG['availability_zone'])
     secrets = FieldProperty(schemas.IASG['secrets'])
+    launch_options = FieldProperty(schemas.IASG['launch_options'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -448,6 +470,7 @@ class ASG(Resource, Monitorable):
         self.target_groups = []
         self.load_balancers = []
         self.efs_mounts = []
+        self.ebs_volume_mounts = []
 
     def get_aws_name(self):
         "AutoScalingGroup Name for AWS"
@@ -526,6 +549,7 @@ class DNS():
     hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
     domain_name = FieldProperty(schemas.IDNS['domain_name'])
     ssl_certificate = FieldProperty(schemas.IDNS['ssl_certificate'])
+    ttl = FieldProperty(schemas.IDNS['ttl'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == "ssl_certificate.arn":
@@ -726,6 +750,9 @@ class CloudFrontFactory(Named):
         super().__init__(name, parent)
         self.domain_aliases = []
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.ICloudFront)
 class CloudFront(Resource, Deployable, Monitorable):
     title = "CloudFront"
@@ -760,7 +787,7 @@ class RDSOptionConfiguration():
     port = FieldProperty(schemas.IRDSOptionConfiguration['port'])
 
 @implementer(schemas.IRDS)
-class RDS():
+class RDS(Resource):
     title = "RDS"
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])
@@ -780,10 +807,17 @@ class RDS():
     backup_retention_period = FieldProperty(schemas.IRDS['backup_retention_period'])
     maintenance_preferred_window = FieldProperty(schemas.IRDS['maintenance_preferred_window'])
     security_groups = FieldProperty(schemas.IRDS['security_groups'])
-    primary_domain_name = FieldProperty(schemas.IRDS['primary_domain_name'])
-    primary_hosted_zone = FieldProperty(schemas.IRDS['primary_hosted_zone'])
+    dns = FieldProperty(schemas.IRDS['dns'])
     db_snapshot_identifier = FieldProperty(schemas.IRDS['db_snapshot_identifier'])
     option_configurations = FieldProperty(schemas.IRDS['option_configurations'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.dns = []
+        self.option_configurations = []
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDS, Resource):

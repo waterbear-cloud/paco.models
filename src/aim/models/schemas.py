@@ -161,7 +161,8 @@ valid_legacy_flags = (
         'cloudwatch_controller_type_2019_09_18',
         'cftemplate_iam_user_delegates_2019_10_02',
         'route53_hosted_zone_2019_10_12',
-        'netenv_loggroup_name_2019_10_13'
+        'netenv_loggroup_name_2019_10_13',
+        'route53_record_set_2019_10_16'
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '
@@ -517,6 +518,14 @@ def IsValidASGAvailabilityZone(value):
         raise InvalidASGAvailabilityZone
     return True
 
+# EBS Volume Type
+class InvalidEBSVolumeType(schema.ValidationError):
+    __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
+
+def IsValidEBSVolumeType(value):
+    if value not in ('gp2', 'io1', 'sc1', 'st1', 'standard'):
+        raise InvalidEBSVolumeType
+    return True
 
 # ----------------------------------------------------------------------------
 # Here be Schemas!
@@ -2183,8 +2192,9 @@ class IListener(IPortProtocol):
 
 class IDNS(Interface):
     hosted_zone = TextReference(
-        title = "Hosted Zone Id Reference",
-        required = False
+        title = "Hosted Zone Id",
+        required = False,
+        str_ok = True
     )
     domain_name = TextReference(
         title = "Domain name",
@@ -2193,6 +2203,11 @@ class IDNS(Interface):
      )
     ssl_certificate = TextReference(
         title = "SSL certificate Reference",
+        required = False
+    )
+    ttl = schema.Int(
+        title = "TTL",
+        default = 300,
         required = False
     )
 
@@ -2568,6 +2583,62 @@ class IEIP(IResource):
         required = False
     )
 
+class IEBSVolumeMount(IDeployable):
+    """
+    EBS Volume Mount Configuration
+    """
+    folder = schema.TextLine(
+        title = 'Folder to mount the EBS Volume',
+        required = True
+    )
+    volume = TextReference(
+        title = 'EBS Volume Resource Reference',
+        required = True,
+        str_ok = True
+    )
+    device = schema.TextLine(
+        title = 'Device to mount the EBS Volume with.',
+        required = True
+    )
+    filesystem = schema.TextLine(
+        title = 'Filesystem to mount the EBS Volume with.',
+        required = True
+    )
+
+class IEBS(IResource):
+    """
+    Elastic Block Store Volume
+    """
+
+    size_gib = schema.Int(
+        title="Volume Size in GiB",
+        description="",
+        default=10,
+        required = True
+    )
+    availability_zone = schema.Int(
+        # Can be: 1 | 2 | 3 | 4 | ...
+        title = 'Availability Zone to create Volume in.',
+        required = True
+    )
+    volume_type = schema.TextLine(
+        title="Volume Type",
+        description="Must be one of: gp2 | io1 | sc1 | st1 | standard",
+        default='gp2',
+        constraint = IsValidEBSVolumeType,
+        required = False
+    )
+
+class IEC2LaunchOptions(INamed):
+    """
+    EC2 Launch Options
+    """
+    update_packages = schema.Bool(
+        title = 'Update Distribution Packages',
+        required = False,
+        default = False
+    )
+
 class IASG(IResource, IMonitorable):
     """
     Auto Scaling Group
@@ -2729,6 +2800,12 @@ class IASG(IResource, IMonitorable):
         required = False,
         default = []
     )
+    ebs_volume_mounts = schema.List(
+        title = 'Elastic Block Store Volume Mounts',
+        value_type = schema.Object(IEBSVolumeMount),
+        required = False,
+        default = []
+    )
     scaling_policies = schema.Object(
         title='Scaling Policies',
         schema=IASGScalingPolicies,
@@ -2751,6 +2828,11 @@ class IASG(IResource, IMonitorable):
         value_type = TextReference(
             title = 'Secrets Manager Reference'
         ),
+        required = False
+    )
+    launch_options = schema.Object(
+        title = 'EC2 Launch Options',
+        schema = IEC2LaunchOptions,
         required = False
     )
 
@@ -3803,7 +3885,7 @@ class IRDSOptionConfiguration(Interface):
 
 
 
-class IRDS(Interface):
+class IRDS(IResource):
     """
     RDS Common Interface
     """
@@ -3880,6 +3962,13 @@ class IRDS(Interface):
         value_type = TextReference(),
         required = False,
     )
+    dns = schema.List(
+        title = "List of DNS for the RDS",
+        value_type = schema.Object(IDNS),
+        default = [],
+        required = False
+    )
+
     primary_domain_name = TextReference(
         title = "Primary Domain Name",
         str_ok = True,

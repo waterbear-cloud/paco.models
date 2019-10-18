@@ -15,6 +15,43 @@ Changelog for aim.models
 
 - `region_name` property can be overrode if a `overrode_region_name` attribute is set.
 
+- Added a CodeBuild IAM Permission for IAM Users
+
+- Added `resolve_ref` method to DeploymentPipelineConfiguration
+
+- Added the EIP Application Resource and a support 'eip' field to the ASG resource for associating an EIP with a single instance ASG.
+
+- Added AWS Cli install commands to vocabulary.
+
+- Added `dns` to EIP Application Resource
+
+- Added `cftemplate_iam_user_delegates_2019_10_02` legacy flag to make user delegate role stack names consistent with others.
+
+- Added `route53_hosted_zone_2019_10_12` legacy flag for Route53 CFTemplate refactor.
+
+- Added `route53_record_set_2019_10_16` legacy flag for the Route53 RecordSet refactor.
+
+- Added `availability_zone` for locking in an ASG to a single Availability Zone.
+
+- Added `parameter_group` to IElastiCache Application Resource
+
+- Added `vpc_associations` to IPrivateHosted.
+
+- Added `vpc_config` to the ILambda Application Resources
+
+- Added `secrets_manager` to IIEnvironmentDefault.
+
+- Added `ttl` to IDNS
+
+- Added caching to instance AMI ID function.ref lookups.
+
+- Added the EBS Application Resources.
+  Added `ebs_volume_mounts` to IASG to mount volumes to single instance groups.
+
+- Added `launch_options` to IASG as an IEC2LaunchOptions object. The initial option is update_packages which will update the linux distributions packages on launch.
+
+- Added resolve_ref() to Resource in base.py as a catch all.
+
 ### Changed
 
 - `load_resources` was removed and you can now simply apply_attributes to
@@ -25,6 +62,9 @@ Changelog for aim.models
 
 - IApplication is now IMonitorable. Alarms at the Application level must
   specify their Namespace and Dimensions.
+
+- Changed RDS `primary_domain_name` and `primary_hosted_zone` to an IDNS object
+
 
 6.0.0 (2019-09-27)
 ------------------

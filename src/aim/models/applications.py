@@ -454,6 +454,7 @@ class ASG(Resource, Monitorable):
     load_balancers = FieldProperty(schemas.IASG['load_balancers'])
     termination_policies =  FieldProperty(schemas.IASG['termination_policies'])
     user_data_script =  FieldProperty(schemas.IASG['user_data_script'])
+    user_data_pre_script =  FieldProperty(schemas.IASG['user_data_pre_script'])
     instance_monitoring = FieldProperty(schemas.IASG['instance_monitoring'])
     scaling_policy_cpu_average = FieldProperty(schemas.IASG['scaling_policy_cpu_average'])
     efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])

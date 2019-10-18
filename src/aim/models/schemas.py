@@ -2780,6 +2780,12 @@ class IASG(IResource, IMonitorable):
         default="",
         required = False,
     )
+    user_data_pre_script = schema.Text(
+        title="User data pre-script",
+        description="",
+        default="",
+        required = False,
+    )
     instance_monitoring =schema.Bool(
         title="Instance monitoring",
         description="",

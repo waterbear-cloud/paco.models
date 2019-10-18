@@ -2703,14 +2703,6 @@ class IASG(IResource, IMonitorable):
         default = [],
         required = False,
     )
-    termination_policies = schema.List(
-        title="Termination policies",
-        description="",
-        value_type=schema.TextLine(
-            title="Termination policy"
-        ),
-        required = False,
-    )
     user_data_script = schema.Text(
         title="User data script",
         description="",

@@ -38,7 +38,8 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
     DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
-    SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret
+    EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
+    EC2LaunchOptions
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
@@ -116,6 +117,8 @@ RESOURCES_CLASS_MAP = {
     'EIP': EIP,
     'Route53HealthCheck': Route53HealthCheck,
     'EventsRule': EventsRule,
+    'EBS': EBS,
+    'EBSVolumeMount': EBSVolumeMount
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -223,9 +226,11 @@ SUB_TYPES_CLASS_MAP = {
         'monitoring': ('unnamed_dict', MonitorConfig),
         'instance_iam_role': ('unnamed_dict', Role),
         'efs_mounts': ('obj_list', EFSMount),
+        'ebs_volume_mounts': ('obj_list', EBSVolumeMount),
         'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy)),
         'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
         'secrets': ('str_list', TextReference),
+        'launch_options': ('obj', EC2LaunchOptions),
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),

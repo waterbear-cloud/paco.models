@@ -518,6 +518,14 @@ def IsValidASGAvailabilityZone(value):
         raise InvalidASGAvailabilityZone
     return True
 
+# EBS Volume Type
+class InvalidEBSVolumeType(schema.ValidationError):
+    __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
+
+def IsValidEBSVolumeType(value):
+    if value not in ('gp2', 'io1', 'sc1', 'st1', 'standard'):
+        raise InvalidEBSVolumeType
+    return True
 
 # ----------------------------------------------------------------------------
 # Here be Schemas!
@@ -2575,6 +2583,62 @@ class IEIP(IResource):
         required = False
     )
 
+class IEBSVolumeMount(IDeployable):
+    """
+    EBS Volume Mount Configuration
+    """
+    folder = schema.TextLine(
+        title = 'Folder to mount the EBS Volume',
+        required = True
+    )
+    volume = TextReference(
+        title = 'EBS Volume Resource Reference',
+        required = True,
+        str_ok = True
+    )
+    device = schema.TextLine(
+        title = 'Device to mount the EBS Volume with.',
+        required = True
+    )
+    filesystem = schema.TextLine(
+        title = 'Filesystem to mount the EBS Volume with.',
+        required = True
+    )
+
+class IEBS(IResource):
+    """
+    Elastic Block Store Volume
+    """
+
+    size_gib = schema.Int(
+        title="Volume Size in GiB",
+        description="",
+        default=10,
+        required = True
+    )
+    availability_zone = schema.Int(
+        # Can be: 1 | 2 | 3 | 4 | ...
+        title = 'Availability Zone to create Volume in.',
+        required = True
+    )
+    volume_type = schema.TextLine(
+        title="Volume Type",
+        description="Must be one of: gp2 | io1 | sc1 | st1 | standard",
+        default='gp2',
+        constraint = IsValidEBSVolumeType,
+        required = False
+    )
+
+class IEC2LaunchOptions(INamed):
+    """
+    EC2 Launch Options
+    """
+    update_packages = schema.Bool(
+        title = 'Update Distribution Packages',
+        required = False,
+        default = False
+    )
+
 class IASG(IResource, IMonitorable):
     """
     Auto Scaling Group
@@ -2744,6 +2808,12 @@ class IASG(IResource, IMonitorable):
         required = False,
         default = []
     )
+    ebs_volume_mounts = schema.List(
+        title = 'Elastic Block Store Volume Mounts',
+        value_type = schema.Object(IEBSVolumeMount),
+        required = False,
+        default = []
+    )
     scaling_policies = schema.Object(
         title='Scaling Policies',
         schema=IASGScalingPolicies,
@@ -2766,6 +2836,11 @@ class IASG(IResource, IMonitorable):
         value_type = TextReference(
             title = 'Secrets Manager Reference'
         ),
+        required = False
+    )
+    launch_options = schema.Object(
+        title = 'EC2 Launch Options',
+        schema = IEC2LaunchOptions,
         required = False
     )
 

@@ -710,12 +710,6 @@ class ISecurityGroupRule(IName):
         default = -1,
         required = False
     )
-    source_security_group = TextReference(
-        title = "Source Security Group Reference",
-        required = False,
-        description = "An AIM Reference to a SecurityGroup",
-        str_ok = True
-    )
 
     @invariant
     def to_from_or_port(obj):
@@ -728,9 +722,21 @@ class ISecurityGroupRule(IName):
 
 class IIngressRule(ISecurityGroupRule):
     "Security group ingress"
+    source_security_group = TextReference(
+        title = "Source Security Group Reference",
+        required = False,
+        description = "An AIM Reference to a SecurityGroup",
+        str_ok = True
+    )
 
 class IEgressRule(ISecurityGroupRule):
     "Security group egress"
+    destination_security_group = TextReference(
+        title = "Destination Security Group Reference",
+        required = False,
+        description = "An AIM Reference to a SecurityGroup",
+        str_ok = True
+    )
 
 class ISecurityGroup(INamed, IDeployable):
     """
@@ -3895,98 +3901,77 @@ class IRDS(IResource):
     """
     RDS Common Interface
     """
-    engine = schema.TextLine(
-        title = "RDS Engine",
-        required = False,
+    allow_major_version_upgrade = schema.Bool(
+        title="Allow major version upgrades",
+        required=False,
     )
-    engine_version = schema.TextLine(
-        title = "RDS Engine Version",
-        required = False,
+    auto_minor_version_upgrade = schema.Bool(
+        title="Automatic minor version upgrades",
+        required=False,
+    )
+    backup_preferred_window = schema.TextLine(
+        title="Backup Preferred Window",
+        required=False,
+    )
+    backup_retention_period = schema.Int(
+        title="Backup Retention Period in days",
+        required=False,
+    )
+    cloudwatch_logs_exports = schema.List(
+        title="List of CloudWatch Logs Exports",
+        value_type=schema.TextLine(
+            title="CloudWatch Log Export",
+        ),
+        required=False,
+        default=[]
+        # ToDo: Constraint that depends upon the database type, not applicable for Aurora
     )
     db_instance_type = schema.TextLine(
         title = "RDS Instance Type",
         required = False,
     )
-    port = schema.Int(
-        title = "DB Port",
-        required = False,
+    db_snapshot_identifier = schema.TextLine(
+        title="DB Snapshot Identifier to restore from",
+        required=False,
     )
-    segment = TextReference(
-        title="Segment",
-        required = False,
-    )
-    storage_type = schema.TextLine(
-        title = "DB Storage Type",
-        required = False,
-    )
-    storage_size_gb = schema.Int(
-        title = "DB Storage Size in Gigabytes",
-        required = False,
-    )
-    storage_encrypted = schema.Bool(
-        title = "Enable Storage Encryption",
-        required = False,
-    )
-    kms_key_id = TextReference(
-        title = "Enable Storage Encryption",
-        required = False
-    )
-    allow_major_version_upgrade = schema.Bool(
-        title = "Allow major version upgrades",
-        required = False,
-    )
-    auto_minor_version_upgrade = schema.Bool(
-        title = "Automatic minor version upgrades",
-        required = False,
-    )
-    publically_accessible = schema.Bool(
-        title = "Assign a Public IP address",
-        required = False,
-    )
-    master_username = schema.TextLine(
-        title = "Master Username",
-        required = False,
-    )
-    master_user_password = schema.TextLine(
-        title = "Master User Password",
-        required = False,
-    )
-    backup_preferred_window = schema.TextLine(
-        title = "Backup Preferred Window",
-        required = False,
-    )
-    backup_retention_period = schema.Int(
-        title = "Backup Retention Period in days",
-        required = False,
-    )
-    maintenance_preferred_window = schema.TextLine(
-        title = "Maintenance Preferred Window",
-        required = False,
-    )
-    security_groups = schema.List(
-        title = "List of VPC Security Group Ids",
-        value_type = TextReference(),
-        required = False,
+    deletion_protection = schema.Bool(
+        title="Deletion Protection",
+        default=False,
+        required=False
     )
     dns = schema.List(
-        title = "List of DNS for the RDS",
-        value_type = schema.Object(IDNS),
-        default = [],
-        required = False
+        title="List of DNS for the RDS",
+        value_type=schema.Object(IDNS),
+        default=[],
+        required=False
     )
-
-    primary_domain_name = TextReference(
-        title = "Primary Domain Name",
-        str_ok = True,
-        required = False,
+    engine = schema.TextLine(
+        title="RDS Engine",
+        required=False,
     )
-    primary_hosted_zone = TextReference(
-        title = "Primary Hosted Zone",
-        required = False,
+    engine_version = schema.TextLine(
+        title="RDS Engine Version",
+        required=False,
     )
-    db_snapshot_identifier = schema.TextLine(
-        title = "DB Snapshot Identifier to restore from",
-        required = False,
+    kms_key_id = TextReference(
+        title="Enable Storage Encryption",
+        required=False
+    )
+    license_model = schema.TextLine(
+        title="License Model",
+        required=False,
+    )
+    maintenance_preferred_window = schema.TextLine(
+        title="Maintenance Preferred Window",
+        required=False,
+    )
+    master_username = schema.TextLine(
+        title="Master Username",
+        required=False,
+    )
+    master_user_password = schema.TextLine(
+        title="Master User Password",
+        required=False,
     )
     option_configurations = schema.List(
         title = "Option Configurations",
@@ -3994,6 +3979,45 @@ class IRDS(IResource):
         default = [],
         required = False,
     )
+    primary_domain_name = TextReference(
+        title="Primary Domain Name",
+        str_ok=True,
+        required=False,
+    )
+    primary_hosted_zone = TextReference(
+        title="Primary Hosted Zone",
+        required=False,
+    )
+    port = schema.Int(
+        title="DB Port",
+        required=False,
+    )
+    publically_accessible = schema.Bool(
+        title="Assign a Public IP address",
+        required=False,
+    )
+    security_groups = schema.List(
+        title="List of VPC Security Group Ids",
+        value_type=TextReference(),
+        required=False,
+    )
+    segment = TextReference(
+        title="Segment",
+        required=False,
+    )
+    storage_encrypted = schema.Bool(
+        title="Enable Storage Encryption",
+        required=False,
+    )
+    storage_type = schema.TextLine(
+        title="DB Storage Type",
+        required=False,
+    )
+    storage_size_gb = schema.Int(
+        title="DB Storage Size in Gigabytes",
+        required=False,
+    )
+
 
 class IRDSMysql(IResource, IRDS):
     """
@@ -4023,74 +4047,95 @@ class IElastiCache(Interface):
     """
     Base ElastiCache Interface
     """
-    engine = schema.TextLine(
-        title = "ElastiCache Engine",
-        required = False
-    )
-    engine_version = schema.TextLine(
-        title = "ElastiCache Engine Version",
-        required = False
-    )
-    automatic_failover_enabled = schema.Bool(
-        title = "Specifies whether a read-only replica is automatically promoted to read/write primary if the existing primary fails",
-        required = False,
-    )
-    number_of_read_replicas = schema.Int(
-        title = "Number of read replicas",
-        required = False,
-    )
-    port = schema.Int(
-        title = 'Port',
-        required = False,
-    )
+    # ToDo: Invariant for cache_clusters
+    # - This parameter is not used if there is more than one node group (shard). You should use ReplicasPerNodeGroup instead.
+    # - If AutomaticFailoverEnabled is true, the value of this parameter must be at least 2.
     at_rest_encryption = schema.Bool(
-        title = "Enable encryption at rest",
-        required = False,
+        title="Enable encryption at rest",
+        required=False,
     )
     auto_minor_version_upgrade = schema.Bool(
-        title = "Enable automatic minor version upgrades",
+        title="Enable automatic minor version upgrades",
         required = False,
+    )
+    automatic_failover_enabled = schema.Bool(
+        title="Specifies whether a read-only replica is automatically promoted to read/write primary if the existing primary fails",
+        required=False,
     )
     az_mode = schema.TextLine(
-        title = "AZ mode",
-        constraint = isValidAZMode,
-        required = False,
+        title="AZ mode",
+        constraint=isValidAZMode,
+        required=False,
     )
-    cache_node_type  = schema.TextLine(
-        title = "Cache Node Instance type",
+    cache_clusters = schema.Int(
+        title="Number of Cache Clusters",
+        required=False,
+        min=1,
+        max=6
+    )
+    cache_node_type = schema.TextLine(
+        title="Cache Node Instance type",
         description="",
-        required = False,
+        required=False,
+    )
+    description = schema.Text(
+        title="Replication Description",
+        required=False,
+    )
+    engine = schema.TextLine(
+        title="ElastiCache Engine",
+        required=False
+    )
+    engine_version = schema.TextLine(
+        title="ElastiCache Engine Version",
+        required=False
     )
     maintenance_preferred_window = schema.TextLine(
-        title = 'Preferred maintenance window',
-        required = False,
+        title='Preferred maintenance window',
+        required=False,
+    )
+    number_of_read_replicas = schema.Int(
+        title="Number of read replicas",
+        required=False,
+    )
+    parameter_group = TextReference(
+        title='Parameter Group name or reference',
+        str_ok=True,
+        required=False
+    )
+    port = schema.Int(
+        title="Port",
+        required=False,
     )
     security_groups = schema.List(
-        title = "List of Security Groups",
-        value_type = TextReference(),
-        required = False,
+        title="List of Security Groups",
+        value_type=TextReference(),
+        required=False,
     )
     segment = TextReference(
         title="Segment",
-        required = False,
+        required=False,
     )
-    parameter_group = TextReference(
-        title = 'Parameter Group name or reference',
-        str_ok = True,
-        required = False
-    )
+
 
 class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
     """
     Redis ElastiCache Interface
     """
     cache_parameter_group_family = schema.TextLine(
-        title = 'Cache Parameter Group Family',
-        constraint = isRedisCacheParameterGroupFamilyValid,
-        required = False
+        title='Cache Parameter Group Family',
+        constraint=isRedisCacheParameterGroupFamilyValid,
+        required=False
     )
-    #snapshot_retention_limit_days: 1
-    #snapshot_window: 05:00-09:00
+    snapshot_retention_limit_days = schema.Int(
+        title="Snapshot Retention Limit in Days",
+        required=False,
+    )
+    snapshot_window = schema.TextLine(
+        title="The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your node group (shard).",
+        required=False,
+        # ToDo: contraint for "windows"
+    )
 
 class IIAMUserProgrammaticAccess(IDeployable):
     """

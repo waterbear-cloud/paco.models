@@ -811,11 +811,15 @@ class RDS(Resource):
     dns = FieldProperty(schemas.IRDS['dns'])
     db_snapshot_identifier = FieldProperty(schemas.IRDS['db_snapshot_identifier'])
     option_configurations = FieldProperty(schemas.IRDS['option_configurations'])
+    license_model = FieldProperty(schemas.IRDS['license_model'])
+    cloudwatch_logs_export = FieldProperty(schemas.IRDS['cloudwatch_logs_exports'])
+    deletion_protection = FieldProperty(schemas.IRDS['deletion_protection'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.dns = []
         self.option_configurations = []
+        self.cloudwatch_logs_exports = []
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
@@ -842,6 +846,7 @@ class RDSAurora(RDS, Resource):
 @implementer(schemas.IElastiCache)
 class ElastiCache():
     title = "ElastiCache"
+    description = FieldProperty(schemas.IElastiCache['description'])
     engine = FieldProperty(schemas.IElastiCache['engine'])
     engine_version = FieldProperty(schemas.IElastiCache['engine_version'])
     automatic_failover_enabled = FieldProperty(schemas.IElastiCache['automatic_failover_enabled'])
@@ -855,11 +860,14 @@ class ElastiCache():
     security_groups = FieldProperty(schemas.IElastiCache['security_groups'])
     segment = FieldProperty(schemas.IElastiCache['segment'])
     parameter_group = FieldProperty(schemas.IElastiCache['parameter_group'])
+    cache_clusters = FieldProperty(schemas.IElastiCache['cache_clusters'])
 
 @implementer(schemas.IElastiCacheRedis)
 class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
     title = "ElastiCache Redis"
     cache_parameter_group_family = FieldProperty(schemas.IElastiCacheRedis['cache_parameter_group_family'])
+    snapshot_retention_limit_days = FieldProperty(schemas.IElastiCacheRedis['snapshot_retention_limit_days'])
+    snapshot_window = FieldProperty(schemas.IElastiCacheRedis['snapshot_window'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

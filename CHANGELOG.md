@@ -6,6 +6,11 @@ Changelog for aim.models
 
 ### Added
 
+- IElastiCache has `description` and `cache_clusters` fields, while IElastiCacheRedis has `snapshot_retention_limit_days`
+  and `snapshot_window` fields.
+
+- IRDS has new `license_model`, `cloudwatch_logs_export` and `deletion_protection` fields.
+
 - `global_role_name` field for IAM Role can be set to True and the RoleName
   will not be hashed. Can only be used for global Roles, otherwise if these
   Roles overlap per-environment, things will break!
@@ -53,6 +58,9 @@ Changelog for aim.models
 - Added resolve_ref() to Resource in base.py as a catch all.
 
 ### Changed
+
+- ISecurityGroupRule `source_security_group` was moved to IIngressRule and IEgressRule (finally!)
+  has a `destination_security_group` field.
 
 - `load_resources` was removed and you can now simply apply_attributes to
   an Application and it will recurse through app.groups.<groupname>.resources.<resourcename>

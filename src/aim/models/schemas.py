@@ -161,8 +161,9 @@ valid_legacy_flags = (
         'cloudwatch_controller_type_2019_09_18',
         'cftemplate_iam_user_delegates_2019_10_02',
         'route53_hosted_zone_2019_10_12',
+        'iam_user_default_password_2019_10_12',
         'netenv_loggroup_name_2019_10_13',
-        'route53_record_set_2019_10_16'
+        'route53_record_set_2019_10_16',
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '
@@ -3346,7 +3347,19 @@ class IRoute53RecordSet(Interface):
             if len(obj.resource_records) > 1:
                 raise Invalid("If 'type' is {}, you may only specify one 'value'.".format(obj.type))
 
-
+class IRoute53HostedZoneExternalResource(INamed, IDeployable):
+    """
+    Existing Hosted Zone configuration
+    """
+    hosted_zone_id = schema.TextLine(
+        title = 'ID of an existing Hosted Zone',
+        required = True
+    )
+    nameservers = schema.List(
+        title = 'List of the Hosted Zones Nameservers',
+        value_type = schema.TextLine(title='Nameservers'),
+        required = True
+    )
 
 class IRoute53HostedZone(INamed, IDeployable):
     """
@@ -3369,6 +3382,12 @@ class IRoute53HostedZone(INamed, IDeployable):
         title = 'Parent Hozed Zone name',
         required = False
     )
+    external_resource = schema.Object(
+        title = 'External HostedZone Id Configuration',
+        schema = IRoute53HostedZoneExternalResource,
+        required = False
+    )
+
 
 class IRoute53Resource(INamed):
     """
@@ -4235,6 +4254,23 @@ class IIAMUserPermissionCodeBuild(IIAMUserPermission):
     resources = schema.List(
         title = 'List of CodeBuild resources',
         value_type = schema.Object(IIAMUserPermissionCodeBuildResource),
+        required = False
+    )
+
+class IIAMUserPermissionCustomPolicy(IIAMUserPermission):
+    """
+    Custom IAM User Permission
+    """
+    accounts = CommaList(
+        title = 'Comma separated list of AIM AWS account names this user has access to',
+        required = False,
+    )
+    policies = schema.List(
+        title = "Policies",
+        value_type=schema.Object(
+            schema=IPolicy
+        ),
+        default = [],
         required = False
     )
 

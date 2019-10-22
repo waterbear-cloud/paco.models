@@ -41,7 +41,7 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     EC2LaunchOptions
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
-    Route53Resource, Route53HostedZone, Route53RecordSet, \
+    Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
@@ -50,7 +50,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     ApiGatewayMethodIntegrationResponse, \
     IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
-    IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, \
+    IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
     Route53HealthCheck
 from aim.models.events import EventsRule
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
@@ -94,7 +94,8 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
 IAM_USER_PERMISSIONS_CLASS_MAP = {
     'CodeBuild': IAMUserPermissionCodeBuild,
     'CodeCommit': IAMUserPermissionCodeCommit,
-    'Administrator': IAMUserPermissionAdministrator
+    'Administrator': IAMUserPermissionAdministrator,
+    'CustomPolicy': IAMUserPermissionCustomPolicy
 }
 
 RESOURCES_CLASS_MAP = {
@@ -359,7 +360,8 @@ SUB_TYPES_CLASS_MAP = {
         'values': ('str_list', zope.schema.TextLine)
     },
     Route53HostedZone: {
-        'record_sets': ('obj_list', Route53RecordSet)
+        'record_sets': ('obj_list', Route53RecordSet),
+        'external_resource': ('obj', Route53HostedZoneExternalResource)
     },
     Route53Resource: {
         'hosted_zones': ('named_dict', Route53HostedZone)
@@ -382,6 +384,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     IAMUserPermissionCodeCommit: {
         'repositories': ('obj_list', IAMUserPermissionCodeCommitRepository)
+    },
+    IAMUserPermissionCustomPolicy: {
+        'policies': ('obj_list', Policy)
     }
 }
 

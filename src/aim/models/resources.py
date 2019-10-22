@@ -264,12 +264,19 @@ class Route53RecordSet():
     resource_records = FieldProperty(schemas.IRoute53RecordSet["resource_records"])
     ttl = FieldProperty(schemas.IRoute53RecordSet["ttl"])
 
+
+@implementer(schemas.IRoute53HostedZoneExternalResource)
+class Route53HostedZoneExternalResource(Named, Deployable):
+    hosted_zone_id = FieldProperty(schemas.IRoute53HostedZoneExternalResource["hosted_zone_id"])
+    nameservers = FieldProperty(schemas.IRoute53HostedZoneExternalResource["nameservers"])
+
 @implementer(schemas.IRoute53HostedZone)
 class Route53HostedZone(Named, Deployable):
     domain_name = FieldProperty(schemas.IRoute53HostedZone["domain_name"])
     account = FieldProperty(schemas.IRoute53HostedZone["account"])
     record_sets = FieldProperty(schemas.IRoute53HostedZone["record_sets"])
     parent_zone = FieldProperty(schemas.IRoute53HostedZone["parent_zone"])
+    external_resource = FieldProperty(schemas.IRoute53HostedZone["external_resource"])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -498,6 +505,15 @@ class IAMUserPermissionCodeBuildResource():
 @implementer(schemas.IIAMUserPermissionCodeBuild)
 class IAMUserPermissionCodeBuild(IAMUserPermission):
     resources = FieldProperty(schemas.IIAMUserPermissionCodeBuild['resources'])
+
+@implementer(schemas.IIAMUserPermissionCustomPolicy)
+class IAMUserPermissionCustomPolicy(IAMUserPermission):
+    accounts = FieldProperty(schemas.IIAMUserPermissionCustomPolicy['accounts'])
+    policies = FieldProperty(schemas.IIAMUserPermissionCustomPolicy['policies'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.policies = []
 
 @implementer(schemas.IIAMUserPermissions)
 class IAMUserPermissions(Named, dict):

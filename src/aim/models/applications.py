@@ -788,7 +788,7 @@ class RDSOptionConfiguration():
     port = FieldProperty(schemas.IRDSOptionConfiguration['port'])
 
 @implementer(schemas.IRDS)
-class RDS(Resource):
+class RDS(Resource, Monitorable):
     title = "RDS"
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])

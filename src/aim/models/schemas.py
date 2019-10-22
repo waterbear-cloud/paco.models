@@ -3897,7 +3897,7 @@ class IRDSOptionConfiguration(Interface):
 
 
 
-class IRDS(IResource):
+class IRDS(IResource, IMonitorable):
     """
     RDS Common Interface
     """

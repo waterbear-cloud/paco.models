@@ -1492,6 +1492,13 @@ class IApplicationEngine(INamed, IDeployable, INotifiable, IMonitorable, IDNSEna
     """
     Application Engine : A template describing an application
     """
+    order = schema.Int(
+        title = "The order in which the application will be processed",
+        description = "",
+        min = 0,
+        default = 0,
+        required = False
+    )
     groups = schema.Object(IResourceGroups)
 
 

@@ -24,6 +24,7 @@ class ApplicationEngines(Named, dict):
 @implementer(schemas.IApplicationEngine)
 class ApplicationEngine(Named, Deployable, Regionalized, Monitorable, dict):
     groups = FieldProperty(schemas.IApplicationEngine['groups'])
+    order = FieldProperty(schemas.IApplicationEngine['order'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

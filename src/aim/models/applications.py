@@ -3,6 +3,7 @@ All things Application Engine.
 """
 
 import troposphere
+import troposphere.elasticache
 import troposphere.s3
 from aim.models import loader
 from aim.models import schemas
@@ -870,10 +871,61 @@ class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
     snapshot_retention_limit_days = FieldProperty(schemas.IElastiCacheRedis['snapshot_retention_limit_days'])
     snapshot_window = FieldProperty(schemas.IElastiCacheRedis['snapshot_window'])
 
+    troposphere_props = troposphere.elasticache.ReplicationGroup.props
+    cfn_mapping = {
+        'AtRestEncryptionEnabled': 'at_rest_encryption',
+        # 'AuthToken': (basestring, False),
+        'AutoMinorVersionUpgrade': 'auto_minor_version_upgrade',
+        'AutomaticFailoverEnabled': 'automatic_failover_enabled',
+        'CacheNodeType': 'cache_node_type',
+        'CacheParameterGroupName': 'parameter_group',
+        # 'CacheSecurityGroupNames': ([basestring], False),
+        # 'CacheSubnetGroupName': (basestring, False),
+        'Engine': 'engine',
+        'EngineVersion': 'engine_version',
+        # 'KmsKeyId': (basestring, False),
+        # 'NodeGroupConfiguration': (list, False),
+        # 'NotificationTopicArn': (basestring, False),
+        'NumCacheClusters': 'cache_clusters',
+        # 'NumNodeGroups': (integer, False),
+        'Port': 'port',
+        # 'PreferredCacheClusterAZs': ([basestring], False),
+        'PreferredMaintenanceWindow': 'maintenance_preferred_window',
+        # 'PrimaryClusterId': (basestring, False),
+        'ReplicasPerNodeGroup': 'number_of_read_replicas',
+        # 'ReplicationGroupDescription': computed in template
+        'ReplicationGroupId': 'cfn_aws_name',
+        # 'SecurityGroupIds': computed in template
+        # 'SnapshotArns': ([basestring], False),
+        # 'SnapshotName': (basestring, False),
+        'SnapshotRetentionLimit': 'snapshot_retention_limit_days',
+        # 'SnapshottingClusterId': (basestring, False),
+        'SnapshotWindow': 'snapshot_window',
+        # 'Tags': (Tags, False),
+        # 'TransitEncryptionEnabled': (boolean, False),
+    }
+
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.engine = 'redis'
         self.port = 6379
+
+    @property
+    def cfn_aws_name(self):
+        return self.get_aws_name()
+
+    def get_aws_name(self):
+        "ElastiCache Name for AWS"
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        app = get_parent_by_interface(self, schemas.IApplication)
+        resource_group = get_parent_by_interface(self, schemas.IResourceGroup)
+        return self.create_resource_name_join(
+            name_list=[app.name, resource_group.name, self.name],
+            separator='-',
+            filter_id='ElastiCache.ReplicationGroup.ReplicationGroupId',
+            hash_long_names=True
+        )
 
 @implementer(schemas.IDeploymentPipelineConfiguration)
 class DeploymentPipelineConfiguration(Named):

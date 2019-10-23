@@ -4076,6 +4076,12 @@ class IElastiCache(Interface):
     # ToDo: Invariant for cache_clusters
     # - This parameter is not used if there is more than one node group (shard). You should use ReplicasPerNodeGroup instead.
     # - If AutomaticFailoverEnabled is true, the value of this parameter must be at least 2.
+    @invariant
+    def cluster_layout(obj):
+        "One of PrimaryClusterId, NumCacheClusters, NumNodeGroups or ReplicasPerNodeGroup are required"
+        if obj.cache_clusters == None and obj.number_of_read_replicas == None:
+            raise Invalid("Must supply either cache_clusters or number_of_read_replicas.")
+
     at_rest_encryption = schema.Bool(
         title="Enable encryption at rest",
         required=False,
@@ -4160,7 +4166,7 @@ class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
     snapshot_window = schema.TextLine(
         title="The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your node group (shard).",
         required=False,
-        # ToDo: contraint for "windows"
+        # ToDo: constraint for "windows"
     )
 
 class IIAMUserProgrammaticAccess(IDeployable):

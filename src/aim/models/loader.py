@@ -218,8 +218,12 @@ SUB_TYPES_CLASS_MAP = {
         'dns': ('obj_list', DNS),
         'monitoring': ('unnamed_dict', MonitorConfig)
     },
+    SimpleCloudWatchAlarm: {
+        'dimensions': ('obj_list', Dimension)
+    },
     ASGScalingPolicy: {
-        'alarms': ('obj_list', SimpleCloudWatchAlarm)
+        'alarms': ('obj_list', SimpleCloudWatchAlarm),
+        'dimensions': ('obj_list', Dimension)
     },
     ASG: {
         'security_groups': ('str_list', TextReference),

@@ -156,15 +156,19 @@ class Dimension():
 @implementer(schemas.ISimpleCloudWatchAlarm)
 class SimpleCloudWatchAlarm():
     "CloudWatch Alarm"
-    alarm_description = FieldProperty(schemas.ICloudWatchAlarm["alarm_description"])
-    actions_enabled = FieldProperty(schemas.ICloudWatchAlarm["actions_enabled"])
-    metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
-    namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
-    period = FieldProperty(schemas.ICloudWatchAlarm["period"])
-    evaluation_periods = FieldProperty(schemas.ICloudWatchAlarm["evaluation_periods"])
-    threshold = FieldProperty(schemas.ICloudWatchAlarm["threshold"])
-    comparison_operator = FieldProperty(schemas.ICloudWatchAlarm["comparison_operator"])
-    statistic = FieldProperty(schemas.ICloudWatchAlarm["statistic"])
+    alarm_description = FieldProperty(schemas.ISimpleCloudWatchAlarm["alarm_description"])
+    actions_enabled = FieldProperty(schemas.ISimpleCloudWatchAlarm["actions_enabled"])
+    metric_name = FieldProperty(schemas.ISimpleCloudWatchAlarm["metric_name"])
+    namespace = FieldProperty(schemas.ISimpleCloudWatchAlarm["namespace"])
+    period = FieldProperty(schemas.ISimpleCloudWatchAlarm["period"])
+    evaluation_periods = FieldProperty(schemas.ISimpleCloudWatchAlarm["evaluation_periods"])
+    threshold = FieldProperty(schemas.ISimpleCloudWatchAlarm["threshold"])
+    comparison_operator = FieldProperty(schemas.ISimpleCloudWatchAlarm["comparison_operator"])
+    statistic = FieldProperty(schemas.ISimpleCloudWatchAlarm["statistic"])
+    dimensions = FieldProperty(schemas.ISimpleCloudWatchAlarm["dimensions"])
+
+    def __init__(self):
+        self.dimensions = []
 
 
 @implementer(schemas.ICloudWatchAlarm)

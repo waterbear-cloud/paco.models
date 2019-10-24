@@ -398,6 +398,10 @@ class ASGScalingPolicy(Named, Deployable):
     cooldown = FieldProperty(schemas.IASGScalingPolicy['cooldown'])
     alarms = FieldProperty(schemas.IASGScalingPolicy['alarms'])
 
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.alarms = []
+
 @implementer(schemas.IEIP)
 class EIP(Resource):
     title = "Elastic IP"

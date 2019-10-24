@@ -36,7 +36,7 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
-    DeploymentPipelineDeployManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
+    DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     EC2LaunchOptions
@@ -86,7 +86,7 @@ logger = get_logger()
 DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
-    'ManualApproval.Deploy': DeploymentPipelineDeployManualApproval,
+    'ManualApproval': DeploymentPipelineManualApproval,
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
     'S3.Deploy': DeploymentPipelineDeployS3
 }
@@ -834,6 +834,8 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
     stage_obj = stage_class(name, parent)
     for action_name in value.keys():
         action_config = value[action_name]
+        if action_config['enabled'] == False:
+            continue
         action_obj = DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP[action_config['type']](action_name, stage_obj)
         apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
         stage_obj[action_name] = action_obj

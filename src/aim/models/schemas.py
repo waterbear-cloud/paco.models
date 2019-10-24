@@ -4456,9 +4456,9 @@ class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
     #
     # "CacheControl": "public, max-age=0, no-transform"
 
-class IDeploymentPipelineDeployManualApproval(IDeploymentPipelineStageAction):
+class IDeploymentPipelineManualApproval(IDeploymentPipelineStageAction):
     """
-    ManualApproval DeploymentPipeline Deploy Stage
+    ManualApproval DeploymentPipeline
     """
     manual_approval_notification_email = schema.TextLine(
         title = "Manual approval notification email",

@@ -6,6 +6,8 @@ Changelog for aim.models
 
 ### Added
 
+- IDBParameterGrouups resource.
+
 - IElastiCache has `description` and `cache_clusters` fields, while IElastiCacheRedis has `snapshot_retention_limit_days`
   and `snapshot_window` fields.
 
@@ -73,6 +75,10 @@ Changelog for aim.models
 
 - Changed RDS `primary_domain_name` and `primary_hosted_zone` to an IDNS object
 
+### Fixed
+
+- Alarm overrides are now cast to the schema of the field. Fixes "threshold: 10" loading as in int()
+  when the schema expects a float().
 
 6.0.0 (2019-09-27)
 ------------------

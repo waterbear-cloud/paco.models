@@ -786,6 +786,23 @@ class CloudFront(Resource, Deployable, Monitorable):
                 return True
         return False
 
+@implementer(schemas.IDBParameters)
+class DBParameters(dict):
+    pass
+
+@implementer(schemas.IDBParameterGroup)
+class DBParameterGroup(Resource):
+    title = "RDS DB Parameter Group"
+    description = FieldProperty(schemas.IDBParameterGroup['description'])
+    family = FieldProperty(schemas.IDBParameterGroup['family'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.parameters = DBParameters()
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IRDSOptionConfiguration)
 class RDSOptionConfiguration():
     option_name = FieldProperty(schemas.IRDSOptionConfiguration['option_name'])

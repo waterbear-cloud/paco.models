@@ -143,6 +143,13 @@ class TestAimDemo(BaseTestModelLoader):
         assert demo_bastion.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].evaluation_periods == 5
         assert schemas.ICloudWatchAlarm.providedBy(demo_webapp.monitoring.alarm_sets['launch-health']['GroupPendingInstances-Low'])
         assert demo_webapp.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].evaluation_periods == 15
+        assert demo_webapp.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].threshold == 10.0
+
+    def test_dbparameters(self):
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        dbparams = demo_env['applications']['app'].groups['site'].resources['dbparams']
+        assert schemas.IDBParameterGroup.providedBy(dbparams)
+        assert dbparams.parameters['block_encryption_mode'] == 'aes-128-ecb'
 
     def test_cloudwatch_logging(self):
         demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']

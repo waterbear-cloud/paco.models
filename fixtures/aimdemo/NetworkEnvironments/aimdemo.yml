@@ -170,6 +170,21 @@ applications:
             security_groups:
               - aim.ref netenv.aimdemo.network.vpc.security_groups.app.lb
             segment: public
+          dbparams:
+            type: DBParameterGroup
+            order: 1
+            enabled: true
+            description: "Optimized for Performance"
+            family: mysql5.7
+            parameters:
+              block_encryption_mode: aes-128-ecb
+              character_set_database: swe7
+              time_zone: America/Denver
+              slow_query_log: '1'
+              long_query_time: '30'
+              log_output: FILE
+              net_read_timeout: '1800'
+              net_write_timeout: '1800'
           webapp:
             type: ASG
             order: 3
@@ -374,12 +389,8 @@ environments:
                 resource_path: /
                 match_string: "alive!"
                 failure_threshold: 3
-                request_interval: 25
                 latency_graphs: false
-                health_checker_regions:
-                  - us-west-2
-                  - ca-central-1
-                  - eu-central-1
+
           groups:
             restapi:
               resources:
@@ -440,10 +451,12 @@ environments:
                             - misterteam
                         SwapPercent-Low:
                           evaluation_periods: 15
+                          threshold: 10
                           notifications:
                             singlealarm:
                               groups:
                               - oneguygetsthis
+
       enabled: true
       network:
         aws_account: aim.ref accounts.prod

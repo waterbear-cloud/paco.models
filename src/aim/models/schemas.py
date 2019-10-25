@@ -3900,6 +3900,31 @@ class ICloudFront(IResource, IDeployable, IMonitorable):
         required = False,
     )
 
+# RDS Schemas
+
+class IDBParameters(IMapping):
+    "A dict of database parameters"
+    # ToDo: constraints for parameters ...(huge!)
+
+class IDBParameterGroup(IResource):
+    """
+    AWS::RDS::DBParameterGroup
+    """
+    description = schema.Text(
+        title="Description",
+        required=False
+    )
+    family = schema.TextLine(
+        title="Database Family",
+        required=True
+        # ToDo: constraint for this is fairly complex and can change
+    )
+    parameters = schema.Object(
+        title="Database Parameter set",
+        schema=IDBParameters,
+        required=True
+    )
+
 class IRDSOptionConfiguration(Interface):
     """
     AWS::RDS::OptionGroup OptionConfiguration
@@ -3926,8 +3951,6 @@ class IRDSOptionConfiguration(Interface):
     #   A list of DBSecurityGroupMembership name strings used for this option.
     # - VpcSecurityGroupMemberships
     #   A list of VpcSecurityGroupMembership name strings used for this option.
-
-
 
 
 class IRDS(IResource, IMonitorable):
@@ -4007,10 +4030,14 @@ class IRDS(IResource, IMonitorable):
         required=False,
     )
     option_configurations = schema.List(
-        title = "Option Configurations",
+        title="Option Configurations",
         value_type=schema.Object(IRDSOptionConfiguration),
         default = [],
         required = False,
+    )
+    parameter_group = TextReference(
+        title="RDS Parameter Group",
+        required=False
     )
     primary_domain_name = TextReference(
         title="Primary Domain Name",
@@ -4075,6 +4102,8 @@ class IRDSAurora(IResource, IRDS):
         title = "Secondary Hosted Zone",
         required = False,
     )
+
+# Cache schemas
 
 class IElastiCache(Interface):
     """

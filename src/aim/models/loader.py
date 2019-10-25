@@ -39,7 +39,7 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
-    EC2LaunchOptions
+    EC2LaunchOptions, DBParameterGroup, DBParameters
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
@@ -104,6 +104,7 @@ RESOURCES_CLASS_MAP = {
     'CodePipeBuildDeploy': CodePipeBuildDeploy,
     'ACM': AWSCertificateManager,
     'RDS': RDS,
+    'DBParameterGroup': DBParameterGroup,
     'LBApplication': LBApplication,
     'EC2': EC2,
     'Lambda': Lambda,
@@ -128,6 +129,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     EFS: {
         'security_groups': ('str_list', TextReference)
+    },
+    DBParameterGroup: {
+        'parameters': ('dynamic_dict', DBParameters)
     },
     DeploymentPipelineBuildCodeBuild: {
         'role_policies': ('obj_list', Policy)
@@ -486,6 +490,23 @@ def add_metric(obj, metric):
     obj.monitoring.metrics.insert(0, metric)
 
 
+def cast_to_schema(obj, fieldname, value, fields=None):
+    """
+    Return a value that has been cast to match the schema of the field.
+    For example, YAML will cast a bare 10 to an int(), but if the field to be set is a float()
+    it needs to be cast to a float().
+    """
+    if fields == None:
+        fields = get_all_fields(obj)
+    field = fields[fieldname]
+    if zope.schema.interfaces.IFloat.providedBy(field):
+        return float(value)
+    if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
+        # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
+        # You can force a string with "field: '404'" but this removes the need to do that.
+        value = str(value)
+    return value
+
 def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=None, read_file_path=''):
     """
     Iterates through the field an object's schema has
@@ -542,13 +563,7 @@ Verify that '{}' has the correct indentation in the config file.
                         value.append(list_value.strip())
 
                 if value != None:
-                    # YAML loads "1" as an Int, cast to a Float where expected by the schema
-                    if zope.schema.interfaces.IFloat.providedBy(field):
-                        value = float(value)
-                    # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
-                    # You can force a string with "field: '404'" but this removes the need to do that.
-                    if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
-                        value = str(value)
+                    value = cast_to_schema(obj, name, value, fields)
                     # is the value a reference?
                     if type(value) == type(str()) and is_ref(value):
                         # some fields are meant to be reference only
@@ -738,6 +753,19 @@ Configuration section:
         apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
         return sub_obj
 
+    elif sub_type == 'dynamic_dict':
+        # for dictionaries with no fixed schema
+        # load all abitrary key/value pairs
+        if schemas.INamed.implementedBy(sub_class):
+            sub_obj = sub_class(name, obj)
+        else:
+            sub_obj = sub_class()
+
+        for k, v in value.items():
+            sub_obj[k] = v
+
+        return sub_obj
+
     elif sub_type == 'obj_list':
         sub_list = []
         for sub_value in value:
@@ -805,6 +833,11 @@ Configuration section:
                                     Dimension(item['name'], item['value'])
                                     for item in setting_value
                                 ]
+                            setting_value = cast_to_schema(
+                                alarm_sets[alarm_set_name][alarm_name],
+                                setting_name,
+                                setting_value
+                            )
                             setattr(alarm_sets[alarm_set_name][alarm_name], setting_name, setting_value)
 
         return alarm_sets

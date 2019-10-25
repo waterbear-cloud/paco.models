@@ -196,7 +196,7 @@ class CloudWatchAlarm(Alarm):
         'EvaluationPeriods': 'evaluation_periods',
         'ExtendedStatistic': 'extended_statistic',
         'MetricName': 'metric_name',
-        'Namespace': 'namespace',
+        # 'Namespace': computed in template
         'Period': 'period',
         'Statistic': 'statistic',
         'Threshold': 'threshold',

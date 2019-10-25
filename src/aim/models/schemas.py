@@ -936,9 +936,10 @@ class IDimension(Interface):
         title = "Dimension name",
         required = False,
     )
-    value = schema.TextLine(
+    value = TextReference(
         title = "Value to look-up dimension",
         required = False,
+        str_ok=True
     )
 
 class IAlarm(INamed, IDeployable, IName, INotifiable):
@@ -2508,6 +2509,12 @@ class ISimpleCloudWatchAlarm(Interface):
     threshold = schema.Float(
         title = "Threshold",
         required = False,
+    )
+    dimensions = schema.List(
+        title = 'Dimensions',
+        value_type=schema.Object(IDimension),
+        required = False,
+        default = []
     )
 class IASGLifecycleHooks(INamed, IMapping):
     """
@@ -4456,9 +4463,9 @@ class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
     #
     # "CacheControl": "public, max-age=0, no-transform"
 
-class IDeploymentPipelineDeployManualApproval(IDeploymentPipelineStageAction):
+class IDeploymentPipelineManualApproval(IDeploymentPipelineStageAction):
     """
-    ManualApproval DeploymentPipeline Deploy Stage
+    ManualApproval DeploymentPipeline
     """
     manual_approval_notification_email = schema.TextLine(
         title = "Manual approval notification email",

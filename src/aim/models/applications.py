@@ -398,6 +398,10 @@ class ASGScalingPolicy(Named, Deployable):
     cooldown = FieldProperty(schemas.IASGScalingPolicy['cooldown'])
     alarms = FieldProperty(schemas.IASGScalingPolicy['alarms'])
 
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.alarms = []
+
 @implementer(schemas.IEIP)
 class EIP(Resource):
     title = "Elastic IP"
@@ -973,10 +977,10 @@ class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):
     object_key = FieldProperty(schemas.IDeploymentPipelineDeployS3['object_key'])
     #kms_encryption_key_arn = FieldProperty(schemas.IDeploymentPipelineDeployS3['kms_encryption_key_arn'])
 
-@implementer(schemas.IDeploymentPipelineDeployManualApproval)
-class DeploymentPipelineDeployManualApproval(DeploymentPipelineStageAction):
-    title = 'ManualApproval.Deploy'
-    manual_approval_notification_email = FieldProperty(schemas.IDeploymentPipelineDeployManualApproval['manual_approval_notification_email'])
+@implementer(schemas.IDeploymentPipelineManualApproval)
+class DeploymentPipelineManualApproval(DeploymentPipelineStageAction):
+    title = 'ManualApproval'
+    manual_approval_notification_email = FieldProperty(schemas.IDeploymentPipelineManualApproval['manual_approval_notification_email'])
 
 @implementer(schemas.ICodeDeployMinimumHealthyHosts)
 class CodeDeployMinimumHealthyHosts(Named):

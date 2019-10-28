@@ -838,6 +838,7 @@ class RDS(Resource, Monitorable):
     license_model = FieldProperty(schemas.IRDS['license_model'])
     cloudwatch_logs_export = FieldProperty(schemas.IRDS['cloudwatch_logs_exports'])
     deletion_protection = FieldProperty(schemas.IRDS['deletion_protection'])
+    parameter_group = FieldProperty(schemas.IRDS['parameter_group'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

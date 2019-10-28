@@ -4403,7 +4403,7 @@ class IRDS(IResource, IMonitorable):
     )
 
 
-class IRDSMysql(IResource, IRDS):
+class IRDSMysql(IRDS):
     """
     RDS Mysql
     """

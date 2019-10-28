@@ -183,11 +183,12 @@ SUB_TYPES_CLASS_MAP = {
     RDSMysql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
         'security_groups': ('str_list', TextReference),
-        'dns': ('obj_list', DNS)
+        'dns': ('obj_list', DNS),
+        'monitoring': ('unnamed_dict', MonitorConfig)
     },
     ElastiCacheRedis: {
         'security_groups': ('str_list', TextReference),
-        'monitoring': ('unnamed_dict', MonitorConfig),
+        'monitoring': ('unnamed_dict', MonitorConfig)
     },
     CloudFront: {
         'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehavior),

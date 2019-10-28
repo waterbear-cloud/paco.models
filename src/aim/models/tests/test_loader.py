@@ -75,17 +75,44 @@ class TestAimDemo(BaseTestModelLoader):
         assert demo_env['default'].network.vpc.segments['webapp'].internet_access == False
         assert demo_env['default'].network.vpc.segments['public'].internet_access == True
 
-    def test_asg_iam_roles(self):
-        pass
-        #iam_role = self.project['netenv']['aimdemo']['demo']['us-west-2'].applications['app'].groups['site'].resources['webapp'].instance_iam_role
-        #assert iam_role.assume_role_policy.effect == "Allow"
-        #assert iam_role.assume_role_policy.service[0] == 'ec2.amazonaws.com'
-        #assert iam_role.instance_profile == True
-        #assert iam_role.path == '/'
-        #assert iam_role.policies[0].name == 'CloudWatchAgent'
-        #assert iam_role.policies[0].statement[0].effect == "Allow"
-        #assert iam_role.policies[0].statement[0].action[0] == "cloudwatch:PutMetricData"
-        #assert iam_role.policies[0].statement[0].resource[0] == "*"
+    def test_asg(self):
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        asg = demo_env.applications['app'].groups['site'].resources['webapp']
+
+        # CloudFormation Init
+        cfn_init = asg.cfn_init
+        assert schemas.ICloudFormationInit.providedBy(cfn_init)
+        assert cfn_init.raw_config['config_sets']['ascending'][0] == 'config1'
+        configurations = cfn_init.configurations
+        assert schemas.ICloudFormationConfigurations.providedBy(configurations)
+        assert configurations['config1'].packages.rubygems['chef'][0] == "0.10.2"
+        assert configurations['config1'].commands['test'].command == "ls"
+        assert configurations['config1'].commands['test'].cwd == "~"
+        assert configurations['config1'].commands['test'].env['CFNTEST'] ==  "I come from config1."
+
+        config_sets = cfn_init.config_sets
+        assert schemas.ICloudFormationConfigSets.providedBy(config_sets)
+        assert config_sets['ascending'][0] == 'config1'
+
+        # Test files - check for CloudFormation functions such as Fn::Sub or !Sub
+        #fullyaml = configurations['config1'].files['/fullyaml.txt'].content
+        mysql_file = configurations['config1'].files['/tmp/setup.mysql']
+        assert mysql_file.mode == "000644"
+        assert mysql_file.group == "root"
+        #breakpoint()
+        #assert mysql_file.content == '!Sub\nCREATE DATABASE ${DBName};\n'
+
+        tag_file = configurations['config1'].files['/tag.txt']
+        assert tag_file.content == '!Join\n- \'\'\n- - "#!/bin/bash\\n"\n  - !Ref: AWS::StackName\n!Ref: SomeLogicalId\n'
+
+        # Use expressions such Fn::Sub
+        test_file = configurations['config1'].files['/test-file.txt']
+        assert test_file.content == 'Fn::Sub | TEST FILE ${DBName};'
+
+        # Test cfn_init Parameters
+        assert cfn_init.parameters['TestString'] == 'catdog'
+        assert cfn_init.parameters['TestNumber'] == 10
+
 
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
@@ -144,6 +171,11 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.ICloudWatchAlarm.providedBy(demo_webapp.monitoring.alarm_sets['launch-health']['GroupPendingInstances-Low'])
         assert demo_webapp.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].evaluation_periods == 15
         assert demo_webapp.monitoring.alarm_sets['instance-health-cwagent']['SwapPercent-Low'].threshold == 10.0
+
+        # LogAlarm
+        assert demo_webapp.monitoring.alarm_sets['log-test']['ApacheError'].type == 'LogAlarm'
+        assert demo_webapp.monitoring.alarm_sets['log-test']['ApacheError'].log_set_name == 'apache'
+        assert demo_webapp.monitoring.alarm_sets['log-test']['ApacheError'].log_group_name == 'error'
 
     def test_dbparameters(self):
         demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']

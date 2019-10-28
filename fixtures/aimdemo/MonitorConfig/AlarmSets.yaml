@@ -139,6 +139,23 @@ ASG:
       comparison_operator: GreaterThanThreshold
       treat_missing_data: breaching
 
+  log-test:
+    ApacheError:
+      type: LogAlarm
+      description: "Apache is throwing errors"
+      classification: health
+      severity: low
+      #namespace: "log_sets.apache.log_groups.error"
+      log_set_name: 'apache'
+      log_group_name: 'error'
+      metric_name: "ApacheError"
+      period: 60
+      evaluation_periods: 1
+      threshold: 0
+      comparison_operator: GreaterThanThreshold
+      statistic: Sum
+      treat_missing_data: notBreaching
+
 # ALB sets
 LBApplication:
   instance-health:

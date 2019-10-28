@@ -437,6 +437,7 @@ class EC2LaunchOptions(Resource):
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
+    cfn_init =  FieldProperty(schemas.IASG['cfn_init'])
     desired_capacity =  FieldProperty(schemas.IASG['desired_capacity'])
     min_instances =  FieldProperty(schemas.IASG['min_instances'])
     max_instances =  FieldProperty(schemas.IASG['max_instances'])

@@ -56,7 +56,7 @@ class CloudWatchLogGroup(Named, CloudWatchLogRetention):
         self.sources = CloudWatchLogSources(name, __parent__)
 
     def get_log_group_name(self):
-        "Return log_group_name is set, otherwise return name"
+        "Return log_group_name if set, otherwise return name"
         if self.log_group_name != '':
             return self.log_group_name
         return self.name

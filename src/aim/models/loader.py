@@ -3,25 +3,14 @@ The loader is responsible for reading an AIM Project and creating a tree of Pyth
 model objects.
 """
 
-import aim.models.services
-import itertools, os, copy
-import logging
-import pathlib
-import pkg_resources
-import re
-import ruamel.yaml
-import sys
-import zope.schema
-import zope.schema.interfaces
-import zope.interface.exceptions
 from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
-from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField
+from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField, TroposphereConversionError
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
-    HealthChecks
+    HealthChecks, CloudWatchLogAlarm
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
@@ -52,6 +41,11 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
     Route53HealthCheck
+from aim.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
+    CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitUsers, \
+    CloudFormationInitSources, CloudFormationInitFiles, CloudFormationInitFile, CloudFormationInitCommands, \
+    CloudFormationInitCommand, CloudFormationInitServices, CloudFormationConfiguration, CloudFormationInit, \
+    CloudFormationParameters
 from aim.models.events import EventsRule
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
@@ -63,23 +57,24 @@ from aim.models import schemas
 from pathlib import Path
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
+import aim.models.services
+import itertools, os, copy
+import logging
+import pathlib
+import pkg_resources
+import re
+import ruamel.yaml
+import sys
+import troposphere
+import zope.schema
+import zope.schema.interfaces
+import zope.interface.exceptions
 
 
 def get_logger():
     log = logging.getLogger("aim.models")
     log.setLevel(logging.DEBUG)
     return log
-
-
-class YAML(ruamel.yaml.YAML):
-    def dump(self, data, stream=None, **kw):
-        dumps = False
-        if stream is None:
-            dumps = True
-            stream = StringIO()
-        ruamel.yaml.YAML.dump(self, data, stream, **kw)
-        if dumps:
-            return stream.getvalue()
 
 logger = get_logger()
 
@@ -124,6 +119,27 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    # CloudFormation Init
+    CloudFormationInit: {
+        'config_sets': ('dynamic_dict', CloudFormationConfigSets),
+        'configurations': ('container', (CloudFormationConfigurations, CloudFormationConfiguration)),
+        'parameters': ('dynamic_dict', CloudFormationParameters)
+    },
+    CloudFormationConfiguration: {
+        'packages': ('obj', CloudFormationInitPackages),
+        'commands': ('container', (CloudFormationInitCommands, CloudFormationInitCommand)),
+        'files': ('container', (CloudFormationInitFiles, CloudFormationInitFile)),
+    },
+    CloudFormationInitPackages: {
+        'apt': ('dynamic_dict', CloudFormationInitVersionedPackageSet),
+        'msi': ('dynamic_dict', CloudFormationInitPathOrUrlPackageSet),
+        'python': ('dynamic_dict', CloudFormationInitVersionedPackageSet),
+        'rpm': ('dynamic_dict', CloudFormationInitPathOrUrlPackageSet),
+        'rubygems': ('dynamic_dict', CloudFormationInitVersionedPackageSet),
+        'yum': ('dynamic_dict', CloudFormationInitVersionedPackageSet)
+    },
+
+    # Assorted unsorted
     EIP: {
         'dns': ('obj_list', DNS)
     },
@@ -215,6 +231,9 @@ SUB_TYPES_CLASS_MAP = {
     CloudWatchAlarm: {
         'dimensions': ('obj_list', Dimension)
     },
+    CloudWatchLogAlarm: {
+        'dimensions': ('obj_list', Dimension)
+    },
     LBApplication: {
         'target_groups': ('named_dict', TargetGroup),
         'security_groups': ('str_list', TextReference),
@@ -240,6 +259,7 @@ SUB_TYPES_CLASS_MAP = {
         'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
         'secrets': ('str_list', TextReference),
         'launch_options': ('obj', EC2LaunchOptions),
+        'cfn_init': ('obj_raw_config', CloudFormationInit)
     },
     Listener: {
         'redirect': ('unnamed_dict', PortProtocol),
@@ -269,7 +289,7 @@ SUB_TYPES_CLASS_MAP = {
     MonitorConfig: {
         'metrics': ('obj_list', Metric),
         'alarm_sets': ('alarm_sets', AlarmSets),
-        'health_checks': ('resource_container', HealthChecks),
+        'health_checks': ('type_container', (HealthChecks, RESOURCES_CLASS_MAP)),
         'log_sets': ('log_sets', CloudWatchLogSets),
         'notifications': ('notifications', AlarmNotifications)
     },
@@ -323,7 +343,7 @@ SUB_TYPES_CLASS_MAP = {
         'monitoring': ('unnamed_dict', MonitorConfig),
     },
     ResourceGroup: {
-        'resources': ('resource_container', Resources),
+        'resources': ('type_container', (Resources, RESOURCES_CLASS_MAP)),
     },
 
     # IAM
@@ -667,6 +687,12 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
         return sub_obj
 
+    elif sub_type == 'obj_raw_config':
+        sub_obj = sub_class(name, obj)
+        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
+        sub_obj.raw_config = value
+        return sub_obj
+
     elif sub_type == 'container':
         container_class = sub_class[0]
         object_class = sub_class[1]
@@ -677,35 +703,37 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
             container[sub_key] = sub_obj
         return container
 
-    elif sub_type == 'resource_container':
-        container = sub_class(name, obj)
-        for resource_name, resource_config in value.items():
+    elif sub_type == 'type_container':
+        container_class = sub_class[0]
+        class_mapping = sub_class[1]
+        container = container_class(name, obj)
+        for name, config in value.items():
             try:
-                klass = RESOURCES_CLASS_MAP[resource_config['type']]
+                klass = class_mapping[config['type']]
             except KeyError:
-                if 'type' not in resource_config:
+                if 'type' not in config:
                     raise InvalidAimProjectFile("""
 Error in file at {}
 No type specified for resource '{}'.
 
 Configuration section:
-{}""".format(read_file_path, resource_name, resource_config))
+{}""".format(read_file_path, name, config))
                 raise InvalidAimProjectFile("""
 Error in file at {}
-Type of '{}' does not exist for resource '{}'
+Type of '{}' does not exist for '{}'
 
 Configuration section:
 {}
-""".format(read_file_path, res_config['type'], resource_name, resource_config))
-            sub_obj = klass(resource_name, container)
+""".format(read_file_path, config['type'], name, config))
+            sub_obj = klass(name, container)
             apply_attributes_from_config(
                 sub_obj,
-                resource_config,
+                config,
                 config_folder,
                 lookup_config,
                 read_file_path
             )
-            container[resource_name] = sub_obj
+            container[name] = sub_obj
         return container
 
     elif sub_type == 'twolevel_container':
@@ -755,7 +783,7 @@ Configuration section:
 
     elif sub_type == 'dynamic_dict':
         # for dictionaries with no fixed schema
-        # load all abitrary key/value pairs
+        # load all unconstrained key/value pairs
         if schemas.INamed.implementedBy(sub_class):
             sub_obj = sub_class(name, obj)
         else:
@@ -805,7 +833,10 @@ Configuration section:
             alarm_set.resource_type = resource_type
             lookup_config['alarms'][resource_type][alarm_set_name]
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
-                alarm = CloudWatchAlarm(alarm_name, alarm_set)
+                if 'type' in alarm_config and alarm_config['type'] == 'LogAlarm':
+                    alarm = CloudWatchLogAlarm(alarm_name, alarm_set)
+                else:
+                    alarm = CloudWatchAlarm(alarm_name, alarm_set)
                 apply_attributes_from_config(alarm, alarm_config, config_folder, read_file_path=read_file_path)
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
@@ -877,6 +908,88 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
         apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
         stage_obj[action_name] = action_obj
     return stage_obj
+
+
+yaml_str_tag = 'tag:yaml.org,2002:str'
+yaml_seq_tag = 'tag:yaml.org,2002:seq'
+yaml_map_tag = 'tag:yaml.org,2002:map'
+
+def convert_yaml_node_to_troposphere(node):
+    if node.tag == '!Sub':
+        if type(node.value) == type(str()):
+            # ScalarNode - single argument only
+            return troposphere.Sub(node.value)
+        else:
+            values = {}
+            for map_node in node.value[1:]:
+                if map_node.tag != yaml_map_tag:
+                    raise TroposphereConversionError("Substitue variables for !Sub must be mappings.")
+                values[map_node.value[0][0].value] = map_node.value[0][1].value
+            return troposphere.Sub(
+                node.value[0].value,
+                **values
+            )
+
+    elif node.tag == '!Ref':
+        return troposphere.Ref(node.value)
+    elif node.tag == '!Join':
+        delimiter = node.value[0].value
+        values = []
+        for node in node.value[1].value:
+            values.append(
+                convert_yaml_node_to_troposphere(node)
+            )
+        return troposphere.Join(delimiter, values)
+
+    elif node.tag == yaml_str_tag:
+        return node.value
+    else:
+        raise TroposphereConversionError(
+            "Unknown YAML to convert to Troposphere"
+        )
+
+def troposphere_constructor(loader, node):
+    return convert_yaml_node_to_troposphere(node)
+
+# from ruamel.yaml.nodes import MappingNode
+# from ruamel.yaml.constructor import BaseConstructor
+
+# def construct_mapping(self, node, deep=False):
+#     """SafeConstructor mapping that also handles Troposphere keys
+#     such as Fn::Join: Fn::Sub: by creating Troposphere objects.
+#     """
+#     if isinstance(node, MappingNode):
+#         self.flatten_mapping(node)
+#     return BaseConstructor.construct_mapping(self, node, deep=deep)
+
+# ruamel.yaml.SafeConstructor.construct_mapping = construct_mapping
+
+cfn_tags = [
+    '!Sub',
+    '!Ref',
+    '!Join',
+    '!Base64',
+    '!Cidr',
+    '!FindInMap',
+    '!GetAZs',
+    '!ImportValue',
+    '!Select',
+    '!Split',
+    '!Transform',
+]
+for cfn_tag in cfn_tags:
+    ruamel.yaml.add_constructor(cfn_tag, troposphere_constructor, constructor=ruamel.yaml.SafeConstructor)
+
+
+class YAML(ruamel.yaml.YAML):
+    def dump(self, data, stream=None, **kw):
+        dumps = False
+        if stream is None:
+            dumps = True
+            stream = StringIO()
+        ruamel.yaml.YAML.dump(self, data, stream, **kw)
+        if dumps:
+            return stream.getvalue()
 
 def read_yaml_file(path):
     yaml = YAML(typ="safe", pure=True)
@@ -1178,7 +1291,7 @@ class ModelLoader():
 
         return new_ref
 
-    def normalize_environment_refs(self, env_config, env_name, env_region, breakit=False):
+    def normalize_environment_refs(self, env_config, env_name, env_region):
         """
         Resolves all references
         A reference is a string that refers to another value in the model. The original
@@ -1189,7 +1302,6 @@ class ModelLoader():
         # walk the model
         model_list = get_all_nodes(env_config)
         for model in model_list:
-            #continue
             all_fields = get_all_fields(model).items()
             for name, field in all_fields:
                 if hasattr(model, name) == False:
@@ -1217,6 +1329,21 @@ class ModelLoader():
                         new_list.append(value)
                     if modified == True:
                         setattr(model, attr_name, new_list)
+                elif zope.schema.interfaces.IDict.providedBy(field) and field.readonly == False:
+                    new_dict = {}
+                    attr_name = name
+                    modified = False
+                    dict_attr = getattr(model, name)
+                    if dict_attr != None:
+                        for key, item in getattr(model, name).items():
+                            if is_ref(item):
+                                value = self.insert_env_ref_str(item, env_name, env_region)
+                                modified = True
+                            else:
+                                value = item
+                            new_dict[key] = value
+                        if modified == True:
+                            setattr(model, attr_name, new_dict)
 
     def instantiate_project(self, name, config):
         if name == 'project':
@@ -1624,7 +1751,4 @@ class ModelLoader():
                     )
                     if env_reg_name != 'default':
                         # Insert the environment and region into any Refs
-                        breakit=False
-                        if name == 'aimdemo' and env_name == 'prod':
-                            breakit=True
-                        self.normalize_environment_refs(env_region, env_name, env_reg_name, breakit)
+                        self.normalize_environment_refs(env_region, env_name, env_reg_name)

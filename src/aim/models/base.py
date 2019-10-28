@@ -263,10 +263,13 @@ class DNSEnablable():
         # walked right to the top and enabled is still true
         return True
 
+@implementer(schemas.IType)
+class Type():
+    type = FieldProperty(schemas.IType['type'])
+
 @implementer(schemas.IResource)
-class Resource(Named, Deployable, Regionalized, DNSEnablable):
+class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
     "Resource"
-    type = FieldProperty(schemas.IResource['type'])
     resource_name = FieldProperty(schemas.IResource['resource_name'])
     resource_fullname = FieldProperty(schemas.IResource['resource_fullname'])
     order = FieldProperty(schemas.IResource['order'])

@@ -775,15 +775,17 @@ class IApplicationEngines(INamed, IMapping):
     "A collection of Application Engines"
     pass
 
-class IResource(INamed, IDeployable, IDNSEnablable):
-    """
-    AWS Resource to support an Application
-    """
+class IType(Interface):
     type = schema.TextLine(
         title = "Type of Resources",
         description = "A valid AWS Resource type: ASG, LBApplication, etc.",
         required = False,
     )
+
+class IResource(IType, INamed, IDeployable, IDNSEnablable):
+    """
+    AWS Resource to support an Application
+    """
     resource_name = schema.TextLine(
         title = "AWS Resource Name",
         description = "",
@@ -976,7 +978,7 @@ class IAlarm(INamed, IDeployable, IName, INotifiable):
         required = False,
     )
 
-class ICloudWatchAlarm(IAlarm):
+class ICloudWatchAlarm(IType, IAlarm):
     """
     A CloudWatch Alarm
     """
@@ -1086,6 +1088,16 @@ class ICloudWatchAlarm(IAlarm):
         constraint = isMissingDataValue,
     )
 
+class ICloudWatchLogAlarm(ICloudWatchAlarm):
+    log_set_name = schema.TextLine(
+        title = "Log Set Name",
+        required = True
+    )
+    log_group_name = schema.TextLine(
+        title = "Log Group Name",
+        required = True
+    )
+
 class INotificationGroups(IAccountRef):
     "Container for Notification Groups"
 
@@ -1157,8 +1169,8 @@ class IMetricTransformation(Interface):
         required = True,
     )
     metric_namespace = schema.TextLine(
-        title = "The namespace of the CloudWatch metric.",
-        required = True,
+        title = "The namespace of the CloudWatch metric. If not set, the namespace used will be 'AIM/{log-group-name}'.",
+        required = False,
         max_length = 255,
     )
     metric_value = schema.TextLine(
@@ -2516,6 +2528,313 @@ class ISimpleCloudWatchAlarm(Interface):
         required = False,
         default = []
     )
+
+# CloudFormation Init schemas
+
+class ICloudFormationConfigSets(INamed, IMapping):
+    @invariant
+    def configurations_lists(obj):
+        """
+        ConfigSets:
+
+        ascending:
+            - "config1"
+            - "config2"
+        descending:
+            - "config2"
+            - "config1"
+        """
+        for key, value in obj.items():
+            if type(key) != type(str()):
+                raise Invalid('ConfigSet name must be a string')
+            if len(key) < 1:
+                raise Invalid('ConfigSet name must be at least 1 char')
+            configurations = obj.__parent__.configurations
+            if configurations == None:
+                # if configurations haven't loaded yet, they can't be validated
+                return
+            for item in value:
+                if item not in configurations:
+                    raise Invalid('ConfigSet name does not match any configurations')
+
+class ICloudFormationConfigurations(INamed, IMapping):
+    pass
+
+class ICloudFormationInitVersionedPackageSet(IMapping):
+    @invariant
+    def packages_with_optional_versions(obj):
+        """
+        Packages lists should look like this:
+
+        yum:
+            httpd: ["0.10.2"]
+            php: ["5.1", "5.2"]
+            wordpress: []
+        """
+        for key, value in obj.items():
+            if type(key) != type(str()):
+                raise Invalid('Package name must be a string')
+            if len(key) < 1:
+                raise Invalid('Package name must be at least 1 char')
+            if type(value) != type(list()):
+                raise Invalid('Package version must be a list')
+            for item in value:
+                if type(item) != type(str()):
+                    raise Invalid('Package version must be a string')
+                if len(item) < 1:
+                    raise Invalid('Package version must be at least 1 char')
+
+class ICloudFormationInitPathOrUrlPackageSet(IMapping):
+    @invariant
+    def packages_with_path_or_url(obj):
+        """
+        Packages should look like this:
+
+        rpm:
+            epel: "http://download.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm"
+
+        """
+        for key, value in obj.items():
+            if type(key) != type(str()):
+                raise Invalid('Package name must be a string')
+            if len(key) < 1:
+                raise Invalid('Package name must be at least 1 char')
+            if type(value) != type(str()):
+                raise Invalid('Package path/URL must be a string')
+            if len(value) < 1:
+                raise Invalid('Package path/URL must be at least 1 char')
+
+class ICloudFormationInitPackages(INamed):
+    apt = schema.Object(
+        title="Apt packages",
+        schema=ICloudFormationInitVersionedPackageSet,
+        required=False
+    )
+    msi = schema.Object(
+        title="MSI packages",
+        schema=ICloudFormationInitPathOrUrlPackageSet,
+        required=False
+    )
+    python = schema.Object(
+        title="Apt packages",
+        schema=ICloudFormationInitVersionedPackageSet,
+        required=False
+    )
+    rpm = schema.Object(
+        title="RPM packages",
+        schema=ICloudFormationInitPathOrUrlPackageSet,
+        required=False
+    )
+    rubygems = schema.Object(
+        title="Rubygems packages",
+        schema=ICloudFormationInitVersionedPackageSet,
+        required=False
+    )
+    yum = schema.Object(
+        title="Yum packages",
+        schema=ICloudFormationInitVersionedPackageSet,
+        required=False
+    )
+
+class ICloudFormationInitGroups(Interface):
+    pass
+
+class ICloudFormationInitUsers(Interface):
+    pass
+
+class ICloudFormationInitSources(Interface):
+    pass
+
+
+class InvalidCfnInitEncoding(schema.ValidationError):
+    __doc__ = 'File encoding must be one of plain or base64.'
+
+def isValidCfnInitEncoding(value):
+    if value not in ('plain', 'base64'):
+        raise InvalidCfnInitEncoding
+
+def isValidS3KeyPrefix(value):
+    if value.startswith('/') or value.endswith('/'):
+        raise InvalidS3KeyPrefix
+    return True
+
+class ICloudFormationInitFiles(INamed, IMapping):
+    pass
+
+class ICloudFormationInitFile(INamed):
+    @invariant
+    def content_or_source(obj):
+        if obj.content != None and obj.source != None:
+            raise Invalid("Can not specify both content and source for cfn-init file configuration.")
+
+    @invariant
+    def encoding_for_source(obj):
+        if obj.encoding != None and obj.content == None:
+            raise Invalid("For cfn-init file configuration, encoding requires the content to be set.")
+
+    content = schema.Object(
+        title="""Either a string or a properly formatted YAML object.""",
+        required=False,
+        schema=Interface
+    )
+    source = schema.TextLine(
+        title="A URL to load the file from.",
+        required=False
+    )
+    encoding = schema.TextLine(
+        title="The encoding format.",
+        required=False,
+        constraint=isValidCfnInitEncoding
+    )
+    group = schema.TextLine(
+        title="The name of the owning group for this file. Not supported for Windows systems.",
+        required=False
+    )
+    owner = schema.TextLine(
+        title="The name of the owning user for this file. Not supported for Windows systems.",
+        required=False
+    )
+    mode = schema.TextLine(
+        title="""A six-digit octal value representing the mode for this file.""",
+        min_length=6,
+        max_length=6,
+        required=False
+    )
+    authentication = schema.TextLine(
+        title="""The name of an authentication method to use.""",
+        required=False
+    )
+    context = schema.TextLine(
+        title="""Specifies a context for files that are to be processed as Mustache templates.""",
+        required=False
+    )
+
+class ICloudFormationInitCommands(INamed, IMapping):
+    pass
+
+class ICloudFormationInitCommand(Interface):
+    command = schema.TextLine(
+        title="Command",
+        required=True,
+        min_length=1
+    )
+    env = schema.Dict(
+        title="Environment Variables. This property overwrites, rather than appends, the existing environment.",
+        required=False,
+        default={}
+    )
+    cwd = schema.TextLine(
+        title="Cwd. The working directory",
+        required=False,
+        min_length=1
+    )
+    test = schema.TextLine(
+        title="A test command that determines whether cfn-init runs commands that are specified in the command key. If the test passes, cfn-init runs the commands.",
+        required=False,
+        min_length=1
+    )
+    ignore_errors = schema.Bool(
+        title="Ingore errors - determines whether cfn-init continues to run if the command in contained in the command key fails (returns a non-zero value). Set to true if you want cfn-init to continue running even if the command fails.",
+        required=False,
+        default=False
+    )
+
+class ICloudFormationInitServices(Interface):
+    pass
+
+class ICloudFormationConfiguration(INamed):
+    packages = schema.Object(
+        title="Packages",
+        schema=ICloudFormationInitPackages,
+        required=False
+    )
+    groups = schema.Object(
+        title="Groups",
+        schema=ICloudFormationInitGroups,
+        required=False
+    )
+    users = schema.Object(
+        title="Users",
+        schema=ICloudFormationInitUsers,
+        required=False
+    )
+    sources = schema.Object(
+        title="Sources",
+        schema=ICloudFormationInitSources,
+        required=False
+    )
+    files = schema.Object(
+        title="Files",
+        schema=ICloudFormationInitFiles,
+        required=False
+    )
+    commands = schema.Object(
+        title="Commands",
+        schema=ICloudFormationInitCommands,
+        required=False
+    )
+    services = schema.Object(
+        title="Services",
+        schema=ICloudFormationInitServices,
+        required=False
+    )
+
+class ICloudFormationParameters(INamed, IMapping):
+    pass
+
+# class ICloudFormationParameter(Interface):
+#     type = schema.TextLine(
+#         title="Type of CloudFormation Parameter",
+#         required=True
+#     )
+
+# class ICloudFormationStringParameter(Interface):
+#     default = schema.Number(
+#         title="Default value of the Parameter",
+#         required=False
+#     )
+#     min_length = schema.Int(
+#         title="Minimum length of string",
+#         required=False
+#     )
+#     max_length = schema.Int(
+#         title="Maximum length of string"
+#         required=False
+#     )
+
+# class ICloudFormationNumberParameter(Interface):
+#     default = schema.Text(
+#         title="Default value of the Parameter",
+#         required=False
+#     )
+#     min_value = schema.Int(
+#         title="Minimum value of the Number",
+#         required=False
+#     )
+#     max_value = schema.Int(
+#         title="Maximum length of the Number "
+#         required=False
+#     )
+
+class ICloudFormationInit(INamed):
+    config_sets = schema.Object(
+        title="CloudFormation Init configSets",
+        schema=ICloudFormationConfigSets,
+        required=True
+    )
+    configurations = schema.Object(
+        title="CloudFormation Init configurations",
+        schema=ICloudFormationConfigurations,
+        required=True
+    )
+    parameters = schema.Dict(
+        title="Parameters",
+        default={},
+        required=False
+    )
+
+# AutoScalingGroup schemas
+
 class IASGLifecycleHooks(INamed, IMapping):
     """
     Container of ASG LifecycleHOoks
@@ -2664,6 +2983,11 @@ class IASG(IResource, IMonitorable):
     """
     Auto Scaling Group
     """
+    cfn_init = schema.Object(
+        title="CloudFormation Init",
+        schema=ICloudFormationInit,
+        required=False
+    )
     desired_capacity = schema.Int(
         title="Desired capacity",
         description="",

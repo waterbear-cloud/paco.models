@@ -15,3 +15,6 @@ class InvalidAimBucket(Exception):
 
 class InvalidAWSResourceName(Exception):
     pass
+
+class TroposphereConversionError(Exception):
+    pass

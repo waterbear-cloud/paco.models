@@ -174,6 +174,7 @@ class SimpleCloudWatchAlarm():
 @implementer(schemas.ICloudWatchAlarm)
 class CloudWatchAlarm(Alarm):
     "CloudWatch Alarm"
+    type = "Alarm"
     metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
     namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
     dimensions = FieldProperty(schemas.ICloudWatchAlarm["dimensions"])
@@ -292,6 +293,11 @@ class CloudWatchAlarm(Alarm):
             description_json,
             sub_dict
         )
+
+@implementer(schemas.ICloudWatchLogAlarm)
+class CloudWatchLogAlarm(CloudWatchAlarm):
+    log_set_name = FieldProperty(schemas.ICloudWatchLogAlarm["log_set_name"])
+    log_group_name = FieldProperty(schemas.ICloudWatchLogAlarm["log_group_name"])
 
 @implementer(schemas.IMonitorable)
 class Monitorable():

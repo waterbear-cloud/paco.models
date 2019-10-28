@@ -26,6 +26,8 @@ class YAML(ruamel.yaml.YAML):
 
 def is_ref(aim_ref):
     """Determines if the string value is an AIM Reference"""
+    if type(aim_ref) != type(str()):
+        return False
     if aim_ref.startswith('aim.ref ') == False:
         return False
     ref_types = ["netenv", "resource", "accounts", "function", "service"]

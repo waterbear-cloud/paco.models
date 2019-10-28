@@ -6,6 +6,13 @@ Changelog for aim.models
 
 ### Added
 
+- ICloudFormationInit for modelling AWS::CloudFormation::Init, which can be applied to
+  the IASG.cfn_init field.
+
+- ICloudWatchLogAlarm schema. ICloudWatchAlarm now has "type: Alarm" and if it is "type: LogAlarm"
+  an ICloudWatchLogAlarm will be created which can be used to connect an alarm to a MetricFilter
+  of a LogGroup.
+
 - IDBParameterGrouups resource.
 
 - IElastiCache has `description` and `cache_clusters` fields, while IElastiCacheRedis has `snapshot_retention_limit_days`

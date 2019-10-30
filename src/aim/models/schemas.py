@@ -164,6 +164,7 @@ valid_legacy_flags = (
         'iam_user_default_password_2019_10_12',
         'netenv_loggroup_name_2019_10_13',
         'route53_record_set_2019_10_16',
+        'target_group_name_2019_10_29'
     )
 class InvalidLegacyFlag(schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '

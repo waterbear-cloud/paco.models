@@ -598,6 +598,8 @@ Verify that '{}' has the correct indentation in the config file.
                     try:
                         if type(obj) in SUB_TYPES_CLASS_MAP:
                             if name in SUB_TYPES_CLASS_MAP[type(obj)]:
+                                #if name == 'secrets':
+                                #    breakpoint()
                                 value = sub_types_loader(
                                     obj,
                                     name,
@@ -612,6 +614,7 @@ Verify that '{}' has the correct indentation in the config file.
                         else:
                             setattr(obj, name, copy.deepcopy(value))
                     except (ValidationError, AttributeError) as exc:
+                        #breakpoint()
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object

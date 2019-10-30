@@ -24,16 +24,29 @@ class YAML(ruamel.yaml.YAML):
         if dumps:
             return stream.getvalue()
 
-def is_ref(aim_ref):
+
+class InvalidTextReferenceString(zope.schema.ValidationError):
+    __doc__ = 'TextReference must be of type (string)'
+
+class InvalidTextReferenceStartsWith(zope.schema.ValidationError):
+    __doc__ = "TextReference must begin with 'aim.ref'"
+
+class InvalidTextReferenceRefType(zope.schema.ValidationError):
+    __doc__ = "TextReference 'aim.ref must begin with: netenv | resource | accounts | function | service"
+
+def is_ref(aim_ref, raise_enabled=False):
     """Determines if the string value is an AIM Reference"""
     if type(aim_ref) != type(str()):
+        if raise_enabled: raise InvalidTextReferenceString
         return False
     if aim_ref.startswith('aim.ref ') == False:
+        if raise_enabled: raise InvalidTextReferenceStartsWith
         return False
     ref_types = ["netenv", "resource", "accounts", "function", "service"]
     for ref_type in ref_types:
         if aim_ref.startswith('aim.ref %s.' % ref_type):
             return True
+    if raise_enabled: raise InvalidTextReferenceRefType
     return False
 
 class FileReference(zope.schema.Text):
@@ -47,7 +60,6 @@ class FileReference(zope.schema.Text):
         # ToDo: how to get the AIM HOME and change to that directory from here?
         #path = pathlib.Path(value)
         #return path.exists()
-
 
 class TextReference(zope.schema.Text):
 
@@ -64,10 +76,11 @@ class TextReference(zope.schema.Text):
         """
         if self.str_ok and is_ref(value) == False:
             if isinstance(value, str) == False:
-                return False
+                raise InvalidTextReferenceString
+                #return False
             return True
 
-        return is_ref(value)
+        return is_ref(value, raise_enabled=True)
 
 
 class Reference():

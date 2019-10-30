@@ -50,6 +50,10 @@ cloudwatch = {
 	'CloudFront': {
 		'dimension': 'DistributionId',
 		'namespace': 'AWS/CloudFront'
+	},
+	'RDSMysql': {
+		'dimension': 'DBInstanceIdentifier',
+		'namespace': 'AWS/RDS'
 	}
 }
 

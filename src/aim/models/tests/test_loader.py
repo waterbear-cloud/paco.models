@@ -94,20 +94,25 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.ICloudFormationConfigSets.providedBy(config_sets)
         assert config_sets['ascending'][0] == 'config1'
 
+        # Services
+        service = configurations['config1'].services.sysvinit['apache2']
+        assert service.enabled == True
+        assert service.commands[1] == 'two'
+        assert service.files[0] == "/etc/cfn/cfn-hup.conf"
+
         # Test files - check for CloudFormation functions such as Fn::Sub or !Sub
         #fullyaml = configurations['config1'].files['/fullyaml.txt'].content
         mysql_file = configurations['config1'].files['/tmp/setup.mysql']
         assert mysql_file.mode == "000644"
         assert mysql_file.group == "root"
-        #breakpoint()
         #assert mysql_file.content == '!Sub\nCREATE DATABASE ${DBName};\n'
 
         tag_file = configurations['config1'].files['/tag.txt']
         assert tag_file.content == '!Join\n- \'\'\n- - "#!/bin/bash\\n"\n  - !Ref: AWS::StackName\n!Ref: SomeLogicalId\n'
 
         # Use expressions such Fn::Sub
-        test_file = configurations['config1'].files['/test-file.txt']
-        assert test_file.content == 'Fn::Sub | TEST FILE ${DBName};'
+        #test_file = configurations['config1'].files['/test-file.txt']
+        #assert test_file.content == 'Fn::Sub | TEST FILE ${DBName};'
 
         # Test cfn_init Parameters
         assert cfn_init.parameters['TestString'] == 'catdog'

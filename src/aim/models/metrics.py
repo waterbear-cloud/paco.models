@@ -15,6 +15,11 @@ from zope.schema.fieldproperty import FieldProperty
 @implementer(schemas.INotificationGroups)
 class NotificationGroups(AccountRef, Named, dict):
     "Container for NotificationGroups"
+    regions = FieldProperty(schemas.INotificationGroups["regions"])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.regions = ['ALL']
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

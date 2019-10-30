@@ -45,7 +45,7 @@ from aim.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigur
     CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitUsers, \
     CloudFormationInitSources, CloudFormationInitFiles, CloudFormationInitFile, CloudFormationInitCommands, \
     CloudFormationInitCommand, CloudFormationInitServices, CloudFormationConfiguration, CloudFormationInit, \
-    CloudFormationParameters
+    CloudFormationParameters, CloudFormationInitServiceCollection, CloudFormationInitService
 from aim.models.events import EventsRule
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
@@ -53,6 +53,7 @@ from aim.models.accounts import Account, AdminIAMUser
 from aim.models.references import Reference, TextReference, FileReference
 from aim.models.vocabulary import aws_regions
 from aim.models.references import resolve_ref, is_ref
+from aim.models.yaml import ModelYAML
 from aim.models import schemas
 from pathlib import Path
 from ruamel.yaml.compat import StringIO
@@ -129,6 +130,8 @@ SUB_TYPES_CLASS_MAP = {
         'packages': ('obj', CloudFormationInitPackages),
         'commands': ('container', (CloudFormationInitCommands, CloudFormationInitCommand)),
         'files': ('container', (CloudFormationInitFiles, CloudFormationInitFile)),
+        'services': ('obj', CloudFormationInitServices),
+        'sources': ('dynamic_dict', CloudFormationInitSources)
     },
     CloudFormationInitPackages: {
         'apt': ('dynamic_dict', CloudFormationInitVersionedPackageSet),
@@ -137,6 +140,10 @@ SUB_TYPES_CLASS_MAP = {
         'rpm': ('dynamic_dict', CloudFormationInitPathOrUrlPackageSet),
         'rubygems': ('dynamic_dict', CloudFormationInitVersionedPackageSet),
         'yum': ('dynamic_dict', CloudFormationInitVersionedPackageSet)
+    },
+    CloudFormationInitServices: {
+        'sysvinit': ('container', (CloudFormationInitServiceCollection, CloudFormationInitService)),
+        'windows': ('container', (CloudFormationInitServiceCollection, CloudFormationInitService))
     },
 
     # Assorted unsorted
@@ -911,95 +918,6 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
     return stage_obj
 
 
-yaml_str_tag = 'tag:yaml.org,2002:str'
-yaml_seq_tag = 'tag:yaml.org,2002:seq'
-yaml_map_tag = 'tag:yaml.org,2002:map'
-
-def convert_yaml_node_to_troposphere(node):
-    if node.tag == '!Sub':
-        if type(node.value) == type(str()):
-            # ScalarNode - single argument only
-            return troposphere.Sub(node.value)
-        else:
-            values = {}
-            for map_node in node.value[1:]:
-                if map_node.tag != yaml_map_tag:
-                    raise TroposphereConversionError("Substitue variables for !Sub must be mappings.")
-                values[map_node.value[0][0].value] = map_node.value[0][1].value
-            return troposphere.Sub(
-                node.value[0].value,
-                **values
-            )
-
-    elif node.tag == '!Ref':
-        return troposphere.Ref(node.value)
-    elif node.tag == '!Join':
-        delimiter = node.value[0].value
-        values = []
-        for node in node.value[1].value:
-            values.append(
-                convert_yaml_node_to_troposphere(node)
-            )
-        return troposphere.Join(delimiter, values)
-
-    elif node.tag == yaml_str_tag:
-        return node.value
-    else:
-        raise TroposphereConversionError(
-            "Unknown YAML to convert to Troposphere"
-        )
-
-def troposphere_constructor(loader, node):
-    return convert_yaml_node_to_troposphere(node)
-
-# from ruamel.yaml.nodes import MappingNode
-# from ruamel.yaml.constructor import BaseConstructor
-
-# def construct_mapping(self, node, deep=False):
-#     """SafeConstructor mapping that also handles Troposphere keys
-#     such as Fn::Join: Fn::Sub: by creating Troposphere objects.
-#     """
-#     if isinstance(node, MappingNode):
-#         self.flatten_mapping(node)
-#     return BaseConstructor.construct_mapping(self, node, deep=deep)
-
-# ruamel.yaml.SafeConstructor.construct_mapping = construct_mapping
-
-cfn_tags = [
-    '!Sub',
-    '!Ref',
-    '!Join',
-    '!Base64',
-    '!Cidr',
-    '!FindInMap',
-    '!GetAZs',
-    '!ImportValue',
-    '!Select',
-    '!Split',
-    '!Transform',
-]
-for cfn_tag in cfn_tags:
-    ruamel.yaml.add_constructor(cfn_tag, troposphere_constructor, constructor=ruamel.yaml.SafeConstructor)
-
-
-class YAML(ruamel.yaml.YAML):
-    def dump(self, data, stream=None, **kw):
-        dumps = False
-        if stream is None:
-            dumps = True
-            stream = StringIO()
-        ruamel.yaml.YAML.dump(self, data, stream, **kw)
-        if dumps:
-            return stream.getvalue()
-
-def read_yaml_file(path):
-    yaml = YAML(typ="safe", pure=True)
-    yaml.default_flow_sytle = False
-    with open(path, 'r') as stream:
-        data = yaml.load(stream)
-    return data
-
-
 class ModelLoader():
     """
     Loads YAML config files into aim.model instances
@@ -1015,6 +933,11 @@ class ModelLoader():
         }
         self.config_processor = config_processor
         self.project = None
+
+    def read_yaml_file(self, path):
+        with open(path, 'r') as stream:
+            data = self.yaml.load(stream)
+        return data
 
     def read_yaml(self, sub_dir='', fname=''):
         """Read a YAML file"""
@@ -1040,10 +963,19 @@ class ModelLoader():
         self.read_file_path = path
 
         # read the YAML!
-        return read_yaml_file(path)
+        return self.read_yaml_file(path)
 
     def load_all(self):
         'Basically does a LOAD "*",8,1'
+        # set-up the Troposphere YAML constructors
+        # ToDo: YAML constructors appear to be global (set on the SafeConstructor class)
+        # This approach replaces AIM CFN constructors with ones that load CFN Tags as
+        # Troposphere objects, then when the model is finished loading, restores the
+        # AIM CFN constructors back
+        self.yaml = ModelYAML(typ="safe", pure=True)
+        self.yaml.default_flow_sytle = False
+        self.yaml.add_troposphere_constructors()
+
         aim_project_version = self.read_aim_project_version()
         self.check_aim_project_version(aim_project_version)
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
@@ -1064,6 +996,7 @@ class ModelLoader():
         self.check_notification_config()
         self.load_outputs()
         self.load_core_monitoring()
+        self.yaml.restore_existing_constructors()
 
     def read_aim_project_version(self):
         "Reads <project>/aim-project-version.txt and returns a tuple (major,medium) version"

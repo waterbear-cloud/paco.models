@@ -97,8 +97,13 @@ class CloudFormationInitUsers():
     pass
 
 @implementer(schemas.ICloudFormationInitSources)
-class CloudFormationInitSources():
-    pass
+class CloudFormationInitSources(Named, dict):
+
+    def export_as_troposphere(self):
+        out = {}
+        for key, value in self.items():
+            out[key] = value
+        return out
 
 @implementer(schemas.ICloudFormationInitFiles)
 class CloudFormationInitFiles(Named, dict):
@@ -138,6 +143,8 @@ class CloudFormationInitCommands(Named, dict):
             command_dict = {}
             for name in ('command', 'env', 'cwd', 'test', 'ignore_errors'):
                 value = getattr(command_obj, name)
+                if name == 'ignore_errors':
+                    name = 'ignoreErrors'
                 if value != None:
                     command_dict[name] = value
             out[key] = command_dict
@@ -155,9 +162,55 @@ class CloudFormationInitCommand(Named):
         super().__init__(name, parent)
         self.env = {}
 
+@implementer(schemas.ICloudFormationInitService)
+class CloudFormationInitService(Named, dict):
+    ensure_running = FieldProperty(schemas.ICloudFormationInitService['ensure_running'])
+    enabled = FieldProperty(schemas.ICloudFormationInitService['enabled'])
+    files = FieldProperty(schemas.ICloudFormationInitService['files'])
+    sources = FieldProperty(schemas.ICloudFormationInitService['sources'])
+    packages = FieldProperty(schemas.ICloudFormationInitService['packages'])
+    commands = FieldProperty(schemas.ICloudFormationInitService['commands'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.files = []
+        self.packages = {}
+        self.commands = []
+        self.sources = []
+
+@implementer(schemas.ICloudFormationInitServiceCollection)
+class CloudFormationInitServiceCollection(Named, dict):
+
+    def export_as_troposphere(self):
+        out = {}
+        for key, service_obj in self.items():
+            service_dict = {}
+            for name in ('ensure_running', 'enabled', 'files', 'sources', 'packages', 'commands'):
+                value = getattr(service_obj, name)
+                if name == 'ensure_running':
+                    name = 'ensureRunning'
+                if value != None:
+                    service_dict[name] = value
+            out[key] = service_dict
+        return out
+
 @implementer(schemas.ICloudFormationInitServices)
-class CloudFormationInitServices():
-    pass
+class CloudFormationInitServices(Named):
+    sysvinit = FieldProperty(schemas.ICloudFormationInitServices['sysvinit'])
+    windows = FieldProperty(schemas.ICloudFormationInitServices['windows'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.sysvinit = CloudFormationInitServiceCollection('sysvinit', self)
+        self.windows = CloudFormationInitServiceCollection('windows', self)
+
+    def export_as_troposphere(self):
+        out = {}
+        if self.sysvinit:
+            out['sysvinit'] = self.sysvinit.export_as_troposphere()
+        if self.windows:
+            out['windows'] = self.windows.export_as_troposphere()
+        return out
 
 @implementer(schemas.ICloudFormationConfiguration)
 class CloudFormationConfiguration(Named):
@@ -174,14 +227,14 @@ class CloudFormationConfiguration(Named):
         self.packages = CloudFormationInitPackages('packages', self)
         self.files = CloudFormationInitFiles('files', self)
         self.commands = CloudFormationInitCommands('commands', self)
+        self.services = CloudFormationInitServices('services', self)
+        self.sources = CloudFormationInitSources('sources', self)
         self.groups = CloudFormationInitGroups()
         self.users = CloudFormationInitUsers()
-        self.sources = CloudFormationInitSources()
-        self.services = CloudFormationInitServices()
 
     def export_as_troposphere(self):
         out = {}
-        for name in ('packages', 'files', 'commands'): #, 'groups', 'users', 'sources', 'services'):
+        for name in ('packages', 'files', 'commands', 'services', 'sources'): # ToDo: 'groups', 'users'
             obj = getattr(self, name, None)
             if obj:
                 out[name] = obj.export_as_troposphere()

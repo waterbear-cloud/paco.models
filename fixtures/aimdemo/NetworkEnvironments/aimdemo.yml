@@ -307,6 +307,17 @@ applications:
                       env:
                         CFNTEST: "I come from config1."
                       cwd: "~"
+                  services:
+                    sysvinit:
+                      apache2:
+                        enabled: true
+                        ensure_running: true
+                        commands:
+                        - one
+                        - two
+                        files:
+                        - "/etc/cfn/cfn-hup.conf"
+                        - "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
                 config2:
                   commands:
                     test:

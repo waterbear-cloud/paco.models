@@ -671,6 +671,7 @@ class SNSTopicSubscription():
 @implementer(schemas.ISNSTopic)
 class SNSTopic(Resource):
     title = "SNSTopic"
+    type = "SNSTopic"
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
     cross_account_access = FieldProperty(schemas.ISNSTopic['cross_account_access'])

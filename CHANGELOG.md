@@ -6,6 +6,9 @@ Changelog for aim.models
 
 ### Added
 
+- INotificationGroups has a regions field, if it is the default of ['ALL'] it will apply to
+  all of a project's active regions. Otherwise is will just provision in the selected region(s).
+
 - ICloudFormationInit for modelling AWS::CloudFormation::Init, which can be applied to
   the IASG.cfn_init field.
 

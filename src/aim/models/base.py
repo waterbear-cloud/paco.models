@@ -384,6 +384,11 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
         # By default return a '-' for invalid characters
         return '-'
 
+    def create_cfn_logical_id(self, camel_case=False):
+        "The logical ID must be alphanumeric (A-Za-z0-9) and unique within the template."
+        name = self.type + self.name
+        return self.create_resource_name(name, remove_invalids=True, camel_case=camel_case).replace('-', '')
+
     def create_resource_name(
         self,
         name,

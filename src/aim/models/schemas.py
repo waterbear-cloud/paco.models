@@ -139,6 +139,12 @@ def isValidAWSRegionList(value):
         isValidAWSRegionName(region)
     return True
 
+def isValidAWSRegionOrAllList(value):
+    if value == ['ALL']: return True
+    for region in value:
+        isValidAWSRegionName(region)
+    return True
+
 class InvalidAWSHealthCheckRegion(schema.ValidationError):
     __doc__ = "AWS Health Check regions are: 'sa-east-1', 'us-west-1', 'us-west-2', 'ap-northeast-1', 'ap-southeast-1', 'eu-west-1', 'us-east-1', 'ap-southeast-2'"
 
@@ -1100,6 +1106,12 @@ class ICloudWatchLogAlarm(ICloudWatchAlarm):
 
 class INotificationGroups(IAccountRef):
     "Container for Notification Groups"
+    regions = schema.List(
+        title="Regions to provision the Notification Groups in. Special list of ['ALL'] will select all of the project's active regions.",
+        required=False,
+        default=['ALL'],
+        constraint=isValidAWSRegionOrAllList
+    )
 
 # Logging schemas
 
@@ -2642,9 +2654,8 @@ class ICloudFormationInitGroups(Interface):
 class ICloudFormationInitUsers(Interface):
     pass
 
-class ICloudFormationInitSources(Interface):
+class ICloudFormationInitSources(INamed, IMapping):
     pass
-
 
 class InvalidCfnInitEncoding(schema.ValidationError):
     __doc__ = 'File encoding must be one of plain or base64.'
@@ -2739,8 +2750,60 @@ class ICloudFormationInitCommand(Interface):
         default=False
     )
 
-class ICloudFormationInitServices(Interface):
+class ICloudFormationInitService(Interface):
+    # ToDo: Invariant to check commands list
+    ensure_running = schema.Bool(
+        title="Ensure that the service is running or stopped after cfn-init finishes.",
+        required=False
+    )
+    enabled = schema.Bool(
+        title="Ensure that the service will be started or not started upon boot.",
+        required=False
+    )
+    files = schema.List(
+        title="A list of files. If cfn-init changes one directly via the files block, this service will be restarted",
+        required=False,
+        value_type=schema.TextLine(
+            title="File"
+        ),
+        default=[]
+    )
+    sources = schema.List(
+        title="A list of directories. If cfn-init expands an archive into one of these directories, this service will be restarted.",
+        required=False,
+        value_type=schema.TextLine(
+            title="Sources"
+        ),
+        default=[]
+    )
+    packages = schema.Dict(
+        title="A map of package manager to list of package names. If cfn-init installs or updates one of these packages, this service will be restarted.",
+        required=False,
+        default={}
+    )
+    commands = schema.List(
+        title="A list of command names. If cfn-init runs the specified command, this service will be restarted.",
+        required=False,
+        value_type=schema.TextLine(
+            title="Commands"
+        ),
+        default=[]
+    )
+
+class ICloudFormationInitServiceCollection(INamed, IMapping):
     pass
+
+class ICloudFormationInitServices(INamed):
+    sysvinit = schema.Object(
+        title="SysVInit Services for Linux OS",
+        schema=ICloudFormationInitServiceCollection,
+        required=False
+    )
+    windows = schema.Object(
+        title="Windows Services for Windows OS",
+        schema=ICloudFormationInitServiceCollection,
+        required=False
+    )
 
 class ICloudFormationConfiguration(INamed):
     packages = schema.Object(

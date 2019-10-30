@@ -181,8 +181,6 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
     try:
-        #if schemas.IDeploymentPipelineBuildCodeBuild.providedBy(ref.resource):
-        #    breakpoint()
         response = obj.resolve_ref(ref)
     except AttributeError:
         # Check if we have something stored in Outputs

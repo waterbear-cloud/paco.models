@@ -1,10 +1,10 @@
-from zope.interface import Interface, Attribute, invariant, Invalid
+from zope.interface import Interface, Attribute, invariant, Invalid, classImplements
 from zope.interface.common.mapping import IMapping
 from zope.interface.common.sequence import ISequence
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from aim.models import vocabulary
-from aim.models.references import TextReference, FileReference
+from aim.models.references import TextReference, FileReference, StringFileReference, YAMLFileReference
 import json
 import re
 import ipaddress
@@ -593,13 +593,25 @@ class IName(Interface):
         required = False,
     )
 
+class IFileReference(Interface):
+    pass
+
+class IStringFileReference(IFileReference):
+    pass
+
+class IYAMLFileReference(IFileReference):
+    pass
 
 class ITextReference(Interface):
     """A field containing a reference an aim model object or attribute"""
     pass
-# work around a circular import
-from zope.interface import classImplements
+
+# work around circular imports for references
 classImplements(TextReference, ITextReference)
+classImplements(FileReference, IFileReference)
+classImplements(StringFileReference, IStringFileReference)
+classImplements(YAMLFileReference, IYAMLFileReference)
+
 
 class INameValuePair(Interface):
     name = schema.TextLine(
@@ -2676,8 +2688,12 @@ class ICloudFormationInitFiles(INamed, IMapping):
 class ICloudFormationInitFile(INamed):
     @invariant
     def content_or_source(obj):
-        if obj.content != None and obj.source != None:
+        if obj.content != None and obj.content_file != None and obj.content_cfn_file != None:
+            raise Invalid("Can not specify more than one of content, content_cfn_file and content_file for cfn-init file configuration.")
+        elif obj.content != None and obj.source != None:
             raise Invalid("Can not specify both content and source for cfn-init file configuration.")
+        elif obj.content_file != None and obj.source != None:
+            raise Invalid("Can not specify both content_file and source for cfn-init file configuration.")
 
     @invariant
     def encoding_for_source(obj):
@@ -2688,6 +2704,14 @@ class ICloudFormationInitFile(INamed):
         title="""Either a string or a properly formatted YAML object.""",
         required=False,
         schema=Interface
+    )
+    content_file = StringFileReference(
+        title="""File path to a string.""",
+        required=False
+    )
+    content_cfn_file = YAMLFileReference(
+        title="File path to a properly formatted CloudFormation Functions YAML object.",
+        required=False
     )
     source = schema.TextLine(
         title="A URL to load the file from.",
@@ -3291,7 +3315,7 @@ class ILambdaFunctionCode(Interface):
         if obj.zipfile and len(obj.zipfile) > 4096:
             raise Invalid("Too bad, so sad. Limit of inline code of 4096 characters exceeded. File is {} chars long.".format(len(obj.zipfile)))
 
-    zipfile = FileReference(
+    zipfile = StringFileReference(
         title = "The function as an external file.",
         description = "Maximum of 4096 characters.",
         required = False,
@@ -3646,7 +3670,7 @@ class IApiGatewayRestApi(IResource):
         description = "Must be valid JSON.",
         required = False,
     )
-    body_file_location = FileReference(
+    body_file_location = StringFileReference(
         title = "Path to a file containing the Body.",
         description = "Must be valid path to a valid JSON document.",
         required = False,

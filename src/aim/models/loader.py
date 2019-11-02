@@ -426,19 +426,6 @@ SUB_TYPES_CLASS_MAP = {
     }
 }
 
-def load_string_from_path(path, base_path=None):
-    if not base_path.endswith(os.sep):
-        base_path += os.sep
-    if base_path:
-        path = base_path + path
-    path = Path(path)
-    if path.is_file():
-        fh = path.open()
-        return fh.read()
-    else:
-        # ToDo: better error help
-        raise InvalidAimProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
-
 def merge(base, override):
     """
     Merge two dictionaries of arbitray depth
@@ -529,6 +516,9 @@ def cast_to_schema(obj, fieldname, value, fields=None):
     field = fields[fieldname]
     if zope.schema.interfaces.IFloat.providedBy(field):
         return float(value)
+    if schemas.IYAMLFileReference.providedBy(field):
+        # Prevent Troposphere objects from being cast to a string
+        return value
     if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
         # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
         # You can force a string with "field: '404'" but this removes the need to do that.
@@ -573,17 +563,20 @@ Verify that '{}' has the correct indentation in the config file.
             if name != 'name' or not schemas.INamed.providedBy(obj):
                 value = config.get(name, None)
                 # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
-                if type(field) == type(FileReference()) and value:
+                if schemas.IFileReference.providedBy(field) and value:
                     if read_file_path:
                         # set it to the containing directory of the file
                         path = Path(read_file_path)
                         base_path = os.sep.join(path.parts[:-1])[1:]
                     else:
                         base_path = None
+                    # Load as a YAML - parse !Sub, !Join and other CloudFormation Functions
                     value = load_string_from_path(
                         value,
                         base_path=base_path,
+                        is_yaml=schemas.IYAMLFileReference.providedBy(field)
                     )
+
                 # CommaList: Parse comma separated list into python list()
                 elif type(field) == type(schemas.CommaList()):
                     value = []
@@ -916,6 +909,35 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
         apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
         stage_obj[action_name] = action_obj
     return stage_obj
+
+def load_string_from_path(path, base_path=None, is_yaml=False):
+    """Reads file contents from a path and returns a string.
+    If is_yaml is True then it will load it as a YAML file.
+    """
+    if not base_path.endswith(os.sep):
+        base_path += os.sep
+    if base_path:
+        path = base_path + path
+    path = Path(path)
+    if path.is_file():
+        if is_yaml:
+            return read_yaml_file(path)
+        else:
+            fh = path.open()
+            return fh.read()
+    else:
+        # ToDo: better error help
+        raise InvalidAimProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
+
+def read_yaml_file(path):
+    "Same as the ModelLoader method, but available outside that class"
+    yaml = ModelYAML(typ="safe", pure=True)
+    yaml.default_flow_sytle = False
+    yaml.add_troposphere_constructors()
+    with open(path, 'r') as stream:
+        data = yaml.load(stream)
+    yaml.restore_existing_constructors()
+    return data
 
 
 class ModelLoader():

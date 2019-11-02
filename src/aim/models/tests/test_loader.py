@@ -2,6 +2,7 @@ import aim.models.applications
 import aim.models.networks
 import aim.models.loader
 import os
+import troposphere
 import inspect
 import unittest
 from aim.models import load_project_from_yaml, schemas
@@ -101,6 +102,12 @@ class TestAimDemo(BaseTestModelLoader):
         assert service.files[0] == "/etc/cfn/cfn-hup.conf"
 
         # Test files - check for CloudFormation functions such as Fn::Sub or !Sub
+        local_file = configurations['config1'].files['/tmp/local-file']
+        assert type(local_file.content) == troposphere.Sub
+
+        plain_file = configurations['config1'].files['/tmp/plain-file']
+        assert plain_file.content == "Nothing to see here."
+
         #fullyaml = configurations['config1'].files['/fullyaml.txt'].content
         mysql_file = configurations['config1'].files['/tmp/setup.mysql']
         assert mysql_file.mode == "000644"

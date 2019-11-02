@@ -266,6 +266,16 @@ applications:
                     #   mode: "000644"
                     #   owner: "root"
                     #   group: "root"
+                    "/tmp/local-file":
+                      content_cfn_file: ./cfn-init/local-file
+                      mode: "000644"
+                      owner: "root"
+                      group: "root"
+                    "/tmp/plain-file":
+                      content_file: ./cfn-init/plain-file
+                      mode: "000644"
+                      owner: "root"
+                      group: "root"
                     "/tmp/setup.mysql":
                       content: !Join
                         - ''

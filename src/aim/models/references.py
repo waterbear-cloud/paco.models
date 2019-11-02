@@ -49,7 +49,10 @@ def is_ref(aim_ref, raise_enabled=False):
     if raise_enabled: raise InvalidTextReferenceRefType
     return False
 
-class FileReference(zope.schema.Text):
+class FileReference():
+    pass
+
+class StringFileReference(FileReference, zope.schema.Text):
     """Path to a file on the filesystem"""
 
     def constraint(self, value):
@@ -60,6 +63,14 @@ class FileReference(zope.schema.Text):
         # ToDo: how to get the AIM HOME and change to that directory from here?
         #path = pathlib.Path(value)
         #return path.exists()
+
+class YAMLFileReference(FileReference, zope.schema.Object):
+    """Path to a YAML file"""
+
+    def __init__(self, **kw):
+        self.schema = Interface
+        self.validate_invariants = kw.pop('validate_invariants', True)
+        super(zope.schema.Object, self).__init__(**kw)
 
 class TextReference(zope.schema.Text):
 

@@ -116,7 +116,8 @@ class CloudFormationInitFiles(Named, dict):
 
 @implementer(schemas.ICloudFormationInitFile)
 class CloudFormationInitFile(Named):
-    content = FieldProperty(schemas.ICloudFormationInitFile['content'])
+    content_cfn_file = FieldProperty(schemas.ICloudFormationInitFile['content_cfn_file'])
+    content_file = FieldProperty(schemas.ICloudFormationInitFile['content_file'])
     source = FieldProperty(schemas.ICloudFormationInitFile['source'])
     encoding = FieldProperty(schemas.ICloudFormationInitFile['encoding'])
     group = FieldProperty(schemas.ICloudFormationInitFile['group'])
@@ -124,6 +125,20 @@ class CloudFormationInitFile(Named):
     mode = FieldProperty(schemas.ICloudFormationInitFile['mode'])
     authentication = FieldProperty(schemas.ICloudFormationInitFile['authentication'])
     context = FieldProperty(schemas.ICloudFormationInitFile['context'])
+    _content = None
+
+    @property
+    def content(self):
+        "Return a string or a Troposphere CFN Function object"
+        if self.content_file:
+            return self.content_file
+        elif self.content_cfn_file:
+            return self.content_cfn_file
+        return self._content
+
+    @content.setter
+    def content(self, value):
+        self._content = value
 
     def export_as_troposphere(self):
         out = {}

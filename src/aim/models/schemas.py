@@ -2749,7 +2749,7 @@ class ICloudFormationInitCommands(INamed, IMapping):
     pass
 
 class ICloudFormationInitCommand(Interface):
-    command = schema.TextLine(
+    command = schema.Text(
         title="Command",
         required=True,
         min_length=1

@@ -1274,10 +1274,10 @@ class ModelLoader():
             return aim_ref
 
         # Update application names to reflect unique app name for applications with unique suffixes
-        if ref.parts[2] == 'applications':
-            app_name = ref.parts[3]
-            if application.name != app_name:
-                ref.parts[3] = application.name
+        # if ref.parts[2] == 'applications':
+        #     app_name = ref.parts[3]
+        #     if application.name != app_name:
+        #         ref.parts[3] = application.name
 
         ref.parts.insert(2, env_id)
         ref.parts.insert(3, region)

@@ -160,7 +160,7 @@ class Dimension(Parent):
         self.value = value
 
 @implementer(schemas.ISimpleCloudWatchAlarm)
-class SimpleCloudWatchAlarm():
+class SimpleCloudWatchAlarm(Parent):
     "CloudWatch Alarm"
     alarm_description = FieldProperty(schemas.ISimpleCloudWatchAlarm["alarm_description"])
     actions_enabled = FieldProperty(schemas.ISimpleCloudWatchAlarm["actions_enabled"])
@@ -173,7 +173,8 @@ class SimpleCloudWatchAlarm():
     statistic = FieldProperty(schemas.ISimpleCloudWatchAlarm["statistic"])
     dimensions = FieldProperty(schemas.ISimpleCloudWatchAlarm["dimensions"])
 
-    def __init__(self):
+    def __init__(self, __parent__):
+        self.__parent__ = __parent__
         self.dimensions = []
 
 

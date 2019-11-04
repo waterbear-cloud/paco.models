@@ -2510,7 +2510,7 @@ class IEFSMount(IDeployable):
         str_ok = True
     )
 
-class ISimpleCloudWatchAlarm(Interface):
+class ISimpleCloudWatchAlarm(IParent):
     """
     A Simple CloudWatch Alarm
     """

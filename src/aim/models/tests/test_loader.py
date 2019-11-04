@@ -335,3 +335,11 @@ class TestAimDemo(BaseTestModelLoader):
         pinger = health_checks['external_ping']
         assert pinger.match_string, 'alive!'
         assert pinger.port, 80
+
+    def test_multiple_apps_one_netenv(self):
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        apps = demo_env['applications']
+        assert schemas.IApplication.providedBy(apps['appmouse'])
+        assert schemas.IApplication.providedBy(apps['appelephant'])
+        assert schemas.IApplication.providedBy(apps['app'])
+        assert apps['appmouse'].groups['cicd'].resources['cpbd'].asg == 'aim.ref netenv.aimdemo.demo.us-west-2.applications.appmouse.groups.site.resources.webapp'

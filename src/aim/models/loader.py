@@ -3,6 +3,7 @@ The loader is responsible for reading an AIM Project and creating a tree of Pyth
 model objects.
 """
 
+from aim.models.locations import get_parent_by_interface
 from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
@@ -314,6 +315,9 @@ SUB_TYPES_CLASS_MAP = {
     CloudWatchLogSet: {
         'log_groups': ('container', (CloudWatchLogGroups, CloudWatchLogGroup)),
     },
+    RegionContainer: {
+        'alarm_sets': ('twolevel_container', (AlarmSets, AlarmSet, CloudWatchAlarm))
+    },
 
     # Networking
     NetworkEnvironment: {
@@ -426,6 +430,20 @@ SUB_TYPES_CLASS_MAP = {
     }
 }
 
+def deepcopy_except_parent(obj):
+    """Returns a deepcopy on on the object, but does not recurse up the
+    __parent__ attribute to prevent copying the entire model.
+    """
+    if not hasattr(obj, '__parent__'):
+        return copy.deepcopy(obj)
+
+    # set __parent__ to None, copy the object, then restore __parent__
+    parent = getattr(obj, '__parent__', None)
+    obj.__parent__ = None
+    copy_obj = copy.deepcopy(obj)
+    obj.__parent__ = parent
+    return copy_obj
+
 def merge(base, override):
     """
     Merge two dictionaries of arbitray depth
@@ -440,7 +458,7 @@ def merge(base, override):
     if isinstance(base, list) and isinstance(override, list):
         return [merge(x, y) for x, y in itertools.zip_longest(base, override)]
 
-    return copy.deepcopy(base) if override is None else copy.deepcopy(override)
+    return deepcopy_except_parent(base) if override is None else deepcopy_except_parent(override)
 
 def annotate_base_config(obj, override_config, base_config):
     """
@@ -592,7 +610,7 @@ Verify that '{}' has the correct indentation in the config file.
                             setattr(obj, name, value)
                         else:
                             # reference - set a special _ref_ attribute for later look-up
-                            setattr(obj, '_ref_' + name, copy.deepcopy(value))
+                            setattr(obj, '_ref_' + name, deepcopy_except_parent(value))
                         continue
 
                     try:
@@ -608,9 +626,9 @@ Verify that '{}' has the correct indentation in the config file.
                                 )
                                 setattr(obj, name, value)
                             else:
-                                setattr(obj, name, copy.deepcopy(value))
+                                setattr(obj, name, deepcopy_except_parent(value))
                         else:
-                            setattr(obj, name, copy.deepcopy(value))
+                            setattr(obj, name, deepcopy_except_parent(value))
                     except (ValidationError, AttributeError) as exc:
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
@@ -677,6 +695,8 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         for sub_key, sub_value in value.items():
             if schemas.INamed.implementedBy(sub_class):
                 sub_obj = sub_class(sub_key, obj)
+            elif schemas.IParent.implementedBy(sub_class):
+                sub_obj = sub_class(obj)
             else:
                 sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
@@ -745,7 +765,7 @@ Configuration section:
         for first_key, first_value in value.items():
             # special case for AlarmSet.notifications
             if first_key == 'notifications' and schemas.IAlarmSet.implementedBy(first_object_class):
-                notifications = instantiate_notifications(value['notifications'], read_file_path)
+                notifications = instantiate_notifications(value['notifications'], obj, read_file_path)
                 container.notifications = notifications
             else:
                 first_obj = first_object_class(first_key, container)
@@ -753,7 +773,7 @@ Configuration section:
             for second_key, second_value in first_value.items():
                 # special case for Alarm.notifications
                 if second_key == 'notifications' and schemas.IAlarm.implementedBy(second_object_class):
-                    notifications = instantiate_notifications(value[first_key]['notifications'], read_file_path)
+                    notifications = instantiate_notifications(value[first_key]['notifications'], obj, read_file_path)
                     container[first_key].notifications = notifications
                 else:
                     second_obj = second_object_class(second_key, container[first_key])
@@ -777,6 +797,8 @@ Configuration section:
     elif sub_type == 'unnamed_dict':
         if schemas.INamed.implementedBy(sub_class):
             sub_obj = sub_class(name, obj)
+        elif schemas.IParent.implementedBy(sub_class):
+            sub_obj = sub_class(obj)
         else:
             sub_obj = sub_class()
         apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
@@ -787,6 +809,8 @@ Configuration section:
         # load all unconstrained key/value pairs
         if schemas.INamed.implementedBy(sub_class):
             sub_obj = sub_class(name, obj)
+        elif schemas.IParent.implementedBy(sub_class):
+            sub_obj = sub_class(obj)
         else:
             sub_obj = sub_class()
 
@@ -800,6 +824,8 @@ Configuration section:
         for sub_value in value:
             if schemas.INamed.implementedBy(sub_class):
                 sub_obj = sub_class(name, obj)
+            elif schemas.IParent.implementedBy(sub_class):
+                sub_obj = sub_class(obj)
             else:
                 sub_obj = sub_class()
             apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
@@ -851,18 +877,24 @@ Configuration section:
                         if alarm_name == 'notifications':
                             alarm_sets[alarm_set_name].notifications = instantiate_notifications(
                                 value[alarm_set_name]['notifications'],
+                                obj,
                                 read_file_path
                             )
                         # load notifications for an Alarm
                         elif setting_name == 'notifications':
                             alarm_sets[alarm_set_name][alarm_name].notifications = instantiate_notifications(
                                 value[alarm_set_name][alarm_name]['notifications'],
+                                obj,
                                 read_file_path
                             )
                         else:
                             if setting_name == 'dimensions':
                                 setting_value = [
-                                    Dimension(item['name'], item['value'])
+                                    Dimension(
+                                        alarm_sets[alarm_set_name][alarm_name],
+                                        item['name'],
+                                        item['value']
+                                    )
                                     for item in setting_value
                                 ]
                             setting_value = cast_to_schema(
@@ -876,16 +908,16 @@ Configuration section:
 
     elif sub_type == 'notifications':
         # Special loading for AlarmNotifications
-        return instantiate_notifications(value, read_file_path)
+        return instantiate_notifications(value, obj, read_file_path)
     elif sub_type == 'iam_user_permissions':
         return instantiate_iam_user_permissions(value, obj, read_file_path)
     elif sub_type == 'deployment_pipeline_stage':
         return instantiate_deployment_pipeline_stage(name, sub_class, value, obj, read_file_path)
 
-def instantiate_notifications(value, read_file_path):
-    notifications = AlarmNotifications()
+def instantiate_notifications(value, obj, read_file_path):
+    notifications = AlarmNotifications('notifications', obj)
     for notification_name in value.keys():
-        notification = AlarmNotification()
+        notification = AlarmNotification(notification_name, notifications)
         apply_attributes_from_config(notification, value[notification_name], read_file_path=read_file_path)
         notifications[notification_name] = notification
     return notifications
@@ -1176,75 +1208,81 @@ class ModelLoader():
         parent[name] = obj
         return obj
 
-    def insert_env_ref_aim_sub(self, str_value, env_id, region):
+    def insert_env_ref_aim_sub(self, aim_ref, env_id, region):
         """
         aim.sub substition
         """
         # Isolate string between quotes: aim.sub ''
-        sub_idx = str_value.find('aim.sub')
+        sub_idx = aim_ref.find('aim.sub')
         if sub_idx == -1:
-            return str_value
-        end_idx = str_value.find('\n', sub_idx)
+            return aim_ref
+        end_idx = aim_ref.find('\n', sub_idx)
         if end_idx == -1:
-            end_idx = len(str_value)
-        str_idx = str_value.find("'", sub_idx, end_idx)
+            end_idx = len(aim_ref)
+        str_idx = aim_ref.find("'", sub_idx, end_idx)
         if str_idx == -1:
             raise StackException(AimErrorCode.Unknown)
         str_idx += 1
-        end_str_idx = str_value.find("'", str_idx, end_idx)
+        end_str_idx = aim_ref.find("'", str_idx, end_idx)
         if end_str_idx == -1:
             raise StackException(AimErrorCode.Unknown)
 
         # Isolate any ${} replacements
         first_pass = True
         while True:
-            dollar_idx = str_value.find("${", str_idx, end_str_idx)
+            dollar_idx = aim_ref.find("${", str_idx, end_str_idx)
             if dollar_idx == -1:
                 if first_pass == True:
                     raise StackException(AimErrorCode.Unknown)
                 else:
                     break
             rep_1_idx = dollar_idx
-            rep_2_idx = str_value.find("}", rep_1_idx, end_str_idx)+1
-            netenv_ref_idx = str_value.find(
+            rep_2_idx = aim_ref.find("}", rep_1_idx, end_str_idx)+1
+            netenv_ref_idx = aim_ref.find(
                 "aim.ref netenv.", rep_1_idx, rep_2_idx)
             if netenv_ref_idx != -1:
                 #sub_ref_idx = netenv_ref_idx + len("aim.ref netenv.")
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
-                sub_ref = str_value[sub_ref_idx:sub_ref_end_idx]
+                sub_ref = aim_ref[sub_ref_idx:sub_ref_end_idx]
 
                 new_ref = self.insert_env_ref_str(sub_ref, env_id, region)
-                sub_var = str_value[sub_ref_idx:sub_ref_end_idx]
+                sub_var = aim_ref[sub_ref_idx:sub_ref_end_idx]
                 if sub_var == new_ref:
                     break
-                str_value = str_value.replace(sub_var, new_ref, 1)
+                aim_ref = aim_ref.replace(sub_var, new_ref, 1)
             else:
                 break
             first_pass = False
 
-        return str_value
+        return aim_ref
 
-    def insert_env_ref_str(self, str_value, env_id, region):
-        netenv_ref_idx = str_value.find("aim.ref netenv.")
+    def insert_env_ref_str(self, aim_ref, env_id, region, application=None):
+        """Inserts the environment name and region name into an aim.ref netenv reference"""
+        netenv_ref_idx = aim_ref.find("aim.ref netenv.")
         if netenv_ref_idx == -1:
-            return str_value
+            return aim_ref
 
-        if str_value.startswith("aim.sub "):
-            return self.insert_env_ref_aim_sub(str_value, env_id, region)
+        if aim_ref.startswith("aim.sub "):
+            return self.insert_env_ref_aim_sub(aim_ref, env_id, region)
 
-        netenv_ref_raw = str_value
+        netenv_ref_raw = aim_ref
         sub_ref_len = len(netenv_ref_raw)
-
         netenv_ref = netenv_ref_raw[0:sub_ref_len]
         ref = Reference(netenv_ref)
         if ref.type == 'netenv' and ref.parts[2] == env_id and ref.parts[3] == region:
-            return str_value
+            return aim_ref
+
+        # Update application names to reflect unique app name for applications with unique suffixes
+        if ref.parts[2] == 'applications':
+            app_name = ref.parts[3]
+            if application.name != app_name:
+                ref.parts[3] = application.name
+
         ref.parts.insert(2, env_id)
         ref.parts.insert(3, region)
         new_ref_parts = '.'.join(ref.parts)
         new_ref = ' '.join(['aim.ref', new_ref_parts])
-
         return new_ref
 
     def normalize_environment_refs(self, env_config, env_name, env_region):
@@ -1270,7 +1308,8 @@ class ModelLoader():
                         attr_name = name
                     value = getattr(model, attr_name)
                     if value != None and value.find('aim.ref netenv.') != -1:
-                        value = self.insert_env_ref_str(value, env_name, env_region)
+                        application = get_parent_by_interface(model, schemas.IApplication)
+                        value = self.insert_env_ref_str(value, env_name, env_region, application)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     new_list = []
@@ -1278,8 +1317,10 @@ class ModelLoader():
                     modified = False
                     for item in getattr(model, name):
                         if isinstance(item, (str, zope.schema.TextLine, zope.schema.Text)):
-                            value = self.insert_env_ref_str(item, env_name, env_region)
-                            modified = True
+                            if is_ref(item):
+                                application = get_parent_by_interface(model, schemas.IApplication)
+                                value = self.insert_env_ref_str(item, env_name, env_region, application)
+                                modified = True
                         else:
                             value = item
                         new_list.append(value)
@@ -1293,7 +1334,8 @@ class ModelLoader():
                     if dict_attr != None:
                         for key, item in getattr(model, name).items():
                             if is_ref(item):
-                                value = self.insert_env_ref_str(item, env_name, env_region)
+                                application = get_parent_by_interface(model, schemas.IApplication)
+                                value = self.insert_env_ref_str(item, env_name, env_region, application)
                                 modified = True
                             else:
                                 value = item
@@ -1388,7 +1430,7 @@ class ModelLoader():
         notificationgroups = NotificationGroups('notificationgroups', self.project.resource)
         if 'groups' in config:
             # 'groups' gets duplicated and placed into a region_name key for every active region
-            groups_config = copy.deepcopy(config['groups'])
+            groups_config = deepcopy_except_parent(config['groups'])
             del config['groups']
             apply_attributes_from_config(notificationgroups, config, read_file_path=self.read_file_path)
             # load SNS Topics
@@ -1515,42 +1557,67 @@ class ModelLoader():
         Applications merge the global ApplicationEngine configuration
         with the EnvironmentDefault configuration with the final
         EnvironmentRegion configuration.
+
+        If applications names in environments have the format:
+
+          <name>{suffix}
+
+        Then the <name> is the applications name for the default configuration
+        and the braces are removed to form a new unique application name in the environment.
+
+            namesuffix
+
+        In this way the same application can be instiated more than once in the same network,
+        with different configuration for each instance.
         """
         if 'applications' not in env_region_config:
             return
         global_item_config = global_config['applications']
+
         for item_name, item_config in env_region_config['applications'].items():
-            item = Application(item_name, getattr(env_region, 'applications'))
+            match = re.match('^(.*){(.*)}$', item_name)
+            if match:
+                # application is duplicated with a unique suffix
+                app_name, unique_suffix = match.groups()
+                unique_app_name = app_name + unique_suffix
+            else:
+                # normal one-to-one environments.applications.name to applications.app.name
+                app_name = item_name
+                unique_app_name = app_name
+            item = Application(unique_app_name, getattr(env_region, 'applications'))
             if env_region.name == 'default':
                 # merge global with default
                 try:
-                    global_config['applications'][item_name]
+                    global_config['applications'][app_name]
                 except KeyError:
-                    self.raise_env_name_mismatch(item_name, 'applications', env_region)
-                item_config = merge(global_config['applications'][item_name], env_region_config['applications'][item_name])
-                annotate_base_config(item, item_config, global_item_config[item_name])
+                    self.raise_env_name_mismatch(app_name, 'applications', env_region)
+                item_config = merge(
+                    global_config['applications'][app_name],
+                    env_region_config['applications'][item_name]
+                )
+                annotate_base_config(item, item_config, global_item_config[app_name])
             else:
                 # merge global with default, then merge that with local config
                 env_default = global_config['environments'][env_region.__parent__.name]['default']
-                if 'applications' in env_default:
+                if 'applications' in env_default and unique_app_name in env_default['applications']:
                     try:
-                        default_region_config = env_default['applications'][item_name]
-                        global_item_config[item_name]
+                        default_region_config = env_default['applications'][unique_app_name]
+                        global_item_config[app_name]
                     except KeyError:
-                        self.raise_env_name_mismatch(item_name, 'applications', env_region)
-                    default_config = merge(global_item_config[item_name], default_region_config)
+                        self.raise_env_name_mismatch(unique_app_name, 'applications', env_region)
+                    default_config = merge(global_item_config[app_name], default_region_config)
                     item_config = merge(default_config, item_config)
                     annotate_base_config(item, item_config, default_config)
                 # no default config, merge local with global
                 else:
                     try:
-                        global_item_config[item_name]
+                        global_item_config[app_name]
                     except KeyError:
                         self.raise_env_name_mismatch(item_name, 'applications', env_region)
-                    item_config = merge(global_item_config[item_name], item_config)
-                    annotate_base_config(item, item_config, global_item_config[item_name])
+                    item_config = merge(global_item_config[app_name], item_config)
+                    annotate_base_config(item, item_config, global_item_config[app_name])
 
-            env_region.applications[item_name] = item # save
+            env_region.applications[unique_app_name] = item # save
             apply_attributes_from_config(
                 item,
                 item_config,

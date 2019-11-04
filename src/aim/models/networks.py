@@ -4,7 +4,7 @@ All things network.
 
 import aim.models.applications
 import aim.models.iam
-from aim.models.base import Name, Named, Deployable
+from aim.models.base import Parent, Name, Named, Deployable
 from aim.models import schemas
 from aim.models import vocabulary
 from zope.interface import implementer
@@ -116,7 +116,7 @@ class Network(NetworkEnvironment):
         return None
 
 @implementer(schemas.IVPCPeeringRoute)
-class VPCPeeringRoute():
+class VPCPeeringRoute(Parent):
     segment = FieldProperty(schemas.IVPCPeeringRoute["segment"])
     cidr = FieldProperty(schemas.IVPCPeeringRoute["cidr"])
 
@@ -201,11 +201,11 @@ class SecurityGroupRule():
     port = FieldProperty(schemas.ISecurityGroupRule["port"])
 
 @implementer(schemas.IIngressRule)
-class IngressRule(SecurityGroupRule):
+class IngressRule(Parent, SecurityGroupRule):
     source_security_group = FieldProperty(schemas.IIngressRule["source_security_group"])
 
 @implementer(schemas.IEgressRule)
-class EgressRule(SecurityGroupRule):
+class EgressRule(Parent, SecurityGroupRule):
     destination_security_group = FieldProperty(schemas.IEgressRule["destination_security_group"])
 
 @implementer(schemas.ISegment)

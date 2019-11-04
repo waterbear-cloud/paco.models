@@ -6,6 +6,9 @@ Changelog for aim.models
 
 ### Added
 
+- Applications can be provisioned in the same environment more than once with a new
+  "app{suffix}" syntax for an environments application keys.
+
 - INotificationGroups has a regions field, if it is the default of ['ALL'] it will apply to
   all of a project's active regions. Otherwise is will just provision in the selected region(s).
 

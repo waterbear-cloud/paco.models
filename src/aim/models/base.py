@@ -111,6 +111,11 @@ class CFNExport():
                 result[key] = value
         return result
 
+@implementer(schemas.IParent)
+class Parent():
+    def __init__(self, __parent__):
+        self.__parent__ = __parent__
+
 @implementer(schemas.INamed)
 class Named(CFNExport):
     """
@@ -470,4 +475,4 @@ class AccountContainer(Named, Regionalized, dict):
 
 @implementer(schemas.IRegionContainer)
 class RegionContainer(Named, Regionalized, dict):
-    pass
+    alarm_sets = FieldProperty(schemas.IRegionContainer['alarm_sets'])

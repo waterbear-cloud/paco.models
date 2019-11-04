@@ -541,9 +541,9 @@ environments:
                         HealthyHostCount-Critical:
                           dimensions:
                             - name: LoadBalancer
-                              value: aim.ref netenv.anet.applications.myapp.groups.site.resources.alb
+                              value: aim.ref netenv.anet.applications.app.groups.site.resources.alb
                             - name: TargetGroup
-                              value: aim.ref netenv.anet.applications.myapp.groups.site.resources.alb.target_groups.myapp
+                              value: aim.ref netenv.anet.applications.app.groups.site.resources.alb.target_groups.app
                       response-latency:
                       response-health:
                 webapp:
@@ -600,6 +600,12 @@ environments:
               az2_cidr: 10.0.4.0/24
     us-west-2:
       enabled: true
+      applications:
+        app{mouse}:
+          enabled: true
+        app{elephant}:
+          enabled: true
+
     ca-central-1:
       enables: true
 
@@ -676,3 +682,4 @@ environments:
               enabled: true
     us-west-2:
       enabled: true
+

@@ -5,7 +5,7 @@ All things Resources.
 import json
 import troposphere.apigateway
 import troposphere.route53
-from aim.models.base import Named, CFNExport, Deployable, Regionalized, Resource
+from aim.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource
 from aim.models.metrics import Monitorable
 from aim.models import references
 from aim.models import schemas
@@ -42,7 +42,7 @@ class ApiGatewayMethodIntegrationResponse(CFNExport):
     }
 
 @implementer(schemas.IApiGatewayMethodIntegration)
-class ApiGatewayMethodIntegration(CFNExport):
+class ApiGatewayMethodIntegration(Parent, CFNExport):
     integration_responses = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_responses'])
     request_parameters = FieldProperty(schemas.IApiGatewayMethodIntegration['request_parameters'])
     integration_http_method = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_http_method'])
@@ -486,7 +486,7 @@ class IAMUserPermissionAdministrator(IAMUserPermission):
     read_only = FieldProperty(schemas.IIAMUserPermissionAdministrator['read_only'])
 
 @implementer(schemas.IIAMUserPermissionCodeCommitRepository)
-class IAMUserPermissionCodeCommitRepository():
+class IAMUserPermissionCodeCommitRepository(Parent):
     codecommit = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['codecommit'])
     permission = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['permission'])
     console_access_enabled = FieldProperty(schemas.IIAMUserPermissionCodeCommitRepository['console_access_enabled'])
@@ -497,7 +497,7 @@ class IAMUserPermissionCodeCommit(IAMUserPermission):
     repositories = FieldProperty(schemas.IIAMUserPermissionCodeCommit['repositories'])
 
 @implementer(schemas.IIAMUserPermissionCodeBuildResource)
-class IAMUserPermissionCodeBuildResource():
+class IAMUserPermissionCodeBuildResource(Parent):
     codebuild = FieldProperty(schemas.IIAMUserPermissionCodeBuildResource['codebuild'])
     permission = FieldProperty(schemas.IIAMUserPermissionCodeBuildResource['permission'])
     console_access_enabled = FieldProperty(schemas.IIAMUserPermissionCodeBuildResource['console_access_enabled'])

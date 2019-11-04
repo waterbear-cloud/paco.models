@@ -558,12 +558,13 @@ class CommaList(schema.List):
         #path = pathlib.Path(value)
         #return path.exists()
 
-class INamed(Interface):
+class IParent(Interface):
+    __parent__ = Attribute("Object reference to the parent in the object hierarchy")
+
+class INamed(IParent):
     """
     A locatable resource
     """
-    __parent__ = Attribute("Object reference to the parent in the object hierarchy")
-
     name = schema.TextLine(
         title="Name",
         default="",
@@ -740,7 +741,7 @@ class ISecurityGroupRule(IName):
         elif obj.from_port == -1 and obj.to_port != -1:
             raise Invalid("The 'to_port' field must not be blank when 'from_port' has a value.")
 
-class IIngressRule(ISecurityGroupRule):
+class IIngressRule(IParent, ISecurityGroupRule):
     "Security group ingress"
     source_security_group = TextReference(
         title = "Source Security Group Reference",
@@ -749,7 +750,7 @@ class IIngressRule(ISecurityGroupRule):
         str_ok = True
     )
 
-class IEgressRule(ISecurityGroupRule):
+class IEgressRule(IParent, ISecurityGroupRule):
     "Security group egress"
     destination_security_group = TextReference(
         title = "Destination Security Group Reference",
@@ -893,12 +894,12 @@ class IResourceGroups(INamed, IMapping):
 
 # Alarm and notification schemas
 
-class IAlarmNotifications(IMapping):
+class IAlarmNotifications(INamed, IMapping):
     """
     Alarm Notifications
     """
 
-class IAlarmNotification(Interface):
+class IAlarmNotification(INamed):
     """
     Alarm Notification
     """
@@ -949,7 +950,7 @@ class IAlarmSets(INamed, IMapping):
     A collection of AlarmSets
     """
 
-class IDimension(Interface):
+class IDimension(IParent):
     """
     A dimension of a metric
     """
@@ -1443,7 +1444,7 @@ class IS3BucketPolicy(Interface):
             raise Invalid("Can not set bot the aws and the principal fields.")
 
 
-class IS3LambdaConfiguration(Interface):
+class IS3LambdaConfiguration(IParent):
     # ToDo: add constraint
     event = schema.TextLine(
         title = "S3 bucket event for which to invoke the AWS Lambda function",
@@ -1456,7 +1457,7 @@ class IS3LambdaConfiguration(Interface):
         required = False,
     )
 
-class IS3NotificationConfiguration(Interface):
+class IS3NotificationConfiguration(IParent):
     lambdas = schema.List(
         title = "Lambda configurations",
         value_type = schema.Object(IS3LambdaConfiguration),
@@ -1878,7 +1879,7 @@ class ISegment(INamed, IDeployable):
         required = False,
     )
 
-class IVPCPeeringRoute(Interface):
+class IVPCPeeringRoute(IParent):
     """
     VPC Peering Route
     """
@@ -2090,6 +2091,11 @@ class IAccountContainer(INamed, IMapping):
 
 class IRegionContainer(INamed, IMapping):
     "A lightweight Region container"
+    alarm_sets = schema.Object(
+        title="Alarm Sets",
+        schema=IAlarmSets,
+        required=False
+    )
 
 class IEnvironmentDefault(IRegionContainer):
     """
@@ -2216,7 +2222,7 @@ class IListenerRule(IDeployable):
         required=False,
     )
 
-class IListener(IPortProtocol):
+class IListener(IParent, IPortProtocol):
     redirect = schema.Object(
         title = "Redirect",
         schema=IPortProtocol,
@@ -2242,7 +2248,7 @@ class IListener(IPortProtocol):
         default=None
     )
 
-class IDNS(Interface):
+class IDNS(IParent):
     hosted_zone = TextReference(
         title = "Hosted Zone Id",
         required = False,
@@ -3011,7 +3017,7 @@ class IEIP(IResource):
         required = False
     )
 
-class IEBSVolumeMount(IDeployable):
+class IEBSVolumeMount(IParent, IDeployable):
     """
     EBS Volume Mount Configuration
     """
@@ -3277,7 +3283,7 @@ class IASG(IResource, IMonitorable):
 
 # Lambda
 
-class ILambdaVariable(Interface):
+class ILambdaVariable(IParent):
     """
     Lambda Environment Variable
     """
@@ -3302,7 +3308,7 @@ class ILambdaEnvironment(IMapping):
         required = False,
     )
 
-class ILambdaFunctionCode(Interface):
+class ILambdaFunctionCode(IParent):
     """The deployment package for a Lambda function."""
 
     @invariant
@@ -3493,7 +3499,7 @@ to the integration request without modification.
         required = True,
     )
 
-class IApiGatewayMethodIntegration(Interface):
+class IApiGatewayMethodIntegration(IParent):
     integration_responses = schema.List(
         title = "Integration Responses",
         value_type = schema.Object(IApiGatewayMethodIntegrationResponse),
@@ -4657,7 +4663,7 @@ class IIAMUserPermissionAdministrator(IIAMUserPermission):
     )
 
 
-class IIAMUserPermissionCodeCommitRepository(Interface):
+class IIAMUserPermissionCodeCommitRepository(IParent):
     """
     CodeCommit Repository IAM User Permission Definition
     """
@@ -4690,7 +4696,7 @@ class IIAMUserPermissionCodeCommit(IIAMUserPermission):
         required = False,
     )
 
-class IIAMUserPermissionCodeBuildResource(Interface):
+class IIAMUserPermissionCodeBuildResource(IParent):
     """
     CodeBuild Resource IAM User Permission Definition
     """

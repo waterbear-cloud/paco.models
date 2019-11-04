@@ -7,7 +7,7 @@ import troposphere.elasticache
 import troposphere.s3
 from aim.models import loader
 from aim.models import schemas
-from aim.models.base import Named, Deployable, Regionalized, Resource, AccountRef, \
+from aim.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
     DNSEnablable
 from aim.models.exceptions import InvalidAimBucket
 from aim.models.formatter import get_formatted_model_context, smart_join
@@ -30,7 +30,7 @@ class ApplicationEngine(Named, Deployable, Regionalized, Monitorable, dict):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.groups = ResourceGroups('groups', self)
-        self.notifications = AlarmNotifications()
+        self.notifications = AlarmNotifications('notifications', self)
 
     # Returns a list of groups sorted by 'order'
     def groups_ordered(self):
@@ -213,12 +213,12 @@ class S3BucketPolicy():
         self.processed = False
 
 @implementer(schemas.IS3LambdaConfiguration)
-class S3LambdaConfiguration():
+class S3LambdaConfiguration(Parent):
     event = FieldProperty(schemas.IS3LambdaConfiguration['event'])
     function = FieldProperty(schemas.IS3LambdaConfiguration['function'])
 
 @implementer(schemas.IS3NotificationConfiguration)
-class S3NotificationConfiguration():
+class S3NotificationConfiguration(Parent):
     lambdas = FieldProperty(schemas.IS3NotificationConfiguration['lambdas'])
 
 @implementer(schemas.IS3Bucket)
@@ -415,7 +415,7 @@ class EIP(Resource):
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IEBSVolumeMount)
-class EBSVolumeMount(Deployable):
+class EBSVolumeMount(Parent, Deployable):
     title = 'EBS Volume Mount Folder and Volume reference'
     folder = FieldProperty(schemas.IEBSVolumeMount['folder'])
     volume = FieldProperty(schemas.IEBSVolumeMount['volume'])
@@ -546,14 +546,14 @@ class ListenerRule(Deployable):
     target_group = FieldProperty(schemas.IListenerRule['target_group'])
 
 @implementer(schemas.IListener)
-class Listener(PortProtocol):
+class Listener(Parent, PortProtocol):
     redirect = FieldProperty(schemas.IListener['redirect'])
     ssl_certificates = FieldProperty(schemas.IListener['ssl_certificates'])
     target_group = FieldProperty(schemas.IListener['target_group'])
     rules = FieldProperty(schemas.IListener['rules'])
 
 @implementer(schemas.IDNS)
-class DNS():
+class DNS(Parent):
     hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
     domain_name = FieldProperty(schemas.IDNS['domain_name'])
     ssl_certificate = FieldProperty(schemas.IDNS['ssl_certificate'])
@@ -593,14 +593,15 @@ class AWSCertificateManager(Resource):
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ILambdaVariable)
-class LambdaVariable():
+class LambdaVariable(Parent):
     """
     Lambda Environment Variable
     """
     key = FieldProperty(schemas.ILambdaVariable['key'])
     value = FieldProperty(schemas.ILambdaVariable['value'])
 
-    def __init__(self, key='', value=''):
+    def __init__(self, __parent__, key='', value=''):
+        self.__parent__ = __parent__
         self.key = key
         self.value = value
 
@@ -615,7 +616,7 @@ class LambdaEnvironment(dict):
         self.variables = []
 
 @implementer(schemas.ILambdaFunctionCode)
-class LambdaFunctionCode():
+class LambdaFunctionCode(Parent):
     zipfile = FieldProperty(schemas.ILambdaFunctionCode['zipfile'])
     s3_bucket = FieldProperty(schemas.ILambdaFunctionCode['s3_bucket'])
     s3_key = FieldProperty(schemas.ILambdaFunctionCode['s3_key'])
@@ -664,7 +665,7 @@ class Lambda(Resource, Monitorable):
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ISNSTopicSubscription)
-class SNSTopicSubscription():
+class SNSTopicSubscription(Parent):
     protocol = FieldProperty(schemas.ISNSTopicSubscription['protocol'])
     endpoint = FieldProperty(schemas.ISNSTopicSubscription['endpoint'])
 

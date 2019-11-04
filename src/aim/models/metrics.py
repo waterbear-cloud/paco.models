@@ -4,7 +4,7 @@ import json
 import troposphere
 import troposphere.cloudwatch
 from aim.models import schemas, vocabulary
-from aim.models.base import Deployable, Named, Name, Resource, AccountRef, Regionalized
+from aim.models.base import Deployable, Parent, Named, Name, Resource, AccountRef, Regionalized
 from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSets
 from aim.models.locations import get_parent_by_interface
@@ -29,11 +29,11 @@ class HealthChecks(Named, dict):
     pass
 
 @implementer(schemas.IAlarmNotifications)
-class AlarmNotifications(dict):
+class AlarmNotifications(Named, dict):
     "Container of AlarmNotifications"
 
 @implementer(schemas.IAlarmNotification)
-class AlarmNotification():
+class AlarmNotification(Named):
     "AlarmNotification"
     groups = FieldProperty(schemas.IAlarmNotification["groups"])
     classification = FieldProperty(schemas.IAlarmNotification["classification"])
@@ -45,7 +45,7 @@ class AlarmSet(Named, dict):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.notifications = AlarmNotifications()
+        self.notifications = AlarmNotifications('notifications', self)
 
 @implementer(schemas.IAlarmSets)
 class AlarmSets(Named, dict):
@@ -61,7 +61,7 @@ class Alarm(Named, Regionalized):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.notifications = AlarmNotifications()
+        self.notifications = AlarmNotifications('notifications', self)
 
     def _add_notifications_to_groups(self, notifications, groups):
         for notification in notifications.values():
@@ -150,11 +150,12 @@ class Alarm(Named, Regionalized):
         return None
 
 @implementer(schemas.IDimension)
-class Dimension():
+class Dimension(Parent):
     name = FieldProperty(schemas.IDimension["name"])
     value = FieldProperty(schemas.IDimension["value"])
 
-    def __init__(self, name='', value=''):
+    def __init__(self, __parent__, name='', value=''):
+        self.__parent__ = __parent__
         self.name = name
         self.value = value
 
@@ -320,7 +321,7 @@ class MonitorConfig(Deployable, Named):
         self.alarm_sets = AlarmSets('alarm_sets', self)
         self.health_checks = HealthChecks('health_checks', self)
         self.log_sets = CloudWatchLogSets('log_sets', self)
-        self.notifications = AlarmNotifications()
+        self.notifications = AlarmNotifications('notifications', self)
 
 @implementer(schemas.IMetric)
 class Metric():

@@ -128,7 +128,8 @@ def md5sum(filename=None, str_data=None):
     return d.hexdigest()
 
 @implementer(schemas.IParent)
-class Parent():
+class Parent(CFNExport):
+    "One base class to rule them all"
 
     def obj_hash(self):
         fields = get_all_fields(self)
@@ -148,33 +149,6 @@ class Parent():
 
     def __init__(self, __parent__):
         self.__parent__ = __parent__
-
-@implementer(schemas.INamed)
-class Named(CFNExport):
-    """
-    An item which has a name and an optional title.
-    A name is a unique, human-readable id.
-
-    Every model is location-aware. This means it has a
-    __name__ and __parent__. This lets the object live in
-    a hiearchy such as a URL tree for a web application, object database
-    or filesystem. AIM uses for the web app.
-    """
-
-    name = FieldProperty(schemas.INamed["name"])
-    title = FieldProperty(schemas.INamed["title"])
-
-    def __init__(self, name, __parent__):
-        self.name = name
-        self.__name__ = self.name
-        self.__parent__ = __parent__
-
-    @property
-    def title_or_name(self):
-        "It's a Plone classic!"
-        if len(self.title) > 0:
-            return self.title
-        return self.name
 
     @property
     def aim_ref_parts(self):
@@ -200,6 +174,32 @@ class Named(CFNExport):
     def aim_ref(self):
         "aim.ref string to the object"
         return 'aim.ref ' + self.aim_ref_parts
+
+@implementer(schemas.INamed)
+class Named(Parent):
+    """
+    An item which has a name and an optional title.
+    A name is a unique, human-readable id.
+
+    Every model is location-aware. This means it has a
+    __name__ and __parent__. This lets the object live in
+    a hiearchy such as a URL tree for a web application, object database
+    or filesystem. AIM uses for the web app.
+    """
+    name = FieldProperty(schemas.INamed["name"])
+    title = FieldProperty(schemas.INamed["title"])
+
+    def __init__(self, name, __parent__):
+        super().__init__(__parent__)
+        self.name = name
+        self.__name__ = self.name
+
+    @property
+    def title_or_name(self):
+        "It's a Plone classic!"
+        if len(self.title) > 0:
+            return self.title
+        return self.name
 
 
 @implementer(schemas.IName)

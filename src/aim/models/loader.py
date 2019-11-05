@@ -1299,8 +1299,12 @@ class ModelLoader():
         if ref.parts[2] == 'applications':
             # only needs to apply to non-unique applications
             app_name = ref.parts[3]
-            if application.duplicate:
+            if application._duplicate:
                 app_name = ref.parts[3]
+                # app: --> app
+                # app{dog} --> appdog
+                # apple: <-- ToDo: fix this use-case
+                # ToDo: look at application._suffix
                 if application.name.startswith(app_name) and application.name != app_name:
                     ref.parts[3] = application.name
 
@@ -1609,14 +1613,17 @@ class ModelLoader():
                 app_name, unique_suffix = match.groups()
                 unique_app_name = app_name + unique_suffix
                 duplicate = True
+                suffix = unique_suffix
             else:
                 # normal one-to-one environments.applications.name to applications.app.name
                 app_name = item_name
                 unique_app_name = app_name
                 duplicate = False
+                suffix = ''
             item = Application(unique_app_name, getattr(env_region, 'applications'))
             # Application objects are marked as duplicate if more than one exist the same environment
-            item.duplicate = duplicate
+            item._duplicate = duplicate
+            item._suffix = suffix
             if env_region.name == 'default':
                 # merge global with default
                 try:

@@ -2072,8 +2072,35 @@ class INetwork(INetworkEnvironment):
         required = False,
     )
 
+class IGenerateSecretString(IParent):
+    secret_string_template = schema.Text(
+        title="A properly structured JSON string that the generated password can be added to.",
+        required=False,
+        max_length=10240
+    )
+    generate_string_key = schema.TextLine(
+        title="The JSON key name that's used to add the generated password to the JSON structure.",
+        required=False,
+        max_length=10240
+    )
+    password_length = schema.Int(
+        title="The desired length of the generated password.",
+        default=32,
+        required=False
+    )
+    exclude_characters = schema.Text(
+        title="A string that includes characters that should not be included in the generated password.",
+        required=False,
+        max_length=4096
+    )
+
 class ISecretsManagerSecret(INamed, IDeployable):
     """Secrets Manager Application Name"""
+    generate_secret_string = schema.Object(
+        title="Generate SecretString object",
+        required=False,
+        schema=IGenerateSecretString
+    )
 
 class ISecretsManagerGroup(INamed, IMapping):
     """Secrets Manager Group"""
@@ -4375,6 +4402,21 @@ class IRDS(IResource, IMonitorable):
     """
     RDS Common Interface
     """
+    @invariant
+    def password_or_snapshot_or_secret(obj):
+        count = 0
+        if obj.db_snapshot_identifier:
+            count += 1
+        if obj.master_user_password:
+            count += 1
+        if obj.secrets_password:
+            count += 1
+        if count > 1:
+            raise Invalid("Can only set one of db_snapshot_identifier, master_user_password or secrets_password for RDS.")
+        elif count < 1:
+            raise Invalid("Must set one of db_snapshot_identifier, master_user_password or secrets_password for RDS.")
+        return True
+
     allow_major_version_upgrade = schema.Bool(
         title="Allow major version upgrades",
         required=False,
@@ -4473,6 +4515,10 @@ class IRDS(IResource, IMonitorable):
     publically_accessible = schema.Bool(
         title="Assign a Public IP address",
         required=False,
+    )
+    secrets_password = TextReference(
+        title="Secrets Manager password",
+        required=False
     )
     security_groups = schema.List(
         title="List of VPC Security Group Ids",

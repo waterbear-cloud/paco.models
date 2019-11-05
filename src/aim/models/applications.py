@@ -5,10 +5,11 @@ All things Application Engine.
 import troposphere
 import troposphere.elasticache
 import troposphere.s3
+import troposphere.secretsmanager
 from aim.models import loader
 from aim.models import schemas
 from aim.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
-    DNSEnablable
+    DNSEnablable, CFNExport
 from aim.models.exceptions import InvalidAimBucket
 from aim.models.formatter import get_formatted_model_context, smart_join
 from aim.models.locations import get_parent_by_interface
@@ -842,6 +843,7 @@ class RDS(Resource, Monitorable):
     cloudwatch_logs_export = FieldProperty(schemas.IRDS['cloudwatch_logs_exports'])
     deletion_protection = FieldProperty(schemas.IRDS['deletion_protection'])
     parameter_group = FieldProperty(schemas.IRDS['parameter_group'])
+    secrets_password = FieldProperty(schemas.IRDS['secrets_password'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -1068,9 +1070,36 @@ class EFS(Resource):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IGenerateSecretString)
+class GenerateSecretString(Parent, CFNExport):
+    """Generate SecretString"""
+    secret_string_template = FieldProperty(schemas.IGenerateSecretString['secret_string_template'])
+    generate_string_key = FieldProperty(schemas.IGenerateSecretString['generate_string_key'])
+    password_length = FieldProperty(schemas.IGenerateSecretString['password_length'])
+    exclude_characters = FieldProperty(schemas.IGenerateSecretString['exclude_characters'])
+
+    troposphere_props = troposphere.secretsmanager.GenerateSecretString.props
+    cfn_mapping = {
+        # 'ExcludeUppercase': (boolean, False),
+        # 'RequireEachIncludedType': (boolean, False),
+        # 'IncludeSpace': (boolean, False),
+        'ExcludeCharacters': 'exclude_characters',
+        'GenerateStringKey': 'generate_string_key',
+        'PasswordLength': 'password_length',
+        # 'ExcludePunctuation': (boolean, False),
+        # 'ExcludeLowercase': (boolean, False),
+        'SecretStringTemplate': 'secret_string_template',
+        # 'ExcludeNumbers': (boolean, False),
+    }
+
 @implementer(schemas.ISecretsManagerSecret)
 class SecretsManagerSecret(Named, Deployable):
     """Secrets Manager Application Name"""
+    generate_secret_string = FieldProperty(schemas.ISecretsManagerSecret['generate_secret_string'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.generate_secret_string = GenerateSecretString(self)
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

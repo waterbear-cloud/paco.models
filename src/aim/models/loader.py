@@ -30,7 +30,7 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
-    EC2LaunchOptions, DBParameterGroup, DBParameters
+    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
@@ -162,10 +162,10 @@ SUB_TYPES_CLASS_MAP = {
         'role_policies': ('obj_list', Policy)
     },
     DeploymentPipelineDeployCodeDeploy: {
-        'minimum_healthy_hosts': ('unnamed_dict', CodeDeployMinimumHealthyHosts)
+        'minimum_healthy_hosts': ('direct_obj', CodeDeployMinimumHealthyHosts)
     },
     DeploymentPipeline: {
-        'configuration': ('unnamed_dict', DeploymentPipelineConfiguration),
+        'configuration': ('direct_obj', DeploymentPipelineConfiguration),
         'source': ('deployment_pipeline_stage', DeploymentPipelineSourceStage),
         'build': ('deployment_pipeline_stage', DeploymentPipelineBuildStage),
         'deploy': ('deployment_pipeline_stage', DeploymentPipelineDeployStage),
@@ -181,7 +181,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     ApiGatewayMethod: {
         'method_responses': ('obj_list', ApiGatewayMethodMethodResponse),
-        'integration': ('unnamed_dict', ApiGatewayMethodIntegration),
+        'integration': ('direct_obj', ApiGatewayMethodIntegration),
     },
     ApiGatewayMethodMethodResponse: {
         'response_models': ('obj_list', ApiGatewayMethodMethodResponseModel)
@@ -193,29 +193,29 @@ SUB_TYPES_CLASS_MAP = {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
         'security_groups': ('str_list', TextReference),
         'dns': ('obj_list', DNS),
-        'monitoring': ('unnamed_dict', MonitorConfig)
+        'monitoring': ('direct_obj', MonitorConfig)
     },
     ElastiCacheRedis: {
         'security_groups': ('str_list', TextReference),
-        'monitoring': ('unnamed_dict', MonitorConfig)
+        'monitoring': ('direct_obj', MonitorConfig)
     },
     CloudFront: {
-        'default_cache_behavior': ('unnamed_dict', CloudFrontDefaultCacheBehavior),
+        'default_cache_behavior': ('direct_obj', CloudFrontDefaultCacheBehavior),
         'cache_behaviors': ('obj_list', CloudFrontCacheBehavior),
         'domain_aliases': ('obj_list', DNS),
         'custom_error_responses': ('obj_list', CloudFrontCustomErrorResponse),
-        'origins': ('named_dict', CloudFrontOrigin),
-        'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
-        'factory': ('named_dict', CloudFrontFactory),
-        'monitoring': ('unnamed_dict', MonitorConfig),
+        'origins': ('named_obj', CloudFrontOrigin),
+        'viewer_certificate': ('direct_obj', CloudFrontViewerCertificate),
+        'factory': ('named_obj', CloudFrontFactory),
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     CloudFrontDefaultCacheBehavior: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
-        'forwarded_values': ('unnamed_dict', CloudFrontForwardedValues)
+        'forwarded_values': ('direct_obj', CloudFrontForwardedValues)
     },
     CloudFrontCacheBehavior: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
-        'forwarded_values': ('unnamed_dict', CloudFrontForwardedValues)
+        'forwarded_values': ('direct_obj', CloudFrontForwardedValues)
     },
     CloudFrontForwardedValues: {
         'cookies': ('obj', CloudFrontCookies),
@@ -225,14 +225,14 @@ SUB_TYPES_CLASS_MAP = {
         'whitelisted_names': ('str_list', zope.schema.TextLine)
     },
     CloudFrontOrigin: {
-        'custom_origin_config': ('unnamed_dict', CloudFrontCustomOriginConfig)
+        'custom_origin_config': ('direct_obj', CloudFrontCustomOriginConfig)
     },
     CloudFrontCustomOriginConfig: {
         'ssl_protocols': ('str_list', zope.schema.TextLine)
     },
     CloudFrontFactory: {
         'domain_aliases': ('obj_list', DNS),
-        'viewer_certificate': ('unnamed_dict', CloudFrontViewerCertificate),
+        'viewer_certificate': ('direct_obj', CloudFrontViewerCertificate),
     },
     SNSTopic: {
         'subscription': ('obj_list', SNSTopicSubscription),
@@ -245,11 +245,11 @@ SUB_TYPES_CLASS_MAP = {
         'dimensions': ('obj_list', Dimension)
     },
     LBApplication: {
-        'target_groups': ('named_dict', TargetGroup),
+        'target_groups': ('named_obj', TargetGroup),
         'security_groups': ('str_list', TextReference),
-        'listeners': ('named_dict', Listener),
+        'listeners': ('named_obj', Listener),
         'dns': ('obj_list', DNS),
-        'monitoring': ('unnamed_dict', MonitorConfig)
+        'monitoring': ('direct_obj', MonitorConfig)
     },
     SimpleCloudWatchAlarm: {
         'dimensions': ('obj_list', Dimension)
@@ -261,8 +261,8 @@ SUB_TYPES_CLASS_MAP = {
     ASG: {
         'security_groups': ('str_list', TextReference),
         'target_groups': ('str_list', TextReference),
-        'monitoring': ('unnamed_dict', MonitorConfig),
-        'instance_iam_role': ('unnamed_dict', Role),
+        'monitoring': ('direct_obj', MonitorConfig),
+        'instance_iam_role': ('direct_obj', Role),
         'efs_mounts': ('obj_list', EFSMount),
         'ebs_volume_mounts': ('obj_list', EBSVolumeMount),
         'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy)),
@@ -272,8 +272,8 @@ SUB_TYPES_CLASS_MAP = {
         'cfn_init': ('obj_raw_config', CloudFormationInit)
     },
     Listener: {
-        'redirect': ('unnamed_dict', PortProtocol),
-        'rules': ('named_dict', ListenerRule)
+        'redirect': ('direct_obj', PortProtocol),
+        'rules': ('named_obj', ListenerRule)
     },
     EC2: {
         'security_groups': ('str_list', TextReference)
@@ -282,11 +282,11 @@ SUB_TYPES_CLASS_MAP = {
         'manual_approval_notification_email': ('str_list_validated', zope.schema.TextLine)
     },
     CodePipeBuildDeploy: {
-        'artifacts_bucket': ('named_dict', S3Bucket)
+        'artifacts_bucket': ('named_obj', S3Bucket)
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy),
-        'notifications': ('unnamed_dict', S3NotificationConfiguration)
+        'notifications': ('direct_obj', S3NotificationConfiguration)
     },
     S3NotificationConfiguration: {
         'lambdas': ('obj_list', S3LambdaConfiguration)
@@ -295,7 +295,7 @@ SUB_TYPES_CLASS_MAP = {
         'trails': ('container', (CloudTrails, CloudTrail)),
     },
     CloudTrail: {
-        'cloudwatchlogs_log_group': ('unnamed_dict', CloudWatchLogGroup),
+        'cloudwatchlogs_log_group': ('direct_obj', CloudWatchLogGroup),
     },
 
     # monitoring and logging
@@ -325,21 +325,21 @@ SUB_TYPES_CLASS_MAP = {
 
     # Networking
     NetworkEnvironment: {
-        'vpc': ('unnamed_dict', VPC)
+        'vpc': ('direct_obj', VPC)
     },
     Network: {
-        'vpc': ('unnamed_dict', VPC)
+        'vpc': ('direct_obj', VPC)
     },
     NATGateway: {
         'default_route_segments': ('str_list', TextReference)
     },
     VPC: {
-        'nat_gateway': ('named_dict', NATGateway),
-        'vpn_gateway': ('named_dict', VPNGateway),
-        'private_hosted_zone': ('unnamed_dict', PrivateHostedZone),
-        'segments': ('named_dict', Segment),
+        'nat_gateway': ('named_obj', NATGateway),
+        'vpn_gateway': ('named_obj', VPNGateway),
+        'private_hosted_zone': ('direct_obj', PrivateHostedZone),
+        'segments': ('named_obj', Segment),
         'security_groups': ('named_twolevel_dict', SecurityGroup),
-        'peering': ('named_dict', VPCPeering)
+        'peering': ('named_obj', VPCPeering)
     },
     PrivateHostedZone: {
         'vpc_associations': ('str_list', zope.schema.TextLine)
@@ -356,7 +356,7 @@ SUB_TYPES_CLASS_MAP = {
     Application: {
         'groups': ('container', (ResourceGroups, ResourceGroup)),
         'notifications': ('notifications', AlarmNotifications),
-        'monitoring': ('unnamed_dict', MonitorConfig),
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     ResourceGroup: {
         'resources': ('type_container', (Resources, RESOURCES_CLASS_MAP)),
@@ -364,12 +364,12 @@ SUB_TYPES_CLASS_MAP = {
 
     # IAM
     IAM: {
-        'roles': ('named_dict', Role)
-        #'policies': ('named_dict', ManagedPolicies)
+        'roles': ('named_obj', Role)
+        #'policies': ('named_obj', ManagedPolicies)
     },
     Role: {
         'policies': ('obj_list', Policy),
-        'assume_role_policy': ('unnamed_dict', AssumeRolePolicy)
+        'assume_role_policy': ('direct_obj', AssumeRolePolicy)
     },
     Policy: {
         'statement': ('obj_list', Statement)
@@ -379,10 +379,10 @@ SUB_TYPES_CLASS_MAP = {
         'resource': ('str_list', zope.schema.TextLine)
     },
     Lambda: {
-        'environment': ('unnamed_dict', LambdaEnvironment),
-        'code': ('unnamed_dict', LambdaFunctionCode),
-        'iam_role': ('unnamed_dict', Role),
-        'monitoring': ('unnamed_dict', MonitorConfig),
+        'environment': ('direct_obj', LambdaEnvironment),
+        'code': ('direct_obj', LambdaFunctionCode),
+        'iam_role': ('direct_obj', Role),
+        'monitoring': ('direct_obj', MonitorConfig),
         'vpc_config': ('obj', LambdaVpcConfig)
     },
     LambdaVpcConfig: {
@@ -398,7 +398,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     # Accounts
     Account: {
-        'admin_iam_users': ('named_dict', AdminIAMUser)
+        'admin_iam_users': ('named_obj', AdminIAMUser)
     },
     Route53RecordSet: {
         'values': ('str_list', zope.schema.TextLine)
@@ -408,19 +408,19 @@ SUB_TYPES_CLASS_MAP = {
         'external_resource': ('obj', Route53HostedZoneExternalResource)
     },
     Route53Resource: {
-        'hosted_zones': ('named_dict', Route53HostedZone)
+        'hosted_zones': ('named_obj', Route53HostedZone)
     },
     SNSTopic: {
         'subscriptions': ('obj_list', SNSTopicSubscription)
     },
     CodeCommitRepository: {
-        'users': ('named_dict', CodeCommitUser)
+        'users': ('named_obj', CodeCommitUser)
     },
     IAMResource: {
-        'users': ('named_dict', IAMUser)
+        'users': ('named_obj', IAMUser)
     },
     IAMUser: {
-        'programmatic_access': ('unnamed_dict', IAMUserProgrammaticAccess),
+        'programmatic_access': ('direct_obj', IAMUserProgrammaticAccess),
         'permissions': ('iam_user_permissions', IAMUserPermissions)
     },
     IAMUserPermissionCodeBuild: {
@@ -431,6 +431,10 @@ SUB_TYPES_CLASS_MAP = {
     },
     IAMUserPermissionCustomPolicy: {
         'policies': ('obj_list', Policy)
+    },
+    # Secrets Manager
+    SecretsManagerSecret: {
+        'generate_secret_string': ('direct_obj', GenerateSecretString)
     }
 }
 
@@ -694,9 +698,10 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
     """
     sub_type, sub_class = SUB_TYPES_CLASS_MAP[type(obj)][name]
 
-    if sub_type == 'named_dict':
+    if sub_type == 'named_obj':
         sub_dict = {}
         for sub_key, sub_value in value.items():
+            # ToDo: named objects should always implement INamed - do we have exceptions?
             if schemas.INamed.implementedBy(sub_class):
                 sub_obj = sub_class(sub_key, obj)
             elif schemas.IParent.implementedBy(sub_class):
@@ -798,7 +803,7 @@ Configuration section:
                 sub_dict[first_key][sub_key] = sub_obj
         return sub_dict
 
-    elif sub_type == 'unnamed_dict':
+    elif sub_type == 'direct_obj':
         if schemas.INamed.implementedBy(sub_class):
             sub_obj = sub_class(name, obj)
         elif schemas.IParent.implementedBy(sub_class):

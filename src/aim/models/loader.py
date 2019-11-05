@@ -8,7 +8,8 @@ from aim.models.formatter import get_formatted_model_context
 from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
-from aim.models.exceptions import InvalidAimProjectFile, UnusedAimProjectField, TroposphereConversionError
+from aim.models.exceptions import InvalidAimFieldType, InvalidAimProjectFile, UnusedAimProjectField, \
+    TroposphereConversionError
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
     HealthChecks, CloudWatchLogAlarm
@@ -278,7 +279,7 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('str_list', TextReference)
     },
     DeploymentPipelineManualApproval: {
-        'manual_approval_notification_email': ('str_list', zope.schema.TextLine)
+        'manual_approval_notification_email': ('str_list_validated', zope.schema.TextLine)
     },
     CodePipeBuildDeploy: {
         'artifacts_bucket': ('named_dict', S3Bucket)
@@ -842,6 +843,21 @@ Configuration section:
             sub_list.append(sub_obj)
         return sub_list
 
+    elif sub_type == 'str_list_validated':
+        sub_list = []
+        if type(value) == type(str()):
+            raise_invalid_schema_error(
+                obj,
+                name,
+                value,
+                read_file_path,
+                InvalidAimFieldType("Expected list type but got string")
+            )
+        for sub_value in value:
+            sub_obj = sub_class().fromUnicode(sub_value)
+            sub_list.append(sub_obj)
+        return sub_list
+
     elif sub_type == 'log_sets':
         # Special loading for CloudWatch Log Sets
         default_config = lookup_config['logging']['cw_logging']
@@ -1321,8 +1337,8 @@ class ModelLoader():
                     for item in getattr(model, name):
                         if isinstance(item, (str, zope.schema.TextLine, zope.schema.Text)):
                             # Need to search for 'aim.ref netenv' just incase its aim.sub
-                            #if item.find('aim.ref netenv') != -1:
-                            if is_ref(item):
+                            if item.find('aim.ref netenv') != -1:
+                            #if is_ref(item):
                                 application = get_parent_by_interface(model, schemas.IApplication)
                                 value = self.insert_env_ref_str(item, env_name, env_region, application)
                                 modified = True

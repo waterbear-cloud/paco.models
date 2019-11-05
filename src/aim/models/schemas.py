@@ -2314,7 +2314,7 @@ class ILBApplication(IResource, IMonitorable, IMapping):
 class IIAMs(INamed, IMapping):
     "Container for IAM Groups"
 
-class IStatement(Interface):
+class IStatement(IParent):
     effect = schema.TextLine(
         title = "Effect",
         description = "Must be one of: 'Allow', 'Deny'",
@@ -2335,7 +2335,7 @@ class IStatement(Interface):
         required = False,
     )
 
-class IPolicy(Interface):
+class IPolicy(IParent):
     name = schema.TextLine(
         title = "Policy name",
         default = "",
@@ -2350,7 +2350,7 @@ class IPolicy(Interface):
         required = False,
     )
 
-class IAssumeRolePolicy(Interface):
+class IAssumeRolePolicy(IParent):
     effect = schema.TextLine(
         title = "Effect",
         required = False,
@@ -2379,7 +2379,7 @@ class IAssumeRolePolicy(Interface):
     )
     # ToDo: what are 'aws' keys for? implement ...
 
-class IRole(IDeployable):
+class IRole(IParent, IDeployable):
     assume_role_policy = schema.Object(
         title = "Assume role policy",
         schema=IAssumeRolePolicy,

@@ -2,7 +2,7 @@
 IAM: Identity and Access Managment land
 """
 
-from aim.models.base import Named, Deployable
+from aim.models.base import Parent, Named, Deployable
 from aim.models import schemas
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -24,7 +24,7 @@ class IAM(Named):
         loader.apply_attributes_from_config(self, roles_dict)
 
 @implementer(schemas.IRole)
-class Role(Deployable):
+class Role(Parent, Deployable):
     instance_profile = FieldProperty(schemas.IRole["instance_profile"])
     path = FieldProperty(schemas.IRole["path"])
     managed_policy_arns = FieldProperty(schemas.IRole["managed_policy_arns"])
@@ -35,19 +35,20 @@ class Role(Deployable):
     global_role_name = FieldProperty(schemas.IRole["global_role_name"])
     policies = FieldProperty(schemas.IRole["policies"])
 
-    def __init__(self):
+    def __init__(self, __parent__=None):
+        super().__init__(__parent__)
         self.policies = []
 
     def apply_config(self, config_dict):
         loader.apply_attributes_from_config(self, config_dict)
 
     def set_assume_role_policy(self, policy_config_dict):
-        policy_config = AssumeRolePolicy()
+        policy_config = AssumeRolePolicy(self)
         loader.apply_attributes_from_config(policy_config, policy_config_dict)
         self.assume_role_policy = policy_config
 
     def add_policy(self, policy_config_dict):
-        policy_config = Policy()
+        policy_config = Policy(self)
         loader.apply_attributes_from_config(policy_config, policy_config_dict)
         self.policies.append(policy_config)
 
@@ -58,23 +59,24 @@ class Role(Deployable):
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IPolicy)
-class Policy():
+class Policy(Parent):
     name = FieldProperty(schemas.IPolicy["name"])
 
 @implementer(schemas.IAssumeRolePolicy)
-class AssumeRolePolicy():
+class AssumeRolePolicy(Parent):
     effect = FieldProperty(schemas.IAssumeRolePolicy["effect"])
     aws = FieldProperty(schemas.IAssumeRolePolicy["aws"])
     service = FieldProperty(schemas.IAssumeRolePolicy["service"])
 
 
 @implementer(schemas.IStatement)
-class Statement():
+class Statement(Parent):
     effect = FieldProperty(schemas.IStatement["effect"])
     action = FieldProperty(schemas.IStatement["action"])
     resource = FieldProperty(schemas.IStatement["resource"])
 
-    def __init__(self):
+    def __init__(self, __parent__):
+        super().__init__(__parent__)
         self.action = []
         self.resource = []
 

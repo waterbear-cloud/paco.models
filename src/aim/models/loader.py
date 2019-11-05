@@ -277,8 +277,11 @@ SUB_TYPES_CLASS_MAP = {
     EC2: {
         'security_groups': ('str_list', TextReference)
     },
+    DeploymentPipelineManualApproval: {
+        'manual_approval_notification_email': ('str_list', zope.schema.TextLine)
+    },
     CodePipeBuildDeploy: {
-        'artifacts_bucket': ('named_dict', S3Bucket),
+        'artifacts_bucket': ('named_dict', S3Bucket)
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy),
@@ -513,7 +516,7 @@ def get_all_nodes(root):
                     raise InvalidAimProjectFile(message)
                 for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
-                        stack.insert(0, obj)
+                stack.insert(0, obj)
     return nodes
 
 def add_metric(obj, metric):
@@ -1317,6 +1320,8 @@ class ModelLoader():
                     modified = False
                     for item in getattr(model, name):
                         if isinstance(item, (str, zope.schema.TextLine, zope.schema.Text)):
+                            # Need to search for 'aim.ref netenv' just incase its aim.sub
+                            #if item.find('aim.ref netenv') != -1:
                             if is_ref(item):
                                 application = get_parent_by_interface(model, schemas.IApplication)
                                 value = self.insert_env_ref_str(item, env_name, env_region, application)
@@ -1333,6 +1338,7 @@ class ModelLoader():
                     dict_attr = getattr(model, name)
                     if dict_attr != None:
                         for key, item in getattr(model, name).items():
+                            # Same as IList above, needs to search for 'aim.ref netenv'
                             if is_ref(item):
                                 application = get_parent_by_interface(model, schemas.IApplication)
                                 value = self.insert_env_ref_str(item, env_name, env_region, application)

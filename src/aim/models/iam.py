@@ -74,6 +74,10 @@ class Statement():
     action = FieldProperty(schemas.IStatement["action"])
     resource = FieldProperty(schemas.IStatement["resource"])
 
+    def __init__(self):
+        self.action = []
+        self.resource = []
+
 #@implementer(schemas.IManagedPolicy)
 #class ManagedPolicies(Named, dict):
 #    pass

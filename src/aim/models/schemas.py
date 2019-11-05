@@ -4914,11 +4914,16 @@ class IDeploymentPipelineManualApproval(IDeploymentPipelineStageAction):
     """
     ManualApproval DeploymentPipeline
     """
-    manual_approval_notification_email = schema.TextLine(
-        title = "Manual approval notification email",
-        description = "",
-        default = "",
-        required = False,
+    manual_approval_notification_email = schema.List(
+        title="Manual Approval Notification Email List",
+        description="",
+        value_type=schema.TextLine(
+            title = "Manual approval notification email",
+            description = "",
+            default = "",
+            required = False,
+        ),
+        required = False
     )
 
 class ICodeDeployMinimumHealthyHosts(INamed):

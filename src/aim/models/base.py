@@ -2,10 +2,12 @@ from aim.models import schemas
 from aim.models import vocabulary
 from aim.models.exceptions import InvalidCFNMapping, InvalidAWSResourceName
 from aim.models.locations import get_parent_by_interface
+from functools import partial
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from aim.models.references import Reference, get_model_obj_from_ref
 import json
+import hashlib
 import troposphere
 import zope.schema
 import zope.schema.interfaces
@@ -111,8 +113,39 @@ class CFNExport():
                 result[key] = value
         return result
 
+def md5sum(filename=None, str_data=None):
+    """Computes and returns an MD5 sum in hexdigest format on a file or string"""
+    d = hashlib.md5()
+    if filename != None:
+        with open(filename, mode='rb') as f:
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+    elif str_data != None:
+        d.update(bytearray(str_data, 'utf-8'))
+    else:
+        raise AttributeError("md5sum: Filename or String data expected")
+
+    return d.hexdigest()
+
 @implementer(schemas.IParent)
 class Parent():
+
+    def obj_hash(self):
+        fields = get_all_fields(self)
+        str_data = ''
+        for name, obj in fields.items():
+            if isinstance(obj, (str, zope.schema.TextLine, zope.schema.Text)):
+                value = getattr(self, name)
+            if isinstance(obj, (int, float, zope.schema.Int, zope.schema.Float)):
+                value = getattr(self, name)
+                value = str(value)
+
+            if value != None:
+                str_data += value
+                value = None
+        hash_data = md5sum(str_data=str_data)
+        return hash_data
+
     def __init__(self, __parent__):
         self.__parent__ = __parent__
 

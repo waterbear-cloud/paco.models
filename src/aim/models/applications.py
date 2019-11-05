@@ -1003,6 +1003,10 @@ class DeploymentPipelineManualApproval(DeploymentPipelineStageAction):
     title = 'ManualApproval'
     manual_approval_notification_email = FieldProperty(schemas.IDeploymentPipelineManualApproval['manual_approval_notification_email'])
 
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.manual_approval_notification_email = []
+
 @implementer(schemas.ICodeDeployMinimumHealthyHosts)
 class CodeDeployMinimumHealthyHosts(Named):
     title = 'CodeDeployMinimumHealthyHosts'

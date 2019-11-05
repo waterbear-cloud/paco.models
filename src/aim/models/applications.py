@@ -1071,7 +1071,7 @@ class EFS(Resource):
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IGenerateSecretString)
-class GenerateSecretString(Parent, CFNExport):
+class GenerateSecretString(Parent, Deployable, CFNExport):
     """Generate SecretString"""
     secret_string_template = FieldProperty(schemas.IGenerateSecretString['secret_string_template'])
     generate_string_key = FieldProperty(schemas.IGenerateSecretString['generate_string_key'])

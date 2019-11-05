@@ -24,7 +24,7 @@ class IAM(Named):
         loader.apply_attributes_from_config(self, roles_dict)
 
 @implementer(schemas.IRole)
-class Role(Parent, Deployable):
+class Role(Named, Deployable):
     instance_profile = FieldProperty(schemas.IRole["instance_profile"])
     path = FieldProperty(schemas.IRole["path"])
     managed_policy_arns = FieldProperty(schemas.IRole["managed_policy_arns"])
@@ -35,8 +35,8 @@ class Role(Parent, Deployable):
     global_role_name = FieldProperty(schemas.IRole["global_role_name"])
     policies = FieldProperty(schemas.IRole["policies"])
 
-    def __init__(self, __parent__=None):
-        super().__init__(__parent__)
+    def __init__(self, __name__, __parent__):
+        super().__init__(__name__, __parent__)
         self.policies = []
 
     def apply_config(self, config_dict):
@@ -70,13 +70,13 @@ class AssumeRolePolicy(Parent):
 
 
 @implementer(schemas.IStatement)
-class Statement(Parent):
+class Statement(Named):
     effect = FieldProperty(schemas.IStatement["effect"])
     action = FieldProperty(schemas.IStatement["action"])
     resource = FieldProperty(schemas.IStatement["resource"])
 
-    def __init__(self, __parent__):
-        super().__init__(__parent__)
+    def __init__(self, __name__, __parent__):
+        super().__init__(__name__, __parent__)
         self.action = []
         self.resource = []
 

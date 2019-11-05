@@ -279,7 +279,7 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('str_list', TextReference)
     },
     DeploymentPipelineManualApproval: {
-        'manual_approval_notification_email': ('str_list_validated', zope.schema.TextLine)
+        'manual_approval_notification_email': ('str_list', zope.schema.TextLine)
     },
     CodePipeBuildDeploy: {
         'artifacts_bucket': ('named_obj', S3Bucket)
@@ -364,7 +364,7 @@ SUB_TYPES_CLASS_MAP = {
 
     # IAM
     IAM: {
-        'roles': ('named_obj', Role)
+        'roles': ('direct_obj', Role)
         #'policies': ('named_obj', ManagedPolicies)
     },
     Role: {
@@ -843,20 +843,17 @@ Configuration section:
 
     elif sub_type == 'str_list':
         sub_list = []
-        for sub_value in value:
-            sub_obj = sub_class().fromUnicode(sub_value)
-            sub_list.append(sub_obj)
-        return sub_list
-
-    elif sub_type == 'str_list_validated':
-        sub_list = []
-        if type(value) == type(str()):
+        # If we expect a string list but only get one string,
+        # return that string as the only item in the list
+        if isinstance(value, str) == True:
+            value = [value]
+        if isinstance(value, list) == False:
             raise_invalid_schema_error(
                 obj,
                 name,
                 value,
                 read_file_path,
-                InvalidAimFieldType("Expected list type but got string")
+                InvalidAimFieldType("Expected list type but got %s" % type(value))
             )
         for sub_value in value:
             sub_obj = sub_class().fromUnicode(sub_value)

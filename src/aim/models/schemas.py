@@ -2072,7 +2072,7 @@ class INetwork(INetworkEnvironment):
         required = False,
     )
 
-class IGenerateSecretString(IParent):
+class IGenerateSecretString(IParent, IDeployable):
     secret_string_template = schema.Text(
         title="A properly structured JSON string that the generated password can be added to.",
         required=False,
@@ -2099,7 +2099,8 @@ class ISecretsManagerSecret(INamed, IDeployable):
     generate_secret_string = schema.Object(
         title="Generate SecretString object",
         required=False,
-        schema=IGenerateSecretString
+        schema=IGenerateSecretString,
+        default=None
     )
 
 class ISecretsManagerGroup(INamed, IMapping):
@@ -2341,7 +2342,7 @@ class ILBApplication(IResource, IMonitorable, IMapping):
 class IIAMs(INamed, IMapping):
     "Container for IAM Groups"
 
-class IStatement(IParent):
+class IStatement(INamed):
     effect = schema.TextLine(
         title = "Effect",
         description = "Must be one of: 'Allow', 'Deny'",
@@ -2352,13 +2353,11 @@ class IStatement(IParent):
     action = schema.List(
         title = "Action(s)",
         value_type=schema.TextLine(),
-        default = [],
         required = False,
     )
     resource =schema.List(
         title = "Resrource(s)",
         value_type=schema.TextLine(),
-        default = [],
         required = False,
     )
 
@@ -2406,7 +2405,7 @@ class IAssumeRolePolicy(IParent):
     )
     # ToDo: what are 'aws' keys for? implement ...
 
-class IRole(IParent, IDeployable):
+class IRole(INamed, IDeployable):
     assume_role_policy = schema.Object(
         title = "Assume role policy",
         schema=IAssumeRolePolicy,

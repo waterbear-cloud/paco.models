@@ -516,7 +516,7 @@ def get_all_nodes(root):
                     raise InvalidAimProjectFile(message)
                 for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
-                stack.insert(0, obj)
+                        stack.insert(0, obj)
     return nodes
 
 def add_metric(obj, metric):

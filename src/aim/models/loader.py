@@ -1227,7 +1227,7 @@ class ModelLoader():
         parent[name] = obj
         return obj
 
-    def insert_env_ref_aim_sub(self, aim_ref, env_id, region):
+    def insert_env_ref_aim_sub(self, aim_ref, env_id, region, application):
         """
         aim.sub substition
         """
@@ -1260,12 +1260,10 @@ class ModelLoader():
             netenv_ref_idx = aim_ref.find(
                 "aim.ref netenv.", rep_1_idx, rep_2_idx)
             if netenv_ref_idx != -1:
-                #sub_ref_idx = netenv_ref_idx + len("aim.ref netenv.")
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = aim_ref[sub_ref_idx:sub_ref_end_idx]
-
-                new_ref = self.insert_env_ref_str(sub_ref, env_id, region)
+                new_ref = self.insert_env_ref_str(sub_ref, env_id, region, application)
                 sub_var = aim_ref[sub_ref_idx:sub_ref_end_idx]
                 if sub_var == new_ref:
                     break
@@ -1283,7 +1281,7 @@ class ModelLoader():
             return aim_ref
 
         if aim_ref.startswith("aim.sub "):
-            return self.insert_env_ref_aim_sub(aim_ref, env_id, region)
+            return self.insert_env_ref_aim_sub(aim_ref, env_id, region, application)
 
         netenv_ref_raw = aim_ref
         sub_ref_len = len(netenv_ref_raw)
@@ -1293,10 +1291,13 @@ class ModelLoader():
             return aim_ref
 
         # Update application names to reflect unique app name for applications with unique suffixes
-        # if ref.parts[2] == 'applications':
-        #     app_name = ref.parts[3]
-        #     if application.name != app_name:
-        #         ref.parts[3] = application.name
+        if ref.parts[2] == 'applications':
+            # only needs to apply to non-unique applications
+            app_name = ref.parts[3]
+            if application.duplicate:
+                app_name = ref.parts[3]
+                if application.name.startswith(app_name) and application.name != app_name:
+                    ref.parts[3] = application.name
 
         ref.parts.insert(2, env_id)
         ref.parts.insert(3, region)
@@ -1602,11 +1603,15 @@ class ModelLoader():
                 # application is duplicated with a unique suffix
                 app_name, unique_suffix = match.groups()
                 unique_app_name = app_name + unique_suffix
+                duplicate = True
             else:
                 # normal one-to-one environments.applications.name to applications.app.name
                 app_name = item_name
                 unique_app_name = app_name
+                duplicate = False
             item = Application(unique_app_name, getattr(env_region, 'applications'))
+            # Application objects are marked as duplicate if more than one exist the same environment
+            item.duplicate = duplicate
             if env_region.name == 'default':
                 # merge global with default
                 try:

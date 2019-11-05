@@ -201,7 +201,7 @@ class CodePipeBuildDeploy(Resource):
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IS3BucketPolicy)
-class S3BucketPolicy():
+class S3BucketPolicy(Parent):
     action = FieldProperty(schemas.IS3BucketPolicy['action'])
     aws = FieldProperty(schemas.IS3BucketPolicy['aws'])
     condition = FieldProperty(schemas.IS3BucketPolicy['condition'])
@@ -209,7 +209,8 @@ class S3BucketPolicy():
     principal = FieldProperty(schemas.IS3BucketPolicy['principal'])
     resource_suffix = FieldProperty(schemas.IS3BucketPolicy['resource_suffix'])
 
-    def __init__(self):
+    def __init__(self, __parent__=None):
+        super().__init__(__parent__)
         self.processed = False
 
 @implementer(schemas.IS3LambdaConfiguration)

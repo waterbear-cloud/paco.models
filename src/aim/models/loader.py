@@ -642,10 +642,15 @@ Verify that '{}' has the correct indentation in the config file.
                             setattr(obj, name, deepcopy_except_parent(value))
                     except (ValidationError, AttributeError) as exc:
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
+                else:
+                    if zope.schema.interfaces.IList.providedBy(field):
+                        if field.default == []:
+                            if not value:
+                                return []
 
     # validate the object
     # don't validate credentials as sometimes it's left blank
-    # ToDo: validate it if exists ...
+    # ToDo: validate that it exists ...
     if schemas.ICredentials.providedBy(obj):
         return
     for interface in most_specialized_interfaces(obj):

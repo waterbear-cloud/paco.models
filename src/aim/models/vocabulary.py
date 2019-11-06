@@ -625,6 +625,16 @@ user_data_script = {
 		'centos': 'yum install -y amazon-efs-utils cachefilesd',
 		'ubuntu': 'apt-get install cachefilesd -y'
 	},
+	'install_cfn_init': {
+		'amazon': '',
+		'ubuntu': """
+mkdir -p /opt/aim/bin
+apt-get install -y python-setuptools
+wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+easy_install --script-dir /opt/aim/bin aws-cfn-bootstrap-latest.tar.gz
+""",
+		'centos': '' # TODO
+	},
 	'enable_efs_utils': {
 		'amazon': """
 /sbin/service cachefilesd start

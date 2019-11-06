@@ -271,6 +271,9 @@ SUB_TYPES_CLASS_MAP = {
         'launch_options': ('obj', EC2LaunchOptions),
         'cfn_init': ('obj_raw_config', CloudFormationInit)
     },
+    EC2LaunchOptions: {
+        'cfn_init_config_sets': ('str_list', zope.schema.TextLine)
+    },
     Listener: {
         'redirect': ('direct_obj', PortProtocol),
         'rules': ('named_obj', ListenerRule)
@@ -738,6 +741,22 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         class_mapping = sub_class[1]
         container = container_class(name, obj)
         for name, config in value.items():
+            if isinstance(config, dict) == False:
+                raise InvalidAimProjectFile("""
+Error in file at {}
+Resource: '{}'
+Invalid config type: '{}'.
+
+Configuration section:
+{}""".format(read_file_path, name, type(config), config))
+                raise InvalidAimProjectFile("""
+Error in file at {}
+Type of '{}' does not exist for '{}'
+
+Configuration section:
+{}
+""".format(read_file_path, config['type'], name, config))
+
             try:
                 klass = class_mapping[config['type']]
             except KeyError:

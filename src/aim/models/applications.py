@@ -432,9 +432,10 @@ class EBS(Resource):
     volume_type = FieldProperty(schemas.IEBS['volume_type'])
 
 @implementer(schemas.IEC2LaunchOptions)
-class EC2LaunchOptions(Resource):
+class EC2LaunchOptions(Named):
     title = "EC2 Launch Options"
     update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
+    cfn_init_config_sets = FieldProperty(schemas.IEC2LaunchOptions['cfn_init_config_sets'])
 
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
@@ -505,6 +506,8 @@ class ASG(Resource, Monitorable):
             return self.resolve_ref_obj.resolve_ref(ref)
         elif ref.resource_ref == 'instance_iam_role':
             return self.instance_iam_role
+        elif ref.resource_ref == 'instance_ami':
+            return self.instance_ami
         elif ref.parts[-2] == 'resources':
             return self
         elif ref.resource_ref.startswith('instance_id'):

@@ -3099,12 +3099,13 @@ class IEC2LaunchOptions(INamed):
         default = False
     )
     cfn_init_config_sets = schema.List(
-        title = "Comma delimited list of cfn-init config sets",
+        title = "List of cfn-init config sets",
         value_type = schema.TextLine(
-            title = "",
-            required = False
+            title="",
+            required=False
         ),
-        required = False
+        required=False,
+        default=[]
     )
 
 class IASG(IResource, IMonitorable):

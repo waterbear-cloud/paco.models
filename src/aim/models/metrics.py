@@ -323,6 +323,7 @@ class MonitorConfig(Deployable, Named):
         self.health_checks = HealthChecks('health_checks', self)
         self.log_sets = CloudWatchLogSets('log_sets', self)
         self.notifications = AlarmNotifications('notifications', self)
+        self.metrics = []
 
 @implementer(schemas.IMetric)
 class Metric():

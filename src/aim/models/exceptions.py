@@ -1,6 +1,9 @@
 class InvalidAimFieldType(Exception):
     pass
 
+class InvalidAimSchema(Exception):
+    pass
+
 class InvalidAimProjectFile(Exception):
     pass
 

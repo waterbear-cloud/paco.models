@@ -9,7 +9,7 @@ from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metric
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from aim.models.exceptions import InvalidAimFieldType, InvalidAimProjectFile, UnusedAimProjectField, \
-    TroposphereConversionError
+    TroposphereConversionError, InvalidAimSchema
 from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
     HealthChecks, CloudWatchLogAlarm
@@ -518,9 +518,10 @@ def get_all_nodes(root):
                 if field.readonly: continue
                 # don't drill down into lists of strings - only lists of model objects
                 if getattr(cur_node, field_name, []) == None:
-                    message = "Field name is None: {}\n".format(field_name)
+                    message = "List field value is None for: {}\n".format(field_name)
                     if hasattr(cur_node, 'aim_ref_parts'):
-                        message += "Ref: {}\n".format(cur_node.aim_ref_parts)
+                        message += "Ref: {}.{}\n".format(cur_node.aim_ref_parts, field_name)
+                    message += "Hint: List fields default needs to be set to [] in the implementor object init()."
                     raise InvalidAimProjectFile(message)
                 for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
@@ -611,6 +612,13 @@ Verify that '{}' has the correct indentation in the config file.
                     value = []
                     for list_value in config[name].split(','):
                         value.append(list_value.strip())
+                elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
+                    if value == None:
+                        #breakpoint()
+                        if field.default != None:
+                            value = deepcopy_except_parent(field.default)
+                        else:
+                            value = []
 
                 if value != None:
                     value = cast_to_schema(obj, name, value, fields)
@@ -642,11 +650,6 @@ Verify that '{}' has the correct indentation in the config file.
                             setattr(obj, name, deepcopy_except_parent(value))
                     except (ValidationError, AttributeError) as exc:
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
-                else:
-                    if zope.schema.interfaces.IList.providedBy(field):
-                        if field.default == []:
-                            if not value:
-                                return []
 
     # validate the object
     # don't validate credentials as sometimes it's left blank

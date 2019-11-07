@@ -679,7 +679,6 @@ class IAccount(INamed, IDeployable):
         title = "A list of account ids to add to the Master account's AWS Organization",
         value_type = schema.TextLine(),
         required = False,
-        default = [],
         description = 'Each string in the list must contain only digits.'
     )
     admin_iam_users = schema.Dict(
@@ -778,14 +777,12 @@ class ISecurityGroup(INamed, IDeployable):
     ingress = schema.List(
         title = "Ingress",
         value_type=schema.Object(schema=IIngressRule),
-        default = [],
         description = "Every list item must be an IngressRule",
         required = False,
     )
     egress = schema.List(
         title = "Egress",
         value_type=schema.Object(schema=IEgressRule),
-        default = [],
         description = "Every list item must be an EgressRule",
         required = False,
     )
@@ -1046,7 +1043,6 @@ class ICloudWatchAlarm(IType, IAlarm):
     dimensions = schema.List(
         title = "Dimensions",
         value_type = schema.Object(schema=IDimension),
-        default = [],
         required = False,
     )
     enable_ok_actions = schema.Bool(
@@ -1224,7 +1220,6 @@ class IMetricFilter(INamed):
             title="Metric Transformation",
             schema=IMetricTransformation
         ),
-        default = [],
         required = False,
     )
 
@@ -1345,7 +1340,6 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
     asg_metrics = schema.List(
         title="ASG Metrics",
         value_type=schema.TextLine(),
-        default=[],
         constraint=isValidASGMetricNames,
         description="Must be one of: 'GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'",
         required=False,
@@ -1374,7 +1368,6 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
     metrics = schema.List(
         title="Metrics",
         value_type=schema.Object(IMetric),
-        default=[],
         required=False,
     )
 
@@ -1405,7 +1398,6 @@ class IS3BucketPolicy(Interface):
         value_type = schema.TextLine(
             title = "AWS Principle"
         ),
-        default = [],
         required = False,
     )
     condition = schema.Dict(
@@ -1461,7 +1453,6 @@ class IS3NotificationConfiguration(IParent):
     lambdas = schema.List(
         title = "Lambda configurations",
         value_type = schema.Object(IS3LambdaConfiguration),
-        default = [],
         required = False,
     )
 
@@ -1783,9 +1774,7 @@ class IProject(INamed, IMapping):
         value_type = schema.TextLine(),
         constraint = isValidLegacyFlagList,
         required = False,
-        default = []
     )
-
 class IInternetGateway(IDeployable):
     """
     AWS Resource: IGW
@@ -1810,7 +1799,6 @@ class INATGateway(INamed, IDeployable, IMapping):
     default_route_segments = schema.List(
         title = "Default Route Segments",
         description = "",
-        default = [],
         value_type = TextReference(
             title = "Segment"
         ),
@@ -2172,7 +2160,6 @@ class IAWSCertificateManager(IResource):
         value_type=schema.TextLine(
             title="alternative name"
         ),
-        default = [],
         required = False,
     )
     external_resource = schema.Bool(
@@ -2262,7 +2249,6 @@ class IListener(IParent, IPortProtocol):
             title = "SSL Certificate Reference"
         ),
         required=False,
-        default = []
     )
     target_group = schema.TextLine(
         title = "Target group",
@@ -2312,7 +2298,6 @@ class ILBApplication(IResource, IMonitorable, IMapping):
     dns = schema.List(
         title = "List of DNS for the ALB",
         value_type = schema.Object(IDNS),
-        default = [],
         required = False,
     )
     scheme = schema.Choice(
@@ -2390,7 +2375,6 @@ class IAssumeRolePolicy(IParent):
             default = "",
             required = False
         ),
-        default = [],
         required = False
     )
     service = schema.List(
@@ -2400,7 +2384,6 @@ class IAssumeRolePolicy(IParent):
             default = "",
             required = False
         ),
-        default = [],
         required = False
     )
     # ToDo: what are 'aws' keys for? implement ...
@@ -2436,7 +2419,6 @@ class IRole(INamed, IDeployable):
         value_type=schema.Object(
             schema=IPolicy
         ),
-        default = [],
         required = False
     )
     managed_policy_arns = schema.List(
@@ -2444,7 +2426,6 @@ class IRole(INamed, IDeployable):
         value_type=schema.TextLine(
             title = "Managed policy ARN"
         ),
-        default = [],
         required = False
     )
     max_session_duration = schema.Int(
@@ -2477,7 +2458,6 @@ class IManagedPolicy(INamed, IDeployable, IMapping):
         value_type=schema.TextLine(
             title="Role Name"
         ),
-        default = [],
         required = False,
     )
     users = schema.List(
@@ -2485,7 +2465,6 @@ class IManagedPolicy(INamed, IDeployable, IMapping):
         value_type=schema.TextLine(
             title = "IAM User name"
         ),
-        default = [],
         required = False,
     )
     statement = schema.List(
@@ -2583,7 +2562,6 @@ class ISimpleCloudWatchAlarm(IParent):
         title = 'Dimensions',
         value_type=schema.Object(IDimension),
         required = False,
-        default = []
     )
 
 # CloudFormation Init schemas
@@ -2823,7 +2801,6 @@ class ICloudFormationInitService(Interface):
         value_type=schema.TextLine(
             title="File"
         ),
-        default=[]
     )
     sources = schema.List(
         title="A list of directories. If cfn-init expands an archive into one of these directories, this service will be restarted.",
@@ -2831,7 +2808,6 @@ class ICloudFormationInitService(Interface):
         value_type=schema.TextLine(
             title="Sources"
         ),
-        default=[]
     )
     packages = schema.Dict(
         title="A map of package manager to list of package names. If cfn-init installs or updates one of these packages, this service will be restarted.",
@@ -2844,7 +2820,6 @@ class ICloudFormationInitService(Interface):
         value_type=schema.TextLine(
             title="Commands"
         ),
-        default=[]
     )
 
 class ICloudFormationInitServiceCollection(INamed, IMapping):
@@ -3018,7 +2993,6 @@ class IASGScalingPolicy(INamed, IDeployable):
     alarms = schema.List(
         title = 'Alarms',
         value_type=schema.Object(ISimpleCloudWatchAlarm),
-        default = []
     )
 
     @invariant
@@ -3039,7 +3013,6 @@ class IEIP(IResource):
     dns = schema.List(
         title = "List of DNS for the EIP",
         value_type = schema.Object(IDNS),
-        default = [],
         required = False
     )
 
@@ -3235,7 +3208,6 @@ class IASG(IResource, IMonitorable):
         value_type=TextReference(
             title="AIM Reference"
         ),
-        default = [],
         required = False,
     )
     load_balancers = schema.List(
@@ -3244,7 +3216,6 @@ class IASG(IResource, IMonitorable):
         value_type=TextReference(
             title="AIM Reference"
         ),
-        default = [],
         required = False,
     )
     user_data_script = schema.Text(
@@ -3277,13 +3248,11 @@ class IASG(IResource, IMonitorable):
         title = 'Elastic Filesystem Configuration',
         value_type = schema.Object(IEFSMount),
         required = False,
-        default = []
     )
     ebs_volume_mounts = schema.List(
         title = 'Elastic Block Store Volume Mounts',
         value_type = schema.Object(IEBSVolumeMount),
         required = False,
-        default = []
     )
     scaling_policies = schema.Object(
         title='Scaling Policies',
@@ -3338,7 +3307,6 @@ class ILambdaEnvironment(IMapping):
     variables = schema.List(
         title = "Lambda Function Variables",
         value_type = schema.Object(ILambdaVariable),
-        default = [],
         required = False,
     )
 
@@ -3378,7 +3346,6 @@ class ILambdaVpcConfig(INamed):
     segments = schema.List(
         title = "VPC Segments to attach the function",
         description = "",
-        default = [],
         value_type = TextReference(
             title = "Segment",
         ),
@@ -3417,7 +3384,6 @@ class ILambda(IResource, IMonitorable):
     layers = schema.List(
         title = "Layers",
         value_type = schema.TextLine(),
-        default = [],
         description = "Up to 5 Layer ARNs",
         constraint = isListOfLayerARNs
     )
@@ -3462,7 +3428,6 @@ class ILambda(IResource, IMonitorable):
             title = "SNS Topic AIM Reference",
             str_ok=True
         ),
-        default = [],
         required = False,
     )
     vpc_config = schema.Object(
@@ -3495,7 +3460,6 @@ class IApiGatewayMethodMethodResponse(Interface):
         description = """Specify response models as key-value pairs (string-to-string maps),
 with a content type as the key and a Model AIM name as the value.""",
         value_type = schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
-        default = [],
         required = False,
     )
 
@@ -3537,7 +3501,6 @@ class IApiGatewayMethodIntegration(IParent):
     integration_responses = schema.List(
         title = "Integration Responses",
         value_type = schema.Object(IApiGatewayMethodIntegrationResponse),
-        default = [],
         required = False,
     )
     request_parameters = schema.Dict(
@@ -3606,7 +3569,6 @@ class IApiGatewayMethod(IResource):
         title = "Method Responses",
         description = "List of ApiGatewayMethod MethodResponses",
         value_type = schema.Object(IApiGatewayMethodMethodResponse),
-        default = [],
         required = False,
     )
     request_parameters = schema.Dict(
@@ -3702,7 +3664,6 @@ class IApiGatewayRestApi(IResource):
         value_type = schema.TextLine(
             title = "Binary Media Type"
         ),
-        default = [],
         required = False,
     )
     body = schema.Text(
@@ -3735,7 +3696,6 @@ class IApiGatewayRestApi(IResource):
             title = "Endpoint Type",
             constraint = isValidEndpointConfigurationType
         ),
-        default = [],
         required = False,
     )
     fail_on_warnings = schema.Bool(
@@ -3927,7 +3887,6 @@ class IRoute53HealthCheck(IResource):
         title="Health checker regions",
         description="List of AWS Region names (e.g. us-west-2) from which to make health checks.",
         required=False,
-        default=[],
         value_type=schema.TextLine(title="AWS Region"),
         constraint=isValidHealthCheckAWSRegionList,
     )
@@ -4028,7 +3987,6 @@ class ISNSTopic(IResource):
     subscriptions = schema.List(
         title = "List of SNS Topic Subscriptions",
         value_type = schema.Object(ISNSTopicSubscription),
-        default = [],
         required = False,
     )
     cross_account_access = schema.Bool(
@@ -4048,7 +4006,6 @@ class ICloudTrail(IResource):
         value_type = TextReference(
             title = "Account Reference",
         ),
-        default = [],
         required = False,
     )
     cloudwatchlogs_log_group = schema.Object(
@@ -4284,7 +4241,6 @@ class ICloudFrontFactory(INamed):
     domain_aliases = schema.List(
         title = "List of DNS for the Distribution",
         value_type = schema.Object(IDNS),
-        default = [],
         required = False,
     )
 
@@ -4301,7 +4257,6 @@ class ICloudFront(IResource, IDeployable, IMonitorable):
     domain_aliases = schema.List(
         title = "List of DNS for the Distribution",
         value_type = schema.Object(IDNS),
-        default = [],
         required = False,
     )
     default_root_object = schema.TextLine(
@@ -4388,7 +4343,6 @@ class IRDSOptionConfiguration(Interface):
     option_settings = schema.List(
         title = 'List of option name value pairs.',
         value_type = schema.Object(INameValuePair),
-        default = [],
         required = False,
     )
     option_version = schema.TextLine(
@@ -4446,7 +4400,6 @@ class IRDS(IResource, IMonitorable):
             title="CloudWatch Log Export",
         ),
         required=False,
-        default=[]
         # ToDo: Constraint that depends upon the database type, not applicable for Aurora
     )
     db_instance_type = schema.TextLine(
@@ -4465,7 +4418,6 @@ class IRDS(IResource, IMonitorable):
     dns = schema.List(
         title="List of DNS for the RDS",
         value_type=schema.Object(IDNS),
-        default=[],
         required=False
     )
     engine = schema.TextLine(
@@ -4499,7 +4451,6 @@ class IRDS(IResource, IMonitorable):
     option_configurations = schema.List(
         title="Option Configurations",
         value_type=schema.Object(IRDSOptionConfiguration),
-        default = [],
         required = False,
     )
     parameter_group = TextReference(
@@ -4790,7 +4741,6 @@ class IIAMUserPermissionCustomPolicy(IIAMUserPermission):
         value_type=schema.Object(
             schema=IPolicy
         ),
-        default = [],
         required = False
     )
 
@@ -4920,7 +4870,6 @@ class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
         title = 'Project IAM Role Policies',
         value_type=schema.Object(IPolicy),
         required = False,
-        default = []
     )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):

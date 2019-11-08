@@ -6,6 +6,7 @@ import troposphere
 import troposphere.elasticache
 import troposphere.s3
 import troposphere.secretsmanager
+import troposphere.autoscaling
 from aim.models import loader
 from aim.models import schemas
 from aim.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
@@ -437,6 +438,43 @@ class EC2LaunchOptions(Named):
     update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
     cfn_init_config_sets = FieldProperty(schemas.IEC2LaunchOptions['cfn_init_config_sets'])
 
+@implementer(schemas.IBlockDevice)
+class BlockDevice(Parent):
+    delete_on_termination = FieldProperty(schemas.IBlockDevice['delete_on_termination'])
+    encrypted = FieldProperty(schemas.IBlockDevice['encrypted'])
+    iops = FieldProperty(schemas.IBlockDevice['iops'])
+    snapshot_id = FieldProperty(schemas.IBlockDevice['snapshot_id'])
+    size_gib = FieldProperty(schemas.IBlockDevice['size_gib'])
+    volume_type = FieldProperty(schemas.IBlockDevice['volume_type'])
+
+    troposphere_props = troposphere.autoscaling.EBSBlockDevice.props
+    cfn_mapping = {
+        'DeleteOnTermination': 'delete_on_termination',
+        'Encrypted': 'encrypted',
+        'Iops': 'iops',
+        'SnapshotId': 'snapshot_id',
+        'VolumeSize': 'size_gib',
+        'VolumeType': 'volume_type',
+    }
+
+@implementer(schemas.IBlockDeviceMapping)
+class BlockDeviceMapping(Parent):
+    device_name =  FieldProperty(schemas.IBlockDeviceMapping['device_name'])
+    ebs =  FieldProperty(schemas.IBlockDeviceMapping['ebs'])
+    virtual_name =  FieldProperty(schemas.IBlockDeviceMapping['virtual_name'])
+
+    @property
+    def ebs_cfn(self):
+        if self.ebs != None:
+            return self.ebs.cfn_export_dict
+
+    troposphere_props = troposphere.autoscaling.BlockDeviceMapping.props
+    cfn_mapping = {
+        'DeviceName': 'device_name',
+        'Ebs': 'ebs_cfn',
+        'VirtualName': 'virtual_name',
+    }
+
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
@@ -474,6 +512,7 @@ class ASG(Resource, Monitorable):
     availability_zone = FieldProperty(schemas.IASG['availability_zone'])
     secrets = FieldProperty(schemas.IASG['secrets'])
     launch_options = FieldProperty(schemas.IASG['launch_options'])
+    block_device_mappings = FieldProperty(schemas.IASG['block_device_mappings'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

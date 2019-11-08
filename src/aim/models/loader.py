@@ -30,7 +30,7 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
-    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters
+    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
@@ -258,6 +258,9 @@ SUB_TYPES_CLASS_MAP = {
         'alarms': ('obj_list', SimpleCloudWatchAlarm),
         'dimensions': ('obj_list', Dimension)
     },
+    BlockDeviceMapping: {
+        'ebs': ('direct_obj', BlockDevice)
+    },
     ASG: {
         'security_groups': ('str_list', TextReference),
         'target_groups': ('str_list', TextReference),
@@ -269,7 +272,8 @@ SUB_TYPES_CLASS_MAP = {
         'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
         'secrets': ('str_list', TextReference),
         'launch_options': ('obj', EC2LaunchOptions),
-        'cfn_init': ('obj_raw_config', CloudFormationInit)
+        'cfn_init': ('obj_raw_config', CloudFormationInit),
+        'block_device_mappings': ('obj_list', BlockDeviceMapping),
     },
     EC2LaunchOptions: {
         'cfn_init_config_sets': ('str_list', zope.schema.TextLine)

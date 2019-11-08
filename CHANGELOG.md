@@ -4,8 +4,9 @@ Changelog for aim.models
 6.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- Added support for block_device_mappings for IASG.
 
 6.1.0 (2019-11-06)
 ------------------

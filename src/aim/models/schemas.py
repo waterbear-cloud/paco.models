@@ -530,7 +530,7 @@ def IsValidASGAvailabilityZone(value):
 class InvalidEBSVolumeType(schema.ValidationError):
     __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
 
-def IsValidEBSVolumeType(value):
+def isValidEBSVolumeType(value):
     if value not in ('gp2', 'io1', 'sc1', 'st1', 'standard'):
         raise InvalidEBSVolumeType
     return True
@@ -3058,7 +3058,7 @@ class IEBS(IResource):
         title="Volume Type",
         description="Must be one of: gp2 | io1 | sc1 | st1 | standard",
         default='gp2',
-        constraint = IsValidEBSVolumeType,
+        constraint = isValidEBSVolumeType,
         required = False
     )
 
@@ -3081,55 +3081,110 @@ class IEC2LaunchOptions(INamed):
         default=[]
     )
 
+class IBlockDevice(IParent):
+    delete_on_termination = schema.Bool(
+        title="Indicates whether to delete the volume when the instance is terminated.",
+        default=True,
+        required=False
+    )
+    encrypted = schema.Bool(
+        title="Specifies whether the EBS volume is encrypted.",
+        required=False
+    )
+    iops = schema.Int(
+        title="The number of I/O operations per second (IOPS) to provision for the volume.",
+        description="The maximum ratio of IOPS to volume size (in GiB) is 50:1, so for 5,000 provisioned IOPS, you need at least 100 GiB storage on the volume.",
+        min=100,
+        max=20000,
+        required=False
+    )
+    snapshot_id = schema.TextLine(
+        title="The snapshot ID of the volume to use.",
+        min_length=1,
+        max_length=255,
+        required=False
+    )
+    size_gib = schema.Int(
+        title="The volume size, in Gibibytes (GiB).",
+        description="This can be a number from 1-1,024 for standard, 4-16,384 for io1, 1-16,384 for gp2, and 500-16,384 for st1 and sc1.",
+        min=1,
+        max=16384,
+        required=False
+    )
+    volume_type = schema.TextLine(
+        title="The volume type, which can be standard for Magnetic, io1 for Provisioned IOPS SSD, gp2 for General Purpose SSD, st1 for Throughput Optimized HDD, or sc1 for Cold HDD.",
+        description="Must be one of standard, io1, gp2, st1 or sc1.",
+        constraint=isValidEBSVolumeType
+    )
+
+class IBlockDeviceMapping(IParent):
+    @invariant
+    def ebs_or_virtual_name(obj):
+        if obj.ebs == None and obj.virtual_name == None:
+            raise Invalid("Must set one of either ebs or virtual_name for block_device_mappings.")
+        if obj.ebs != None and obj.virtual_name != None:
+            raise Invalid("Can not set both ebs and virtual_name for block_device_mappings.")
+        return True
+
+    device_name = schema.TextLine(
+        title="The device name exposed to the EC2 instance",
+        required=True,
+        min_length=1,
+        max_length=255
+    )
+    ebs = schema.Object(
+        title="Amazon Ebs volume",
+        schema=IBlockDevice,
+        required=False
+    )
+    virtual_name = schema.TextLine(
+        title="The name of the virtual device.",
+        description="The name must be in the form ephemeralX where X is a number starting from zero (0), for example, ephemeral0.",
+        min_length=1,
+        max_length=255,
+        required=False
+    )
+
 class IASG(IResource, IMonitorable):
     """
     Auto Scaling Group
     """
-    cfn_init = schema.Object(
-        title="CloudFormation Init",
-        schema=ICloudFormationInit,
-        required=False
-    )
-    desired_capacity = schema.Int(
-        title="Desired capacity",
-        description="",
-        default=1,
-        required = False,
-    )
-    min_instances = schema.Int(
-        title="Minimum instances",
-        description="",
-        default=1,
-        required = False,
-    )
-    max_instances = schema.Int(
-        title="Maximum instances",
-        description="",
-        default=2,
-        required = False,
-    )
-    update_policy_max_batch_size = schema.Int(
-        title="Update policy maximum batch size",
-        description="",
-        default=1,
-        required = False,
-    )
-    update_policy_min_instances_in_service = schema.Int(
-        title="Update policy minimum instances in service",
-        description="",
-        default=1,
-        required = False,
-    )
     associate_public_ip_address = schema.Bool(
         title="Associate Public IP Address",
         description="",
         default=False,
         required = False,
     )
+    availability_zone = schema.TextLine(
+        # Can be: all | 1 | 2 | 3 | 4 | ...
+        title='Availability Zones to launch instances in.',
+        default='all',
+        required=False,
+        constraint=IsValidASGAvailabilityZone
+    )
+    block_device_mappings = schema.List(
+        title="Block Device Mappings",
+        value_type=schema.Object(
+            title="Block Device Mapping",
+            schema=IBlockDeviceMapping
+        ),
+        required=False
+    )
+    cfn_init = schema.Object(
+        title="CloudFormation Init",
+        schema=ICloudFormationInit,
+        required=False
+    )
     cooldown_secs = schema.Int(
         title="Cooldown seconds",
         description="",
         default=300,
+        required = False,
+    )
+    desired_capacity = schema.Int(
+        title="Desired capacity",
+        description="",
+        default=1,
         required = False,
     )
     ebs_optimized = schema.Bool(
@@ -3138,12 +3193,20 @@ class IASG(IResource, IMonitorable):
         default=False,
         required = False,
     )
-    health_check_type = schema.TextLine(
-        title="Health check type",
-        description="Must be one of: 'EC2', 'ELB'",
-        default='EC2',
-        constraint = isValidHealthCheckType,
+    ebs_volume_mounts = schema.List(
+        title='Elastic Block Store Volume Mounts',
+        value_type= schema.Object(IEBSVolumeMount),
+        required=False,
+    )
+    efs_mounts = schema.List(
+        title='Elastic Filesystem Configuration',
+        value_type=schema.Object(IEFSMount),
+        required=False,
+    )
+    eip = TextReference(
+        title="Elastic IP Reference or AllocationId",
         required = False,
+        str_ok = True
     )
     health_check_grace_period_secs = schema.Int(
         title="Health check grace period in seconds",
@@ -3151,10 +3214,12 @@ class IASG(IResource, IMonitorable):
         default=300,
         required = False,
     )
-    eip = TextReference(
-        title="Elastic IP Reference or AllocationId",
+    health_check_type = schema.TextLine(
+        title="Health check type",
+        description="Must be one of: 'EC2', 'ELB'",
+        default='EC2',
+        constraint = isValidHealthCheckType,
         required = False,
-        str_ok = True
     )
     instance_iam_role = schema.Object(IRole)
     instance_ami = TextReference(
@@ -3175,15 +3240,99 @@ class IASG(IResource, IMonitorable):
         description="",
         required = False,
     )
+    instance_monitoring = schema.Bool(
+        title="Instance monitoring",
+        description="",
+        default=False,
+        required=False,
+    )
     instance_type = schema.TextLine(
         title = "Instance type",
         description="",
         constraint = isValidInstanceSize,
         required = False,
     )
+    launch_options = schema.Object(
+        title='EC2 Launch Options',
+        schema=IEC2LaunchOptions,
+        required=False
+    )
+    lifecycle_hooks = schema.Object(
+        title='Lifecycle Hooks',
+        schema=IASGLifecycleHooks,
+        required = False
+    )
+    load_balancers = schema.List(
+        title="Target groups",
+        description="",
+        value_type=TextReference(
+            title="AIM Reference"
+        ),
+        required = False,
+    )
+    max_instances = schema.Int(
+        title="Maximum instances",
+        description="",
+        default=2,
+        required = False,
+    )
+    min_instances = schema.Int(
+        title="Minimum instances",
+        description="",
+        default=1,
+        required = False,
+    )
+    update_policy_max_batch_size = schema.Int(
+        title="Update policy maximum batch size",
+        description="",
+        default=1,
+        required = False,
+    )
+    update_policy_min_instances_in_service = schema.Int(
+        title="Update policy minimum instances in service",
+        description="",
+        default=1,
+        required = False,
+    )
+    scaling_policies = schema.Object(
+        title='Scaling Policies',
+        schema=IASGScalingPolicies,
+        required = False,
+    )
+    scaling_policy_cpu_average = schema.Int(
+        title="Average CPU Scaling Polciy",
+        # Default is 0 == disabled
+        default=0,
+        min=0,
+        max=100,
+        required=False,
+    )
+    secrets = schema.List(
+        title='List of Secrets Manager References',
+        value_type=TextReference(
+            title='Secrets Manager Reference'
+        ),
+        required=False
+    )
+    security_groups = schema.List(
+        title="Security groups",
+        description="",
+        value_type=TextReference(
+            title="AIM Reference"
+        ),
+        required = False,
+    )
     segment = schema.TextLine(
         title="Segment",
         description="",
+        required = False,
+    )
+    target_groups = schema.List(
+        title="Target groups",
+        description="",
+        value_type=TextReference(
+            title="AIM Reference"
+        ),
         required = False,
     )
     termination_policies = schema.List(
@@ -3195,95 +3344,19 @@ class IASG(IResource, IMonitorable):
         ),
         required = False,
     )
-    security_groups = schema.List(
-        title="Security groups",
+    user_data_pre_script = schema.Text(
+        title="User data pre-script",
         description="",
-        value_type=TextReference(
-            title="AIM Reference"
-        ),
-        required = False,
-    )
-    target_groups = schema.List(
-        title="Target groups",
-        description="",
-        value_type=TextReference(
-            title="AIM Reference"
-        ),
-        required = False,
-    )
-    load_balancers = schema.List(
-        title="Target groups",
-        description="",
-        value_type=TextReference(
-            title="AIM Reference"
-        ),
-        required = False,
+        default="",
+        required=False,
     )
     user_data_script = schema.Text(
         title="User data script",
         description="",
         default="",
-        required = False,
+        required=False,
     )
-    user_data_pre_script = schema.Text(
-        title="User data pre-script",
-        description="",
-        default="",
-        required = False,
-    )
-    instance_monitoring =schema.Bool(
-        title="Instance monitoring",
-        description="",
-        default=False,
-        required = False,
-    )
-    scaling_policy_cpu_average = schema.Int(
-        title="Average CPU Scaling Polciy",
-        # Default is 0 == disabled
-        default=0,
-        min=0,
-        max=100,
-        required = False,
-    )
-    efs_mounts = schema.List(
-        title = 'Elastic Filesystem Configuration',
-        value_type = schema.Object(IEFSMount),
-        required = False,
-    )
-    ebs_volume_mounts = schema.List(
-        title = 'Elastic Block Store Volume Mounts',
-        value_type = schema.Object(IEBSVolumeMount),
-        required = False,
-    )
-    scaling_policies = schema.Object(
-        title='Scaling Policies',
-        schema=IASGScalingPolicies,
-        required = False,
-    )
-    lifecycle_hooks = schema.Object(
-        title='Lifecycle Hooks',
-        schema=IASGLifecycleHooks,
-        required = False
-    )
-    availability_zone = schema.TextLine(
-        # Can be: all | 1 | 2 | 3 | 4 | ...
-        title = 'Availability Zones to launch instances in.',
-        default = 'all',
-        required = False,
-        constraint = IsValidASGAvailabilityZone
-    )
-    secrets = schema.List(
-        title = 'List of Secrets Manager References',
-        value_type = TextReference(
-            title = 'Secrets Manager Reference'
-        ),
-        required = False
-    )
-    launch_options = schema.Object(
-        title = 'EC2 Launch Options',
-        schema = IEC2LaunchOptions,
-        required = False
-    )
+
 
 # Lambda
 

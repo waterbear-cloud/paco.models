@@ -2322,7 +2322,18 @@ class ILBApplication(IResource, IMonitorable, IMapping):
         default = 60,
         required = False,
     )
-
+    enable_access_logs = schema.Bool(
+        title="Write access logs to an S3 Bucket",
+        required=False
+    )
+    access_logs_bucket = TextReference(
+        title="Bucket to store access logs in",
+        required=False
+    )
+    access_logs_prefix = schema.TextLine(
+        title="Access Logs S3 Bucket prefix",
+        required=False
+    )
 
 class IIAMs(INamed, IMapping):
     "Container for IAM Groups"

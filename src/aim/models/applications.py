@@ -7,6 +7,7 @@ import troposphere.elasticache
 import troposphere.s3
 import troposphere.secretsmanager
 import troposphere.autoscaling
+import troposphere.elasticloadbalancingv2
 from aim.models import loader
 from aim.models import schemas
 from aim.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
@@ -596,6 +597,16 @@ class Listener(Parent, PortProtocol):
     target_group = FieldProperty(schemas.IListener['target_group'])
     rules = FieldProperty(schemas.IListener['rules'])
 
+    troposphere_props = troposphere.elasticloadbalancingv2.Listener.props
+    cfn_mapping = {
+        # 'Certificates': computed in template
+        # 'DefaultActions': computed in template
+        # 'LoadBalancerArn': (basestring, True),
+        'Port': 'port',
+        'Protocol': 'protocol',
+        # 'SslPolicy': (basestring, False)
+    }
+
 @implementer(schemas.IDNS)
 class DNS(Parent):
     hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
@@ -618,6 +629,9 @@ class LBApplication(Resource, dict):
     security_groups = FieldProperty(schemas.ILBApplication['security_groups'])
     segment = FieldProperty(schemas.ILBApplication['segment'])
     idle_timeout_secs = FieldProperty(schemas.ILBApplication['idle_timeout_secs'])
+    enable_access_logs = FieldProperty(schemas.ILBApplication['enable_access_logs'])
+    access_logs_bucket = FieldProperty(schemas.ILBApplication['access_logs_bucket'])
+    access_logs_prefix = FieldProperty(schemas.ILBApplication['access_logs_prefix'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

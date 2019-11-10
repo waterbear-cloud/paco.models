@@ -618,7 +618,6 @@ Verify that '{}' has the correct indentation in the config file.
                         value.append(list_value.strip())
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     if value == None:
-                        #breakpoint()
                         if field.default != None:
                             value = deepcopy_except_parent(field.default)
                         else:

@@ -2285,17 +2285,63 @@ class IDNS(IParent):
 
 class ILBApplication(IResource, IMonitorable, IMapping):
     """
-.. sidebar:: LBApplication Prescribed Automation
+.. sidebar:: AIM Prescribed Automation
 
-    ``enable_access_logs``: This field will turn on access logs for the load balancer, and will automatically create
+    ``dns``: Creates Route 53 Record Sets that will resolve DNS records to the domain name of the load balancer.
+
+    ``enable_access_logs``: Set to True to turn on access logs for the load balancer, and will automatically create
     an S3 Bucket with permissions for AWS to write to that bucket.
 
-    ``access_logs_bucket``: Use an existing S3 Bucket instead of automatically creating a new one.
+    ``access_logs_bucket``: Name an existing S3 Bucket (in the same region) instead of automatically creating a new one.
     Remember that if you supply your own S3 Bucket, you are responsible for ensuring that the bucket policy for
     it grants AWS the `s3:PutObject` permission.
 
 The ``LBApplication`` resource type creates an Application Load Balancer. Use load balancers to route traffic from
 the internet to your web servers.
+
+Load balancers have ``listeners`` which will accept requrests on specified ports and protocols. If a listener
+uses the HTTPS protocol, it can have an aim reference to an SSL Certificate. A listener can then either
+redirect the traffic to another port/protcol or send it one of it's named ``target_groups``.
+
+Each target group will specify it's health check configuration. To specify which resources will belong
+to a target group, use the ``target_groups`` field on an ASG resource.
+
+.. code-block:: yaml
+
+    type: LBApplication
+    enabled: true
+    enable_access_logs: true
+    target_groups:
+        api:
+            health_check_interval: 30
+            health_check_timeout: 10
+            healthy_threshold: 2
+            unhealthy_threshold: 2
+            port: 3000
+            protocol: HTTP
+            health_check_http_code: 200
+            health_check_path: /
+            connection_drain_timeout: 30
+    listeners:
+        http:
+            port: 80
+            protocol: HTTP
+            redirect:
+                port: 443
+                protocol: HTTPS
+        https:
+            port: 443
+            protocol: HTTPS
+            ssl_certificates:
+                - aim.ref netenv.app.applications.app.groups.certs.resources.root
+            target_group: api
+    dns:
+        - hosted_zone: aim.ref resource.route53.mynetenv
+          domain_name: api.example.com
+    scheme: internet-facing
+    security_groups:
+        - aim.ref netenv.app.network.vpc.security_groups.app.alb
+    segment: public
 
     """
     target_groups = schema.Dict(
@@ -4884,7 +4930,7 @@ class IIAMUser(INamed, IDeployable):
 
 class IIAMResource(INamed):
     """
-    IAM AWS Resource
+IAM Resource contains IAM Users who can login and have different levels of access to the AWS Console and API.
     """
     users = schema.Dict(
         title = 'IAM Users',

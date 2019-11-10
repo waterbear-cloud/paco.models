@@ -2284,7 +2284,20 @@ class IDNS(IParent):
     )
 
 class ILBApplication(IResource, IMonitorable, IMapping):
-    """Application Load Balancer"""
+    """
+.. sidebar:: LBApplication Prescribed Automation
+
+    ``enable_access_logs``: This field will turn on access logs for the load balancer, and will automatically create
+    an S3 Bucket with permissions for AWS to write to that bucket.
+
+    ``access_logs_bucket``: Use an existing S3 Bucket instead of automatically creating a new one.
+    Remember that if you supply your own S3 Bucket, you are responsible for ensuring that the bucket policy for
+    it grants AWS the `s3:PutObject` permission.
+
+The ``LBApplication`` resource type creates an Application Load Balancer. Use load balancers to route traffic from
+the internet to your web servers.
+
+    """
     target_groups = schema.Dict(
         title = "Target Groups",
         value_type=schema.Object(ITargetGroup),

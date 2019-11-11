@@ -2285,7 +2285,7 @@ class IDNS(IParent):
 
 class ILBApplication(IResource, IMonitorable, IMapping):
     """
-.. sidebar:: AIM Prescribed Automation
+.. sidebar:: Prescribed Automation
 
     ``dns``: Creates Route 53 Record Sets that will resolve DNS records to the domain name of the load balancer.
 
@@ -3503,8 +3503,66 @@ class ILambdaVpcConfig(INamed):
 
 class ILambda(IResource, IMonitorable):
     """
-    Lambda Function resource
-    """
+.. sidebar:: Prescribed Automation
+
+    ``sdb_cache``: Create a SimpleDB Domain and IAM Policy that grants full access to that domain. Will
+    also make the domain available to the Lambda function as an environment variable named ``SDB_CACHE_DOMAIN``.
+
+    ``sns_topics``: Subscribes the Lambda to SNS Topics. For each AIM reference to an SNS Topic,
+    AIM will create an SNS Topic Subscription so that the Lambda function will recieve all messages sent to that SNS Topic.
+    It will also create a Lambda Permission granting that SNS Topic the ability to publish to the Lambda.
+
+    **S3 Bucket Notification permission** AIM will check all resources in the Application for any S3 Buckets configured
+    to notify this Lambda. Lambda Permissions will be created to allow those S3 Buckets to invoke the Lambda.
+
+    **Events Rule permission** AIM will check all resources in the Application for CloudWatch Events Rule that are configured
+    to notify this Lambda and create a Lambda permission to allow that Event Rule to invoke the Lambda.
+
+Lambda Functions allow you to run code without provisioning servers and only
+pay for the compute time when the code is running.
+
+For the code that the Lambda function will run, use the ``code:`` block and specify
+``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
+
+.. code-block:: yaml
+
+    type: Lambda
+    enabled: true
+    order: 1
+    title: 'My Lambda Application'
+    description: 'Checks the Widgets Service and applies updates to a Route 53 Record Set.'
+    code:
+        s3_bucket: my-bucket-name
+        s3_key: 'myapp-1.0.zip'
+    environment:
+        variables:
+        - key: 'VAR_ONE'
+          value: 'hey now!'
+        - key: 'VAR_TWO'
+          value: 'Hank Kingsley'
+    iam_role:
+        enabled: true
+        policies:
+          - name: DNSRecordSet
+            statement:
+              - effect: Allow
+                action:
+                  - route53:ChangeResourceRecordSets
+                resource:
+                  - 'arn:aws:route53:::hostedzone/AJKDU9834DUY934'
+    handler: 'myapp.lambda_handler'
+    memory_size: 128
+    runtime: 'python3.7'
+    timeout: 900
+    sns_topics:
+      - aim.ref netenv.app.applications.app.groups.web.resources.snstopic
+    vpc_config:
+        segments:
+          - aim.ref netenv.app.network.vpc.segments.public
+        security_groups:
+          - aim.ref netenv.app.network.vpc.security_groups.app.function
+
+"""
     code = schema.Object(
         title = "The function deployment package.",
         schema = ILambdaFunctionCode,
@@ -3521,7 +3579,7 @@ class ILambda(IResource, IMonitorable):
         required = False,
     )
     iam_role = schema.Object(
-        title = "The functions execution IAM role",
+        title = "The IAM Role this Lambda will execute as.",
         required = True,
         schema = IRole,
     )
@@ -3567,7 +3625,7 @@ class ILambda(IResource, IMonitorable):
         default=False,
     )
     sns_topics = schema.List(
-        title = "List of SNS Topic AIM Referenes",
+        title = "List of SNS Topic AIM References",
         value_type =  TextReference(
             title = "SNS Topic AIM Reference",
             str_ok=True

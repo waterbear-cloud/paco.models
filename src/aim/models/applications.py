@@ -1171,3 +1171,26 @@ class SecretsManagerApplication(Named, dict):
 @implementer(schemas.ISecretsManager)
 class SecretsManager(Named, dict):
     """Secrets Manager"""
+
+
+@implementer(schemas.IDeploymentGroupS3Location)
+class DeploymentGroupS3Location(Parent):
+    bucket = FieldProperty(schemas.IDeploymentGroupS3Location['bucket'])
+    bundle_type = FieldProperty(schemas.IDeploymentGroupS3Location['bundle_type'])
+    key = FieldProperty(schemas.IDeploymentGroupS3Location['key'])
+
+@implementer(schemas.ICodeDeployDeploymentGroups)
+class CodeDeployDeploymentGroups(Named, dict):
+    pass
+
+@implementer(schemas.ICodeDeployDeploymentGroup)
+class CodeDeployDeploymentGroup(Named):
+    ignore_application_stop_failures = FieldProperty(schemas.ICodeDeployDeploymentGroup['ignore_application_stop_failures'])
+    revision_location_s3 = FieldProperty(schemas.ICodeDeployDeploymentGroup['revision_location_s3'])
+    autoscalinggroups = FieldProperty(schemas.ICodeDeployDeploymentGroup['autoscalinggroups'])
+    role_policies = FieldProperty(schemas.ICodeDeployDeploymentGroup['role_policies'])
+
+@implementer(schemas.ICodeDeployApplication)
+class CodeDeployApplication(Resource):
+    compute_platform = FieldProperty(schemas.ICodeDeployApplication['compute_platform'])
+    deployment_groups = FieldProperty(schemas.ICodeDeployApplication['deployment_groups'])

@@ -124,6 +124,48 @@ applications:
             tools_account: aim.ref accounts.tools
             cross_account_support: true
             artifacts_bucket: aim.ref netenv.aimdemo.applications.app.groups.cicd.resources.cpbd_s3
+          deploybucket:
+            type: S3Bucket
+            enabled: true
+            order: 10
+            external_resource: true
+            bucket_name: "deploy-artifacts"
+          codedeploy:
+            type: CodeDeployApplication
+            order: 20
+            compute_platform: "Server"
+            deployment_groups:
+              deployment:
+                title: "My Deployment Group description"
+                ignore_application_stop_failures: true
+                revision_location_s3:
+                    bucket: aim.ref netenv.aimdemo.applications.app.groups.deploybucket
+                    bundle_type: "zip"
+                    key: 'bigbear.zip'
+                role_policies:
+                  - name: AppFrontendBucket
+                    statement:
+                      - effect: Allow
+                        action:
+                          - s3:*
+                        resource:
+                          - aim.sub '${aim.ref netenv.aimdemo.applications.app.groups.webapp.resources.origin.arn}/*'
+                          - aim.sub '${aim.ref netenv.aimdemo.applications.app.groups.webapp.resources.origin.arn}'
+                          - aim.sub '${aim.ref netenv.aimdemo.applications.app.groups.webapp.resources.office_origin.arn}/*'
+                          - aim.sub '${aim.ref netenv.aimdemo.applications.app.groups.webapp.resources.office_origin.arn}'
+                  - name: CloudFrontInvalidation
+                    statement:
+                      - effect: Allow
+                        action:
+                          - cloudfront:GetDistribution
+                          - cloudfront:GetDistributionConfig
+                          - cloudfront:ListDistributions
+                          - cloudfront:CreateInvalidation
+                        resource:
+                          - '*'
+                autoscalinggroups:
+                  - aim.ref netenv.aimdemo.applications.app.groups.site.resources.webapp
+
       site:
         type: Application
         order: 1
@@ -387,6 +429,7 @@ applications:
               echo "Launch placeholder" > /var/www/html/index.html
               # Restart apache
               apachectl restart
+
       restapi:
         type: Application
         order: 2

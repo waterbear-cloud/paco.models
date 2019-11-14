@@ -29,6 +29,24 @@ def isListOfLayerARNs(value):
                 raise InvalidLayerARNList
     return True
 
+class InvalidCodeDeployComputePlatform(schema.ValidationError):
+    __doc__ = 'compute_platform must be one of ECS, Lambda or Server.'
+
+def isValidCodeDeployComputePlatform(value):
+    if value not in ('ECS', 'Lambda', 'Server'):
+        raise InvalidCodeDeployComputePlatform
+    return True
+
+class InvalidDeploymentGroupBundleType(schema.ValidationError):
+    __doc__ = 'Bundle Type must be one of JSON, tar, tgz, YAML or zip.'
+
+def isValidDeploymentGroupBundleType(value):
+    if value not in ('JSON', 'tar', 'tgz', 'YAML', 'zip'):
+        raise InvalidDeploymentGroupBundleType
+    return True
+
+
+
 class InvalidS3KeyPrefix(schema.ValidationError):
     __doc__ = 'Not a valid S3 bucket prefix. Can not start or end with /.'
 
@@ -615,6 +633,7 @@ classImplements(YAMLFileReference, IYAMLFileReference)
 
 
 class INameValuePair(Interface):
+    """A Name/Value pair to use for RDS Option Group configuration"""
     name = schema.TextLine(
         title = "Name",
         required = False,
@@ -803,18 +822,6 @@ class IResource(IType, INamed, IDeployable, IDNSEnablable):
     """
     AWS Resource to support an Application
     """
-    resource_name = schema.TextLine(
-        title = "AWS Resource Name",
-        description = "",
-        default = "",
-        required = False,
-    )
-    resource_fullname = schema.TextLine(
-        title = "AWS Resource Fullname",
-        description = "",
-        default = "",
-        required = False,
-    )
     order = schema.Int(
         title = "The order in which the resource will be deployed",
         description = "",
@@ -1149,10 +1156,10 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
         required = False,
     )
     log_stream_name = schema.TextLine(
-        title = "Log stream name",
-        description = "CloudWatch Log Stream name",
-        default = "",
-        required = False,
+        title="Log stream name",
+        description="CloudWatch Log Stream name",
+        required=False,
+        min_length=1
     )
     multi_line_start_pattern = schema.Text(
         title = "Multi-line start pattern",
@@ -2285,6 +2292,16 @@ class IDNS(IParent):
 
 class ILBApplication(IResource, IMonitorable, IMapping):
     """
+The ``LBApplication`` resource type creates an Application Load Balancer. Use load balancers to route traffic from
+the internet to your web servers.
+
+Load balancers have ``listeners`` which will accept requrests on specified ports and protocols. If a listener
+uses the HTTPS protocol, it can have an aim reference to an SSL Certificate. A listener can then either
+redirect the traffic to another port/protcol or send it one of it's named ``target_groups``.
+
+Each target group will specify it's health check configuration. To specify which resources will belong
+to a target group, use the ``target_groups`` field on an ASG resource.
+
 .. sidebar:: Prescribed Automation
 
     ``dns``: Creates Route 53 Record Sets that will resolve DNS records to the domain name of the load balancer.
@@ -2296,17 +2313,8 @@ class ILBApplication(IResource, IMonitorable, IMapping):
     Remember that if you supply your own S3 Bucket, you are responsible for ensuring that the bucket policy for
     it grants AWS the `s3:PutObject` permission.
 
-The ``LBApplication`` resource type creates an Application Load Balancer. Use load balancers to route traffic from
-the internet to your web servers.
-
-Load balancers have ``listeners`` which will accept requrests on specified ports and protocols. If a listener
-uses the HTTPS protocol, it can have an aim reference to an SSL Certificate. A listener can then either
-redirect the traffic to another port/protcol or send it one of it's named ``target_groups``.
-
-Each target group will specify it's health check configuration. To specify which resources will belong
-to a target group, use the ``target_groups`` field on an ASG resource.
-
 .. code-block:: yaml
+    :caption: Example LBApplication load balancer resource YAML
 
     type: LBApplication
     enabled: true
@@ -2343,7 +2351,7 @@ to a target group, use the ``target_groups`` field on an ASG resource.
         - aim.ref netenv.app.network.vpc.security_groups.app.alb
     segment: public
 
-    """
+"""
     target_groups = schema.Dict(
         title = "Target Groups",
         value_type=schema.Object(ITargetGroup),
@@ -3503,6 +3511,12 @@ class ILambdaVpcConfig(INamed):
 
 class ILambda(IResource, IMonitorable):
     """
+Lambda Functions allow you to run code without provisioning servers and only
+pay for the compute time when the code is running.
+
+For the code that the Lambda function will run, use the ``code:`` block and specify
+``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
+
 .. sidebar:: Prescribed Automation
 
     ``sdb_cache``: Create a SimpleDB Domain and IAM Policy that grants full access to that domain. Will
@@ -3518,13 +3532,8 @@ class ILambda(IResource, IMonitorable):
     **Events Rule permission** AIM will check all resources in the Application for CloudWatch Events Rule that are configured
     to notify this Lambda and create a Lambda permission to allow that Event Rule to invoke the Lambda.
 
-Lambda Functions allow you to run code without provisioning servers and only
-pay for the compute time when the code is running.
-
-For the code that the Lambda function will run, use the ``code:`` block and specify
-``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
-
 .. code-block:: yaml
+    :caption: Lambda function resource YAML
 
     type: Lambda
     enabled: true
@@ -4180,8 +4189,40 @@ class ISNSTopicSubscription(Interface):
 
 class ISNSTopic(IResource):
     """
-    SNS Topic Resource Configuration
-    """
+Simple Notification Service (SNS) Topic resource.
+
+.. sidebar:: Prescribed Automation
+
+    ``cross_account_access``: Creates an SNS Topic Policy which will grant all of the AWS Accounts in this
+    AIM Project access to the ``sns.Publish`` permission for this SNS Topic.
+
+.. code-block:: yaml
+    :caption: Example SNSTopic resource YAML
+
+    type: SNSTopic
+    order: 1
+    enabled: true
+    display_name: "Waterbear Cloud AWS"
+    cross_account_access: true
+    subscriptions:
+      - endpoint: http://example.com/yes
+        protocol: http
+      - endpoint: https://example.com/orno
+        protocol: https
+      - endpoint: bob@example.com
+        protocol: email
+      - endpoint: bob@example.com
+        protocol: email-json
+      - endpoint: '555-555-5555'
+        protocol: sms
+      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
+        protocol: sqs
+      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
+        protocol: application
+      - endpoint: arn:aws:lambda:us-east-1:123456789012:function:my-function
+        protocol: lambda
+
+"""
     display_name = schema.TextLine(
         title = "Display name for SMS Messages",
         required = False,
@@ -4536,7 +4577,7 @@ class IDBParameterGroup(IResource):
 
 class IRDSOptionConfiguration(Interface):
     """
-    AWS::RDS::OptionGroup OptionConfiguration
+Option groups enable and configure features that are specific to a particular DB engine.
     """
     option_name = schema.TextLine(
         title = 'Option Name',
@@ -4705,10 +4746,12 @@ class IRDS(IResource, IMonitorable):
 
 class IRDSMysql(IRDS):
     """
-    RDS Mysql
+The RDSMysql type extends the base RDS schema with a ``multi_az`` field. When you provision a Multi-AZ DB Instance,
+Amazon RDS automatically creates a primary DB Instance and synchronously replicates the data to a standby instance
+in a different Availability Zone (AZ).
     """
     multi_az = schema.Bool(
-        title = "MultiAZ Support",
+        title = "Multiple Availability Zone deployment",
         default = False,
         required = False,
     )
@@ -5226,6 +5269,79 @@ class IDeploymentPipeline(IResource):
         title = 'Deployment Pipeline Deploy Stage',
         schema =IDeploymentPipelineDeployStage,
         required = False,
+    )
+
+class IDeploymentGroupS3Location(IParent):
+    bucket = TextReference(
+        title="S3 Bucket revision location",
+        required=False,
+    )
+    bundle_type = schema.TextLine(
+        title="Bundle Type",
+        description="Must be one of JSON, tar, tgz, YAML or zip.",
+        required=False,
+        constraint=isValidDeploymentGroupBundleType
+    )
+    key = schema.TextLine(
+        title="The name of the Amazon S3 object that represents the bundled artifacts for the application revision.",
+        required=True
+    )
+
+class ICodeDeployDeploymentGroups(INamed, IMapping):
+    pass
+
+class ICodeDeployDeploymentGroup(INamed):
+    ignore_application_stop_failures = schema.Bool(
+        title="Ignore Application Stop Failures",
+        required=False,
+    )
+    revision_location_s3 = schema.Object(
+        title="S3 Bucket revision location",
+        required=False,
+        schema=IDeploymentGroupS3Location
+    )
+    autoscalinggroups = schema.List(
+        title="A list of refs to  Auto Scaling groups that CodeDeploy automatically deploys revisions to when new instances are created",
+        required=False,
+        value_type=TextReference(
+            title="AIM reference to an ASG resource",
+        )
+    )
+    role_policies = schema.List(
+        title="Policies to grant the deployment group role",
+        required=False,
+        value_type=schema.Object(IPolicy),
+    )
+
+class ICodeDeployApplication(IResource):
+    """
+CodeDeploy Application
+
+.. code-block:: yaml
+    :caption: Example CodeDeployApplication resource YAML
+
+    type: CodeDeployApplication
+    order: 40
+    compute_platform: "Server"
+    deployment_groups:
+      deployment:
+        title: "My Deployment Group description"
+        ignore_application_stop_failures: true
+        revision_location_s3: aim.ref netenv.mynet.applications.app.groups.deploybucket
+        autoscalinggroups:
+          - aim.ref netenv.mynet.applications.app.groups.web
+
+"""
+    compute_platform = schema.TextLine(
+        title="Compute Platform",
+        description="Must be one of Lambda, Server or ECS",
+        constraint=isValidCodeDeployComputePlatform,
+        required=True
+    )
+    deployment_groups = schema.Object(
+        title="CodeDeploy Deployment Groups",
+        schema=ICodeDeployDeploymentGroups,
+        required=True,
     )
 
 class IEFS(IResource):

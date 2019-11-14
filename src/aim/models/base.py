@@ -308,8 +308,6 @@ class Type():
 @implementer(schemas.IResource)
 class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
     "Resource"
-    resource_name = FieldProperty(schemas.IResource['resource_name'])
-    resource_fullname = FieldProperty(schemas.IResource['resource_fullname'])
     order = FieldProperty(schemas.IResource['order'])
     change_protected = FieldProperty(schemas.IResource['change_protected'])
 

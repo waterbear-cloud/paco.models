@@ -30,7 +30,8 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
-    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice
+    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
+    CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
 from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
@@ -118,10 +119,19 @@ RESOURCES_CLASS_MAP = {
     'Route53HealthCheck': Route53HealthCheck,
     'EventsRule': EventsRule,
     'EBS': EBS,
-    'EBSVolumeMount': EBSVolumeMount
+    'EBSVolumeMount': EBSVolumeMount,
+    'CodeDeployApplication': CodeDeployApplication,
 }
 
 SUB_TYPES_CLASS_MAP = {
+    CodeDeployApplication: {
+        'deployment_groups': ('container', (CodeDeployDeploymentGroups, CodeDeployDeploymentGroup)),
+    },
+    CodeDeployDeploymentGroup: {
+        'revision_location_s3': ('direct_obj', DeploymentGroupS3Location),
+        'role_policies': ('obj_list', Policy)
+    },
+
     # CloudFormation Init
     CloudFormationInit: {
         'config_sets': ('dynamic_dict', CloudFormationConfigSets),

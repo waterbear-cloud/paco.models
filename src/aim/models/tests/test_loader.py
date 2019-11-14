@@ -343,3 +343,11 @@ class TestAimDemo(BaseTestModelLoader):
         assert schemas.IApplication.providedBy(apps['appelephant'])
         assert schemas.IApplication.providedBy(apps['app'])
         assert apps['appmouse'].groups['cicd'].resources['cpbd'].asg == 'aim.ref netenv.aimdemo.demo.us-west-2.applications.appmouse.groups.site.resources.webapp'
+
+    def test_codedeploy_application(self):
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        codedeploy = demo_env['applications']['app'].groups['cicd'].resources['codedeploy']
+        assert schemas.ICodeDeployApplication.providedBy(codedeploy)
+        assert codedeploy.compute_platform == "Server"
+        assert len(codedeploy.deployment_groups['deployment'].autoscalinggroups) == 1
+        assert codedeploy.deployment_groups['deployment'].revision_location_s3.bundle_type == 'zip'

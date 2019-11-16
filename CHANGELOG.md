@@ -6,6 +6,9 @@ Changelog for aim.models
 
 ### Added
 
+- Added support for AWS Backup Vault. There can now be global backup_vaults field in NetworkEnvironment YAML files.
+  These can be overrode in EnvironmentDefault and EnvironmentRegion configuration sections.
+
 - Added support for block_device_mappings for IASG.
 
 6.1.0 (2019-11-06)

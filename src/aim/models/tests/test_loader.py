@@ -351,3 +351,11 @@ class TestAimDemo(BaseTestModelLoader):
         assert codedeploy.compute_platform == "Server"
         assert len(codedeploy.deployment_groups['deployment'].autoscalinggroups) == 1
         assert codedeploy.deployment_groups['deployment'].revision_location_s3.bundle_type == 'zip'
+
+    def test_backup(self):
+        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        vaults = demo_env.backup_vaults
+        assert schemas.IBackupVaults.providedBy(vaults)
+        myvault = vaults['myapp']
+        assert myvault.title == "All data for MyApp (myapp) application"
+        assert myvault.plans['ebs_daily'].plan_rules[0].schedule_expression == 'cron(0 7 ? * * *)'

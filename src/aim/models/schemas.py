@@ -29,6 +29,25 @@ def isListOfLayerARNs(value):
                 raise InvalidLayerARNList
     return True
 
+
+
+class InvalidStringConditionOperator(schema.ValidationError):
+    __doc__ = 'String Condition operator must be one of: StringEquals, StringNotEquals, StringEqualsIgnoreCase, StringNotEqualsIgnoreCase, StringLike, StringNotLike.',
+
+def isValidStringConditionOperator(value):
+    if value.lower() not in ('stringequals', 'stringnotequals', 'stringequalsignorecase', 'stringnotequalsignorecase', 'stringlike', 'stringnotlike'):
+        raise InvalidStringConditionOperator
+    return True
+
+class InvalidBackupNotification(schema.ValidationError):
+    __doc__ = 'Backup Vault notification event must be one of: BACKUP_JOB_STARTED, BACKUP_JOB_COMPLETED, RESTORE_JOB_STARTED, RESTORE_JOB_COMPLETED, RECOVERY_POINT_MODIFIED.'
+
+def isValidBackupNotification(value):
+    for item in value:
+        if item not in ('BACKUP_JOB_STARTED', 'BACKUP_JOB_COMPLETED', 'RESTORE_JOB_STARTED', 'RESTORE_JOB_COMPLETED', 'RECOVERY_POINT_MODIFIED'):
+            raise InvalidBackupNotification
+    return True
+
 class InvalidCodeDeployComputePlatform(schema.ValidationError):
     __doc__ = 'compute_platform must be one of ECS, Lambda or Server.'
 
@@ -579,7 +598,14 @@ class CommaList(schema.List):
 class IParent(Interface):
     __parent__ = Attribute("Object reference to the parent in the object hierarchy")
 
-class INamed(IParent):
+class ITitle(Interface):
+    title = schema.TextLine(
+        title="Title",
+        default="",
+        required=False,
+    )
+
+class INamed(IParent, ITitle):
     """
     A locatable resource
     """
@@ -588,11 +614,7 @@ class INamed(IParent):
         default="",
         required = False,
     )
-    title = schema.TextLine(
-        title="Title",
-        default="",
-        required=False,
-    )
+
 
 class IDeployable(Interface):
     enabled = schema.Bool(
@@ -4629,6 +4651,14 @@ class IRDS(IResource, IMonitorable):
         title="Automatic minor version upgrades",
         required=False,
     )
+    backup_vault_plans = schema.List(
+        title="Backup Vault plans that this RDS will belong to",
+        description="List of aim references to Backup Vault Plans",
+        required=False,
+        value_type=TextReference(
+            title="Backup Vault Plan",
+        )
+    )
     backup_preferred_window = schema.TextLine(
         title="Backup Preferred Window",
         required=False,
@@ -5365,3 +5395,95 @@ class IEFS(IResource):
         description="",
         required = False,
     )
+
+# AWS Backup
+
+class IBackupPlanRule(INamed):
+    schedule_expression = schema.TextLine(
+        title="Schedule Expression",
+        description="Must be a valid Schedule Expression.",
+        required=False
+    )
+    lifecycle_delete_after_days = schema.Int(
+        title="Delete after days",
+        required=False,
+        min=1
+    )
+    lifecycle_move_to_cold_storage_after_days = schema.Int(
+        title="Move to cold storage after days",
+        description="If Delete after days value is set, this value must be smaller",
+        required=False,
+        min=1
+    )
+
+class IBackupSelectionConditionResourceType(IParent):
+    condition_type = schema.TextLine(
+        title="Condition Type",
+        description="String Condition operator must be one of: StringEquals, StringNotEquals, StringEqualsIgnoreCase, StringNotEqualsIgnoreCase, StringLike, StringNotLike.",
+        required=True,
+        constraint=isValidStringConditionOperator
+    )
+    condition_key = schema.TextLine(
+        title="Tag Key",
+        required=True,
+        min_length=1
+    )
+    condition_value = schema.TextLine(
+        title="Tag Value",
+        required=True,
+        min_length=1
+    )
+
+class IBackupPlanSelection(IParent, ITitle):
+    tags = schema.List(
+        title="List of condition resource types",
+        required=False,
+        value_type=schema.Object(IBackupSelectionConditionResourceType)
+    )
+
+class IBackupPlan(IResource):
+    """
+AWS Backup Plan
+    """
+    plan_rules = schema.List(
+        title="Backup Plan Rules",
+        value_type=schema.Object(IBackupPlanRule),
+        required=True,
+    )
+    selections = schema.List(
+        title="Backup Plan Selections",
+        value_type=schema.Object(IBackupPlanSelection),
+        required=False
+    )
+
+class IBackupPlans(INamed, IMapping):
+    pass
+
+class IBackupVault(IResource):
+    """
+AWS Backup Vault
+    """
+    notification_events = schema.List(
+        title="Notification Events",
+        description="Each notification event must be one of BACKUP_JOB_STARTED, BACKUP_JOB_COMPLETED, RESTORE_JOB_STARTED, RESTORE_JOB_COMPLETED, RECOVERY_POINT_MODIFIED",
+        value_type=schema.TextLine(
+            title="Notification Event"
+        ),
+        constraint=isValidBackupNotification,
+        required=False
+    )
+    notification_groups = schema.List(
+        title="Notification Groups",
+        value_type=schema.TextLine(
+            title="Notification Group",
+        ),
+        required=False
+    )
+    plans = schema.Object(
+        title="Backup Plans",
+        schema=IBackupPlans,
+        required=False
+    )
+
+class IBackupVaults(INamed, IMapping):
+    pass

@@ -874,6 +874,7 @@ class RDSOptionConfiguration():
 @implementer(schemas.IRDS)
 class RDS(Resource, Monitorable):
     title = "RDS"
+    backup_vault_plans = FieldProperty(schemas.IRDS['backup_vault_plans'])
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])
     db_instance_type = FieldProperty(schemas.IRDS['db_instance_type'])
@@ -906,6 +907,7 @@ class RDS(Resource, Monitorable):
         self.dns = []
         self.option_configurations = []
         self.cloudwatch_logs_exports = []
+        self.backup_vault_plans = []
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

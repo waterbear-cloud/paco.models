@@ -88,6 +88,35 @@ network:
       webapp:
         enabled: true
 
+backup_vaults:
+  myapp:
+    enabled: false
+    title: "All data for MyApp (myapp) application"
+    notification_events:
+    - BACKUP_JOB_COMPLETED
+    notification_groups:
+    - admin
+    plans:
+      ebs_daily:
+        title: EBS Daily Backups
+        plan_rules:
+          - title: Rule For EBS Daily Backups
+            schedule_expression: cron(0 7 ? * * *)
+            lifecycle_delete_after_days: 7
+            lifecycle_move_to_cold_storage_after_days: 5
+        selections:
+          - title: EBS Daily Backups Selection
+            tags:
+              - condition_type: STRINGEQUALS
+                condition_key: backup
+                condition_value: daily
+      datbase_daily:
+        title: Database Daily Backups
+        plan_rules:
+          - title: Rule for Database Daily Backups
+            schedule_expression: cron(0 7 ? * * *)
+            lifecycle_delete_after_days: 7
+
 applications:
   app:
     enabled: true
@@ -231,6 +260,8 @@ applications:
             type: RDSMysql
             order: 2
             enabled: true
+            backup_vault_plans:
+              - aim.ref netenv.aimdemo.backup_vaults.myapp.plans.database_daily
             engine_version: 5.7.26
             db_instance_type: db.t3.micro
             port: 3306
@@ -513,27 +544,12 @@ applications:
             layers:
               - arn:aws:lambda:eu-central-1:113088814899:layer:Klayers-python37-requests:4
 
-storage:
-  storage_group:
-    app:
-      type: RDSAurora
-      security_groups:
-        - aim.ref netenv.aimdemo.network.vpc.security_groups.app.rds
-      segment: database
-
-#iam:
-
-      # policies:
-      #   my_policy:
-      #     roles:
-      #       - aim.ref netenv.aimdemo.iam.app.site.roles.instance_role
-      #     statement:
-      #       ...
-
-
 environments:
   demo:
     default:
+      backup_vaults:
+        myapp:
+          enabled: true
       applications:
         notification:
           enabled: true

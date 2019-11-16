@@ -49,6 +49,8 @@ from aim.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigur
     CloudFormationInitSources, CloudFormationInitFiles, CloudFormationInitFile, CloudFormationInitCommands, \
     CloudFormationInitCommand, CloudFormationInitServices, CloudFormationConfiguration, CloudFormationInit, \
     CloudFormationParameters, CloudFormationInitServiceCollection, CloudFormationInitService
+from aim.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
+    BackupPlans, BackupVault, BackupVaults
 from aim.models.events import EventsRule
 from aim.models.iam import IAMs, IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from aim.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
@@ -132,6 +134,20 @@ SUB_TYPES_CLASS_MAP = {
         'role_policies': ('obj_list', Policy)
     },
 
+    # Backup
+    BackupVault: {
+        'notification_events': ('str_list', zope.schema.TextLine),
+        'notification_groups': ('str_list', zope.schema.TextLine),
+        'plans': ('container', (BackupPlans, BackupPlan))
+    },
+    BackupPlan: {
+        'plan_rules': ('obj_list', BackupPlanRule),
+        'selections': ('obj_list', BackupPlanSelection)
+    },
+    BackupPlanSelection: {
+        'tags': ('obj_list', BackupSelectionConditionResourceType)
+    },
+
     # CloudFormation Init
     CloudFormationInit: {
         'config_sets': ('dynamic_dict', CloudFormationConfigSets),
@@ -139,10 +155,10 @@ SUB_TYPES_CLASS_MAP = {
         'parameters': ('dynamic_dict', CloudFormationParameters)
     },
     CloudFormationConfiguration: {
-        'packages': ('obj', CloudFormationInitPackages),
+        'packages': ('direct_obj', CloudFormationInitPackages),
         'commands': ('container', (CloudFormationInitCommands, CloudFormationInitCommand)),
         'files': ('container', (CloudFormationInitFiles, CloudFormationInitFile)),
-        'services': ('obj', CloudFormationInitServices),
+        'services': ('direct_obj', CloudFormationInitServices),
         'sources': ('dynamic_dict', CloudFormationInitSources)
     },
     CloudFormationInitPackages: {
@@ -228,7 +244,7 @@ SUB_TYPES_CLASS_MAP = {
         'forwarded_values': ('direct_obj', CloudFrontForwardedValues)
     },
     CloudFrontForwardedValues: {
-        'cookies': ('obj', CloudFrontCookies),
+        'cookies': ('direct_obj', CloudFrontCookies),
         'headers': ('str_list', zope.schema.TextLine),
     },
     CloudFrontCookies: {
@@ -281,7 +297,7 @@ SUB_TYPES_CLASS_MAP = {
         'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy)),
         'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
         'secrets': ('str_list', TextReference),
-        'launch_options': ('obj', EC2LaunchOptions),
+        'launch_options': ('direct_obj', EC2LaunchOptions),
         'cfn_init': ('obj_raw_config', CloudFormationInit),
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
     },
@@ -400,7 +416,7 @@ SUB_TYPES_CLASS_MAP = {
         'code': ('direct_obj', LambdaFunctionCode),
         'iam_role': ('direct_obj', Role),
         'monitoring': ('direct_obj', MonitorConfig),
-        'vpc_config': ('obj', LambdaVpcConfig)
+        'vpc_config': ('direct_obj', LambdaVpcConfig)
     },
     LambdaVpcConfig: {
         'security_groups': ('str_list', TextReference),
@@ -422,7 +438,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     Route53HostedZone: {
         'record_sets': ('obj_list', Route53RecordSet),
-        'external_resource': ('obj', Route53HostedZoneExternalResource)
+        'external_resource': ('direct_obj', Route53HostedZoneExternalResource)
     },
     Route53Resource: {
         'hosted_zones': ('named_obj', Route53HostedZone)
@@ -569,6 +585,22 @@ def cast_to_schema(obj, fieldname, value, fields=None):
         value = str(value)
     return value
 
+def instantiate_container(container, klass, config, config_folder=None, lookup_config=None, read_file_path=''):
+    """
+    Iterates through a config dictionary and creates an object of klass
+    for each one and applies config to populate attributes
+    """
+    for name, value in config.items():
+        obj = klass(name, container)
+        container[name] = obj
+        apply_attributes_from_config(
+            obj,
+            config[name],
+            config_folder,
+            lookup_config,
+            read_file_path
+        )
+
 def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=None, read_file_path=''):
     """
     Iterates through the field an object's schema has
@@ -591,6 +623,8 @@ Verify that '{}' has the correct indentation in the config file.
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         for name, field in fields.items():
+            if schemas.IEnvironmentDefault.providedBy(obj) and name == 'backup_vaults':
+                continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'secrets_manager':
                 continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'applications':
@@ -735,11 +769,6 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
             apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
             sub_dict[sub_key] = sub_obj
         return sub_dict
-
-    elif sub_type == 'obj':
-        sub_obj = sub_class(name, obj)
-        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
-        return sub_obj
 
     elif sub_type == 'obj_raw_config':
         sub_obj = sub_class(name, obj)
@@ -1702,6 +1731,61 @@ class ModelLoader():
                 read_file_path=self.read_file_path
             )
 
+    def instantiate_backup_vaults(
+        self,
+        env_region_config,
+        env_region,
+        global_config
+    ):
+        """Load backup_vaults into an EnvironmentDefault or EnvironmentRegion
+
+        Performs a configuration merge of the backup_vaults at the global level
+        with any EnvironmentDefault and EnvironmentRegion configurations."""
+        if 'backup_vaults' not in env_region_config:
+            return
+        env_region_vaults_config = env_region_config['backup_vaults']
+
+        # ToDo: validate that EnvironmentDefault/Region overrides do not make new
+        # backup_vaults? e.g. it's less error-prone to insist there is always a global
+        # base config for every vault?
+
+        # Merge global configuration with EnvironmentDefault and EnvironmentRegion config
+        try:
+            global_vaults_config = global_config['backup_vaults']
+        except KeyError:
+            raise InvalidAimProjectFile(
+                """EnvironmentDefault at {}
+                Contains backup_vaults configuration but there is no global backup_vaults
+                configuration in this YAML file.""".format(
+                    env_region.aim_ref_parts
+                )
+            )
+
+        # EnvrionmentDefault objects only merge global with default
+        if env_region.name == 'default':
+            vaults_config = merge(
+                global_vaults_config,
+                env_region_vaults_config
+            )
+        # EnvironmentRegion objects merge global with default first
+        # then merge the EnvironmentRegion config
+        else:
+            env_default_config = global_config['environments'][env_region.__parent__.name]['default']
+            if 'backup_vaults' in env_default_config:
+                vaults_config = merge(global_vaults_config, env_default_config['backup_vaults'])
+            else:
+                vaults_config = global_vaults_config
+            vaults_config = merge(env_region_vaults_config, vaults_config)
+
+        instantiate_container(
+            env_region.backup_vaults,
+            BackupVault,
+            vaults_config,
+            config_folder=self.config_folder,
+            lookup_config=self.monitor_config,
+            read_file_path=self.read_file_path
+        )
+
     def instantiate_secrets_manager(
         self,
         env_region_config,
@@ -1843,7 +1927,14 @@ class ModelLoader():
                         env_region,
                         config
                     )
+                    # Secrets Managers
                     self.instantiate_secrets_manager(
+                        env_region_config,
+                        env_region,
+                        config
+                    )
+                    # Backup Vaults
+                    self.instantiate_backup_vaults(
                         env_region_config,
                         env_region,
                         config

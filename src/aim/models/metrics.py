@@ -52,7 +52,7 @@ class AlarmSets(Named, dict):
     "Collection of Alarms"
 
 @implementer(schemas.IAlarm)
-class Alarm(Named, Regionalized):
+class Alarm(Named, Regionalized, Deployable):
     "Alarm"
     classification = FieldProperty(schemas.IAlarm["classification"])
     description = FieldProperty(schemas.IAlarm["description"])
@@ -62,6 +62,7 @@ class Alarm(Named, Regionalized):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.notifications = AlarmNotifications('notifications', self)
+        self.enabled = True
 
     def _add_notifications_to_groups(self, notifications, groups):
         for notification in notifications.values():

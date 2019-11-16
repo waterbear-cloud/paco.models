@@ -1004,12 +1004,15 @@ class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
         env = get_parent_by_interface(self, schemas.IEnvironment)
         app = get_parent_by_interface(self, schemas.IApplication)
         resource_group = get_parent_by_interface(self, schemas.IResourceGroup)
-        return self.create_resource_name_join(
+        result = self.create_resource_name_join(
             name_list=[app.name, resource_group.name, self.name],
             separator='-',
             filter_id='ElastiCache.ReplicationGroup.ReplicationGroupId',
             hash_long_names=True
         )
+        # The replication group identifier is stored as a lowercase string
+        # lower-case the name so that the Dimension name handles MiXeDCase.
+        return result.lower()
 
 @implementer(schemas.IDeploymentPipelineConfiguration)
 class DeploymentPipelineConfiguration(Named):

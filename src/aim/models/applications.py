@@ -874,7 +874,6 @@ class RDSOptionConfiguration():
 @implementer(schemas.IRDS)
 class RDS(Resource, Monitorable):
     title = "RDS"
-    backup_vault_plans = FieldProperty(schemas.IRDS['backup_vault_plans'])
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])
     db_instance_type = FieldProperty(schemas.IRDS['db_instance_type'])
@@ -911,6 +910,35 @@ class RDS(Resource, Monitorable):
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
+
+    def get_aws_name(self):
+        "RDS Name for AWS"
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        app = get_parent_by_interface(self, schemas.IApplication)
+        resource_group = get_parent_by_interface(self, schemas.IResourceGroup)
+        name = self.create_resource_name_join(
+                name_list=[
+                    'ne',
+                    netenv.name,
+                    env.name,
+                    'app',
+                    app.name,
+                    resource_group.name,
+                    self.name,
+                    'RDS'
+                ],
+                separator='-',
+                camel_case=True
+        )
+        return name.lower()
+
+    def get_arn(self):
+        return 'arn:aws:rds:{}:{}:db:{}'.format(
+            self.region_name,
+            self.get_account().account_id,
+            self.get_aws_name()
+        )
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDS, Resource):

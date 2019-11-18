@@ -4651,14 +4651,6 @@ class IRDS(IResource, IMonitorable):
         title="Automatic minor version upgrades",
         required=False,
     )
-    backup_vault_plans = schema.List(
-        title="Backup Vault plans that this RDS will belong to",
-        description="List of aim references to Backup Vault Plans",
-        required=False,
-        value_type=TextReference(
-            title="Backup Vault Plan",
-        )
-    )
     backup_preferred_window = schema.TextLine(
         title="Backup Preferred Window",
         required=False,
@@ -5434,11 +5426,21 @@ class IBackupSelectionConditionResourceType(IParent):
         min_length=1
     )
 
-class IBackupPlanSelection(IParent, ITitle):
+class IBackupPlanSelection(IParent):
+    title = schema.TextLine(
+        title="Title",
+        default="",
+        required=True,
+    )
     tags = schema.List(
         title="List of condition resource types",
         required=False,
         value_type=schema.Object(IBackupSelectionConditionResourceType)
+    )
+    resources = schema.List(
+        title="Backup Plan Resources",
+        value_type=TextReference(title="Resource"),
+        required=False
     )
 
 class IBackupPlan(IResource):
@@ -5472,11 +5474,8 @@ AWS Backup Vault
         constraint=isValidBackupNotification,
         required=False
     )
-    notification_groups = schema.List(
-        title="Notification Groups",
-        value_type=schema.TextLine(
-            title="Notification Group",
-        ),
+    notification_group = schema.TextLine(
+        title="Notification Group",
         required=False
     )
     plans = schema.Object(

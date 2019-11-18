@@ -24,8 +24,9 @@ class BackupSelectionConditionResourceType(Parent):
 
 @implementer(schemas.IBackupPlanSelection)
 class BackupPlanSelection(Parent):
+    title = FieldProperty(schemas.IBackupPlanSelection['title'])
     tags = FieldProperty(schemas.IBackupPlanSelection['tags'])
-
+    resources = FieldProperty(schemas.IBackupPlanSelection['resources'])
 
 @implementer(schemas.IBackupPlan)
 class BackupPlan(Resource):
@@ -39,7 +40,7 @@ class BackupPlans(Named, dict):
 @implementer(schemas.IBackupVault)
 class BackupVault(Resource):
     notification_events = FieldProperty(schemas.IBackupVault['notification_events'])
-    notification_groups = FieldProperty(schemas.IBackupVault['notification_groups'])
+    notification_group = FieldProperty(schemas.IBackupVault['notification_group'])
     plans = FieldProperty(schemas.IBackupVault['plans'])
 
 @implementer(schemas.IBackupVaults)

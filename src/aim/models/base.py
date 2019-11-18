@@ -175,6 +175,10 @@ class Parent(CFNExport):
         "aim.ref string to the object"
         return 'aim.ref ' + self.aim_ref_parts
 
+@implementer(schemas.ITitle)
+class Title():
+    title = FieldProperty(schemas.INamed["title"])
+
 @implementer(schemas.INamed)
 class Named(Parent):
     """

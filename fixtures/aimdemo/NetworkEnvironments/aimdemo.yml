@@ -94,8 +94,7 @@ backup_vaults:
     title: "All data for MyApp (myapp) application"
     notification_events:
     - BACKUP_JOB_COMPLETED
-    notification_groups:
-    - admin
+    notification_group: admin
     plans:
       ebs_daily:
         title: EBS Daily Backups
@@ -116,6 +115,10 @@ backup_vaults:
           - title: Rule for Database Daily Backups
             schedule_expression: cron(0 7 ? * * *)
             lifecycle_delete_after_days: 7
+        selections:
+          - title: Database resource
+            resources:
+             - aim.ref netenv.aimdemo.applications.app.groups.webapp.resources.database
 
 applications:
   app:
@@ -260,8 +263,6 @@ applications:
             type: RDSMysql
             order: 2
             enabled: true
-            backup_vault_plans:
-              - aim.ref netenv.aimdemo.backup_vaults.myapp.plans.database_daily
             engine_version: 5.7.26
             db_instance_type: db.t3.micro
             port: 3306

@@ -91,7 +91,7 @@ class EnvironmentDefault(Named, dict):
         # backup_vaults
         self.backup_vaults = aim.models.backup.BackupVaults('secrets_manager', self)
         self.backup_vaults.title = 'Backup Vaults'
-        self.__setitem__('secrets_manager', self.secrets_manager)
+        self.__setitem__('backup_vaults', self.backup_vaults)
 
 
 @implementer(schemas.IEnvironmentRegion)

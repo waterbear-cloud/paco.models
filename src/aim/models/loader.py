@@ -1365,7 +1365,7 @@ class ModelLoader():
         if ref.parts[2] == 'applications':
             # only needs to apply to non-unique applications
             app_name = ref.parts[3]
-            if application._duplicate:
+            if application != None and application._duplicate:
                 app_name = ref.parts[3]
                 # app: --> app
                 # app{dog} --> appdog
@@ -1775,7 +1775,7 @@ class ModelLoader():
                 vaults_config = merge(global_vaults_config, env_default_config['backup_vaults'])
             else:
                 vaults_config = global_vaults_config
-            vaults_config = merge(env_region_vaults_config, vaults_config)
+            vaults_config = merge(vaults_config,env_region_vaults_config)
 
         instantiate_container(
             env_region.backup_vaults,

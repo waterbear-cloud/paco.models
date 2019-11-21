@@ -117,8 +117,10 @@ class Reference():
         self.region = None
 
         if self.type == 'netenv':
-            if self.parts[3] in vocabulary.aws_regions.keys():
-                self.region = self.parts[3]
+            # do not try to find region for short environment refs like 'aimref netenv.mynet.prod'
+            if len(self.parts) > 3:
+                if self.parts[3] in vocabulary.aws_regions.keys():
+                    self.region = self.parts[3]
 
         if is_ref(self.raw) == False:
             print("Invalid AIM Reference: %s" % (value))

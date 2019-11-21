@@ -151,8 +151,8 @@ class Parent(CFNExport):
         self.__parent__ = __parent__
 
     @property
-    def aim_ref_parts(self):
-        "Bare aim.ref string to the object"
+    def aim_ref_list(self):
+        "List of aim.ref parts"
         obj = self
         parts = []
 
@@ -168,6 +168,12 @@ class Parent(CFNExport):
             obj = parent
             parent = obj.__parent__
         parts.reverse()
+        return parts
+
+    @property
+    def aim_ref_parts(self):
+        "Bare aim.ref string to the object"
+        parts = self.aim_ref_list
         return '.'.join(parts)
 
     @property

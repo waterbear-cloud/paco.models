@@ -40,7 +40,7 @@ from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
     ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
     ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
     ApiGatewayMethodIntegrationResponse, \
-    IAMResource, IAMUser, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
+    IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
     Route53HealthCheck
@@ -454,7 +454,7 @@ SUB_TYPES_CLASS_MAP = {
         'users': ('named_obj', CodeCommitUser)
     },
     IAMResource: {
-        'users': ('named_obj', IAMUser)
+        'users': ('container', (IAMUsers, IAMUser))
     },
     IAMUser: {
         'programmatic_access': ('direct_obj', IAMUserProgrammaticAccess),

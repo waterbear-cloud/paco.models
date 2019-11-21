@@ -5051,13 +5051,16 @@ class IIAMUser(INamed, IDeployable):
         required = False,
     )
 
+class IIAMUsers(INamed, IMapping):
+    pass
+
 class IIAMResource(INamed):
     """
 IAM Resource contains IAM Users who can login and have different levels of access to the AWS Console and API.
     """
-    users = schema.Dict(
+    users = schema.Object(
         title = 'IAM Users',
-        value_type = schema.Object(IIAMUser),
+        schema=IIAMUsers,
         required = False,
     )
 

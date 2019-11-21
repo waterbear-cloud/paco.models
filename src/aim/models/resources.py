@@ -529,6 +529,9 @@ class IAMUser(Named, Deployable):
     permissions = FieldProperty(schemas.IIAMUser['permissions'])
     account_whitelist = FieldProperty(schemas.IIAMUser['account_whitelist'])
 
+@implementer(schemas.IIAMUsers)
+class IAMUsers(Named, dict):
+    pass
 
 @implementer(schemas.IIAMResource)
 class IAMResource(Named):

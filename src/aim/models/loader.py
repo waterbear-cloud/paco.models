@@ -76,6 +76,10 @@ import zope.schema
 import zope.schema.interfaces
 import zope.interface.exceptions
 
+# Validation checks ToDo:
+# - check that you can not make "new" objects in Environment-level override configuration
+# - handle duplicate key YAML errors cleanly (inform user which file/line-no)
+
 
 def get_logger():
     log = logging.getLogger("aim.models")
@@ -1070,11 +1074,19 @@ class ModelLoader():
     def __init__(self, config_folder, config_processor=None):
         self.config_folder = config_folder
         self.config_subdirs = {
-            "MonitorConfig": self.instantiate_monitor_config,
-            "Accounts": self.instantiate_accounts,
-            "NetworkEnvironments": self.instantiate_network_environments,
-            "Resources": self.instantiate_resources,
+            "monitor": self.instantiate_monitor_config,
+            "accounts": self.instantiate_accounts,
+            "netenv": self.instantiate_network_environments,
+            "resource": self.instantiate_resources,
         }
+        # Legacy directory names
+        if os.path.isdir(self.config_folder + os.sep + 'NetworkEnvironments'):
+            self.config_subdirs = {
+                "MonitorConfig": self.instantiate_monitor_config,
+                "Accounts": self.instantiate_accounts,
+                "NetworkEnvironments": self.instantiate_network_environments,
+                "Resources": self.instantiate_resources,
+            }
         self.config_processor = config_processor
         self.project = None
 
@@ -1235,16 +1247,7 @@ class ModelLoader():
 
     def load_outputs(self):
         "Loads resource ids from CFN Outputs"
-
         base_output_path = 'Outputs' + os.sep
-        # monitor_config_output_path = base_output_path + 'MonitorConfig'
-        # if os.path.isfile(self.config_folder + os.sep + monitor_config_output_path + os.sep + 'NotificationGroups.yaml'):
-        #     notif_groups_config = self.read_yaml(monitor_config_output_path, 'NotificationGroups.yaml')
-        #     if 'groups' in notif_groups_config:
-        #         notif_groups = self.project['notificationgroups']
-        #         for group_name in notif_groups_config['groups'].keys():
-        #             notif_groups[group_name].resource_name = notif_groups_config['groups'][group_name]['__name__']
-
         ne_outputs_path = base_output_path + 'NetworkEnvironments'
         if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
             for rfile in os.listdir(self.config_folder + os.sep + ne_outputs_path):
@@ -1452,12 +1455,16 @@ class ModelLoader():
     def instantiate_services(self):
         """
         Load Services
-        These are loaded from an entry point named 'aim.services'.
+        These are loaded from an entry point named 'aim.service'.
         The entry point name will match a filename at:
-          <AIMProject>/Services/<EntryPointName>(.yml|.yaml)
+          <AIMProject>/service/<EntryPointName>(.yml|.yaml)
         """
         service_plugins = aim.models.services.list_service_plugins()
-        services_dir = self.config_folder + os.sep + 'Services' + os.sep
+        services_dir_name = 'service'
+        # Legacy directory name
+        if os.path.isdir(self.config_folder + os.sep + 'Services'):
+            services_dir_name = 'Services'
+        services_dir = self.config_folder + os.sep + services_dir_name + os.sep
         for plugin_name, plugin_module in service_plugins.items():
             if os.path.isfile(services_dir + plugin_name + '.yml'):
                 fname = plugin_name + '.yml'
@@ -1465,7 +1472,7 @@ class ModelLoader():
                 fname = plugin_name + '.yaml'
             else:
                 continue
-            config = self.read_yaml('Services', fname)
+            config = self.read_yaml(services_dir_name, fname)
             service = plugin_module.instantiate_model(
                 config,
                 self.project,

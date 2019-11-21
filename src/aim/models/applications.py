@@ -1217,7 +1217,7 @@ class CodeDeployDeploymentGroups(Named, dict):
     pass
 
 @implementer(schemas.ICodeDeployDeploymentGroup)
-class CodeDeployDeploymentGroup(Named):
+class CodeDeployDeploymentGroup(Named, Deployable):
     ignore_application_stop_failures = FieldProperty(schemas.ICodeDeployDeploymentGroup['ignore_application_stop_failures'])
     revision_location_s3 = FieldProperty(schemas.ICodeDeployDeploymentGroup['revision_location_s3'])
     autoscalinggroups = FieldProperty(schemas.ICodeDeployDeploymentGroup['autoscalinggroups'])

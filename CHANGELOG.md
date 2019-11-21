@@ -1,8 +1,18 @@
 Changelog for aim.models
 =================
 
-6.1.1 (unreleased)
+6.2.0 (unreleased)
 ------------------
+
+### Changed
+
+- Top-level directories have been renamed to be consistent with their names in the model:
+    NetworkEnvironments --> netenv
+    Resources --> resource
+    Services --> service
+    Accounts --> account
+    MonitorConfig --> monitor
+  The loader will look for `NetworkEnvironments` and if it exists use the legacy names.
 
 ### Added
 

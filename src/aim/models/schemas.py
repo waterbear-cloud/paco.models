@@ -5312,7 +5312,7 @@ class IDeploymentGroupS3Location(IParent):
 class ICodeDeployDeploymentGroups(INamed, IMapping):
     pass
 
-class ICodeDeployDeploymentGroup(INamed):
+class ICodeDeployDeploymentGroup(INamed, IDeployable):
     ignore_application_stop_failures = schema.Bool(
         title="Ignore Application Stop Failures",
         required=False,

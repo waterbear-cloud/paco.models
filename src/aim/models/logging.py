@@ -3,6 +3,7 @@ Implementation for Logging model objects
 """
 from aim.models import schemas
 from aim.models.base import Named
+from aim.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -60,6 +61,13 @@ class CloudWatchLogGroup(Named, CloudWatchLogRetention):
         if self.log_group_name != '':
             return self.log_group_name
         return self.name
+
+    def get_full_log_group_name(self):
+        name = self.get_log_group_name()
+        parent = get_parent_by_interface(self, schemas.ICloudWatchLogSet)
+        if parent != None:
+            return parent.name + '-' + name
+        return name
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

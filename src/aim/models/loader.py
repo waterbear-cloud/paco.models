@@ -32,7 +32,7 @@ from aim.models.applications import Application, ResourceGroups, ResourceGroup, 
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
-from aim.models.resources import EC2Resource, EC2KeyPair, S3Resource, \
+from aim.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -130,6 +130,11 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    EC2Resource: {
+        'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),
+    },
+
+    # CodeDeploy
     CodeDeployApplication: {
         'deployment_groups': ('container', (CodeDeployDeploymentGroups, CodeDeployDeploymentGroup)),
     },
@@ -1597,9 +1602,10 @@ class ModelLoader():
         return codecommit_obj
 
     def instantiate_ec2(self, config):
-        if config == None or 'keypairs' not in config.keys():
-            return
         ec2_obj = EC2Resource('ec2', self.project.resource)
+        apply_attributes_from_config(ec2_obj, config, self.config_folder)
+        return ec2_obj
+
         ec2_obj.keypairs = {}
         for keypair_id in config['keypairs'].keys():
             keypair_config = config['keypairs'][keypair_id]

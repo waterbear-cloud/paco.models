@@ -225,6 +225,10 @@ class ApiGatewayRestApi(Resource):
         "Policy": 'policy',
     }
 
+@implementer(schemas.IEC2KeyPairs)
+class EC2KeyPairs(Named, dict):
+    pass
+
 @implementer(schemas.IEC2KeyPair)
 class EC2KeyPair(Named):
     region = FieldProperty(schemas.IEC2KeyPair['region'])

@@ -1686,28 +1686,30 @@ class IEC2KeyPair(INamed):
     EC2 SSH Key Pair
     """
     region = schema.TextLine(
-        title = "AWS Region",
-        description = "Must be a valid AWS Region name",
-        default = "no-region-set",
-        missing_value = "no-region-set",
-        required = True,
-        constraint = isValidAWSRegionName,
+        title="AWS Region",
+        description="Must be a valid AWS Region name",
+        default="no-region-set",
+        missing_value="no-region-set",
+        required=True,
+        constraint=isValidAWSRegionName,
     )
     account = TextReference(
-        title = 'AWS Account Reference',
-        required = False,
+        title='AWS Account Reference',
+        required=False,
     )
+
+class IEC2KeyPairs(INamed, IMapping):
+    pass
 
 class IEC2Resource(INamed):
     """
     EC2 Resource Configuration
     """
-    keypairs = schema.Dict(
-        title = "Group of EC2 Key Pairs",
-        value_type = schema.Object(IEC2KeyPair),
-        required = False,
+    keypairs = schema.Object(
+        title="Group of EC2 Key Pairs",
+        schema=IEC2KeyPairs,
+        required=False,
     )
-
 
 class IService(IResource):
     """

@@ -311,6 +311,42 @@ class CloudWatchLogAlarm(CloudWatchAlarm):
 class Monitorable():
     monitoring = FieldProperty(schemas.IMonitorable["monitoring"])
 
+@implementer(schemas.IMetric)
+class Metric():
+    name = FieldProperty(schemas.IMetric["name"])
+    measurements = FieldProperty(schemas.IMetric["measurements"])
+    collection_interval = FieldProperty(schemas.IMetric["collection_interval"])
+    resources = FieldProperty(schemas.IMetric["resources"])
+    drop_device = FieldProperty(schemas.IMetric["drop_device"])
+
+# AWS Provided Metrics
+ec2core_builtin_metric = Metric()
+ec2core_builtin_metric.name = 'ec2core_builtin_metric'
+ec2core_builtin_metric.collection_interval = 300
+ec2core_builtin_metric.measurements = [
+    'CPUUtilization',
+    'DiskReadBytes',
+    'DiskReadOps',
+    'DiskWriteBytes',
+    'DiskWriteOps',
+    'NetworkIn',
+    'NetworkOut',
+    'StatusCheckFailed',
+    'StatusCheckFailed_Instance',
+    'StatusCheckFailed_System'
+]
+
+asg_builtin_metrics = [
+    'GroupMinSize',
+    'GroupMaxSize',
+    'GroupDesiredCapacity',
+    'GroupInServiceInstances',
+    'GroupPendingInstances',
+    'GroupStandbyInstances',
+    'GroupTerminatingInstances',
+    'GroupTotalInstances'
+]
+
 @implementer(schemas.IMonitorConfig)
 class MonitorConfig(Deployable, Named):
     collection_interval = FieldProperty(schemas.IMonitorConfig["collection_interval"])
@@ -324,26 +360,8 @@ class MonitorConfig(Deployable, Named):
         self.health_checks = HealthChecks('health_checks', self)
         self.log_sets = CloudWatchLogSets('log_sets', self)
         self.notifications = AlarmNotifications('notifications', self)
+        self.asg_metrics = asg_builtin_metrics
         self.metrics = []
 
-@implementer(schemas.IMetric)
-class Metric():
-    name = FieldProperty(schemas.IMetric["name"])
-    measurements = FieldProperty(schemas.IMetric["measurements"])
-    collection_interval = FieldProperty(schemas.IMetric["collection_interval"])
 
-ec2core = Metric()
-ec2core.name = 'ec2core'
-ec2core.collection_interval = 300
-ec2core.measurements = [
-    'CPUUtilization',
-    'DiskReadBytes',
-    'DiskReadOps',
-    'DiskWriteBytes',
-    'DiskWriteOps',
-    'NetworkIn',
-    'NetworkOut',
-    'StatusCheckFailed',
-    'StatusCheckFailed_Instance',
-    'StatusCheckFailed_System'
-]
+

@@ -233,6 +233,7 @@ class EC2KeyPairs(Named, dict):
 class EC2KeyPair(Named):
     region = FieldProperty(schemas.IEC2KeyPair['region'])
     account = FieldProperty(schemas.IEC2KeyPair['account'])
+    keypair_name = FieldProperty(schemas.IEC2KeyPair['keypair_name'])
 
 @implementer(schemas.IEC2Resource)
 class EC2Resource(Named):
@@ -241,16 +242,9 @@ class EC2Resource(Named):
     def resolve_ref(self, ref):
         if ref.parts[2] == 'keypairs':
             keypair_id = ref.parts[3]
-            keypair_attr = 'name'
-            if len(ref.parts) > 4:
-                keypair_attr = ref.parts[4]
+            keypair_attr = ref.parts[4]
             keypair = self.keypairs[keypair_id]
-            if keypair_attr == 'name':
-                return keypair.name
-            elif keypair_attr == 'region':
-                return keypair.region
-            elif keypair_attr == 'account':
-                return keypair.account
+            return getattr(keypair, keypair_attr)
 
         return self.resolve_ref_obj.resolve_ref(ref)
 

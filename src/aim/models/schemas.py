@@ -1696,6 +1696,12 @@ class IEC2KeyPair(INamed):
     """
     EC2 SSH Key Pair
     """
+    keypair_name = schema.TextLine(
+        title="The name of the EC2 KeyPair",
+        description="",
+        required=True
+    )
+
     region = schema.TextLine(
         title="AWS Region",
         description="Must be a valid AWS Region name",

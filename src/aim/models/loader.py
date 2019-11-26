@@ -1606,14 +1606,6 @@ class ModelLoader():
         apply_attributes_from_config(ec2_obj, config, self.config_folder)
         return ec2_obj
 
-        ec2_obj.keypairs = {}
-        for keypair_id in config['keypairs'].keys():
-            keypair_config = config['keypairs'][keypair_id]
-            keypair_obj = EC2KeyPair(keypair_config['name'], ec2_obj)
-            apply_attributes_from_config(keypair_obj, keypair_config, self.config_folder)
-            ec2_obj.keypairs[keypair_id] = keypair_obj
-        return ec2_obj
-
     def instantiate_s3(self, config):
         if config == None or 'buckets' not in config.keys():
             return

@@ -319,6 +319,9 @@ class Metric():
     resources = FieldProperty(schemas.IMetric["resources"])
     drop_device = FieldProperty(schemas.IMetric["drop_device"])
 
+    def __init__(self):
+        self.resources = []
+
 # AWS Provided Metrics
 ec2core_builtin_metric = Metric()
 ec2core_builtin_metric.name = 'ec2core_builtin_metric'

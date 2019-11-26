@@ -152,7 +152,7 @@ class TestAimDemo(BaseTestModelLoader):
             if node_id in seen:
                 # core metric objects are the same
                 name = getattr(node, 'name', '')
-                if name not in ('ec2core'):
+                if name not in ('ec2core_builtin_metric'):
                     self.fail("Node seen a second time")
             else:
                 seen[node_id] = node

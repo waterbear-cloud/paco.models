@@ -10,7 +10,8 @@ from aim.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metric
     MetricTransformation
 from aim.models.exceptions import InvalidAimFieldType, InvalidAimProjectFile, UnusedAimProjectField, \
     TroposphereConversionError, InvalidAimSchema
-from aim.models.metrics import MonitorConfig, Metric, ec2core, CloudWatchAlarm, SimpleCloudWatchAlarm, \
+from aim.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
+    CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
     HealthChecks, CloudWatchLogAlarm
 from aim.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
@@ -1206,7 +1207,11 @@ class ModelLoader():
         for model in get_all_nodes(self.project):
             # ToDo: only doing metrics for ASG right now
             if schemas.IASG.providedBy(model):
-                add_metric(model, ec2core)
+                # EC2
+                add_metric(model, ec2core_builtin_metric)
+                # ASG
+                if model.monitoring.asg_metrics == None or len(model.monitoring.asg_metrics) == 0:
+                    model.monitoring.asg_metrics = asg_builtin_metrics
 
     def load_outputs_file(self, rfile, ne_outputs_path):
         # parse filename

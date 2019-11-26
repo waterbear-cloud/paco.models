@@ -1358,6 +1358,17 @@ class IMetric(Interface):
         min = 1,
         required = False,
     )
+    resources = schema.List(
+        title = "List of resources for this metric",
+        value_type=schema.TextLine(title="Metric resource"),
+        required = False
+    )
+    drop_device = schema.Bool(
+        title = "Drops the device name from disk metrics",
+        default = True,
+        required = False
+    )
+
 
 class IHealthChecks(INamed, IMapping):
     "Container for HealthChecks"
@@ -1685,6 +1696,12 @@ class IEC2KeyPair(INamed):
     """
     EC2 SSH Key Pair
     """
+    keypair_name = schema.TextLine(
+        title="The name of the EC2 KeyPair",
+        description="",
+        required=True
+    )
+
     region = schema.TextLine(
         title="AWS Region",
         description="Must be a valid AWS Region name",

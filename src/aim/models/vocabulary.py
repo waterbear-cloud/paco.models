@@ -616,7 +616,7 @@ user_data_script = {
 apt-get -y install python-pip
 pip install awscli
 		""",
-		'centos': 'pip3 install awscli'
+		'centos': 'ec2lm_pip install awscli'
 	},
 	'install_wget': {
 		'amazon': 'yum install wget -y',

@@ -1,5 +1,5 @@
 hosted_zones:
-  aimdemo:
+  pacodemo:
     enabled: true
-    domain_name: aimdemo.example.com
+    domain_name: pacodemo.example.com
     account: paco.ref accounts.prod

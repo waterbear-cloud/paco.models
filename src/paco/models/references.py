@@ -35,7 +35,7 @@ class InvalidTextReferenceRefType(zope.schema.ValidationError):
     __doc__ = "TextReference 'paco.ref must begin with: netenv | resource | accounts | function | service"
 
 def is_ref(paco_ref, raise_enabled=False):
-    """Determines if the string value is an AIM Reference"""
+    """Determines if the string value is a Paco reference"""
     if type(paco_ref) != type(str()):
         if raise_enabled: raise InvalidTextReferenceString
         return False
@@ -60,7 +60,7 @@ class StringFileReference(FileReference, zope.schema.Text):
         Validate that the path resolves to a file on the filesystem
         """
         return True
-        # ToDo: how to get the AIM HOME and change to that directory from here?
+        # ToDo: how to get the PACO_HOME and change to that directory from here?
         #path = pathlib.Path(value)
         #return path.exists()
 
@@ -99,10 +99,10 @@ class Reference():
     Reference to something in the paco.models
 
     attributes:
-      raw : original reference str : 'paco.ref netenv.aimdemo.network.vpc.security_groups.app.lb'
+      raw : original reference str : 'paco.ref netenv.pacodemo.network.vpc.security_groups.app.lb'
       type : reference type str : 'netenv'
-      parts : list of ref parts : ['netenv', 'aimdemo', 'network', 'vpc', 'security_groups', 'app', 'lb']
-      ref : reffered string : 'netenv.aimdemo.network.vpc.security_groups.app.lb'
+      parts : list of ref parts : ['netenv', 'pacodemo', 'network', 'vpc', 'security_groups', 'app', 'lb']
+      ref : reffered string : 'netenv.pacodemo.network.vpc.security_groups.app.lb'
     """
 
     def __init__(self, value):
@@ -117,14 +117,14 @@ class Reference():
         self.region = None
 
         if self.type == 'netenv':
-            # do not try to find region for short environment refs like 'aimref netenv.mynet.prod'
+            # do not try to find region for short environment refs like 'paco.ref netenv.mynet.prod'
             if len(self.parts) > 3:
                 if self.parts[3] in vocabulary.aws_regions.keys():
                     self.region = self.parts[3]
 
         if is_ref(self.raw) == False:
-            print("Invalid AIM Reference: %s" % (value))
-            #raise StackException(AimErrorCode.Unknown)
+            print("Invalid Paco reference: %s" % (value))
+            #raise StackException(PacoErrorCode.Unknown)
 
     @property
     def last_part(self):
@@ -213,7 +213,7 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
         outputs_value = resolve_ref_outputs(ref, project['home'])
         if outputs_value != None:
             return outputs_value
-        raise InvalidPacoReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
+        raise InvalidPacoReference("Invalid Paco reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
     return response
 
 def resolve_ref_outputs(ref, project_folder):

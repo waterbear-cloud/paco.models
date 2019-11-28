@@ -46,18 +46,18 @@ network:
             - from_port: 80
               name: HTTP
               protocol: tcp
-              source_security_group: paco.ref netenv.aimdemo.network.vpc.security_groups.app.lb
+              source_security_group: paco.ref netenv.pacodemo.network.vpc.security_groups.app.lb
               to_port: 80
             - from_port: 22
               to_port: 22
               name: SSH
               protocol: tcp
-              source_security_group: paco.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
+              source_security_group: paco.ref netenv.pacodemo.network.vpc.security_groups.app.bastion
             - from_port: 80
               to_port: 80
               name: BASTIONHTTP
               protocol: tcp
-              source_security_group: paco.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
+              source_security_group: paco.ref netenv.pacodemo.network.vpc.security_groups.app.bastion
         bastion:
           egress:
             - cidr_ip: 0.0.0.0/0
@@ -75,7 +75,7 @@ network:
               protocol: "6"
               from_port: 3306
               to_port: 3306
-              source_security_group: paco.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
+              source_security_group: paco.ref netenv.pacodemo.network.vpc.security_groups.app.webapp
           egress:
             - name: ANY
               cidr_ip: 0.0.0.0/0
@@ -118,7 +118,7 @@ backup_vaults:
         selections:
           - title: Database resource
             resources:
-             - paco.ref netenv.aimdemo.applications.app.groups.webapp.resources.database
+             - paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.database
 
 applications:
   app:
@@ -144,18 +144,18 @@ applications:
             deployment_branch_name: "" # Override in sub-environments
             manual_approval_enabled: false
             manual_approval_notification_email: ""
-            codecommit_repository: paco.ref resource.codecommit.aimdemo.app
-            asg: paco.ref netenv.aimdemo.applications.app.groups.site.resources.webapp
+            codecommit_repository: paco.ref resource.codecommit.pacodemo.app
+            asg: paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp
             auto_rollback_enabled: true
             deploy_config_type: HOST_COUNT
             deploy_style_option: WITH_TRAFFIC_CONTROL
             deploy_config_value: 1
-            deploy_instance_role: paco.ref netenv.aimdemo.applications.app.groups.site.resources.webapp.instance_iam_role
+            deploy_instance_role: paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp.instance_iam_role
             elb_name: ""
-            alb_target_group: paco.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app
+            alb_target_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.alb.target_groups.app
             tools_account: paco.ref accounts.tools
             cross_account_support: true
-            artifacts_bucket: paco.ref netenv.aimdemo.applications.app.groups.cicd.resources.cpbd_s3
+            artifacts_bucket: paco.ref netenv.pacodemo.applications.app.groups.cicd.resources.cpbd_s3
           deploybucket:
             type: S3Bucket
             enabled: true
@@ -171,7 +171,7 @@ applications:
                 title: "My Deployment Group description"
                 ignore_application_stop_failures: true
                 revision_location_s3:
-                    bucket: paco.ref netenv.aimdemo.applications.app.groups.deploybucket
+                    bucket: paco.ref netenv.pacodemo.applications.app.groups.deploybucket
                     bundle_type: "zip"
                     key: 'bigbear.zip'
                 role_policies:
@@ -181,10 +181,10 @@ applications:
                         action:
                           - s3:*
                         resource:
-                          - paco.sub '${paco.ref netenv.aimdemo.applications.app.groups.webapp.resources.origin.arn}/*'
-                          - paco.sub '${paco.ref netenv.aimdemo.applications.app.groups.webapp.resources.origin.arn}'
-                          - paco.sub '${paco.ref netenv.aimdemo.applications.app.groups.webapp.resources.office_origin.arn}/*'
-                          - paco.sub '${paco.ref netenv.aimdemo.applications.app.groups.webapp.resources.office_origin.arn}'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.origin.arn}/*'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.origin.arn}'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.office_origin.arn}/*'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.office_origin.arn}'
                   - name: CloudFrontInvalidation
                     statement:
                       - effect: Allow
@@ -196,7 +196,7 @@ applications:
                         resource:
                           - '*'
                 autoscalinggroups:
-                  - paco.ref netenv.aimdemo.applications.app.groups.site.resources.webapp
+                  - paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp
 
       site:
         type: Application
@@ -206,9 +206,9 @@ applications:
             type: ACM
             order: 1
             enabled: true
-            domain_name: aimdemo.waterbear.cloud
+            domain_name: pacodemo.waterbear.cloud
             subject_alternative_names:
-              - '*.aimdemo.waterbear.cloud'
+              - '*.pacodemo.waterbear.cloud'
           alb:
             type: LBApplication # LBClassic | LBNetwork | LBApplication
             enabled: true
@@ -235,14 +235,14 @@ applications:
                 port: 443
                 protocol: HTTPS
                 ssl_certificates:
-                  - paco.ref netenv.aimdemo.applications.app.groups.site.resources.cert
+                  - paco.ref netenv.pacodemo.applications.app.groups.site.resources.cert
                 target_group: app
             dns:
-              - hosted_zone: paco.ref resource.route53.aimdemo
-                domain_name: aimdemo.waterbear.cloud
+              - hosted_zone: paco.ref resource.route53.pacodemo
+                domain_name: pacodemo.waterbear.cloud
             scheme: internet-facing
             security_groups:
-              - paco.ref netenv.aimdemo.network.vpc.security_groups.app.lb
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.lb
             segment: public
           dbparams:
             type: DBParameterGroup
@@ -283,11 +283,11 @@ applications:
               - error
               - slowquery
             security_groups:
-              - paco.ref netenv.aimdemo.network.vpc.security_groups.app.rds
-            segment: paco.ref netenv.aimdemo.network.vpc.segments.database
-            primary_domain_name: database.aimdemo.internal
-            primary_hosted_zone: paco.ref netenv.aimdemo.network.vpc.private_hosted_zone
-            parameter_group: paco.ref netenv.aimdemo.applications.app.groups.site.resources.dbparams
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.rds
+            segment: paco.ref netenv.pacodemo.network.vpc.segments.database
+            primary_domain_name: database.pacodemo.internal
+            primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
+            parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.dbparams
           webapp:
             type: ASG
             order: 3
@@ -300,16 +300,16 @@ applications:
             instance_iam_role:
               enabled: true
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: paco.ref resource.ec2.keypairs.aimdemo_prod
+            instance_key_pair: paco.ref resource.ec2.keypairs.pacodemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 3
             min_instances: 1
             desired_capacity: 1
             target_groups:
-              - paco.ref netenv.aimdemo.applications.app.groups.site.resources.alb.target_groups.app
+              - paco.ref netenv.pacodemo.applications.app.groups.site.resources.alb.target_groups.app
             security_groups:
-              - paco.ref netenv.aimdemo.network.vpc.security_groups.app.webapp
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.webapp
             segment: webapp
             termination_policies:
               - Default
@@ -319,7 +319,7 @@ applications:
               parameters:
                 TestString: 'catdog'
                 TestNumber: 10
-                Database.endpoint.address: paco.ref netenv.aimdemo.applications.app.groups.site.resources.database
+                Database.endpoint.address: paco.ref netenv.pacodemo.applications.app.groups.site.resources.database
               config_sets:
                 ascending:
                   - "config1"
@@ -496,7 +496,7 @@ applications:
             #  instance_profile: true
             #  policies:
             instance_ami: ami-01bbe152bf19d0289
-            instance_key_pair: paco.ref resource.ec2.keypairs.aimdemo_prod
+            instance_key_pair: paco.ref resource.ec2.keypairs.pacodemo_prod
             instance_monitoring: false
             instance_type: t2.micro
             max_instances: 2
@@ -507,7 +507,7 @@ applications:
             update_policy_max_batch_size: 1
             update_policy_min_instances_in_service: 0
             security_groups:
-              - paco.ref netenv.aimdemo.network.vpc.security_groups.app.bastion
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.bastion
             user_data_script: |
               #!/bin/bash
 
@@ -684,7 +684,7 @@ environments:
             bastion:
               resources:
                 instance:
-                  instance_key_pair: paco.ref resource.ec2.keypairs.aimdemo_dev
+                  instance_key_pair: paco.ref resource.ec2.keypairs.pacodemo_dev
                   desired_capacity: 0 # if you change this you break a test!
                   min_instances: 0
             site:
@@ -693,7 +693,7 @@ environments:
                   max_instances: 2
                   min_instances: 1
                   desired_capacity: 1
-                  instance_key_pair: paco.ref resource.ec2.keypairs.aimdemo_dev
+                  instance_key_pair: paco.ref resource.ec2.keypairs.pacodemo_dev
                   monitoring:
                     alarm_sets:
                       launch-health:
@@ -704,17 +704,17 @@ environments:
                 # Must remember to override both 'cert' and 'alb' DNS
                 # How can we control override policies like this?
                 cert:
-                  domain_name: dev.aimdemo.waterbear.cloud
+                  domain_name: dev.pacodemo.waterbear.cloud
                   # Maybe shorten this to just the subjective hostname.
                   #  Then we don't need to override this field
                   subject_alternative_names:
-                    - '*.dev.aimdemo.waterbear.cloud'
+                    - '*.dev.pacodemo.waterbear.cloud'
 
                 alb:
                   enabled: true
                   dns:
-                    - hosted_zone: paco.ref resource.route53.aimdemo_dev
-                      domain_name: dev.aimdemo.waterbear.cloud
+                    - hosted_zone: paco.ref resource.route53.pacodemo_dev
+                      domain_name: dev.pacodemo.waterbear.cloud
                   monitoring:
                     alarm_sets:
                       instance-health:

@@ -497,12 +497,12 @@ def isRedisCacheParameterGroupFamilyValid(value):
 
 
 # IAM
-class InvalidAIMCodeCommitPermissionPolicy(schema.ValidationError):
+class InvalidPacoCodeCommitPermissionPolicy(schema.ValidationError):
     __doc__ = 'permission must be one of: ReadWrite | ReadOnly'
 
-def isAIMCodeCommitPermissionPolicyValid(value):
+def isPacoCodeCommitPermissionPolicyValid(value):
     if value not in ('ReadWrite', 'ReadOnly'):
-        raise InvalidAIMCodeCommitPermissionPolicy
+        raise InvalidPacoCodeCommitPermissionPolicy
     return True
 
 # CodeBuild
@@ -591,7 +591,7 @@ class CommaList(schema.List):
         Validate something
         """
         return True
-        # ToDo: how to get the AIM HOME and change to that directory from here?
+        # ToDo: how to get the PACO_HOME and change to that directory from here?
         #path = pathlib.Path(value)
         #return path.exists()
 
@@ -644,7 +644,7 @@ class IYAMLFileReference(IFileReference):
     pass
 
 class ITextReference(Interface):
-    """A field containing a reference an aim model object or attribute"""
+    """A field containing a reference an paco model object or attribute"""
     pass
 
 # work around circular imports for references
@@ -786,7 +786,7 @@ class IIngressRule(IParent, ISecurityGroupRule):
     source_security_group = TextReference(
         title = "Source Security Group Reference",
         required = False,
-        description = "An AIM Reference to a SecurityGroup",
+        description = "An Paco reference to a SecurityGroup",
         str_ok = True
     )
 
@@ -795,7 +795,7 @@ class IEgressRule(IParent, ISecurityGroupRule):
     destination_security_group = TextReference(
         title = "Destination Security Group Reference",
         required = False,
-        description = "An AIM Reference to a SecurityGroup",
+        description = "A Paco reference to a SecurityGroup",
         str_ok = True
     )
 
@@ -1055,7 +1055,7 @@ class ICloudWatchAlarm(IType, IAlarm):
     alarm_description = schema.Text(
         title = "Alarm Description",
         readonly = True,
-        description = "Valid JSON document with AIM fields.",
+        description = "Valid JSON document with Paco fields.",
         required = False,
     )
     actions_enabled = schema.Bool(
@@ -1328,7 +1328,7 @@ class IEventsRule(IResource):
         description = "",
         required = True,
         value_type=TextReference(
-            title = "AIM Reference to an AWS Resource to invoke"
+            title = "Paco Reference to an AWS Resource to invoke"
         ),
     )
 
@@ -1768,7 +1768,7 @@ class IEC2(IResource):
         title="Security groups",
         description="",
         value_type=TextReference(
-            title="AIM Reference"
+            title="Paco reference"
         ),
         required = False,
     )
@@ -1805,9 +1805,9 @@ class INetworkEnvironments(INamed, IMapping):
     pass
 
 class IProject(INamed, IMapping):
-    "Project : the root node in the config for an AIM Project"
-    aim_project_version = schema.TextLine(
-        title = "AIM Project version",
+    "Project : the root node in the config for a Paco Project"
+    paco_project_version = schema.TextLine(
+        title = "Paco project version",
         default = "",
         required = False,
     )
@@ -2337,7 +2337,7 @@ The ``LBApplication`` resource type creates an Application Load Balancer. Use lo
 the internet to your web servers.
 
 Load balancers have ``listeners`` which will accept requrests on specified ports and protocols. If a listener
-uses the HTTPS protocol, it can have an aim reference to an SSL Certificate. A listener can then either
+uses the HTTPS protocol, it can have a Paco reference to an SSL Certificate. A listener can then either
 redirect the traffic to another port/protcol or send it one of it's named ``target_groups``.
 
 Each target group will specify it's health check configuration. To specify which resources will belong
@@ -2416,7 +2416,7 @@ to a target group, use the ``target_groups`` field on an ASG resource.
     security_groups = schema.List(
         title = "Security Groups",
         value_type=TextReference(
-            title="AIM Reference"
+            title="Paco reference"
         ),
         required = False,
     )
@@ -2640,7 +2640,7 @@ class ISimpleCloudWatchAlarm(IParent):
     """
     alarm_description = schema.Text(
         title = "Alarm Description",
-        description = "Valid JSON document with AIM fields.",
+        description = "Valid JSON document with Paco fields.",
         required = False,
     )
     actions_enabled = schema.Bool(
@@ -3385,7 +3385,7 @@ class IASG(IResource, IMonitorable):
         title="Target groups",
         description="",
         value_type=TextReference(
-            title="AIM Reference"
+            title="Paco reference"
         ),
         required = False,
     )
@@ -3437,7 +3437,7 @@ class IASG(IResource, IMonitorable):
         title="Security groups",
         description="",
         value_type=TextReference(
-            title="AIM Reference"
+            title="Paco reference"
         ),
         required = False,
     )
@@ -3450,7 +3450,7 @@ class IASG(IResource, IMonitorable):
         title="Target groups",
         description="",
         value_type=TextReference(
-            title="AIM Reference"
+            title="Paco reference"
         ),
         required = False,
     )
@@ -3563,14 +3563,14 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     ``sdb_cache``: Create a SimpleDB Domain and IAM Policy that grants full access to that domain. Will
     also make the domain available to the Lambda function as an environment variable named ``SDB_CACHE_DOMAIN``.
 
-    ``sns_topics``: Subscribes the Lambda to SNS Topics. For each AIM reference to an SNS Topic,
-    AIM will create an SNS Topic Subscription so that the Lambda function will recieve all messages sent to that SNS Topic.
+    ``sns_topics``: Subscribes the Lambda to SNS Topics. For each Paco reference to an SNS Topic,
+    Paco will create an SNS Topic Subscription so that the Lambda function will recieve all messages sent to that SNS Topic.
     It will also create a Lambda Permission granting that SNS Topic the ability to publish to the Lambda.
 
-    **S3 Bucket Notification permission** AIM will check all resources in the Application for any S3 Buckets configured
+    **S3 Bucket Notification permission** Paco will check all resources in the Application for any S3 Buckets configured
     to notify this Lambda. Lambda Permissions will be created to allow those S3 Buckets to invoke the Lambda.
 
-    **Events Rule permission** AIM will check all resources in the Application for CloudWatch Events Rule that are configured
+    **Events Rule permission** Paco will check all resources in the Application for CloudWatch Events Rule that are configured
     to notify this Lambda and create a Lambda permission to allow that Event Rule to invoke the Lambda.
 
 .. code-block:: yaml
@@ -3675,9 +3675,9 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
         default=False,
     )
     sns_topics = schema.List(
-        title = "List of SNS Topic AIM References",
+        title = "List of SNS Topic Paco references",
         value_type =  TextReference(
-            title = "SNS Topic AIM Reference",
+            title = "SNS Topic Paco reference",
             str_ok=True
         ),
         required = False,
@@ -3710,7 +3710,7 @@ class IApiGatewayMethodMethodResponse(Interface):
     response_models = schema.List(
         title = "The resources used for the response's content type.",
         description = """Specify response models as key-value pairs (string-to-string maps),
-with a content type as the key and a Model AIM name as the value.""",
+with a content type as the key and a Model Paco name as the value.""",
         value_type = schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
         required = False,
     )
@@ -4235,7 +4235,7 @@ Simple Notification Service (SNS) Topic resource.
 .. sidebar:: Prescribed Automation
 
     ``cross_account_access``: Creates an SNS Topic Policy which will grant all of the AWS Accounts in this
-    AIM Project access to the ``sns.Publish`` permission for this SNS Topic.
+    Paco Project access to the ``sns.Publish`` permission for this SNS Topic.
 
 .. code-block:: yaml
     :caption: Example SNSTopic resource YAML
@@ -4286,7 +4286,7 @@ class ICloudTrail(IResource):
     """
     accounts = schema.List(
         title = "Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
-        description = "A list of references to AIM Accounts.",
+        description = "A list of references to Paco Accounts.",
         value_type = TextReference(
             title = "Account Reference",
         ),
@@ -4934,7 +4934,7 @@ class IIAMUserPermission(INamed, IDeployable):
     """
     type = schema.TextLine(
         title = "Type of IAM User Access",
-        description = "A valid AIM IAM user access type: Administrator, CodeCommit, etc.",
+        description = "A valid Paco IAM user access type: Administrator, CodeCommit, etc.",
         required = False,
     )
 
@@ -4943,7 +4943,7 @@ class IIAMUserPermissionAdministrator(IIAMUserPermission):
     Administrator IAM User Permission
     """
     accounts = CommaList(
-        title = 'Comma separated list of AIM AWS account names this user has access to',
+        title = 'Comma separated list of Paco AWS account names this user has access to',
         required = False,
     )
     read_only = schema.Bool(
@@ -4962,8 +4962,8 @@ class IIAMUserPermissionCodeCommitRepository(IParent):
         required = False,
     )
     permission = schema.TextLine(
-        title = 'AIM Permission policy',
-        constraint = isAIMCodeCommitPermissionPolicyValid,
+        title = 'Paco Permission policy',
+        constraint = isPacoCodeCommitPermissionPolicyValid,
         required = False,
     )
     console_access_enabled = schema.Bool(
@@ -4995,8 +4995,8 @@ class IIAMUserPermissionCodeBuildResource(IParent):
         required = False,
     )
     permission = schema.TextLine(
-        title = 'AIM Permission policy',
-        constraint = isAIMCodeCommitPermissionPolicyValid,
+        title = 'Paco Permission policy',
+        constraint = isPacoCodeCommitPermissionPolicyValid,
         required = False,
     )
     console_access_enabled = schema.Bool(
@@ -5019,7 +5019,7 @@ class IIAMUserPermissionCustomPolicy(IIAMUserPermission):
     Custom IAM User Permission
     """
     accounts = CommaList(
-        title = 'Comma separated list of AIM AWS account names this user has access to',
+        title = 'Comma separated list of Paco AWS account names this user has access to',
         required = False,
     )
     policies = schema.List(
@@ -5041,7 +5041,7 @@ class IIAMUser(INamed, IDeployable):
     IAM User
     """
     account = TextReference(
-        title = "AIM account reference to install this user",
+        title = "Paco account reference to install this user",
         required = True
     )
     username = schema.TextLine(
@@ -5061,12 +5061,12 @@ class IIAMUser(INamed, IDeployable):
         required = False,
     )
     permissions = schema.Object(
-        title = 'AIM IAM User Permissions',
+        title = 'Paco IAM User Permissions',
         schema = IIAMUserPermissions,
         required = False,
     )
     account_whitelist = CommaList(
-        title = 'Comma separated list of AIM AWS account names this user has access to',
+        title = 'Comma separated list of Paco AWS account names this user has access to',
         required = False,
     )
 
@@ -5348,7 +5348,7 @@ class ICodeDeployDeploymentGroup(INamed, IDeployable):
         title="A list of refs to  Auto Scaling groups that CodeDeploy automatically deploys revisions to when new instances are created",
         required=False,
         value_type=TextReference(
-            title="AIM reference to an ASG resource",
+            title="Paco reference to an ASG resource",
         )
     )
     role_policies = schema.List(
@@ -5400,7 +5400,7 @@ class IEFS(IResource):
         title="Security groups",
         description="",
         value_type=TextReference(
-            title="AIM Reference"
+            title="Paco reference"
         ),
         required = True,
     )

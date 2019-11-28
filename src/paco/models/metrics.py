@@ -241,7 +241,7 @@ class CloudWatchAlarm(Alarm):
         )
 
     def get_alarm_description(self, notification_cfn_refs):
-        """Create an Alarm Description in JSON format with AIM Alarm information"""
+        """Create an Alarm Description in JSON format with Paco Alarm information"""
         project = get_parent_by_interface(self, schemas.IProject)
         netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
         env = get_parent_by_interface(self, schemas.IEnvironment)

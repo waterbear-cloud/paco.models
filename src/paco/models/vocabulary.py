@@ -631,10 +631,10 @@ pip install awscli
 	'install_cfn_init': {
 		'amazon': '',
 		'ubuntu': """
-mkdir -p /opt/aim/bin
+mkdir -p /opt/paco/bin
 apt-get install -y python-setuptools
 wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-easy_install --script-dir /opt/aim/bin aws-cfn-bootstrap-latest.tar.gz
+easy_install --script-dir /opt/paco/bin aws-cfn-bootstrap-latest.tar.gz
 """,
 		'centos': '' # TODO
 	},

@@ -16,7 +16,7 @@ def get_formatted_model_context(obj):
         return 'Obj has no parent in model'
     # If the obj is only IParent, walk up to the first INamed for context
     named_obj = get_parent_by_interface(obj, schemas.INamed)
-    out = "AIM reference: {}\n".format(named_obj.paco_ref)
+    out = "Paco reference: {}\n".format(named_obj.paco_ref)
     if netenv != None:
         if netenv.title:
             out += "Network Environment: {} ({})\n".format(netenv.title, netenv.name)

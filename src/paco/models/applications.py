@@ -322,8 +322,8 @@ class S3Bucket(Resource, Deployable):
         # Bucket as a global Resource
         elif get_parent_by_interface(self, schemas.IS3Resource):
             # Global buckets have the format:
-            # aim-s3-<resourcename>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
-            bucket_name_list.append('aim-s3')
+            # paco-s3-<resourcename>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
+            bucket_name_list.append('paco-s3')
             bucket_name_list.extend(bucket_name_list_standard)
 
         # Custom buckets are created with internal API calls e.g. EC2 LaunchMangaer, CloudTrail

@@ -229,7 +229,7 @@ class Segment(Named, Deployable):
         else:
             stack = self.resolve_ref_obj.resolve_ref(ref)
             if stack == None:
-                raise StackException(AimErrorCode.Unknown)
+                raise StackException(PacoErrorCode.Unknown)
             else:
                 return stack
         return None

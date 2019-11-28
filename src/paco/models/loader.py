@@ -1,5 +1,5 @@
 """
-The loader is responsible for reading an AIM Project and creating a tree of Python
+The loader is responsible for reading a Paco project and creating a tree of Python
 model objects.
 """
 
@@ -1131,9 +1131,9 @@ class ModelLoader():
         'Basically does a LOAD "*",8,1'
         # set-up the Troposphere YAML constructors
         # ToDo: YAML constructors appear to be global (set on the SafeConstructor class)
-        # This approach replaces AIM CFN constructors with ones that load CFN Tags as
+        # This approach replaces Paco CFN constructors with ones that load CFN Tags as
         # Troposphere objects, then when the model is finished loading, restores the
-        # AIM CFN constructors back
+        # Paco CFN constructors back
         self.yaml = ModelYAML(typ="safe", pure=True)
         self.yaml.default_flow_sytle = False
         self.yaml.add_troposphere_constructors()
@@ -1311,7 +1311,7 @@ class ModelLoader():
         parent[name] = obj
         return obj
 
-    def insert_env_ref_aim_sub(self, paco_ref, env_id, region, application):
+    def insert_env_ref_paco_sub(self, paco_ref, env_id, region, application):
         """
         paco.sub substition
         """
@@ -1324,11 +1324,11 @@ class ModelLoader():
             end_idx = len(paco_ref)
         str_idx = paco_ref.find("'", sub_idx, end_idx)
         if str_idx == -1:
-            raise StackException(AimErrorCode.Unknown)
+            raise StackException(PacoErrorCode.Unknown)
         str_idx += 1
         end_str_idx = paco_ref.find("'", str_idx, end_idx)
         if end_str_idx == -1:
-            raise StackException(AimErrorCode.Unknown)
+            raise StackException(PacoErrorCode.Unknown)
 
         # Isolate any ${} replacements
         first_pass = True
@@ -1336,7 +1336,7 @@ class ModelLoader():
             dollar_idx = paco_ref.find("${", str_idx, end_str_idx)
             if dollar_idx == -1:
                 if first_pass == True:
-                    raise StackException(AimErrorCode.Unknown)
+                    raise StackException(PacoErrorCode.Unknown)
                 else:
                     break
             rep_1_idx = dollar_idx
@@ -1365,7 +1365,7 @@ class ModelLoader():
             return paco_ref
 
         if paco_ref.startswith("paco.sub "):
-            return self.insert_env_ref_aim_sub(paco_ref, env_id, region, application)
+            return self.insert_env_ref_paco_sub(paco_ref, env_id, region, application)
 
         netenv_ref_raw = paco_ref
         sub_ref_len = len(netenv_ref_raw)
@@ -1467,7 +1467,7 @@ class ModelLoader():
         Load Services
         These are loaded from an entry point named 'paco.service'.
         The entry point name will match a filename at:
-          <AIMProject>/service/<EntryPointName>(.yml|.yaml)
+          <PacoProject>/service/<EntryPointName>(.yml|.yaml)
         """
         service_plugins = paco.models.services.list_service_plugins()
         services_dir_name = 'service'

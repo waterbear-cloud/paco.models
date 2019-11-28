@@ -194,7 +194,7 @@ class Named(Parent):
     Every model is location-aware. This means it has a
     __name__ and __parent__. This lets the object live in
     a hiearchy such as a URL tree for a web application, object database
-    or filesystem. AIM uses for the web app.
+    or filesystem. Paco uses for the web app.
     """
     name = FieldProperty(schemas.INamed["name"])
     title = FieldProperty(schemas.INamed["title"])
@@ -422,7 +422,7 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
             # Only alphanum and dases are allowed
             pass
         else:
-            raise StackException(AimErrorCode.Unknown, message="Invalid filter Id: "+filter_id)
+            raise StackException(PacoErrorCode.Unknown, message="Invalid filter Id: "+filter_id)
 
         if remove_invalids == True:
             return ''

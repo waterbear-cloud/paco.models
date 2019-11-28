@@ -246,7 +246,7 @@ Changelog for paco.models
 ### Added
 
 - aim-project-version.txt file in the root directory can now contain the AIM Project YAML
-  version. IProject now has an aim_project_version field to store this value.
+  version. IProject now has an paco_project_version field to store this value.
 
 - ICloudWatchAlarm gets a namespace field. Can be used to override the default
   Resource namespace, for example, use 'CWAgent' for the CloudWatch agent metrics.
@@ -336,7 +336,7 @@ Changelog for paco.models
 
 ### Removed
 
-- Removed unused yaml config from aimdemo under fixtures.
+- Removed unused yaml config from pacodemo under fixtures.
 
 
 1.0.1 (2019-06-19)

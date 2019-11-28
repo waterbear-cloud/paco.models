@@ -1,9 +1,9 @@
 keypairs:
-  aimdemo_dev:
-    keypair_name: "aimdemo-dev-us-west-2"
+  pacodemo_dev:
+    keypair_name: "pacodemo-dev-us-west-2"
     region: "us-west-2"
     account: paco.ref accounts.dev
-  aimdemo_prod:
-    keypair_name: "aimdemo-prod-us-west-2"
+  pacodemo_prod:
+    keypair_name: "pacodemo-prod-us-west-2"
     region: "us-west-2"
     account: paco.ref accounts.prod

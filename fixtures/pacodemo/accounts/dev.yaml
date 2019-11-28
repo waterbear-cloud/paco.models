@@ -2,6 +2,6 @@ name: Development
 title: Development AWS Account
 account_type: AWS
 account_id: '1234567890'
-admin_delegate_role_name: 'AIM-Organization-Account-Delegate-Role'
+admin_delegate_role_name: 'Paco-Organization-Account-Delegate-Role'
 region: 'us-west-2'
 root_email: bigguy@example.com

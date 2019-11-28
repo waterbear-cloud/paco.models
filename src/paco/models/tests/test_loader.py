@@ -34,30 +34,30 @@ class BaseTestModelLoader(unittest.TestCase):
         self.path = fixtures_path()
         self.project = load_project_from_yaml(self.path + os.sep + self.project_name)
 
-class TestAimDemo(BaseTestModelLoader):
+class Testpacodemo(BaseTestModelLoader):
 
-    project_name = 'aimdemo'
+    project_name = 'pacodemo'
     def test_project(self):
         assert isinstance(self.project, Project)
         assert self.project.name == 'waterbear-networks'
         assert self.project.title.startswith('Waterbear Networks')
 
     def test_network_environment(self):
-        ne = self.project['netenv']['aimdemo']
+        ne = self.project['netenv']['pacodemo']
         assert ne.availability_zones == 2
 
     def test_environment_state(self):
-        dev_alb_domain = self.project['netenv']['aimdemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['alb'].dns[0].domain_name
-        dev_cert_domain = self.project['netenv']['aimdemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['cert'].domain_name
-        assert dev_alb_domain == "dev.aimdemo.waterbear.cloud"
-        assert dev_cert_domain == "dev.aimdemo.waterbear.cloud"
+        dev_alb_domain = self.project['netenv']['pacodemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['alb'].dns[0].domain_name
+        dev_cert_domain = self.project['netenv']['pacodemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['cert'].domain_name
+        assert dev_alb_domain == "dev.pacodemo.waterbear.cloud"
+        assert dev_cert_domain == "dev.pacodemo.waterbear.cloud"
 
     def test_cpbd(self):
-        cpbd = self.project['netenv']['aimdemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
+        cpbd = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
         assert cpbd.asg != None
 
     def test_ne_vpc(self):
-        vpc = self.project['netenv']['aimdemo'].vpc
+        vpc = self.project['netenv']['pacodemo'].vpc
         assert vpc.enable_dns_support == True
         assert vpc.vpn_gateway['app'].enabled == False
         assert vpc.private_hosted_zone.name == 'example.internal'
@@ -68,7 +68,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert lb_sg.egress[0].name == 'ANY'
 
     def test_env_network_merged(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']
+        demo_env = self.project['netenv']['pacodemo']['demo']
         assert demo_env['us-west-2'].network.availability_zones == 2
         assert isinstance( demo_env['us-west-2']['network'].vpc, paco.models.networks.VPC)
         assert demo_env['default'].network.vpc.cidr == '10.0.0.0/16'
@@ -77,7 +77,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert demo_env['default'].network.vpc.segments['public'].internet_access == True
 
     def test_asg(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         asg = demo_env.applications['app'].groups['site'].resources['webapp']
 
         # CloudFormation Init
@@ -127,18 +127,18 @@ class TestAimDemo(BaseTestModelLoader):
 
 
     def test_netenv_refs(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         # Basic paco.ref netenv
         ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg
-        assert ref_value == "paco.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
+        assert ref_value == "paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
 
-        # aimsub netenf.ref
+        # paco.sub netenf.ref
         #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
-        #assert ref_value == "paco.sub 'arn:aws:s3:::${paco.ref netenv.aimdemo.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
+        #assert ref_value == "paco.sub 'arn:aws:s3:::${paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
-        assert ref_value == "paco.ref netenv.aimdemo.demo.us-west-2.network.vpc.security_groups.app.lb"
+        assert ref_value == "paco.ref netenv.pacodemo.demo.us-west-2.network.vpc.security_groups.app.lb"
 
     def test_get_all_nodes(self):
         # ToDo: EnvironmentRegion.applications is seen twice because it's both
@@ -158,7 +158,7 @@ class TestAimDemo(BaseTestModelLoader):
                 seen[node_id] = node
 
     def test_env_override(self):
-        dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']
+        dev_env = self.project['netenv']['pacodemo']['dev']['us-west-2']
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         assert bastion.desired_capacity == 0
         #bastion = dev_env['applications']['app']['groups']['bastion']['resources']['bastion']
@@ -166,9 +166,9 @@ class TestAimDemo(BaseTestModelLoader):
         #assert bastion['desired_capacity'] == 0
 
     def test_alarms(self):
-        dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']
+        dev_env = self.project['netenv']['pacodemo']['dev']['us-west-2']
         dev_bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         demo_bastion = demo_env['applications']['app'].groups['bastion'].resources['instance']
         demo_webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
 
@@ -190,13 +190,13 @@ class TestAimDemo(BaseTestModelLoader):
         assert demo_webapp.monitoring.alarm_sets['log-test']['ApacheError'].log_group_name == 'error'
 
     def test_dbparameters(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         dbparams = demo_env['applications']['app'].groups['site'].resources['dbparams']
         assert schemas.IDBParameterGroup.providedBy(dbparams)
         assert dbparams.parameters['block_encryption_mode'] == 'aes-128-ecb'
 
     def test_cloudwatch_logging(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         demo_webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
         linux_log_set = demo_webapp.monitoring.log_sets['amazon_linux']
 
@@ -217,20 +217,20 @@ class TestAimDemo(BaseTestModelLoader):
 
     def test_instantiate_resources(self):
         # Route53
-        assert self.project['resource']['route53'].hosted_zones['aimdemo'].domain_name, 'aimdemo.example.com'
+        assert self.project['resource']['route53'].hosted_zones['pacodemo'].domain_name, 'pacodemo.example.com'
         # CodeCommit
-        assert self.project['resource']['codecommit'].repository_groups['aimdemo']['app'].account, 'paco.ref accounts.data'
+        assert self.project['resource']['codecommit'].repository_groups['pacodemo']['app'].account, 'paco.ref accounts.data'
         # EC2
-        assert self.project['resource']['ec2'].keypairs['aimdemo_dev'].account, 'paco.ref accounts.dev'
+        assert self.project['resource']['ec2'].keypairs['pacodemo_dev'].account, 'paco.ref accounts.dev'
 
     def test_resource_account(self):
-        dev_env = self.project['netenv']['aimdemo']['dev']['us-west-2']
+        dev_env = self.project['netenv']['pacodemo']['dev']['us-west-2']
         bastion = dev_env['applications']['app'].groups['bastion'].resources['instance']
         account = bastion.get_account()
         assert account.name, 'dev'
 
     def test_notifications(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         demo_app = demo_env['applications']['app']
 
         # notifications for applications
@@ -257,7 +257,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert alarm_with_notif.notifications['singlealarm']
 
     def test_alarm_notifications(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         webapp = demo_env['applications']['app'].groups['site'].resources['webapp']
 
         alarm_set = webapp.monitoring.alarm_sets['instance-health-cwagent']
@@ -302,17 +302,17 @@ class TestAimDemo(BaseTestModelLoader):
         assert bob.subscriptions[7].endpoint, 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
 
     def test_lambda(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         lmbda = demo_env['applications']['notification'].groups['lambda'].resources['function']
         assert schemas.ILambda.providedBy(lmbda)
         assert lmbda.handler, 'notification.lambda_handler'
         assert lmbda.memory_size, 128
         assert len(lmbda.layers), 1
 
-    def test_aim_project_version(self):
+    def test_paco_project_version(self):
         # test that a version loaded ... we will fiddle with this number in fixtures
         # as we update paco.models
-        assert len(self.project.aim_project_version) > 2
+        assert len(self.project.paco_project_version) > 2
 
     def test_cloudtrail(self):
         cloudtrail = self.project['resource']['cloudtrail']
@@ -324,12 +324,12 @@ class TestAimDemo(BaseTestModelLoader):
         assert trail.cloudwatchlogs_log_group.expire_events_after_days, '14'
 
     def test_api_gateway_rest_api(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
         assert len(api_gra.body_file_location) > 1
 
     def test_health_checks(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         health_checks = demo_env['applications']['app'].monitoring.health_checks
         assert schemas.IHealthChecks.providedBy(health_checks)
         pinger = health_checks['external_ping']
@@ -337,15 +337,15 @@ class TestAimDemo(BaseTestModelLoader):
         assert pinger.port, 80
 
     def test_multiple_apps_one_netenv(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         apps = demo_env['applications']
         assert schemas.IApplication.providedBy(apps['appmouse'])
         assert schemas.IApplication.providedBy(apps['appelephant'])
         assert schemas.IApplication.providedBy(apps['app'])
-        assert apps['appmouse'].groups['cicd'].resources['cpbd'].asg == 'paco.ref netenv.aimdemo.demo.us-west-2.applications.appmouse.groups.site.resources.webapp'
+        assert apps['appmouse'].groups['cicd'].resources['cpbd'].asg == 'paco.ref netenv.pacodemo.demo.us-west-2.applications.appmouse.groups.site.resources.webapp'
 
     def test_codedeploy_application(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         codedeploy = demo_env['applications']['app'].groups['cicd'].resources['codedeploy']
         assert schemas.ICodeDeployApplication.providedBy(codedeploy)
         assert codedeploy.compute_platform == "Server"
@@ -353,7 +353,7 @@ class TestAimDemo(BaseTestModelLoader):
         assert codedeploy.deployment_groups['deployment'].revision_location_s3.bundle_type == 'zip'
 
     def test_backup(self):
-        demo_env = self.project['netenv']['aimdemo']['demo']['us-west-2']
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         vaults = demo_env.backup_vaults
         assert schemas.IBackupVaults.providedBy(vaults)
         myvault = vaults['myapp']

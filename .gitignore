@@ -8,7 +8,7 @@ env
 .venv
 .pytest_cache
 
-# AIM files
+# Paco files
 .credentials.yaml
 
 # Buildout

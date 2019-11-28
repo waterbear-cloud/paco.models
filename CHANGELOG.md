@@ -1,6 +1,12 @@
 Changelog for paco.models
 =========================
 
+\ (unreleased)
+--------------
+
+- Nothing changed yet.
+
+
 6.2.0 (2019-11-28)
 ------------------
 

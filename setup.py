@@ -8,7 +8,7 @@ with open('CHANGELOG.md') as f:
 
 setup(
     name='paco.models',
-    version='6.2.0',
+    version='\.dev0',
     description='paco.models: Semantic cloud infrastructure configuration file format and object model',
     author='Waterbear Cloud',
     author_email='hello@waterbear.cloud',

@@ -1,8 +1,8 @@
-# aim.models
+# paco.models
 
 An object model for semantic cloud infrastructure.
 
-`aim.models` parses a directory of YAML files that compose an AIM Project and loads them
+`paco.models` parses a directory of YAML files that compose an AIM Project and loads them
 into a complete object model.
 
 

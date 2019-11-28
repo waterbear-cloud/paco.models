@@ -1,10 +1,13 @@
-Changelog for aim.models
-=================
+Changelog for paco.models
+=========================
 
 6.2.0 (unreleased)
 ------------------
 
 ### Changed
+
+- Package rename: `paco.models` is now `paco.models`, consistent with the tool being
+  renamed to `paco`.
 
 - Top-level directories have been renamed to be consistent with their names in the model:
     NetworkEnvironments --> netenv
@@ -121,7 +124,7 @@ Changelog for aim.models
 - ICloudWatchAlarms have `enable_ok_actions` and `enable_insufficient_data_actions` booleans
   that will send to the notification groups when the alarm enters the OK or INSUFFICIENT_DATA states.
 
-- `references.get_model_obj_ref` will resolve an aim.ref to a model object
+- `references.get_model_obj_ref` will resolve an paco.ref to a model object
   and won't attempt to do Stack output lookups.
 
 - Service plug-ins are loaded according to an `initilization_order` integer
@@ -144,19 +147,19 @@ Changelog for aim.models
 
 ### Changed
 
-- CloudTrail defines CloudWatchLogGroup as a sub-object rather than an aim.ref.
+- CloudTrail defines CloudWatchLogGroup as a sub-object rather than an paco.ref.
 
-- Alarms have `get_alarm_actions_aim_refs` renamed from `get_alarm_actions` as alarms can only provide
-  aim.refs and need to get the ARNs from the stacks.
+- Alarms have `get_alarm_actions_paco_refs` renamed from `get_alarm_actions` as alarms can only provide
+  paco.refs and need to get the ARNs from the stacks.
 
-- NotificationGroups are now Resources. Now they have regular working aim.ref's.
+- NotificationGroups are now Resources. Now they have regular working paco.ref's.
 
 5.0.0 (2019-08-26)
 ------------------
 
 ### Added
 
-- New field `aim.models.reference.FileReference` which resolves the path and replaces
+- New field `paco.models.reference.FileReference` which resolves the path and replaces
   the original value with the value of the file indicated by the path.
   IApiGatewayRestApi.body_file_location uses this new field.
 
@@ -169,14 +172,14 @@ Changelog for aim.models
 
 ### Changed
 
- - Multi-Dimension Alarms now need to specify an `aim.ref` as the Value.
+ - Multi-Dimension Alarms now need to specify an `paco.ref` as the Value.
 
 - Added IAMUser schemas and loading for IAM users.
 
 - Added a CommaList() schema type for loading comma separated lists into schema.List()
 
-- Moved aim reference generation into the Model. Model objects now have .aim_ref and
-  .aim_ref_parts properties which contain their aim.ref reference.
+- Moved aim reference generation into the Model. Model objects now have .paco_ref and
+  .paco_ref_parts properties which contain their paco.ref reference.
 
 - Renamed project['ne'] to project['netenv']
 
@@ -265,7 +268,7 @@ Changelog for aim.models
 
 ### Changed
 
-- All references have been renamed to start with ``aim.ref`` for consistency.
+- All references have been renamed to start with ``paco.ref`` for consistency.
 
 - AlarmSets, AlarmSet and Alarm all now implement INamed and
   are locatable in the model
@@ -286,7 +289,7 @@ Changelog for aim.models
 
 ### Changed
 
-- Services are loaded as entry_point plugins named `aim.services`
+- Services are loaded as entry_point plugins named `paco.services`
 
 - Refactored the models applications, resources, and services.
 

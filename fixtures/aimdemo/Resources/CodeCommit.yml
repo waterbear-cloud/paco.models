@@ -1,7 +1,0 @@
-aimdemo:
-  app:
-    enabled: true
-    account: aim.ref accounts.data
-    aws_region: 'us-west-2'
-    description: "Demo repository"
-    repository_name: "aimdemo-app"

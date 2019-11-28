@@ -1,9 +1,0 @@
-hosted_zones:
-  aimdemo:
-    enabled: true
-    domain_name: aimdemo.example.com
-    account: aim.ref accounts.prod
-  aimdemo_dev:
-    enabled: true
-    domain_name: dev.aimdemo.example.com
-    account: aim.ref accounts.dev

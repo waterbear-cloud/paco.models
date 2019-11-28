@@ -1,9 +1,0 @@
-keypairs:
-  aimdemo_dev:
-    name: "aimdemo-dev-us-west-2"
-    region: "us-west-2"
-    account: aim.ref accounts.dev
-  aimdemo_prod:
-    name: "aimdemo-prod-us-west-2"
-    region: "us-west-2"
-    account: aim.ref accounts.prod

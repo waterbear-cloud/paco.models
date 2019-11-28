@@ -1,7 +1,7 @@
 Changelog for paco.models
 =========================
 
-\ (unreleased)
+6.2.1 (unreleased)
 --------------
 
 - Nothing changed yet.

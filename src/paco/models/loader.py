@@ -1178,7 +1178,7 @@ class ModelLoader():
     def check_paco_project_version(self, version):
         paco_models_version = pkg_resources.get_distribution('paco.models').version
         paco_major, paco_medium = paco_models_version.split('.')[0:2]
-        if version[0] != int(paco_major) or version[1] != int(paco_medium):
+        if version[0] != int(paco_major):
             raise InvalidAimProjectFile(
                 "Version mismatch: project declares Paco project version {}.{} but paco.models is at version {}".format(
                     version[0], version[1], paco_models_version

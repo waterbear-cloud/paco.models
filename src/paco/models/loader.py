@@ -8,8 +8,8 @@ from paco.models.formatter import get_formatted_model_context
 from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
-from paco.models.exceptions import InvalidAimFieldType, InvalidAimProjectFile, UnusedAimProjectField, \
-    TroposphereConversionError, InvalidAimSchema
+from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
+    TroposphereConversionError, InvalidPacoSchema
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
@@ -562,7 +562,7 @@ def get_all_nodes(root):
                     if hasattr(cur_node, 'paco_ref_parts'):
                         message += "Ref: {}.{}\n".format(cur_node.paco_ref_parts, field_name)
                     message += "Hint: List fields default needs to be set to [] in the implementor object init()."
-                    raise InvalidAimProjectFile(message)
+                    raise InvalidPacoProjectFile(message)
                 for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
                         stack.insert(0, obj)
@@ -623,7 +623,7 @@ def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=
     if not zope.interface.common.mapping.IMapping.providedBy(obj):
         for key in config.keys():
             if key not in fields:
-                raise UnusedAimProjectField("""Error in config file at: {}
+                raise UnusedPacoProjectField("""Error in config file at: {}
 Unneeded field: {}.{}
 
 Verify that '{}' has the correct indentation in the config file.
@@ -731,7 +731,7 @@ Verify that '{}' has the correct indentation in the config file.
 
 def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
     """
-    Raise an InvalidAimProjectFile error with helpful information
+    Raise an InvalidPacoProjectFile error with helpful information
     """
     try:
         field_context_name = exc.field.context.name
@@ -744,7 +744,7 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
             hint = "Hint: {} was not found in the SUB_TYPES_CLASS_MAP or RESOURCES_CLASS_MAP\n".format(obj.__class__.__name__)
         elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
             hint = "Hint: {} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
-    raise InvalidAimProjectFile(
+    raise InvalidPacoProjectFile(
         """Error in file at {}
 
 Invalid config for field '{}' for object type '{}'.
@@ -802,14 +802,14 @@ def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, r
         container = container_class(name, obj)
         for name, config in value.items():
             if isinstance(config, dict) == False:
-                raise InvalidAimProjectFile("""
+                raise InvalidPacoProjectFile("""
 Error in file at {}
 Resource: '{}'
 Invalid config type: '{}'.
 
 Configuration section:
 {}""".format(read_file_path, name, type(config), config))
-                raise InvalidAimProjectFile("""
+                raise InvalidPacoProjectFile("""
 Error in file at {}
 Type of '{}' does not exist for '{}'
 
@@ -821,13 +821,13 @@ Configuration section:
                 klass = class_mapping[config['type']]
             except KeyError:
                 if 'type' not in config:
-                    raise InvalidAimProjectFile("""
+                    raise InvalidPacoProjectFile("""
 Error in file at {}
 No type specified for resource '{}'.
 
 Configuration section:
 {}""".format(read_file_path, name, config))
-                raise InvalidAimProjectFile("""
+                raise InvalidPacoProjectFile("""
 Error in file at {}
 Type of '{}' does not exist for '{}'
 
@@ -932,7 +932,7 @@ Configuration section:
                 name,
                 value,
                 read_file_path,
-                InvalidAimFieldType("Expected list type but got %s" % type(value))
+                InvalidPacoFieldType("Expected list type but got %s" % type(value))
             )
         for sub_value in value:
             sub_obj = sub_class().fromUnicode(sub_value)
@@ -1059,7 +1059,7 @@ def load_string_from_path(path, base_path=None, is_yaml=False):
             return fh.read()
     else:
         # ToDo: better error help
-        raise InvalidAimProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
+        raise InvalidPacoProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
 
 def read_yaml_file(path):
     "Same as the ModelLoader method, but available outside that class"
@@ -1164,7 +1164,7 @@ class ModelLoader():
         "Reads <project>/paco-project-version.txt and returns a tuple (major,medium) version"
         version_file = self.config_folder + os.sep + 'paco-project-version.txt'
         if not os.path.isfile(version_file):
-            raise InvalidAimProjectFile(
+            raise InvalidPacoProjectFile(
                 'You need a <project>/paco-project-version.txt file that declares your Paco project file format version.'
             )
         with open(version_file) as f:
@@ -1179,7 +1179,7 @@ class ModelLoader():
         paco_models_version = pkg_resources.get_distribution('paco.models').version
         paco_major, paco_medium = paco_models_version.split('.')[0:2]
         if version[0] != int(paco_major):
-            raise InvalidAimProjectFile(
+            raise InvalidPacoProjectFile(
                 "Version mismatch: project declares Paco project version {}.{} but paco.models is at version {}".format(
                     version[0], version[1], paco_models_version
                 ))
@@ -1292,8 +1292,8 @@ class ModelLoader():
                     klass = RESOURCES_CLASS_MAP[res_config['type']]
                 except KeyError:
                     if 'type' not in res_config:
-                        raise InvalidAimProjectFile("No type for resource {}".format(res_key))
-                    raise InvalidAimProjectFile(
+                        raise InvalidPacoProjectFile("No type for resource {}".format(res_key))
+                    raise InvalidPacoProjectFile(
                         "No mapping for type {} for {}".format(res_config['type'], res_key)
                     )
                 obj = klass(res_key, res_groups)
@@ -1513,7 +1513,7 @@ class ModelLoader():
                         region = self.project.active_regions[0] # regions are all the same, just choose the first
                         for groupname in alarm.notification_groups:
                             if groupname not in self.project['resource']['notificationgroups'][region]:
-                                raise InvalidAimProjectFile(
+                                raise InvalidPacoProjectFile(
                                     "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
                                         alarm.name,
                                         app.name,
@@ -1557,7 +1557,7 @@ class ModelLoader():
                     apply_attributes_from_config(topic, topic_config, read_file_path=self.read_file_path)
                     region[topicname] = topic
         else:
-            raise InvalidAimProjectFile("Resource/NotificationGroups.yaml does not have a top-level `groups:`.")
+            raise InvalidPacoProjectFile("Resource/NotificationGroups.yaml does not have a top-level `groups:`.")
 
         return notificationgroups
 
@@ -1648,7 +1648,7 @@ class ModelLoader():
         return
 
     def raise_env_name_mismatch(self, item_name, config_name, env_region):
-        raise InvalidAimProjectFile(
+        raise InvalidPacoProjectFile(
             "Could not find config for '{}' in '{}', for environment '{}' in netenv '{}'.".format(
                 item_name, config_name, env_region.__parent__.name, env_region.__parent__.__parent__.name
             )
@@ -1763,7 +1763,7 @@ class ModelLoader():
         try:
             global_vaults_config = global_config['backup_vaults']
         except KeyError:
-            raise InvalidAimProjectFile(
+            raise InvalidPacoProjectFile(
                 """EnvironmentDefault at {}
                 Contains backup_vaults configuration but there is no global backup_vaults
                 configuration in this YAML file.""".format(
@@ -1865,7 +1865,7 @@ class ModelLoader():
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
          # Network Environment
         if config['network'] == None:
-            raise InvalidAimProjectFile("NetworkEnvironment {} has no network".format(name))
+            raise InvalidPacoProjectFile("NetworkEnvironment {} has no network".format(name))
         net_env = self.create_apply_and_save(
             name,
             self.project['netenv'],
@@ -1889,7 +1889,7 @@ class ModelLoader():
                     if env_reg_name == 'title': continue
                     # key must be a valid aws region name
                     if env_reg_name != 'default' and env_reg_name not in aws_regions:
-                        raise InvalidAimProjectFile(
+                        raise InvalidPacoProjectFile(
                             "Environment region name is not valid: {} in {}".format(env_reg_name, env_name)
                         )
                     if env_reg_name is not 'default':
@@ -1912,7 +1912,7 @@ class ModelLoader():
                     # merge default only with base netenv
                     if env_reg_name == 'default':
                         if not 'network' in env_reg_config:
-                            raise InvalidAimProjectFile(
+                            raise InvalidPacoProjectFile(
                                 "Default Environment {} must have base network config".format(env_region.__parent__.name)
                             )
                         net_config = merge(config['network'], env_reg_config['network'])
@@ -1920,7 +1920,7 @@ class ModelLoader():
                     else:
                         default = config['environments'][env_region.__parent__.name]['default']
                         if not 'network' in default:
-                            raise InvalidAimProjectFile(
+                            raise InvalidPacoProjectFile(
                                 "Default Environment {} must have base network config".format(env_region.__parent__.name)
                             )
                         net_config = merge(

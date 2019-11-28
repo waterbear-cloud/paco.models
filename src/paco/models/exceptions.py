@@ -1,22 +1,22 @@
-class InvalidAimFieldType(Exception):
+class InvalidPacoFieldType(Exception):
     pass
 
-class InvalidAimSchema(Exception):
+class InvalidPacoSchema(Exception):
     pass
 
-class InvalidAimProjectFile(Exception):
+class InvalidPacoProjectFile(Exception):
     pass
 
-class UnusedAimProjectField(Exception):
+class UnusedPacoProjectField(Exception):
     pass
 
-class InvalidAimReference(Exception):
+class InvalidPacoReference(Exception):
     pass
 
 class InvalidCFNMapping(Exception):
     pass
 
-class InvalidAimBucket(Exception):
+class InvalidPacoBucket(Exception):
     pass
 
 class InvalidAWSResourceName(Exception):

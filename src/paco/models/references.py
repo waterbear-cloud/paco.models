@@ -5,7 +5,7 @@ References
 import os, pathlib
 import zope.schema
 from paco.models import vocabulary, schemas
-from paco.models.exceptions import InvalidAimReference
+from paco.models.exceptions import InvalidPacoReference
 import ruamel.yaml
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ITextLine
@@ -184,7 +184,7 @@ def get_model_obj_from_ref(ref, project):
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
         else:
-            raise InvalidAimReference("Could not find model at {}".format(ref.raw))
+            raise InvalidPacoReference("Could not find model at {}".format(ref.raw))
     return obj
 
 def get_resolve_ref_obj(project, obj, ref, part_idx_start):
@@ -213,7 +213,7 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
         outputs_value = resolve_ref_outputs(ref, project['home'])
         if outputs_value != None:
             return outputs_value
-        raise InvalidAimReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
+        raise InvalidPacoReference("Invalid AIM Reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
     return response
 
 def resolve_ref_outputs(ref, project_folder):
@@ -372,7 +372,7 @@ def resolve_accounts_ref(ref, project):
     try:
         account = project[ref.parts[0]][ref.parts[1]]
     except KeyError:
-        raise InvalidAimReference("Can not resolve the reference '{}'".format(ref.raw))
+        raise InvalidPacoReference("Can not resolve the reference '{}'".format(ref.raw))
 
     return account.resolve_ref(ref)
 

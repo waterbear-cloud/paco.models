@@ -124,7 +124,7 @@ class Alarm(Named, Regionalized, Deployable):
             if hasattr(plugin_module, 'override_alarm_actions'):
                 count += 1
         if count > 1:
-            raise paco.models.exceptions.InvalidAimProjectFile('More than one Service plugin is overriding alarm actions')
+            raise paco.models.exceptions.InvalidPacoProjectFile('More than one Service plugin is overriding alarm actions')
 
         for plugin_name, plugin_module in service_plugins.items():
             if hasattr(plugin_module, 'override_alarm_actions'):
@@ -135,7 +135,7 @@ class Alarm(Named, Regionalized, Deployable):
             notificationgroups[group].paco_ref + '.arn' for group in self.notification_groups
         ]
         if len(notification_arns) > 5:
-            raise paco.models.exceptions.InvalidAimProjectFile("""
+            raise paco.models.exceptions.InvalidPacoProjectFile("""
     Alarm {} has {} actions, but CloudWatch Alarms allow a maximum of 5 actions.
 
     {}""".format(self.name, len(notification_arns), get_formatted_model_context(self))

@@ -12,7 +12,7 @@ from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
     DNSEnablable, CFNExport
-from paco.models.exceptions import InvalidAimBucket
+from paco.models.exceptions import InvalidPacoBucket
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
 from paco.models.metrics import Monitorable, AlarmNotifications
@@ -330,7 +330,7 @@ class S3Bucket(Resource, Deployable):
         # They rely on bucket_name_prefix and bucket_name_suffix attributes being set on the S3Bucket object
         else:
             if self.bucket_name_prefix == None or self.bucket_name_suffix == None:
-                raise InvalidAimBucket("""
+                raise InvalidPacoBucket("""
                 Custom named bucket requires a bucket_name_prefix and bucket_name_suffix attributes to be set.
 
                 {}

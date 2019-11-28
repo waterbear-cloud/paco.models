@@ -3,7 +3,7 @@ Cloud accounts
 """
 from paco.models.base import Name, Named, Deployable
 from paco.models import schemas
-from paco.models.exceptions import InvalidAimReference
+from paco.models.exceptions import InvalidPacoReference
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -42,7 +42,7 @@ class Account(Named, Deployable, dict):
 
     def resolve_ref(self, ref):
         if ref.parts[1] != self.name:
-            raise InvalidAimReference("Ref of {} can not resolve.")
+            raise InvalidPacoReference("Ref of {} can not resolve.")
         if len(ref.parts) == 2:
             # This may return an account object in the future
             # but you can use get_model_obj_from_ref for that instead

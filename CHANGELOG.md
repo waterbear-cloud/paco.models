@@ -1,8 +1,8 @@
 Changelog for paco.models
 =========================
 
-6.2.1 (unreleased)
---------------
+6.2.1 (2019-11-29)
+------------------
 
 - Fixes for the AIM to paco rename.
 

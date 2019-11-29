@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/waterbear-cloud/paco.models',
-    install_requires=['Setuptools', 'ruamel.yaml', 'zope.schema'],
+    install_requires=['Setuptools', 'ruamel.yaml', 'zope.schema', 'troposphere'],
     packages=[
         'paco.models',
     ],

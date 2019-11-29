@@ -160,14 +160,13 @@ class Parent(CFNExport):
         if get_parent_by_interface(obj, schemas.IGlobalResources) and schemas.IS3Bucket.providedBy(obj):
             account = obj.account.split('.')[-1:][0]
             parts = ['resource','s3','buckets', account, obj.region, obj.name]
-            return '.'.join(parts)
-
-        parent = obj.__parent__
-        while parent != None:
-            parts.append(obj.name)
-            obj = parent
+        else:
             parent = obj.__parent__
-        parts.reverse()
+            while parent != None:
+                parts.append(obj.name)
+                obj = parent
+                parent = obj.__parent__
+            parts.reverse()
         return parts
 
     @property

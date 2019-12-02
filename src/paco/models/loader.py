@@ -718,7 +718,7 @@ Verify that '{}' has the correct indentation in the config file.
         try:
             interface.validateInvariants(obj)
         except zope.interface.exceptions.Invalid as exc:
-            raise_invalid_schema_error(obj, name, value, read_file_path, exc)
+            raise_invalid_schema_error(obj, None, value, read_file_path, exc)
 
         # validate all fields - this catches validation for required fields
         fields = zope.schema.getFields(interface)
@@ -744,10 +744,24 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
             hint = "Hint: {} was not found in the SUB_TYPES_CLASS_MAP or RESOURCES_CLASS_MAP\n".format(obj.__class__.__name__)
         elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
             hint = "Hint: {} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
+    if name == None:
+        # Invariants trigger schema errors without being specific to a single field
+        raise InvalidPacoProjectFile(
+            """Error in file at {}
+
+Invalid config for type '{}':
+{}
+
+Object
+------
+{}
+""".format(
+            read_file_path, obj.__class__.__name__, exc, get_formatted_model_context(obj))
+        )
     raise InvalidPacoProjectFile(
         """Error in file at {}
 
-Invalid config for field '{}' for object type '{}'.
+Invalid config for field '{}' for type '{}'.
 Exception: {}
 Value supplied: {}
 Field Context name: {}

@@ -4081,23 +4081,64 @@ class IRoute53Resource(INamed):
 
 class IRoute53HealthCheck(IResource):
     """Route53 Health Check"""
-    # ToDo: Add fields for IP address or FQDN and invariant for load_balancer, IP address or FQDN field.
+    @invariant
+    def is_load_balancer_or_domain_name(obj):
+        if obj.domain_name == None and obj.load_balancer == None:
+            raise Invalid("Must set either domain_name or load_balancer field.")
+        if obj.domain_name != None and obj.load_balancer != None:
+            raise Invalid("Can not set both domain_name and load_balancer field.")
+
     @invariant
     def is_match_string_health_check(obj):
         if getattr(obj, 'match_string', None) != None:
             if obj.health_check_type not in ('HTTP', 'HTTPS'):
                 raise Invalid("If match_string field supplied, health_check_type must be HTTP or HTTPS.")
 
-    load_balancer = TextReference(
-        title="Load Balancer Endpoint",
-        str_ok=True,
+    domain_name = schema.TextLine(
+        title="Fully Qualified Domain Name",
+        description="Either this or the load_balancer field can be set but not both.",
+        required=False
+    )
+    enable_sni = schema.Bool(
+        title = "Enable SNI",
         required=False,
+        default=False
+    )
+    failure_threshold = schema.Int(
+        title="Number of consecutive health checks that an endpoint must pass or fail for Amazon Route 53 to change the current status of the endpoint from unhealthy to healthy or vice versa.",
+        min=1,
+        max=10,
+        required=False,
+        default=3,
     )
     health_check_type = schema.TextLine(
         title="Health Check Type",
         description="Must be one of HTTP, HTTPS or TCP",
         required=True,
         constraint=isValidRoute53HealthCheckType,
+    )
+    health_checker_regions = schema.List(
+        title="Health checker regions",
+        description="List of AWS Region names (e.g. us-west-2) from which to make health checks.",
+        required=False,
+        value_type=schema.TextLine(title="AWS Region"),
+        constraint=isValidHealthCheckAWSRegionList,
+    )
+    load_balancer = TextReference(
+        title="Load Balancer Endpoint",
+        str_ok=True,
+        required=False,
+    )
+    latency_graphs = schema.Bool(
+        title="Measure latency and display CloudWatch graph in the AWS Console",
+        required=False,
+        default=False,
+    )
+    match_string = schema.TextLine(
+        title="String to match in the first 5120 bytes of the response",
+        min_length=1,
+        max_length=255,
+        required=False,
     )
     port = schema.Int(
         title="Port",
@@ -4106,42 +4147,17 @@ class IRoute53HealthCheck(IResource):
         required=False,
         default=80,
     )
+    request_interval_fast = schema.Bool(
+        title="Fast request interval will only wait 10 seconds between each health check response instead of the standard 30",
+        default=False,
+        required=False,
+    )
     resource_path = schema.TextLine(
         title="Resource Path",
         description="String such as '/health.html'. Path should return a 2xx or 3xx. Query string parameters are allowed: '/search?query=health'",
         max_length=255,
         default="/",
         required=False,
-    )
-    match_string = schema.TextLine(
-        title = "String to match in the first 5120 bytes of the response",
-        min_length=1,
-        max_length=255,
-        required=False,
-    )
-    failure_threshold = schema.Int(
-        title = "Number of consecutive health checks that an endpoint must pass or fail for Amazon Route 53 to change the current status of the endpoint from unhealthy to healthy or vice versa.",
-        min=1,
-        max=10,
-        required=False,
-        default=3,
-    )
-    request_interval_fast = schema.Bool(
-        title="Fast request interval will only wait 10 seconds between each health check response instead of the standard 30",
-        default=False,
-        required=False,
-    )
-    latency_graphs = schema.Bool(
-        title="Measure latency and display CloudWatch graph in the AWS Console",
-        required=False,
-        default=False,
-    )
-    health_checker_regions = schema.List(
-        title="Health checker regions",
-        description="List of AWS Region names (e.g. us-west-2) from which to make health checks.",
-        required=False,
-        value_type=schema.TextLine(title="AWS Region"),
-        constraint=isValidHealthCheckAWSRegionList,
     )
 
 

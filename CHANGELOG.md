@@ -1,10 +1,16 @@
 Changelog for paco.models
 =========================
 
-6.2.2 (unreleased)
+6.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Route53 Health Checks have domain_name and enable_sni fields.
+
+### Changed
+
+- Invariant errors in schema checks have non-confusing error message.
 
 
 6.2.1 (2019-11-29)

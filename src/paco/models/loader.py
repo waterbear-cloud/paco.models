@@ -13,7 +13,7 @@ from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile,
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
-    HealthChecks, CloudWatchLogAlarm
+    HealthChecks, CloudWatchLogAlarm, CloudWatchDashboard, DashboardVariables
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
@@ -128,11 +128,16 @@ RESOURCES_CLASS_MAP = {
     'EBS': EBS,
     'EBSVolumeMount': EBSVolumeMount,
     'CodeDeployApplication': CodeDeployApplication,
+    'Dashboard': CloudWatchDashboard
 }
 
 SUB_TYPES_CLASS_MAP = {
     EC2Resource: {
         'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),
+    },
+
+    CloudWatchDashboard: {
+        'variables': ('dynamic_dict', DashboardVariables),
     },
 
     # CodeDeploy

@@ -1153,6 +1153,20 @@ class INotificationGroups(IAccountRef):
         constraint=isValidAWSRegionOrAllList
     )
 
+class IDashboardVariables(INamed, IMapping):
+    pass
+
+class ICloudWatchDashboard(IResource):
+    dashboard_file = StringFileReference(
+        title="File path to a JSON templated dashboard.",
+        required=True
+    )
+    variables = schema.Dict(
+        title="Dashboard Variables",
+        default={},
+        required=False
+    )
+
 # Logging schemas
 
 class ICloudWatchLogRetention(Interface):

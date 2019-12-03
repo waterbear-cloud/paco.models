@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- ICloudWatchDashboard for CloudWatch Dashboard resources.
+
 - Route53 Health Checks have domain_name and enable_sni fields.
 
 ### Changed

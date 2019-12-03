@@ -462,6 +462,15 @@ applications:
               # Restart apache
               apachectl restart
 
+          dashboard:
+            type: Dashboard
+            enabled: true
+            order: 100
+            title: Demo-Dashboard
+            dashboard_file: ./dashboards/demo.json
+            variables:
+              WebAsg.name: paco.ref netenv.ci.applications.app.groups.site.resources.webapp
+
       restapi:
         type: Application
         order: 2

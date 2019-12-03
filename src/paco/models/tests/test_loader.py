@@ -359,3 +359,10 @@ class Testpacodemo(BaseTestModelLoader):
         myvault = vaults['myapp']
         assert myvault.title == "All data for MyApp (myapp) application"
         assert myvault.plans['ebs_daily'].plan_rules[0].schedule_expression == 'cron(0 7 ? * * *)'
+
+    def test_dashboard(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        dashboard = demo_env['applications']['app'].groups['site'].resources['dashboard']
+        assert schemas.ICloudWatchDashboard.providedBy(dashboard)
+        assert dashboard.title == "Demo-Dashboard"
+        assert 'WebAsg.name' in dashboard.variables

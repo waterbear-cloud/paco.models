@@ -159,9 +159,12 @@ class InternetGateway(Deployable):
 
 @implementer(schemas.INATGateway)
 class NATGateway(Named, Deployable, dict):
+    type = FieldProperty(schemas.INATGateway["type"])
     availability_zone = FieldProperty(schemas.INATGateway["availability_zone"])
     segment = FieldProperty(schemas.INATGateway["segment"])
     default_route_segments = FieldProperty(schemas.INATGateway["default_route_segments"])
+    security_groups = FieldProperty(schemas.INATGateway["security_groups"])
+    ec2_key_pair = FieldProperty(schemas.INATGateway["ec2_key_pair"])
 
 @implementer(schemas.IVPNGateway)
 class VPNGateway(Deployable, dict):

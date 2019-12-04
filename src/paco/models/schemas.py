@@ -553,7 +553,7 @@ def IsValidASGLifecycleDefaultResult(value):
 
 # ASG AvailabilityZones
 class InvalidASGAvailabilityZone(schema.ValidationError):
-    __doc__ = 'availability_zone must of: all | 1 | 2 | 3 | 4 | ...'
+    __doc__ = 'availability_zone must be one of: all | 1 | 2 | 3 | 4 | ...'
 
 def IsValidASGAvailabilityZone(value):
     if value == 'all':
@@ -571,6 +571,15 @@ class InvalidEBSVolumeType(schema.ValidationError):
 def isValidEBSVolumeType(value):
     if value not in ('gp2', 'io1', 'sc1', 'st1', 'standard'):
         raise InvalidEBSVolumeType
+    return True
+
+# NAT Gateway
+class InvalidNATGatewayType(schema.ValidationError):
+    __doc__ = 'NATGateay type must be one of: Managed | EC2'
+
+def IsValidNATGatewayType(value):
+    if value not in ['Managed', 'EC2']:
+        raise InvalidNATGatewayType
     return True
 
 # ----------------------------------------------------------------------------
@@ -1833,6 +1842,12 @@ class INATGateway(INamed, IDeployable, IMapping):
     """
     AWS Resource: NAT Gateway
     """
+    type = schema.TextLine(
+        title = 'NAT Gateway type',
+        default = 'Managed',
+        required = False,
+        constraint = IsValidNATGatewayType
+    )
     availability_zone = schema.TextLine(
         # Can be: all | 1 | 2 | 3 | 4 | ...
         title = 'Availability Zones to launch instances in.',
@@ -1853,6 +1868,21 @@ class INATGateway(INamed, IDeployable, IMapping):
         ),
         required = False,
     )
+
+    security_groups = schema.List(
+        title = "Security Groups",
+        value_type=TextReference(
+            title="Paco reference"
+        ),
+        required = False,
+    )
+
+    ec2_key_pair = TextReference(
+        title = "EC2 key pair reference",
+        description="",
+        required = False,
+    )
+
 
 class IVPNGateway(IDeployable, IMapping):
     """

@@ -313,6 +313,9 @@ def resolve_function_ref(ref, project, account_ctx):
         elif ref.last_part == 'amazon-linux':
             ami_description = "Amazon Linux AMI*"
             ami_name = 'amzn-ami-hvm-*'
+        elif ref.last_part == 'amazon-linux-nat':
+            ami_description = "Amazon Linux AMI*"
+            ami_name = 'amzn-ami-vpc-nat-hvm-*'
         else:
             raise ValueError("Unsupported AMI Name: {}".format(ref.last_part))
 

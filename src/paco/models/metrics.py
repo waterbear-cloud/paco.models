@@ -366,5 +366,10 @@ class MonitorConfig(Deployable, Named):
         self.asg_metrics = asg_builtin_metrics
         self.metrics = []
 
+@implementer(schemas.IDashboardVariables)
+class DashboardVariables(Named, dict):
+    pass
 
-
+@implementer(schemas.ICloudWatchDashboard)
+class CloudWatchDashboard(Resource):
+    dashboard_file = FieldProperty(schemas.ICloudWatchDashboard["dashboard_file"])

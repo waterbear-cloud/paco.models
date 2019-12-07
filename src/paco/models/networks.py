@@ -165,6 +165,7 @@ class NATGateway(Named, Deployable, dict):
     default_route_segments = FieldProperty(schemas.INATGateway["default_route_segments"])
     security_groups = FieldProperty(schemas.INATGateway["security_groups"])
     ec2_key_pair = FieldProperty(schemas.INATGateway["ec2_key_pair"])
+    ec2_instance_type = FieldProperty(schemas.INATGateway["ec2_instance_type"])
 
 @implementer(schemas.IVPNGateway)
 class VPNGateway(Deployable, dict):

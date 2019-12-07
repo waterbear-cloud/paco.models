@@ -1897,6 +1897,12 @@ class INATGateway(INamed, IDeployable, IMapping):
         required = False,
     )
 
+    ec2_instance_type = schema.TextLine(
+        title = "EC2 Instance Type",
+        required = False,
+        default='t2.nano'
+    )
+
 
 class IVPNGateway(IDeployable, IMapping):
     """

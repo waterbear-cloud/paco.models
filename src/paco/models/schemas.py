@@ -4132,11 +4132,18 @@ class IRoute53Resource(INamed):
 class IRoute53HealthCheck(IResource):
     """Route53 Health Check"""
     @invariant
-    def is_load_balancer_or_domain_name(obj):
-        if obj.domain_name == None and obj.load_balancer == None:
-            raise Invalid("Must set either domain_name or load_balancer field.")
-        if obj.domain_name != None and obj.load_balancer != None:
-            raise Invalid("Can not set both domain_name and load_balancer field.")
+    def is_load_balancer_or_domain_name_or_ip_address(obj):
+        if obj.domain_name == None and obj.load_balancer == None and obj.ip_address == None:
+            raise Invalid("Must set either domain_name, load_balancer or ip_address field.")
+        count = 0
+        if obj.domain_name != None:
+            count += 1
+        if obj.load_balancer != None:
+            count += 1
+        if obj.ip_address != None:
+            count += 1
+        if count > 1:
+            raise Invalid("Can set only one of the domain_name, load_balancer and ip_address fields.")
 
     @invariant
     def is_match_string_health_check(obj):
@@ -4173,6 +4180,11 @@ class IRoute53HealthCheck(IResource):
         required=False,
         value_type=schema.TextLine(title="AWS Region"),
         constraint=isValidHealthCheckAWSRegionList,
+    )
+    ip_address = TextReference(
+        title="IP Address",
+        str_ok=True,
+        required=False,
     )
     load_balancer = TextReference(
         title="Load Balancer Endpoint",

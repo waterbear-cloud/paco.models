@@ -334,6 +334,8 @@ class Route53HealthCheck(Resource):
     domain_name = FieldProperty(schemas.IRoute53HealthCheck["domain_name"])
     load_balancer = FieldProperty(schemas.IRoute53HealthCheck["load_balancer"])
     health_check_type = FieldProperty(schemas.IRoute53HealthCheck["health_check_type"])
+    ip_address = FieldProperty(schemas.IRoute53HealthCheck["ip_address"])
+    enable_sni = FieldProperty(schemas.IRoute53HealthCheck["enable_sni"])
     port = FieldProperty(schemas.IRoute53HealthCheck["port"])
     resource_path = FieldProperty(schemas.IRoute53HealthCheck["resource_path"])
     match_string = FieldProperty(schemas.IRoute53HealthCheck["match_string"])
@@ -351,11 +353,11 @@ class Route53HealthCheck(Resource):
         # 'ChildHealthChecks': ([basestring], False),
         'EnableSNI': 'enable_sni',
         'FailureThreshold': 'failure_threshold',
-        # 'FullyQualifiedDomainName': # computed in template,
+        # 'FullyQualifiedDomainName': computed in template,
         # 'HealthThreshold': ,
         # 'InsufficientDataHealthStatus': (basestring, False),
         # 'Inverted': (boolean, False),
-        # 'IPAddress': (basestring, False),
+        # 'IPAddress': computed in template,
         'MeasureLatency': 'latency_graphs',
         'Port': 'port',
         'Regions': 'health_checker_regions',

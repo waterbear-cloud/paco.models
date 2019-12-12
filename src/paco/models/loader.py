@@ -1576,7 +1576,7 @@ class ModelLoader():
                     apply_attributes_from_config(topic, topic_config, read_file_path=self.read_file_path)
                     region[topicname] = topic
         else:
-            raise InvalidPacoProjectFile("Resource/NotificationGroups.yaml does not have a top-level `groups:`.")
+            raise InvalidPacoProjectFile("resource/snstopics.yaml does not have a top-level `groups:`.")
 
         return notificationgroups
 
@@ -1656,8 +1656,11 @@ class ModelLoader():
         #   s3
         #   cloudtrail
         #   iam
-        #   notificationgroups
-        instantiate_method = getattr(self, 'instantiate_'+name, None)
+        #   notificationgroups / snstopics
+        # snstopics.yaml is an alias for notificationgroups.yaml
+        if name == 'snstopics':
+            name = 'notificationgroups'
+        instantiate_method = getattr(self, 'instantiate_' + name, None)
         if instantiate_method == None:
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))
         else:

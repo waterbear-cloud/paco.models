@@ -1117,7 +1117,14 @@ class ModelLoader():
 
     def read_yaml_file(self, path):
         with open(path, 'r') as stream:
-            data = self.yaml.load(stream)
+            try:
+                data = self.yaml.load(stream)
+            except ruamel.yaml.constructor.DuplicateKeyError as exc:
+                duplicate_key = re.match('.*?\"(.*?)\".*', exc.problem).groups()[0]
+                raise InvalidPacoProjectFile("""Error in file at {}
+
+Duplicate key \"{}\" found on line {} at column {}.
+""".format(self.read_file_path, duplicate_key, exc.context_mark.line, exc.context_mark.column))
         return data
 
     def read_yaml(self, sub_dir='', fname=''):
@@ -1914,7 +1921,7 @@ class ModelLoader():
                         raise InvalidPacoProjectFile(
                             "Environment region name is not valid: {} in {}".format(env_reg_name, env_name)
                         )
-                    if env_reg_name is not 'default':
+                    if env_reg_name != 'default':
                         env_region_config = merge(env_config['default'], env_reg_config)
                     else:
                         env_region_config = env_config['default']

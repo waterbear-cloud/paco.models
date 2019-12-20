@@ -184,7 +184,11 @@ def get_model_obj_from_ref(ref, project):
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
         else:
-            raise InvalidPacoReference("Could not find model at {}".format(ref.raw))
+            message = "\nCould not find model at {}\n".format(ref.raw)
+            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'notificationgroups', 's3', 'route53', 'resources']:
+                message += "Did you mean to run:\n"
+                message += "paco <command> resource.{}?\n".format(ref.ref)
+            raise InvalidPacoReference(message)
     return obj
 
 def get_resolve_ref_obj(project, obj, ref, part_idx_start):

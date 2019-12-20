@@ -19,7 +19,7 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
 from paco.models.project import Project, Credentials
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
-    Resource, Resources, LBApplication, TargetGroup, Listener, DNS, PortProtocol, EC2, S3Bucket, \
+    Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
@@ -286,9 +286,9 @@ SUB_TYPES_CLASS_MAP = {
         'dimensions': ('obj_list', Dimension)
     },
     LBApplication: {
-        'target_groups': ('named_obj', TargetGroup),
+        'target_groups': ('container', (TargetGroups, TargetGroup)),
         'security_groups': ('str_list', TextReference),
-        'listeners': ('named_obj', Listener),
+        'listeners': ('container', (Listeners, Listener)),
         'dns': ('obj_list', DNS),
         'monitoring': ('direct_obj', MonitorConfig)
     },

@@ -10,6 +10,8 @@ Changelog for paco.models
 
 - resource/snstopics.yaml is an alias for resource/notificationgroups.yaml
 
+- raise_invalid_reference method to display helpful message when a ref look-up fails.
+
 
 6.3.0 (2019-12-03)
 ------------------

@@ -568,6 +568,10 @@ class PortProtocol():
     port = FieldProperty(schemas.IPortProtocol['port'])
     protocol = FieldProperty(schemas.IPortProtocol['protocol'])
 
+@implementer(schemas.ITargetGroups)
+class TargetGroups(Named, dict):
+    pass
+
 @implementer(schemas.ITargetGroup)
 class TargetGroup(Resource, PortProtocol):
     type = 'TargetGroup'
@@ -590,8 +594,12 @@ class ListenerRule(Deployable):
     redirect_host = FieldProperty(schemas.IListenerRule['redirect_host'])
     target_group = FieldProperty(schemas.IListenerRule['target_group'])
 
+@implementer(schemas.IListeners)
+class Listeners(Named, dict):
+    pass
+
 @implementer(schemas.IListener)
-class Listener(Parent, PortProtocol):
+class Listener(Named, PortProtocol):
     redirect = FieldProperty(schemas.IListener['redirect'])
     ssl_certificates = FieldProperty(schemas.IListener['ssl_certificates'])
     target_group = FieldProperty(schemas.IListener['target_group'])

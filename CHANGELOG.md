@@ -12,6 +12,9 @@ Changelog for paco.models
 
 - raise_invalid_reference method to display helpful message when a ref look-up fails.
 
+### Fixed
+
+- cfn-init package sets were only loading for item, now loads all package types.
 
 6.3.0 (2019-12-03)
 ------------------

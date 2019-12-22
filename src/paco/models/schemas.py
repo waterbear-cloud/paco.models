@@ -1204,7 +1204,7 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
     log_stream_name = schema.TextLine(
         title="Log stream name",
         description="CloudWatch Log Stream name",
-        required=False,
+        required=True,
         min_length=1
     )
     multi_line_start_pattern = schema.Text(

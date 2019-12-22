@@ -16,6 +16,9 @@ Changelog for paco.models
 
 - cfn-init package sets were only loading for item, now loads all package types.
 
+- ICloudWatchLogSource log_stream_name is a required field, if it's empty the agent won't launch.
+
+
 6.3.0 (2019-12-03)
 ------------------
 

@@ -1204,7 +1204,7 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
     log_stream_name = schema.TextLine(
         title="Log stream name",
         description="CloudWatch Log Stream name",
-        required=False,
+        required=True,
         min_length=1
     )
     multi_line_start_pattern = schema.Text(
@@ -2279,6 +2279,9 @@ class IPortProtocol(Interface):
         required = False,
     )
 
+class ITargetGroups(INamed, IMapping):
+    pass
+
 class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
     health_check_interval = schema.Int(
@@ -2335,6 +2338,9 @@ class IListenerRule(IDeployable):
         title="Target group name",
         required=False,
     )
+
+class IListeners(INamed, IMapping):
+    pass
 
 class IListener(IParent, IPortProtocol):
     redirect = schema.Object(
@@ -2444,48 +2450,48 @@ to a target group, use the ``target_groups`` field on an ASG resource.
     segment: public
 
 """
-    target_groups = schema.Dict(
-        title = "Target Groups",
-        value_type=schema.Object(ITargetGroup),
-        required = False,
+    target_groups = schema.Object(
+        title="Target Groups",
+        schema=ITargetGroups,
+        required=False,
     )
-    listeners = schema.Dict(
-        title = "Listeners",
-        value_type=schema.Object(IListener),
-        required = False,
+    listeners = schema.Object(
+        title="Listeners",
+        schema=IListeners,
+        required=False,
     )
     dns = schema.List(
-        title = "List of DNS for the ALB",
-        value_type = schema.Object(IDNS),
-        required = False,
+        title="List of DNS for the ALB",
+        value_type=schema.Object(IDNS),
+        required=False,
     )
     scheme = schema.Choice(
-        title = "Scheme",
+        title="Scheme",
         vocabulary=vocabulary.lb_scheme,
-        required = False,
+        required=False,
     )
     security_groups = schema.List(
-        title = "Security Groups",
+        title="Security Groups",
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = False,
+        required=False,
     )
     segment = schema.TextLine(
-        title = "Id of the segment stack",
-        required = False,
+        title="Id of the segment stack",
+        required=False,
     )
     idle_timeout_secs = schema.Int(
-        title = 'Idle timeout in seconds',
-        description = 'The idle timeout value, in seconds.',
-        default = 60,
-        required = False,
+        title='Idle timeout in seconds',
+        description='The idle timeout value, in seconds.',
+        default=60,
+        required=False,
     )
     enable_access_logs = schema.Bool(
         title="Write access logs to an S3 Bucket",
         required=False
     )
-    access_logs_bucket = TextReference(
+    access_logs_bucket=TextReference(
         title="Bucket to store access logs in",
         required=False
     )

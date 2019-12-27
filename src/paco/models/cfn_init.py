@@ -12,10 +12,9 @@ import troposphere.cloudformation
 def export_attrs_as_dicts(obj, attrs):
     out = {}
     for name in attrs:
-        obj = getattr(obj, name, None)
-        if obj:
-            out[name] = dict(obj)
-
+        value = getattr(obj, name, None)
+        if value:
+            out[name] = dict(value)
     return out
 
 @implementer(schemas.ICloudFormationParameters)

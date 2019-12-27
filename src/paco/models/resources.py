@@ -243,8 +243,15 @@ class EC2Resource(Named):
         if ref.parts[2] == 'keypairs':
             keypair_id = ref.parts[3]
             keypair_attr = ref.parts[4]
+            try:
+                keypair = self.keypairs[keypair_id]
+            except KeyError:
+                references.raise_invalid_reference(ref, self.keypairs, keypair_id)
             keypair = self.keypairs[keypair_id]
-            return getattr(keypair, keypair_attr)
+            value = getattr(keypair, keypair_attr, None)
+            if value == None:
+                references.raise_invalid_reference(ref, keypair, keypair_attr)
+            return value
 
         return self.resolve_ref_obj.resolve_ref(ref)
 

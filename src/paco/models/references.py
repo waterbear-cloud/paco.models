@@ -177,6 +177,9 @@ def get_model_obj_from_ref(ref, project):
         ref = Reference(ref)
     obj = project
     for part_idx in range(0, len(ref.parts)):
+        # special case for resource.route53 hosted zone look-ups
+        if schemas.IRoute53Resource.providedBy(obj):
+            obj = obj.hosted_zones
         try:
             next_obj = obj[ref.parts[part_idx]]
         except (TypeError, KeyError):
@@ -217,7 +220,7 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
         outputs_value = resolve_ref_outputs(ref, project['home'])
         if outputs_value != None:
             return outputs_value
-        raise InvalidPacoReference("Invalid Paco reference for resource: {0}: '{1}'".format(type(obj), ref.raw))
+        raise_invalid_reference(ref, obj, ref.parts[part_idx:][0])
     return response
 
 def resolve_ref_outputs(ref, project_folder):
@@ -246,6 +249,18 @@ def resolve_ref_outputs(ref, project_folder):
 
     return None
 
+def raise_invalid_reference(ref, obj, name):
+    """Takes the ref attempting to be looked-up,
+    an obj that was the last model traversed too,
+    the name that failed the next look-up.
+    """
+    raise InvalidPacoReference("""
+Invalid Paco reference:
+{}
+
+Reference look-up failed at '{}' trying to find name '{}'.
+""".format(ref.raw, obj.paco_ref_parts, name))
+
 def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     """Resolve a reference"""
     if ref == None:
@@ -255,7 +270,10 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         if ref.parts[1] == 's3':
             ref_value = get_resolve_ref_obj(project, project['resource']['s3'], ref, part_idx_start=2)
         else:
-            ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
+            try:
+                ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
+            except KeyError:
+                raise_invalid_reference(ref, project['resource'], ref.parts[1])
     elif ref.type == "service":
         ref_value = get_resolve_ref_obj(project, project, ref, part_idx_start=0)
         return ref_value
@@ -272,7 +290,12 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         else:
             ref_value = project[ref.parts[1]].resolve_ref(ref)
     elif ref.type == "netenv":
-        obj = project['netenv'][ref.parts[1]][ref.parts[2]][ref.parts[3]]
+        try:
+            obj = project['netenv']
+            for i in range(1,4):
+                obj = obj[ref.parts[i]]
+        except KeyError:
+            raise_invalid_reference(ref, obj, ref.parts[i])
         ref_value = get_resolve_ref_obj(project, obj, ref, 4)
 
     elif ref.type == "accounts":

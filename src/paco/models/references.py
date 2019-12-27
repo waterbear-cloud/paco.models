@@ -254,8 +254,6 @@ def raise_invalid_reference(ref, obj, name):
     an obj that was the last model traversed too,
     the name that failed the next look-up.
     """
-    if type(obj) == type(dict()):
-        breakpoint()
     raise InvalidPacoReference("""
 Invalid Paco reference:
 {}
@@ -275,7 +273,6 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
             try:
                 ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
             except KeyError:
-                breakpoint()
                 raise_invalid_reference(ref, project['resource'], ref.parts[1])
     elif ref.type == "service":
         ref_value = get_resolve_ref_obj(project, project, ref, part_idx_start=0)

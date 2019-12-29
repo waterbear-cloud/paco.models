@@ -89,7 +89,7 @@ class EnvironmentDefault(Named, dict):
         self.__setitem__('secrets_manager', self.secrets_manager)
 
         # backup_vaults
-        self.backup_vaults = paco.models.backup.BackupVaults('secrets_manager', self)
+        self.backup_vaults = paco.models.backup.BackupVaults('backup_vaults', self)
         self.backup_vaults.title = 'Backup Vaults'
         self.__setitem__('backup_vaults', self.backup_vaults)
 

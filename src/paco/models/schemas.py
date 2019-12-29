@@ -3397,6 +3397,12 @@ class IBlockDeviceMapping(IParent):
         required=False
     )
 
+class IASGRollingUpdatePolicy(INamed, IDeployable):
+    """
+    Auto Scaling Group Roling Update Policy
+    """
+
+
 class IASG(IResource, IMonitorable):
     """
     Auto Scaling Group
@@ -3534,6 +3540,11 @@ class IASG(IResource, IMonitorable):
         default=1,
         required = False,
     )
+    #rolling_update_policy = schema.Object(
+    #    title="Rolling Update Policy",
+    #    required = False
+    #)
+
     update_policy_max_batch_size = schema.Int(
         title="Update policy maximum batch size",
         description="",

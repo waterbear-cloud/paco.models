@@ -61,6 +61,7 @@ class Role(Named, Deployable):
 @implementer(schemas.IPolicy)
 class Policy(Parent):
     name = FieldProperty(schemas.IPolicy["name"])
+    statement = FieldProperty(schemas.IPolicy["statement"])
 
 @implementer(schemas.IAssumeRolePolicy)
 class AssumeRolePolicy(Parent):

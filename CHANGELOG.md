@@ -1,12 +1,15 @@
 Changelog for paco.models
 =========================
 
-6.3.2 (unreleased)
+6.3.2 (2020-01-06)
 ------------------
 
 ### Changed
 
-- Schema clean-up, removed IMapping from schemas that do not actual use it.
+- Schema clean-up, removed IMapping for all schemas that do not actually use it.
+
+- Removed unused managed_udpates field for IApplication.
+
 
 6.3.1 (2020-01-03)
 ------------------

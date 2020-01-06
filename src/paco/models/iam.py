@@ -8,9 +8,6 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from paco.models import loader
 
-@implementer(schemas.IIAMs)
-class IAMs(Named, dict):
-    pass
 
 @implementer(schemas.IIAM)
 class IAM(Named):
@@ -86,7 +83,7 @@ class Statement(Named):
 #    pass
 
 @implementer(schemas.IManagedPolicy)
-class ManagedPolicy(Named, Deployable, dict):
+class ManagedPolicy(Named, Deployable):
     name = FieldProperty(schemas.IManagedPolicy["name"])
     statement = FieldProperty(schemas.IManagedPolicy["statement"])
     roles = FieldProperty(schemas.IManagedPolicy["roles"])

@@ -20,13 +20,7 @@ class NetworkEnvironments(Named, dict):
 @implementer(schemas.INetworkEnvironment)
 class NetworkEnvironment(Named, Deployable, dict):
     """
-    Object attrs:
-        - environments : dict : Network Environment
-        - vpc : obj : instance of VPC model class
-        - segments : obj : what are these?
-
-    Container:
-        - Dictionary of Environment objects
+    Network information and container for Environment objects.
     """
     availability_zones = FieldProperty(schemas.INetworkEnvironment["availability_zones"])
     vpc = FieldProperty(schemas.INetworkEnvironment["vpc"])
@@ -158,7 +152,7 @@ class InternetGateway(Deployable):
     pass
 
 @implementer(schemas.INATGateway)
-class NATGateway(Named, Deployable, dict):
+class NATGateway(Named, Deployable):
     type = FieldProperty(schemas.INATGateway["type"])
     availability_zone = FieldProperty(schemas.INATGateway["availability_zone"])
     segment = FieldProperty(schemas.INATGateway["segment"])
@@ -168,8 +162,10 @@ class NATGateway(Named, Deployable, dict):
     ec2_instance_type = FieldProperty(schemas.INATGateway["ec2_instance_type"])
 
 @implementer(schemas.IVPNGateway)
-class VPNGateway(Deployable, dict):
-    pass
+class VPNGateway(Deployable):
+    """
+VPN Gateway
+    """
 
 @implementer(schemas.IPrivateHostedZone)
 class PrivateHostedZone(Deployable):

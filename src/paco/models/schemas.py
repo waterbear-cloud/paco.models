@@ -1,4 +1,4 @@
-from zope.interface import Interface, Attribute, invariant, Invalid, classImplements
+from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue
 from zope.interface.common.mapping import IMapping
 from zope.interface.common.sequence import ISequence
 from zope import schema
@@ -28,8 +28,6 @@ def isListOfLayerARNs(value):
             if m.groups()[0] not in vocabulary.aws_regions:
                 raise InvalidLayerARNList
     return True
-
-
 
 class InvalidStringConditionOperator(schema.ValidationError):
     __doc__ = 'String Condition operator must be one of: StringEquals, StringNotEquals, StringEqualsIgnoreCase, StringNotEqualsIgnoreCase, StringLike, StringNotLike.',
@@ -63,8 +61,6 @@ def isValidDeploymentGroupBundleType(value):
     if value not in ('JSON', 'tar', 'tgz', 'YAML', 'zip'):
         raise InvalidDeploymentGroupBundleType
     return True
-
-
 
 class InvalidS3KeyPrefix(schema.ValidationError):
     __doc__ = 'Not a valid S3 bucket prefix. Can not start or end with /.'
@@ -588,9 +584,9 @@ def IsValidNATGatewayType(value):
 class IDNSEnablable(Interface):
     """Provides a parent with an inheritable DNS enabled field"""
     dns_enabled = schema.Bool(
-        title = 'Boolean indicating whether DNS record sets will be created.',
-        default = True,
-        required = False,
+        title='Boolean indicating whether DNS record sets will be created.',
+        default=True,
+        required=False,
     )
 
 class CommaList(schema.List):
@@ -606,10 +602,17 @@ class CommaList(schema.List):
         #return path.exists()
 
 class IParent(Interface):
+    """
+An object in the Paco project model tree with a reference to a parent object.
+    """
     __parent__ = Attribute("Object reference to the parent in the object hierarchy")
 
 class ITitle(Interface):
-    title = schema.TextLine(
+    """
+A title is a human-readable name. It can be as long as you want, and can change without
+breaking any configuration.
+    """
+    title=schema.TextLine(
         title="Title",
         default="",
         required=False,
@@ -617,31 +620,35 @@ class ITitle(Interface):
 
 class INamed(IParent, ITitle):
     """
-    A locatable resource
-    """
+A name given to a cloud resource. Names identify resources and changing them
+can break configuration.
+"""
     name = schema.TextLine(
         title="Name",
         default="",
-        required = False,
+        required=False,
     )
 
 
 class IDeployable(Interface):
+    """
+Indicates if this configuration tree should be enabled or not.
+    """
     enabled = schema.Bool(
         title="Enabled",
-        description = "Could be deployed to AWS",
+        description="Could be deployed to AWS",
         default=False,
-        required = False,
+        required=False,
     )
 
 class IName(Interface):
     """
-    A resource which has a name but is not locatable
+A name that can be changed or duplicated with other similar cloud resources without breaking anything.
     """
     name = schema.TextLine(
         title="Name",
         default="",
-        required = False,
+        required=False,
     )
 
 class IFileReference(Interface):
@@ -667,20 +674,20 @@ classImplements(YAMLFileReference, IYAMLFileReference)
 class INameValuePair(Interface):
     """A Name/Value pair to use for RDS Option Group configuration"""
     name = schema.TextLine(
-        title = "Name",
-        required = False,
+        title="Name",
+        required=False,
     )
     value = schema.TextLine(
-        title = "Value",
-        required = False,
+        title="Value",
+        required=False,
     )
 
 class IAdminIAMUser(IDeployable):
     """An AWS Account Administerator IAM User"""
     username = schema.TextLine(
-        title = "IAM Username",
-        default = "",
-        required = False,
+        title="IAM Username",
+        default="",
+        required=False,
     )
 
 class IAccounts(IMapping):
@@ -690,96 +697,96 @@ class IAccounts(IMapping):
 class IAccount(INamed, IDeployable):
     "Cloud account information"
     account_type = schema.TextLine(
-        title = "Account Type",
-        description = "Supported types: 'AWS'",
-        default = "AWS",
-        required = False,
+        title="Account Type",
+        description="Supported types: 'AWS'",
+        default="AWS",
+        required=False,
     )
     account_id = schema.TextLine(
-        title = "Account ID",
-        description = "Can only contain digits.",
-        required = False,
+        title="Account ID",
+        description="Can only contain digits.",
+        required=False,
         constraint = isOnlyDigits
     )
     admin_delegate_role_name = schema.TextLine(
-        title = "Administrator delegate IAM Role name for the account",
-        description = "",
-        default = "",
-        required = False,
+        title="Administrator delegate IAM Role name for the account",
+        description="",
+        default="",
+        required=False,
     )
     is_master = schema.Bool(
-        title = "Boolean indicating if this a Master account",
-        default = False,
-        required = False,
+        title="Boolean indicating if this a Master account",
+        default=False,
+        required=False,
     )
     region = schema.TextLine(
-        title = "Region to install AWS Account specific resources",
-        default = "no-region-set",
+        title="Region to install AWS Account specific resources",
+        default="no-region-set",
         missing_value = "no-region-set",
-        required = True,
-        description = 'Must be a valid AWS Region name',
+        required=True,
+        description='Must be a valid AWS Region name',
         constraint = isValidAWSRegionName
     )
     root_email = schema.TextLine(
-        title = "The email address for the root user of this account",
-        required = True,
-        description = 'Must be a valid email address.',
+        title="The email address for the root user of this account",
+        required=True,
+        description='Must be a valid email address.',
         constraint = isValidEmail
     )
     organization_account_ids = schema.List(
-        title = "A list of account ids to add to the Master account's AWS Organization",
+        title="A list of account ids to add to the Master account's AWS Organization",
         value_type = schema.TextLine(),
-        required = False,
-        description = 'Each string in the list must contain only digits.'
+        required=False,
+        description='Each string in the list must contain only digits.'
     )
     admin_iam_users = schema.Dict(
         title="Admin IAM Users",
         value_type = schema.Object(IAdminIAMUser),
-        required = False,
+        required=False,
     )
 
 class ISecurityGroupRule(IName):
     cidr_ip = schema.TextLine(
-        title = "CIDR IP",
-        default = "",
-        description = "A valid CIDR v4 block or an empty string",
+        title="CIDR IP",
+        default="",
+        description="A valid CIDR v4 block or an empty string",
         constraint = isValidCidrIpv4orBlank,
-        required = False,
+        required=False,
     )
     cidr_ip_v6 = schema.TextLine(
-        title = "CIDR IP v6",
-        description = "A valid CIDR v6 block or an empty string",
-        default = "",
-        required = False,
+        title="CIDR IP v6",
+        description="A valid CIDR v6 block or an empty string",
+        default="",
+        required=False,
     )
-    description = schema.TextLine(
-        title = "Description",
-        default = "",
-        description = "Max 255 characters. Allowed characters are a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*.",
-        required = False,
+    description=schema.TextLine(
+        title="Description",
+        default="",
+        description="Max 255 characters. Allowed characters are a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*.",
+        required=False,
     )
     from_port = schema.Int(
-        title = "From port",
-        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1,
-        required = False
+        title="From port",
+        description="A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
+        default=-1,
+        required=False
     )
     protocol = schema.TextLine(
-        title = "IP Protocol",
-        description = "The IP protocol name (tcp, udp, icmp, icmpv6) or number.",
-        required = False,
+        title="IP Protocol",
+        description="The IP protocol name (tcp, udp, icmp, icmpv6) or number.",
+        required=False,
     )
     to_port = schema.Int(
-        title = "To port",
-        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1,
-        required = False
+        title="To port",
+        description="A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
+        default=-1,
+        required=False
     )
     port = schema.Int(
-        title = "Port",
-        description = "A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
-        default = -1,
-        required = False
+        title="Port",
+        description="A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
+        default=-1,
+        required=False
     )
 
     @invariant
@@ -794,249 +801,254 @@ class ISecurityGroupRule(IName):
 class IIngressRule(IParent, ISecurityGroupRule):
     "Security group ingress"
     source_security_group = TextReference(
-        title = "Source Security Group Reference",
-        required = False,
-        description = "An Paco reference to a SecurityGroup",
+        title="Source Security Group Reference",
+        required=False,
+        description="An Paco reference to a SecurityGroup",
         str_ok = True
     )
 
 class IEgressRule(IParent, ISecurityGroupRule):
     "Security group egress"
     destination_security_group = TextReference(
-        title = "Destination Security Group Reference",
-        required = False,
-        description = "A Paco reference to a SecurityGroup",
+        title="Destination Security Group Reference",
+        required=False,
+        description="A Paco reference to a SecurityGroup",
         str_ok = True
     )
 
 class ISecurityGroup(INamed, IDeployable):
     """
-    AWS Resource: Security Group
+AWS Resource: Security Group
     """
     group_name = schema.TextLine(
-        title = "Group name",
-        default = "",
-        description = "Up to 255 characters in length. Cannot start with sg-.",
-        required = False,
+        title="Group name",
+        default="",
+        description="Up to 255 characters in length. Cannot start with sg-.",
+        required=False,
     )
-    group_description = schema.TextLine(
-        title = "Group description",
-        default = "",
-        description = "Up to 255 characters in length",
-        required = False,
+    group_description=schema.TextLine(
+        title="Group description",
+        default="",
+        description="Up to 255 characters in length",
+        required=False,
     )
     ingress = schema.List(
-        title = "Ingress",
+        title="Ingress",
         value_type=schema.Object(schema=IIngressRule),
-        description = "Every list item must be an IngressRule",
-        required = False,
+        description="Every list item must be an IngressRule",
+        required=False,
     )
     egress = schema.List(
-        title = "Egress",
+        title="Egress",
         value_type=schema.Object(schema=IEgressRule),
-        description = "Every list item must be an EgressRule",
-        required = False,
+        description="Every list item must be an EgressRule",
+        required=False,
     )
 
 
 class IApplicationEngines(INamed, IMapping):
-    "A collection of Application Engines"
-    pass
+    "A container for Application Engines"
+    taggedValue('contains', 'IApplicationEngine')
 
 class IType(Interface):
     type = schema.TextLine(
-        title = "Type of Resources",
-        description = "A valid AWS Resource type: ASG, LBApplication, etc.",
-        required = False,
+        title="Type of Resources",
+        description="A valid AWS Resource type: ASG, LBApplication, etc.",
+        required=False,
     )
 
 class IResource(IType, INamed, IDeployable, IDNSEnablable):
     """
-    AWS Resource to support an Application
+AWS Resource to support an Application
     """
     order = schema.Int(
-        title = "The order in which the resource will be deployed",
-        description = "",
-        min = 0,
-        default = 0,
-        required = False,
+        title="The order in which the resource will be deployed",
+        description="",
+        min=0,
+        default=0,
+        required=False,
     )
     change_protected = schema.Bool(
-        title = "Boolean indicating whether this resource can be modified or not.",
-        default = False,
-        required = False,
+        title="Boolean indicating whether this resource can be modified or not.",
+        default=False,
+        required=False,
     )
 
 class IServices(INamed, IMapping):
     """
-    Services
+Services
     """
-    pass
+    taggedValue('contains', 'IService')
 
 
 class IAccountRef(Interface):
     "An account and region for a service"
     account = TextReference(
-        title = "Account Reference",
-        required = False,
+        title="Account Reference",
+        required=False,
     )
 
 class IServiceEnvironment(IAccountRef, INamed):
     "A service composed of one or more applications"
     applications = schema.Object(
-        title = "Applications",
+        title="Applications",
         schema = IApplicationEngines,
-        required = False,
+        required=False,
     )
     region = schema.TextLine(
-        title = "Region",
-        required = False,
+        title="Region",
+        required=False,
         constraint = isValidAWSRegionName,
     )
 
 class IGlobalResources(INamed, IMapping):
-    "A collection of global Resources"
+    "A container for global Resources"
+    taggedValue('contains', 'mixed')
 
 class IResources(INamed, IMapping):
-    "A collection of Application Resources"
-    pass
+    "A container of Resources to support an `Application`_."
+    taggedValue('contains', 'mixed')
 
-class IResourceGroup(INamed, IDeployable, IMapping, IDNSEnablable):
-    "A collection of Application Resources"
-    title = schema.TextLine(
+class IResourceGroup(INamed, IDeployable, IDNSEnablable):
+    "A group of `Resources`_ to support an `Application`_."
+    title=schema.TextLine(
         title="Title",
-        default = "",
-        required = False,
+        default="",
+        required=False,
     )
     type = schema.TextLine(
         title="Type"
     )
     order = schema.Int(
-        title = "The order in which the group will be deployed",
-        description = "",
-        min = 0,
-        required = True
+        title="The order in which the group will be deployed",
+        description="",
+        min=0,
+        required=True
     )
     resources = schema.Object(IResources)
     dns_enabled = schema.Bool(
-        title = "",
-        required = False,
+        title="",
+        required=False,
     )
 
 
 class IResourceGroups(INamed, IMapping):
-    "A collection of Application Resource Groups"
-    pass
+    "A container of Application `ResourceGroup`_ objects."
+    taggedValue('contains', 'IResourceGroup')
 
 # Alarm and notification schemas
 
 class IAlarmNotifications(INamed, IMapping):
     """
-    Alarm Notifications
+Container for `AlarmNotification`_ objects.
     """
+    taggedValue('contains', 'IAlarmNotification')
 
 class IAlarmNotification(INamed):
     """
-    Alarm Notification
+Alarm Notification
     """
     groups = schema.List(
-        title = "List of groups",
+        title="List of groups",
         value_type=schema.TextLine(
             title="Group"
         ),
-        required = True
+        required=True
     )
     classification = schema.TextLine(
-        title = "Classification filter",
-        description = "Must be one of: 'performance', 'security', 'health' or ''.",
+        title="Classification filter",
+        description="Must be one of: 'performance', 'security', 'health' or ''.",
         constraint = isValidAlarmClassificationFilter,
-        default = '',
-        required = False,
+        default='',
+        required=False,
     )
     severity = schema.TextLine(
-        title = "Severity filter",
+        title="Severity filter",
         constraint = isValidAlarmSeverityFilter,
-        description = "Must be one of: 'low', 'critical'",
-        required = False,
+        description="Must be one of: 'low', 'critical'",
+        required=False,
     )
 
 class INotifiable(Interface):
     """
-    A notifiable object
+A notifiable object
     """
     notifications = schema.Object(
-        title = "Alarm Notifications",
+        title="Alarm Notifications",
         schema = IAlarmNotifications,
-        required = False,
+        required=False,
     )
 
 class IAlarmSet(INamed, IMapping, INotifiable):
     """
-    A collection of Alarms
+A container of Alarm objects.
     """
+    taggedValue('contains', 'mixed')
     resource_type = schema.TextLine(
-        title = "Resource type",
-        description = "Must be a valid AWS resource type",
-        required = False,
+        title="Resource type",
+        description="Must be a valid AWS resource type",
+        required=False,
     )
 
 
 class IAlarmSets(INamed, IMapping):
     """
-    A collection of AlarmSets
+A container of `AlarmSet`_ objects.
     """
+    taggedValue('contains', 'IAlarmSet')
+
 
 class IDimension(IParent):
     """
-    A dimension of a metric
+A dimension of a metric
     """
     name = schema.TextLine(
-        title = "Dimension name",
-        required = False,
+        title="Dimension name",
+        required=False,
     )
     value = TextReference(
-        title = "Value to look-up dimension",
-        required = False,
+        title="Value to look-up dimension",
+        required=False,
         str_ok=True
     )
 
 class IAlarm(INamed, IDeployable, IName, INotifiable):
     """
-    An Alarm
+An Alarm
     """
     classification = schema.TextLine(
-        title = "Classification",
-        description = "Must be one of: 'performance', 'security' or 'health'",
+        title="Classification",
+        description="Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification,
-        required = True,
-        default = 'unset',
+        required=True,
+        default='unset',
         missing_value = 'unset',
     )
-    description = schema.TextLine(
-        title = "Description",
-        required = False,
+    description=schema.TextLine(
+        title="Description",
+        required=False,
     )
     notification_groups = schema.List(
         readonly = True,
-        title = "List of notificationn groups the alarm is subscribed to.",
+        title="List of notificationn groups the alarm is subscribed to.",
         value_type=schema.TextLine(title="Notification group name"),
-        required = False,
+        required=False,
     )
     runbook_url = schema.TextLine(
-        title = "Runbook URL",
-        required = False,
+        title="Runbook URL",
+        required=False,
     )
     severity = schema.TextLine(
-        title = "Severity",
-        default = "low",
+        title="Severity",
+        default="low",
         constraint = isValidAlarmSeverity,
-        description = "Must be one of: 'low', 'critical'",
-        required = False,
+        description="Must be one of: 'low', 'critical'",
+        required=False,
     )
 
 class ICloudWatchAlarm(IType, IAlarm):
     """
-    A CloudWatch Alarm
+A CloudWatch Alarm
     """
     @invariant
     def evaluate_low_sample_statistic(obj):
@@ -1054,103 +1066,103 @@ class ICloudWatchAlarm(IType, IAlarm):
             raise Invalid('Must include one of `statistic` or `extended_statistic`.')
 
     alarm_actions = schema.List(
-        title = "Alarm Actions",
+        title="Alarm Actions",
         readonly = True,
         value_type = schema.TextLine(
-            title = "Alarm Action",
-            required = False,
+            title="Alarm Action",
+            required=False,
         ),
-        required = False,
+        required=False,
     )
-    alarm_description = schema.Text(
-        title = "Alarm Description",
+    alarm_description=schema.Text(
+        title="Alarm Description",
         readonly = True,
-        description = "Valid JSON document with Paco fields.",
-        required = False,
+        description="Valid JSON document with Paco fields.",
+        required=False,
     )
     actions_enabled = schema.Bool(
-        title = "Actions Enabled",
+        title="Actions Enabled",
         readonly = True,
-        required = False,
+        required=False,
     )
     comparison_operator = schema.TextLine(
-        title = "Comparison operator",
+        title="Comparison operator",
         constraint = isComparisonOperator,
-        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
-        required = False,
+        description="Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
+        required=False,
     )
     dimensions = schema.List(
-        title = "Dimensions",
+        title="Dimensions",
         value_type = schema.Object(schema=IDimension),
-        required = False,
+        required=False,
     )
     enable_ok_actions = schema.Bool(
-        title = "Enable Actions when alarm transitions to the OK state.",
-        default = False,
-        required = False,
+        title="Enable Actions when alarm transitions to the OK state.",
+        default=False,
+        required=False,
     )
     enable_insufficient_data_actions = schema.Bool(
-        title = "Enable Actions when alarm transitions to the INSUFFICIENT_DATA state.",
-        default = False,
-        required = False,
+        title="Enable Actions when alarm transitions to the INSUFFICIENT_DATA state.",
+        default=False,
+        required=False,
     )
     evaluate_low_sample_count_percentile = schema.TextLine(
-        title = "Evaluate low sample count percentile",
-        description = "Must be one of `evaluate` or `ignore`.",
-        required = False,
+        title="Evaluate low sample count percentile",
+        description="Must be one of `evaluate` or `ignore`.",
+        required=False,
         constraint = isValidEvaluateLowSampleCountPercentileValue,
     )
     evaluation_periods = schema.Int(
-        title = "Evaluation periods",
-        min = 1,
-        required = False,
+        title="Evaluation periods",
+        min=1,
+        required=False,
     )
     extended_statistic = schema.TextLine(
-        title = "Extended statistic",
-        description = "A value between p0.0 and p100.",
-        required = False,
+        title="Extended statistic",
+        description="A value between p0.0 and p100.",
+        required=False,
         constraint = isValidExtendedStatisticValue,
     )
     # ToDo: implement Metrics - also update invariant
     # metrics = schema.List()
     metric_name = schema.TextLine(
-        title = "Metric name",
-        required = True,
+        title="Metric name",
+        required=True,
     )
     namespace = schema.TextLine(
-        title = "Namespace",
-        required = False,
+        title="Namespace",
+        required=False,
     )
     period = schema.Int(
-        title = "Period in seconds",
-        required = False,
-        min = 1,
+        title="Period in seconds",
+        required=False,
+        min=1,
     )
     statistic = schema.TextLine(
-        title = "Statistic",
-        required = False,
-        description = "Must be one of `Maximum`, `SampleCount`, `Sum`, `Minimum`, `Average`.",
+        title="Statistic",
+        required=False,
+        description="Must be one of `Maximum`, `SampleCount`, `Sum`, `Minimum`, `Average`.",
         constraint = isValidAlarmStatisticValue,
     )
     threshold = schema.Float(
-        title = "Threshold",
-        required = False,
+        title="Threshold",
+        required=False,
     )
     treat_missing_data = schema.TextLine(
-        title = "Treat missing data",
-        description = "Must be one of `breaching`, `notBreaching`, `ignore` or `missing`.",
-        required = False,
+        title="Treat missing data",
+        description="Must be one of `breaching`, `notBreaching`, `ignore` or `missing`.",
+        required=False,
         constraint = isMissingDataValue,
     )
 
 class ICloudWatchLogAlarm(ICloudWatchAlarm):
     log_set_name = schema.TextLine(
-        title = "Log Set Name",
-        required = True
+        title="Log Set Name",
+        required=True
     )
     log_group_name = schema.TextLine(
-        title = "Log Group Name",
-        required = True
+        title="Log Group Name",
+        required=True
     )
 
 class INotificationGroups(IAccountRef):
@@ -1163,7 +1175,10 @@ class INotificationGroups(IAccountRef):
     )
 
 class IDashboardVariables(INamed, IMapping):
-    pass
+    """
+Variables to make available to the dashboard JSON for interpolation.
+    """
+    taggedValue('contains', 'mixed')
 
 class ICloudWatchDashboard(IResource):
     dashboard_file = StringFileReference(
@@ -1180,26 +1195,27 @@ class ICloudWatchDashboard(IResource):
 
 class ICloudWatchLogRetention(Interface):
     expire_events_after_days = schema.TextLine(
-        title = "Expire Events After. Retention period of logs in this group",
-        description = "",
-        default = "",
+        title="Expire Events After. Retention period of logs in this group",
+        description="",
+        default="",
         constraint = isValidCloudWatchLogRetention,
-        required = False,
+        required=False,
     )
 
 class ICloudWatchLogSources(INamed, IMapping):
     """
-    A collection of Log Sources
+A container of `CloudWatchLogSource`_ objects.
     """
+    taggedValue('contains', 'ICloudWatchLogSource')
 
 class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
     """
-    Log source for a CloudWatch agent
+Log source for a CloudWatch agent.
     """
     encoding = schema.TextLine(
-        title = "Encoding",
-        default = "utf-8",
-        required = False,
+        title="Encoding",
+        default="utf-8",
+        required=False,
     )
     log_stream_name = schema.TextLine(
         title="Log stream name",
@@ -1208,151 +1224,154 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
         min_length=1
     )
     multi_line_start_pattern = schema.Text(
-        title = "Multi-line start pattern",
-        default = "",
-        required = False,
+        title="Multi-line start pattern",
+        default="",
+        required=False,
     )
     path = schema.TextLine(
-        title = "Path",
-        default = "",
-        required = True,
-        description = "Must be a valid filesystem path expression. Wildcard * is allowed."
+        title="Path",
+        default="",
+        required=True,
+        description="Must be a valid filesystem path expression. Wildcard * is allowed."
     )
     timestamp_format = schema.TextLine(
-        title = "Timestamp format",
-        default = "",
-        required = False,
+        title="Timestamp format",
+        default="",
+        required=False,
     )
     timezone = schema.TextLine(
-        title = "Timezone",
-        default = "Local",
+        title="Timezone",
+        default="Local",
         constraint = isValidCWAgentTimezone,
-        description = "Must be one of: 'Local', 'UTC'",
-        required = False,
+        description="Must be one of: 'Local', 'UTC'",
+        required=False,
     )
 
 class IMetricTransformation(Interface):
     """
-    Metric Transformation
+Metric Transformation
     """
     default_value = schema.Float(
-        title = "The value to emit when a filter pattern does not match a log event.",
-        required = False,
+        title="The value to emit when a filter pattern does not match a log event.",
+        required=False,
     )
     metric_name = schema.TextLine(
-        title = "The name of the CloudWatch Metric.",
-        required = True,
+        title="The name of the CloudWatch Metric.",
+        required=True,
     )
     metric_namespace = schema.TextLine(
-        title = "The namespace of the CloudWatch metric. If not set, the namespace used will be 'AIM/{log-group-name}'.",
-        required = False,
+        title="The namespace of the CloudWatch metric. If not set, the namespace used will be 'AIM/{log-group-name}'.",
+        required=False,
         max_length = 255,
     )
     metric_value = schema.TextLine(
-        title = "The value that is published to the CloudWatch metric.",
-        required = True,
+        title="The value that is published to the CloudWatch metric.",
+        required=True,
     )
 
 class IMetricFilters(INamed, IMapping):
     """
-    Metric Filters
+Container for `Metric`Filter` objects.
     """
+    taggedValue('contains', 'IMetricFilter')
 
 class IMetricFilter(INamed):
     """
     Metric filter
     """
     filter_pattern = schema.Text(
-        title = "Filter pattern",
-        default = "",
-        required = False,
+        title="Filter pattern",
+        default="",
+        required=False,
     )
     metric_transformations = schema.List(
-        title = "Metric transformations",
+        title="Metric transformations",
         value_type=schema.Object(
             title="Metric Transformation",
             schema=IMetricTransformation
         ),
-        required = False,
+        required=False,
     )
 
 class ICloudWatchLogGroups(INamed, IMapping):
     """
-    A collection of Log Group objects
+Container for `CloudWatchLogGroup`_ objects.
     """
+    taggedValue('contains', 'ICloudWatchLogGroup')
+
 
 class ICloudWatchLogGroup(INamed, ICloudWatchLogRetention):
     """
-    A CloudWatchLogGroup is responsible for retention, access control and metric filters
+A CloudWatchLogGroup is responsible for retention, access control and metric filters
     """
     metric_filters = schema.Object(
-        title = "Metric Filters",
+        title="Metric Filters",
         schema = IMetricFilters,
-        required = False,
+        required=False,
     )
     sources = schema.Object(
-        title = "A CloudWatchLogSources container",
+        title="A CloudWatchLogSources container",
         schema = ICloudWatchLogSources,
-        required = False,
+        required=False,
     )
     log_group_name = schema.TextLine(
-        title = "Log group name. Can override the LogGroup name used from the name field.",
-        description = "",
-        default = "",
-        required = False,
+        title="Log group name. Can override the LogGroup name used from the name field.",
+        description="",
+        default="",
+        required=False,
     )
 
 class ICloudWatchLogSets(INamed, IMapping):
     """
-    A collection of information about logs to collect.
-    A mapping of ILogSet objects.
+Container for `CloudWatchLogSet`_ objects.
     """
+    taggedValue('contains', 'ICloudWatchLogSet')
 
-class ICloudWatchLogSet(INamed, ICloudWatchLogRetention, IMapping):
+class ICloudWatchLogSet(INamed, ICloudWatchLogRetention):
     """
-    A set of Log Group objects
+A set of Log Group objects
     """
     log_groups = schema.Object(
-        title = "A CloudWatchLogGroups container",
+        title="A CloudWatchLogGroups container",
         schema = ICloudWatchLogGroups,
-        required = False,
+        required=False,
     )
 
 class ICloudWatchLogging(INamed, ICloudWatchLogRetention):
     """
-    CloudWatch Logging configuration
+CloudWatch Logging configuration
     """
     log_sets = schema.Object(
-        title = "A CloudWatchLogSets container",
+        title="A CloudWatchLogSets container",
         schema = ICloudWatchLogSets,
-        required = False,
+        required=False,
     )
 
 # Events
 
 class IEventsRule(IResource):
     """
-    Events Rule
+Events Rule
     """
     # ToDo: add event_pattern field and invariant to make schedule_expression conditional
     # ToDo: constraint regex that validates schedule_expression
-    description = schema.Text(
-        title = "Description",
-        required = False,
-        default = '',
+    description=schema.Text(
+        title="Description",
+        required=False,
+        default='',
         max_length=512,
     )
     schedule_expression = schema.TextLine(
-        title = "Schedule Expression",
-        required = True
+        title="Schedule Expression",
+        required=True
     )
     # ToDo: constrain List to not be empty
     targets = schema.List(
-        title = "The AWS Resources that are invoked when the Rule is triggered.",
-        description = "",
-        required = True,
+        title="The AWS Resources that are invoked when the Rule is triggered.",
+        description="",
+        required=True,
         value_type=TextReference(
-            title = "Paco Reference to an AWS Resource to invoke"
+            title="Paco Reference to an AWS Resource to invoke"
         ),
     )
 
@@ -1360,46 +1379,47 @@ class IEventsRule(IResource):
 
 class IMetric(Interface):
     """
-    A set of metrics to collect and an optional collection interval:
+A set of metrics to collect and an optional collection interval:
 
-    - name: disk
-      measurements:
-        - free
-      collection_interval: 900
+- name: disk
+    measurements:
+    - free
+    collection_interval: 900
     """
     name = schema.TextLine(
-        title = "Metric(s) group name",
-        required = False,
+        title="Metric(s) group name",
+        required=False,
     )
     measurements = schema.List(
-        title = "Measurements",
+        title="Measurements",
         value_type=schema.TextLine(title="Metric measurement name"),
-        required = False,
+        required=False,
     )
     collection_interval = schema.Int(
-        title = "Collection interval",
-        description = "",
-        min = 1,
-        required = False,
+        title="Collection interval",
+        description="",
+        min=1,
+        required=False,
     )
     resources = schema.List(
-        title = "List of resources for this metric",
+        title="List of resources for this metric",
         value_type=schema.TextLine(title="Metric resource"),
-        required = False
+        required=False
     )
     drop_device = schema.Bool(
-        title = "Drops the device name from disk metrics",
-        default = True,
-        required = False
+        title="Drops the device name from disk metrics",
+        default=True,
+        required=False
     )
 
 
 class IHealthChecks(INamed, IMapping):
-    "Container for HealthChecks"
+    "Container for `Route53HealthCheck`_ objects."
+    taggedValue('contains', 'IRoute53HealthCheck')
 
 class IMonitorConfig(IDeployable, INamed, INotifiable):
     """
-    A set of metrics and a default collection interval
+A set of metrics and a default collection interval
     """
     asg_metrics = schema.List(
         title="ASG Metrics",
@@ -1411,7 +1431,7 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
     alarm_sets = schema.Object(
         title="Sets of Alarm Sets",
         schema=IAlarmSets,
-        required = False,
+        required=False,
     )
     collection_interval = schema.Int(
         title="Collection interval",
@@ -1427,7 +1447,7 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
     log_sets = schema.Object(
         title="Sets of Log Sets",
         schema=ICloudWatchLogSets,
-        required = False,
+        required=False,
     )
     metrics = schema.List(
         title="Metrics",
@@ -1437,16 +1457,16 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
 
 class IMonitorable(Interface):
     """
-    A monitorable resource
+A monitorable resource
     """
     monitoring = schema.Object(
         schema = IMonitorConfig,
-        required = False,
+        required=False,
     )
 
 class IS3BucketPolicy(Interface):
     """
-    S3 Bucket Policy
+S3 Bucket Policy
     """
     # ToDo: Validate actions using awacs
     action = schema.List(
@@ -1454,43 +1474,43 @@ class IS3BucketPolicy(Interface):
         value_type=schema.TextLine(
             title="Action"
         ),
-        required = True,
+        required=True,
     )
     aws = schema.List(
-        title = "List of AWS Principles.",
-        description = "Either this field or the principal field must be set.",
+        title="List of AWS Principles.",
+        description="Either this field or the principal field must be set.",
         value_type = schema.TextLine(
-            title = "AWS Principle"
+            title="AWS Principle"
         ),
-        required = False,
+        required=False,
     )
     condition = schema.Dict(
-        title = "Condition",
-        description = 'Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
-        default = {},
-        required = False,
+        title="Condition",
+        description='Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
+        default={},
+        required=False,
         # ToDo: Use awacs to add a constraint to check for valid conditions
     )
     # ToDo: validate principal using awacs
     # ToDo: validate that only one principal type is supplied, as that is all that is currently supported by paco.cftemplates.s3.py
     principal = schema.Dict(
-        title = "Prinicpals",
-        description = "Either this field or the aws field must be set. Key should be one of: AWS, Federated, Service or CanonicalUser. Value can be either a String or a List.",
-        default = {},
-        required = False,
+        title="Prinicpals",
+        description="Either this field or the aws field must be set. Key should be one of: AWS, Federated, Service or CanonicalUser. Value can be either a String or a List.",
+        default={},
+        required=False,
     )
     effect = schema.TextLine(
         title="Effect",
         default="Deny",
-        required = True,
-        description = "Must be one of: 'Allow', 'Deny'",
+        required=True,
+        description="Must be one of: 'Allow', 'Deny'",
     )
     resource_suffix = schema.List(
         title="List of AWS Resources Suffixes",
         value_type=schema.TextLine(
             title="Resources Suffix"
         ),
-        required = True,
+        required=True,
     )
     @invariant
     def aws_or_principal(obj):
@@ -1503,222 +1523,217 @@ class IS3BucketPolicy(Interface):
 class IS3LambdaConfiguration(IParent):
     # ToDo: add constraint
     event = schema.TextLine(
-        title = "S3 bucket event for which to invoke the AWS Lambda function",
-        description = "Must be a supported event type: https://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html",
-        required = False,
+        title="S3 bucket event for which to invoke the AWS Lambda function",
+        description="Must be a supported event type: https://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html",
+        required=False,
     )
     # ToDo: constraint to validate the ref is to a Lambda type (tricky?)
     function = TextReference(
-        title = "Reference to a Lambda",
-        required = False,
+        title="Reference to a Lambda",
+        required=False,
     )
 
 class IS3NotificationConfiguration(IParent):
     lambdas = schema.List(
-        title = "Lambda configurations",
+        title="Lambda configurations",
         value_type = schema.Object(IS3LambdaConfiguration),
-        required = False,
+        required=False,
     )
 
 class IS3Bucket(IResource, IDeployable):
     """
-    S3 Bucket : A template describing an S3 Bbucket
+S3 Bucket : A template describing an S3 Bbucket
     """
     bucket_name = schema.TextLine(
-        title = "Bucket Name",
-        description = "A short unique name to assign the bucket.",
-        default = "bucket",
-        required = True,
+        title="Bucket Name",
+        description="A short unique name to assign the bucket.",
+        default="bucket",
+        required=True,
     )
     account = TextReference(
-        title = "Account Reference",
-        required = False,
+        title="Account Reference",
+        required=False,
     )
     deletion_policy = schema.TextLine(
-        title = "Bucket Deletion Policy",
-        default = "delete",
-        required = False,
+        title="Bucket Deletion Policy",
+        default="delete",
+        required=False,
     )
     notifications = schema.Object(
-        title = "Notification configuration",
+        title="Notification configuration",
         schema = IS3NotificationConfiguration,
-        required = False,
+        required=False,
     )
     policy = schema.List(
         title="List of S3 Bucket Policies",
         description="",
         value_type=schema.Object(IS3BucketPolicy),
-        required = False,
+        required=False,
     )
     region = schema.TextLine(
-        title = "Bucket region",
-        default = None,
-        required = False
+        title="Bucket region",
+        default=None,
+        required=False
     )
     cloudfront_origin = schema.Bool(
-        title = "Creates and listens for a CloudFront Access Origin Identity",
-        required = False,
-        default = False,
+        title="Creates and listens for a CloudFront Access Origin Identity",
+        required=False,
+        default=False,
     )
     external_resource = schema.Bool(
         title='Boolean indicating whether the S3 Bucket already exists or not',
-        default = False,
-        required = False,
+        default=False,
+        required=False,
     )
     versioning = schema.Bool(
-        title = "Enable Versioning on the bucket.",
-        default = False,
-        required = False,
+        title="Enable Versioning on the bucket.",
+        default=False,
+        required=False,
     )
 
 class IS3Resource(INamed):
     """
-    EC2 Resource Configuration
+EC2 Resource Configuration
     """
     buckets = schema.Dict(
-        title = "Dictionary of S3Bucket objects",
+        title="Dictionary of S3Bucket objects",
         value_type = schema.Object(IS3Bucket),
-        default = {},
-        required = False,
+        default={},
+        required=False,
     )
 
 class IApplicationEngine(INamed, IDeployable, INotifiable, IMonitorable, IDNSEnablable):
     """
-    Application Engine : A template describing an application
+Application Engine : A template describing an application
     """
     order = schema.Int(
-        title = "The order in which the application will be processed",
-        description = "",
-        min = 0,
-        default = 0,
-        required = False
+        title="The order in which the application will be processed",
+        description="",
+        min=0,
+        default=0,
+        required=False
     )
     groups = schema.Object(IResourceGroups)
 
 
-class IApplication(IApplicationEngine, IMapping):
+class IApplication(IApplicationEngine):
     """
-    Application : An Application Engine configuration to run in a specific Environment
+An Application is groups of cloud resources to support a workload.
     """
-
-#class IDeployment(IResource):
-#    """
-#    An application deployment
-#    """
 
 class ICodePipeBuildDeploy(IResource):
     """
-    Code Pipeline: Build and Deploy
+Code Pipeline: Build and Deploy
     """
     deployment_environment = schema.TextLine(
-        title = "Deployment Environment",
-        description = "",
-        default = "",
-        required = False,
+        title="Deployment Environment",
+        description="",
+        default="",
+        required=False,
     )
     deployment_branch_name = schema.TextLine(
-        title = "Deployment Branch Name",
-        description = "",
-        default = "",
-        required = False,
+        title="Deployment Branch Name",
+        description="",
+        default="",
+        required=False,
     )
     manual_approval_enabled = schema.Bool(
-        title = "Manual approval enabled",
-        description = "",
-        default = False,
-        required = False,
+        title="Manual approval enabled",
+        description="",
+        default=False,
+        required=False,
     )
     manual_approval_notification_email = schema.TextLine(
-        title = "Manual approval notification email",
-        description = "",
-        default = "",
-        required = False,
+        title="Manual approval notification email",
+        description="",
+        default="",
+        required=False,
     )
     codecommit_repository = TextReference(
-        title = 'CodeCommit Respository',
-        required = False,
+        title='CodeCommit Respository',
+        required=False,
     )
     asg = TextReference(
-        title = "ASG Reference",
-        required = False,
+        title="ASG Reference",
+        required=False,
     )
     auto_rollback_enabled = schema.Bool(
-        title = "Automatic rollback enabled",
-        description = "",
-        default = True,
-        required = False,
+        title="Automatic rollback enabled",
+        description="",
+        default=True,
+        required=False,
     )
     deploy_config_type = schema.TextLine(
-        title = "Deploy Config Type",
-        description = "",
-        default = "HOST_COUNT",
-        required = False,
+        title="Deploy Config Type",
+        description="",
+        default="HOST_COUNT",
+        required=False,
     )
     deploy_style_option = schema.TextLine(
-        title = "Deploy Style Option",
-        description = "",
-        default = "WITH_TRAFFIC_CONTROL",
-        required = False,
+        title="Deploy Style Option",
+        description="",
+        default="WITH_TRAFFIC_CONTROL",
+        required=False,
     )
     deploy_config_value = schema.Int(
-        title = "Deploy Config Value",
-        description = "",
-        default = 0,
-        required = False,
+        title="Deploy Config Value",
+        description="",
+        default=0,
+        required=False,
     )
     deploy_instance_role = TextReference(
-        title = "Deploy Instance Role Reference",
-        required = False,
+        title="Deploy Instance Role Reference",
+        required=False,
     )
     elb_name = schema.TextLine(
-        title = "ELB Name",
-        description = "",
-        default = "",
-        required = False,
+        title="ELB Name",
+        description="",
+        default="",
+        required=False,
     )
     alb_target_group = TextReference(
-        title = "ALB Target Group Reference",
-        required = False,
+        title="ALB Target Group Reference",
+        required=False,
     )
     tools_account = TextReference(
-        title = "Tools Account Reference",
-        required = False,
+        title="Tools Account Reference",
+        required=False,
     )
     data_account = TextReference(
-        title = "Data Account Reference",
-        required = False,
+        title="Data Account Reference",
+        required=False,
     )
     cross_account_support = schema.Bool(
-        title = "Cross Account Support",
-        description = "",
-        default = False,
-        required = False,
+        title="Cross Account Support",
+        description="",
+        default=False,
+        required=False,
     )
     artifacts_bucket = TextReference(
-        title = "Artifacts S3 Bucket Reference",
+        title="Artifacts S3 Bucket Reference",
         description="",
-        required = False,
+        required=False,
     )
     codebuild_image = schema.TextLine(
-        title = 'CodeBuild Docker Image',
-        required = False,
+        title='CodeBuild Docker Image',
+        required=False,
     )
     codebuild_compute_type = schema.TextLine(
-        title = 'CodeBuild Compute Type',
+        title='CodeBuild Compute Type',
         constraint = isValidCodeBuildComputeType,
-        required = False,
+        required=False,
     )
     timeout_mins = schema.Int(
-        title = 'Timeout in Minutes',
-        min = 5,
-        max = 480,
-        default = 60,
-        required = False,
+        title='Timeout in Minutes',
+        min=5,
+        max=480,
+        default=60,
+        required=False,
     )
 
 class IEC2KeyPair(INamed):
     """
-    EC2 SSH Key Pair
+EC2 SSH Key Pair
     """
     keypair_name = schema.TextLine(
         title="The name of the EC2 KeyPair",
@@ -1740,11 +1755,14 @@ class IEC2KeyPair(INamed):
     )
 
 class IEC2KeyPairs(INamed, IMapping):
-    pass
+    """
+Container for `EC2KeyPair`_ objects.
+    """
+    taggedValue('contains', 'IEC2KeyPair')
 
 class IEC2Resource(INamed):
     """
-    EC2 Resource Configuration
+EC2 Resource Configuration
     """
     keypairs = schema.Object(
         title="Group of EC2 Key Pairs",
@@ -1754,39 +1772,39 @@ class IEC2Resource(INamed):
 
 class IService(IResource):
     """
-    Specialized type of Resource
+Specialized type of Resource
     """
 
 class IEC2(IResource):
     """
-    EC2 Instance
+EC2 Instance
     """
     associate_public_ip_address = schema.Bool(
         title="Associate Public IP Address",
         description="",
         default=False,
-        required = False,
+        required=False,
     )
     instance_iam_profile = Attribute("Instance IAM Profile")
     instance_ami = schema.TextLine(
         title="Instance AMI",
         description="",
-        required = False,
+        required=False,
     )
     instance_key_pair = TextReference(
-        title = "Instance key pair reference",
+        title="Instance key pair reference",
         description="",
-        required = False,
+        required=False,
     )
     instance_type = schema.TextLine(
-        title = "Instance type",
+        title="Instance type",
         description="",
-        required = False,
+        required=False,
     )
     segment = schema.TextLine(
         title="Segment",
         description="",
-        required = False,
+        required=False,
     )
     security_groups = schema.List(
         title="Security groups",
@@ -1794,370 +1812,376 @@ class IEC2(IResource):
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = False,
+        required=False,
     )
     root_volume_size_gb = schema.Int(
         title="Root volume size GB",
         description="",
         default=8,
         min=8,
-        required = False,
+        required=False,
     )
     disable_api_termination = schema.Bool(
         title="Disable API Termination",
         description="",
         default=False,
-        required = False,
+        required=False,
     )
     private_ip_address = schema.TextLine(
         title="Private IP Address",
         description="",
-        required = False,
+        required=False,
     )
     user_data_script = schema.Text(
         title="User data script",
         description="",
         default="",
-        required = False,
+        required=False,
     )
 
 
 class INetworkEnvironments(INamed, IMapping):
     """
-    A collection of NetworkEnvironments
+Container for `NetworkEnvironment`_ objects.
     """
-    pass
+    taggedValue('contains', 'INetworkEnvironment')
 
 class IProject(INamed, IMapping):
     "Project : the root node in the config for a Paco Project"
+    taggedValue('contains', 'mixed')
     paco_project_version = schema.TextLine(
-        title = "Paco project version",
-        default = "",
-        required = False,
+        title="Paco project version",
+        default="",
+        required=False,
     )
     active_regions = schema.List(
-        title = "Regions that resources can be provisioned in",
+        title="Regions that resources can be provisioned in",
         value_type = schema.TextLine(),
         constraint = isValidAWSRegionList,
-        required = False,
+        required=False,
     )
     legacy_flags = schema.List(
-        title = 'List of Legacy Flags',
+        title='List of Legacy Flags',
         value_type = schema.TextLine(),
         constraint = isValidLegacyFlagList,
-        required = False,
+        required=False,
     )
+
 class IInternetGateway(IDeployable):
     """
-    AWS Resource: IGW
+AWS Resource: IGW
     """
 
-class INATGateway(INamed, IDeployable, IMapping):
+class INATGateway(INamed, IDeployable):
     """
-    AWS Resource: NAT Gateway
+NAT Gateway
     """
     type = schema.TextLine(
-        title = 'NAT Gateway type',
-        default = 'Managed',
-        required = False,
-        constraint = IsValidNATGatewayType
+        title='NAT Gateway type',
+        default='Managed',
+        required=False,
+        constraint=IsValidNATGatewayType
     )
     availability_zone = schema.TextLine(
-        # Can be: all | 1 | 2 | 3 | 4 | ...
-        title = 'Availability Zones to launch instances in.',
-        default = 'all',
-        required = False,
-        constraint = IsValidASGAvailabilityZone
+        title='Availability Zones to launch instances in.',
+        description="Can be 'all' or number of AZ: 1, 2, 3, 4 ...",
+        default='all',
+        required=False,
+        constraint=IsValidASGAvailabilityZone
     )
     segment = TextReference(
         title="Segment",
-        description = "",
-        required = False,
+        description="",
+        required=False,
     )
     default_route_segments = schema.List(
-        title = "Default Route Segments",
-        description = "",
-        value_type = TextReference(
-            title = "Segment"
+        title="Default Route Segments",
+        description="",
+        value_type=TextReference(
+            title="Segment"
         ),
-        required = False,
+        required=False,
     )
-
     security_groups = schema.List(
-        title = "Security Groups",
+        title="Security Groups",
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = False,
+        required=False,
     )
-
     ec2_key_pair = TextReference(
-        title = "EC2 key pair reference",
+        title="EC2 key pair reference",
         description="",
-        required = False,
+        required=False,
     )
-
     ec2_instance_type = schema.TextLine(
-        title = "EC2 Instance Type",
-        required = False,
+        title="EC2 Instance Type",
+        required=False,
         default='t2.nano'
     )
 
 
-class IVPNGateway(IDeployable, IMapping):
+class IVPNGateway(IDeployable):
     """
-    AWS Resource: VPN Gateway
+VPN Gateway
     """
 
 class IPrivateHostedZone(IDeployable):
     """
-    AWS Resource: Private Hosted Zone
+Private Hosted Zone
     """
     name = schema.TextLine(
-        title = "Hosted zone name",
-        required = False,
+        title="Hosted zone name",
+        required=False,
     )
     vpc_associations = schema.List(
-        title = "List of VPC Ids",
-        required = False,
+        title="List of VPC Ids",
+        required=False,
         value_type = schema.TextLine(
-            title = "VPC ID"
+            title="VPC ID"
         ),
-        default = None
+        default=None
     )
 
 class ISegment(INamed, IDeployable):
     """
-    AWS Resource: Segment
+Segment
     """
     internet_access = schema.Bool(
-        title = "Internet Access",
-        default = False,
-        required = False,
+        title="Internet Access",
+        default=False,
+        required=False,
     )
     az1_cidr = schema.TextLine(
-        title = "Availability Zone 1 CIDR",
-        default = "",
-        required = False,
+        title="Availability Zone 1 CIDR",
+        default="",
+        required=False,
     )
     az2_cidr = schema.TextLine(
-        title = "Availability Zone 2 CIDR",
-        default = "",
-        required = False,
+        title="Availability Zone 2 CIDR",
+        default="",
+        required=False,
     )
     az3_cidr = schema.TextLine(
-        title = "Availability Zone 3 CIDR",
-        default = "",
-        required = False,
+        title="Availability Zone 3 CIDR",
+        default="",
+        required=False,
     )
     az4_cidr = schema.TextLine(
-        title = "Availability Zone 4 CIDR",
-        default = "",
-        required = False,
+        title="Availability Zone 4 CIDR",
+        default="",
+        required=False,
     )
     az5_cidr = schema.TextLine(
-        title = "Availability Zone 5 CIDR",
-        default = "",
-        required = False,
+        title="Availability Zone 5 CIDR",
+        default="",
+        required=False,
     )
     az6_cidr = schema.TextLine(
-        title = "Availability Zone 6 CIDR",
-        default = "",
-        required = False,
+        title="Availability Zone 6 CIDR",
+        default="",
+        required=False,
     )
 
 class IVPCPeeringRoute(IParent):
     """
-    VPC Peering Route
+VPC Peering Route
     """
     segment = TextReference(
-        title = "Segment reference",
-        required = False,
+        title="Segment reference",
+        required=False,
     )
     cidr = schema.TextLine(
-        title = "CIDR IP",
-        default = "",
-        description = "A valid CIDR v4 block or an empty string",
+        title="CIDR IP",
+        default="",
+        description="A valid CIDR v4 block or an empty string",
         constraint = isValidCidrIpv4orBlank,
-        required = False,
+        required=False,
     )
 
 class IVPCPeering(INamed, IDeployable):
     """
-    VPC Peering
+VPC Peering
     """
     # peer_* is used when peering with an external VPC
     peer_role_name = schema.TextLine(
-        title = 'Remote peer role name',
-        required = False
+        title='Remote peer role name',
+        required=False
     )
     peer_vpcid = schema.TextLine(
-        title = 'Remote peer VPC Id',
-        required = False
+        title='Remote peer VPC Id',
+        required=False
     )
     peer_account_id = schema.TextLine(
-        title = 'Remote peer AWS account Id',
-        required = False
+        title='Remote peer AWS account Id',
+        required=False
     )
     peer_region = schema.TextLine(
-        title = 'Remote peer AWS region',
-        required = False
+        title='Remote peer AWS region',
+        required=False
     )
     # network_environment is used when peering with a network environment
     # local to the project.
     network_environment = TextReference(
-        title = 'Network Environment Reference',
-        required = False
+        title='Network Environment Reference',
+        required=False
     )
     # Routes forward traffic to the peering connection
     routing = schema.List(
-        title = "Peering routes",
+        title="Peering routes",
         value_type = schema.Object(IVPCPeeringRoute),
-        required = True
+        required=True
     )
-
 
 class IVPC(INamed, IDeployable):
     """
-    AWS Resource: VPC
+AWS Resource: VPC
     """
     cidr = schema.TextLine(
-        title = "CIDR",
-        description = "",
-        default = "",
-        required = False,
+        title="CIDR",
+        description="",
+        default="",
+        required=False,
     )
     enable_dns_hostnames = schema.Bool(
-        title = "Enable DNS Hostnames",
-        description = "",
-        default = False,
-        required = False,
+        title="Enable DNS Hostnames",
+        description="",
+        default=False,
+        required=False,
     )
     enable_dns_support = schema.Bool(
         title="Enable DNS Support",
-        description = "",
-        default = False,
-        required = False,
+        description="",
+        default=False,
+        required=False,
     )
     enable_internet_gateway = schema.Bool(
-        title = "Internet Gateway",
-        description = "",
-        default = False,
-        required = False,
+        title="Internet Gateway",
+        description="",
+        default=False,
+        required=False,
     )
     nat_gateway = schema.Dict(
-        title = "NAT Gateway",
-        description = "",
+        title="NAT Gateway",
+        description="",
         value_type = schema.Object(INATGateway),
-        required = True,
-        default = {}
+        required=True,
+        default={}
     )
     vpn_gateway = schema.Dict(
-        title = "VPN Gateway",
-        description = "",
+        title="VPN Gateway",
+        description="",
         value_type = schema.Object(IVPNGateway),
-        required = True,
-        default = {}
+        required=True,
+        default={}
     )
     private_hosted_zone = schema.Object(
-        title = "Private hosted zone",
-        description = "",
+        title="Private hosted zone",
+        description="",
         schema = IPrivateHostedZone,
-        required = False,
+        required=False,
     )
     security_groups = schema.Dict(
         # This is a dict of dicts ...
-        title = "Security groups",
-        default = {},
-        description = "Two level deep dictionary: first key is Application name, second key is Resource name.",
-        required = False,
+        title="Security groups",
+        default={},
+        description="Two level deep dictionary: first key is Application name, second key is Resource name.",
+        required=False,
     )
     segments = schema.Dict(
         title="Segments",
         value_type = schema.Object(ISegment),
-        required = False,
+        required=False,
     )
     peering = schema.Dict(
-        title = 'VPC Peering',
+        title='VPC Peering',
         value_type = schema.Object(IVPCPeering),
-        required = False,
+        required=False,
     )
 
 class INetworkEnvironment(INamed, IDeployable, IMapping):
     """
-    Network Environment : A template for a Network Environment
+NetworkEnvironment : A template for a network.
     """
+    # technically contains IEnvironment but there are set by the loader
+    # for the docs we do not want to indicate that environments are configured from within
+    # the network: key.
+    taggedValue('contains', 'mixed')
     availability_zones = schema.Int(
         title="Availability Zones",
-        description = "",
+        description="",
         default=0,
-        required = False,
+        required=False,
     )
     vpc = schema.Object(
-        title = "VPC",
-        description = "",
+        title="VPC",
+        description="",
         schema=IVPC,
         required=False,
     )
 
-
 class ICredentials(INamed):
     aws_access_key_id = schema.TextLine(
-        title = "AWS Access Key ID",
-        description = "",
-        default = "",
-        required = False,
+        title="AWS Access Key ID",
+        description="",
+        default="",
+        required=False,
     )
     aws_secret_access_key = schema.TextLine(
-        title = "AWS Secret Access Key",
-        description = "",
-        default = "",
-        required = False,
+        title="AWS Secret Access Key",
+        description="",
+        default="",
+        required=False,
     )
     aws_default_region = schema.TextLine(
-        title = "AWS Default Region",
-        description = "Must be a valid AWS Region name",
-        default = "no-region-set",
+        title="AWS Default Region",
+        description="Must be a valid AWS Region name",
+        default="no-region-set",
         missing_value = "no-region-set",
-        required = True,
+        required=True,
         constraint = isValidAWSRegionName
     )
     master_account_id = schema.TextLine(
-        title = "Master AWS Account ID",
-        description = "",
-        default = "",
-        required = False,
+        title="Master AWS Account ID",
+        description="",
+        default="",
+        required=False,
     )
     master_admin_iam_username = schema.TextLine(
-        title = "Master Account Admin IAM Username",
-        description = "",
-        default = "",
-        required = False,
+        title="Master Account Admin IAM Username",
+        description="",
+        default="",
+        required=False,
     )
     admin_iam_role_name = schema.TextLine(
-        title = "Administrator IAM Role Name",
-        required = False,
+        title="Administrator IAM Role Name",
+        required=False,
     )
     mfa_session_expiry_secs = schema.Int(
-        title = 'The number of seconds before an MFA token expires.',
-        default = 60 * 60,    # 1 hour: 3600 seconds
-        min = 60 * 15,        # 15 minutes: 900 seconds
-        max = (60 * 60) * 12, # 12 hours: 43200 seconds
-        required = False,
+        title='The number of seconds before an MFA token expires.',
+        default=60 * 60,    # 1 hour: 3600 seconds
+        min=60 * 15,        # 15 minutes: 900 seconds
+        max=(60 * 60) * 12, # 12 hours: 43200 seconds
+        required=False,
     )
     assume_role_session_expiry_secs = schema.Int(
-        title = 'The number of seconds before an assumed role token expires.',
-        default = 60 * 15,   # 15 minutes: 900 seconds
-        min = 60 * 15,       # 15 minutes: 900 seconds
-        max = 60 * 60,       # 1 hour: 3600 seconds
-        required = False,
+        title='The number of seconds before an assumed role token expires.',
+        default=60 * 15,   # 15 minutes: 900 seconds
+        min=60 * 15,       # 15 minutes: 900 seconds
+        max=60 * 60,       # 1 hour: 3600 seconds
+        required=False,
     )
 
 class INetwork(INetworkEnvironment):
+    # contains Environment objects but do not indicate this
+    # in the docs, they are configured under `environments:`.
+    taggedValue('contains', 'mixed')
     aws_account = TextReference(
-        title = 'AWS Account Reference',
-        required = False,
+        title='Paco Reference to an AWS Account',
+        required=False,
     )
+
+# Secrets Manager schemas
 
 class IGenerateSecretString(IParent, IDeployable):
     secret_string_template = schema.Text(
@@ -2182,7 +2206,7 @@ class IGenerateSecretString(IParent, IDeployable):
     )
 
 class ISecretsManagerSecret(INamed, IDeployable):
-    """Secrets Manager Application Name"""
+    """Secret for the Secrets Manager."""
     generate_secret_string = schema.Object(
         title="Generate SecretString object",
         required=False,
@@ -2191,21 +2215,26 @@ class ISecretsManagerSecret(INamed, IDeployable):
     )
 
 class ISecretsManagerGroup(INamed, IMapping):
-    """Secrets Manager Group"""
+    """Container for `SecretsManagerSecret`_ objects."""
+    taggedValue('contains', 'ISecretsManagerSecret')
 
 class ISecretsManagerApplication(INamed, IMapping):
-    """Secrets Manager Application"""
+    """Container for `SecretsManagerGroup`_ objects."""
+    taggedValue('contains', 'ISecretsManagerGroup')
 
 class ISecretsManager(INamed, IMapping):
-    """Secrets Manager"""
+    """Secrets Manager contains `SecretManagerApplication` objects."""
+    taggedValue('contains', 'ISecretsManagerApplication')
 
 # Environment, Account and Region containers
 
 class IAccountContainer(INamed, IMapping):
-    """A lightweight Account container"""
+    """Container for `RegionContainer`_ objects."""
+    taggedValue('contains', 'IRegionContainer')
 
 class IRegionContainer(INamed, IMapping):
-    "A lightweight Region container"
+    "Container for objects which do not belong to a specific Environment."
+    taggedValue('contains', 'mixed')
     alarm_sets = schema.Object(
         title="Alarm Sets",
         schema=IAlarmSets,
@@ -2214,110 +2243,119 @@ class IRegionContainer(INamed, IMapping):
 
 class IEnvironmentDefault(IRegionContainer):
     """
-    Default values for an Environment's configuration
+Default values for an Environment's configuration
     """
+    # EnvironmentDefault inherits from RegionContainer so
+    # technically it can contain non-environment objects directly,
+    # but it should never do so.
+    taggedValue('contains', 'mixed')
     applications = schema.Object(
-        title = "Application container",
-        required = True,
+        title="Application container",
+        required=True,
         schema = IApplicationEngines,
     )
     network = schema.Object(
-        title = "Network",
-        required = False,
+        title="Network",
+        required=False,
         schema = INetwork,
     )
     secrets_manager = schema.Object(
-        title = "Secrets Manager",
-        required = False,
+        title="Secrets Manager",
+        required=False,
         schema = ISecretsManager
     )
 
 class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
     """
-    An actual provisioned Environment in a specific region.
-    May contains overrides of the IEnvironmentDefault where needed.
+An actual provisioned Environment in a specific region.
+May contains overrides of the IEnvironmentDefault where needed.
     """
+    taggedValue('contains', 'mixed')
 
 class IEnvironment(INamed, IMapping):
     """
-    Environment
+Environment
     """
-    #default = schema.Object(IEnvironmentDefault)
+    # contains 'default' EnvironmentDefault and 'us-west-2' EnvironmentRegion objects
+    taggedValue('contains', 'mixed')
 
 # Networking
 
 class IAWSCertificateManager(IResource):
     domain_name = schema.TextLine(
-        title = "Domain Name",
-        description = "",
-        default = "",
-        required = False,
+        title="Domain Name",
+        description="",
+        default="",
+        required=False,
     )
     subject_alternative_names = schema.List(
-        title = "Subject alternative names",
-        description = "",
+        title="Subject alternative names",
+        description="",
         value_type=schema.TextLine(
             title="alternative name"
         ),
-        required = False,
+        required=False,
     )
     external_resource = schema.Bool(
-        title = "Marks this resource as external to avoid creating and validating it.",
-        default = False,
-        required = False,
+        title="Marks this resource as external to avoid creating and validating it.",
+        default=False,
+        required=False,
     )
 
 class IPortProtocol(Interface):
     """Port and Protocol"""
     port = schema.Int(
-        title = "Port",
-        required = False,
+        title="Port",
+        required=False,
     )
     protocol = schema.Choice(
         title="Protocol",
         vocabulary=vocabulary.target_group_protocol,
-        required = False,
+        required=False,
     )
 
 class ITargetGroups(INamed, IMapping):
-    pass
+    """
+Container for `TargetGroup`_ objects.
+    """
+    taggedValue('contains', 'ITargetGroup')
 
 class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
     health_check_interval = schema.Int(
-        title = "Health check interval",
-        required = False,
+        title="Health check interval",
+        required=False,
     )
     health_check_timeout = schema.Int(
-        title = "Health check timeout",
-        required = False,
+        title="Health check timeout",
+        required=False,
     )
     healthy_threshold = schema.Int(
-        title = "Healthy threshold",
-        required = False,
+        title="Healthy threshold",
+        required=False,
     )
     unhealthy_threshold = schema.Int(
-        title = "Unhealthy threshold",
-        required = False,
+        title="Unhealthy threshold",
+        required=False,
     )
     health_check_http_code = schema.TextLine(
-        title = "Health check HTTP codes",
-        required = False,
+        title="Health check HTTP codes",
+        required=False,
     )
     health_check_path = schema.TextLine(
-        title = "Health check path",
-        default = "/",
-        required = False,
+        title="Health check path",
+        default="/",
+        required=False,
     )
     connection_drain_timeout = schema.Int(
-        title = "Connection drain timeout",
-        required = False,
+        title="Connection drain timeout",
+        required=False,
     )
 
 class IListenerRule(IDeployable):
     rule_type = schema.TextLine(
-        title = "Type of Rule",
-        required = False,
+        title="Type of Rule",
+        required=False,
     )
     priority = schema.Int(
         title="Forward condition priority",
@@ -2325,8 +2363,8 @@ class IListenerRule(IDeployable):
         default=1
     )
     host = schema.TextLine(
-        title = "Host header value",
-        required = False,
+        title="Host header value",
+        required=False,
     )
     # Redirect Rule Variables
     redirect_host = schema.TextLine(
@@ -2340,28 +2378,31 @@ class IListenerRule(IDeployable):
     )
 
 class IListeners(INamed, IMapping):
-    pass
+    """
+Container for `Listener`_ objects.
+    """
+    taggedValue('contains', 'IListener')
 
 class IListener(IParent, IPortProtocol):
     redirect = schema.Object(
-        title = "Redirect",
+        title="Redirect",
         schema=IPortProtocol,
         required=False,
     )
     ssl_certificates = schema.List(
-        title = "List of SSL certificate References",
+        title="List of SSL certificate References",
         value_type = TextReference(
-            title = "SSL Certificate Reference"
+            title="SSL Certificate Reference"
         ),
         required=False,
     )
     target_group = schema.TextLine(
-        title = "Target group",
-        default = "",
+        title="Target group",
+        default="",
         required=False
     )
     rules = schema.Dict(
-        title = "Container of listener rules",
+        title="Container of listener rules",
         value_type = schema.Object(IListenerRule),
         required=False,
         default=None
@@ -2369,26 +2410,26 @@ class IListener(IParent, IPortProtocol):
 
 class IDNS(IParent):
     hosted_zone = TextReference(
-        title = "Hosted Zone Id",
-        required = False,
+        title="Hosted Zone Id",
+        required=False,
         str_ok = True
     )
     domain_name = TextReference(
-        title = "Domain name",
-        required = False,
+        title="Domain name",
+        required=False,
         str_ok = True
      )
     ssl_certificate = TextReference(
-        title = "SSL certificate Reference",
-        required = False
+        title="SSL certificate Reference",
+        required=False
     )
     ttl = schema.Int(
-        title = "TTL",
-        default = 300,
-        required = False
+        title="TTL",
+        default=300,
+        required=False
     )
 
-class ILBApplication(IResource, IMonitorable, IMapping):
+class ILBApplication(IResource, IMonitorable):
     """
 The ``LBApplication`` resource type creates an Application Load Balancer. Use load balancers to route traffic from
 the internet to your web servers.
@@ -2500,123 +2541,120 @@ to a target group, use the ``target_groups`` field on an ASG resource.
         required=False
     )
 
-class IIAMs(INamed, IMapping):
-    "Container for IAM Groups"
-
 class IStatement(INamed):
     effect = schema.TextLine(
-        title = "Effect",
-        description = "Must be one of: 'Allow', 'Deny'",
-        required = False,
+        title="Effect",
+        description="Must be one of: 'Allow', 'Deny'",
+        required=False,
         # ToDo: check constraint
         # constraint = vocabulary.iam_policy_effect
     )
     action = schema.List(
-        title = "Action(s)",
+        title="Action(s)",
         value_type=schema.TextLine(),
-        required = False,
+        required=False,
     )
     resource =schema.List(
-        title = "Resrource(s)",
+        title="Resrource(s)",
         value_type=schema.TextLine(),
-        required = False,
+        required=False,
     )
 
 class IPolicy(IParent):
     name = schema.TextLine(
-        title = "Policy name",
-        default = "",
-        required = False,
+        title="Policy name",
+        default="",
+        required=False,
     )
     statement = schema.List(
-        title = "Statements",
+        title="Statements",
         value_type=schema.Object(
             title="Statement",
             schema=IStatement
         ),
-        required = False,
+        required=False,
     )
 
 class IAssumeRolePolicy(IParent):
     effect = schema.TextLine(
-        title = "Effect",
-        required = False,
+        title="Effect",
+        required=False,
         # ToDo: check constraint
         # constraint = vocabulary.iam_policy_effect
     )
     aws = schema.List(
-        title = "List of AWS Principles",
+        title="List of AWS Principles",
         value_type=schema.TextLine(
             title="AWS Principle",
-            default = "",
-            required = False
+            default="",
+            required=False
         ),
-        required = False
+        required=False
     )
     service = schema.List(
-        title = "Service",
+        title="Service",
         value_type=schema.TextLine(
             title="Service",
-            default = "",
-            required = False
+            default="",
+            required=False
         ),
-        required = False
+        required=False
     )
     # ToDo: what are 'aws' keys for? implement ...
 
 class IRole(INamed, IDeployable):
     assume_role_policy = schema.Object(
-        title = "Assume role policy",
+        title="Assume role policy",
         schema=IAssumeRolePolicy,
-        required = False
+        required=False
     )
     instance_profile = schema.Bool(
-        title = "Instance profile",
-        default = False,
-        required = False
+        title="Instance profile",
+        default=False,
+        required=False
     )
     path = schema.TextLine(
-        title = "Path",
-        default = "/",
-        required = False
+        title="Path",
+        default="/",
+        required=False
     )
     role_name = schema.TextLine(
-        title = "Role name",
-        default = "",
-        required = False
+        title="Role name",
+        default="",
+        required=False
     )
     global_role_name = schema.Bool(
-        title = "Role name is globally unique and will not be hashed",
-        required = False,
-        default = False,
+        title="Role name is globally unique and will not be hashed",
+        required=False,
+        default=False,
     )
     policies = schema.List(
-        title = "Policies",
+        title="Policies",
         value_type=schema.Object(
             schema=IPolicy
         ),
-        required = False
+        required=False
     )
     managed_policy_arns = schema.List(
-        title = "Managed policy ARNs",
+        title="Managed policy ARNs",
         value_type=schema.TextLine(
-            title = "Managed policy ARN"
+            title="Managed policy ARN"
         ),
-        required = False
+        required=False
     )
     max_session_duration = schema.Int(
-        title = "Maximum session duration",
-        description = "The maximum session duration (in seconds)",
-        min = 3600,
-        max = 43200,
-        default = 3600,
-        required = False
+        title="Maximum session duration",
+        description="The maximum session duration (in seconds)",
+        min=3600,
+        max=43200,
+        default=3600,
+        required=False
     )
     permissions_boundary = schema.TextLine(
-        title = "Permissions boundary ARN",
-        description = "Must be valid ARN",
-        default = "",
-        required = False
+        title="Permissions boundary ARN",
+        description="Must be valid ARN",
+        default="",
+        required=False
     )
 
 #class IManagedPolicies(IMapping):
@@ -2624,125 +2662,124 @@ class IRole(INamed, IDeployable):
 #    Container of IAM Managed Policices
 #    """
 
-class IManagedPolicy(INamed, IDeployable, IMapping):
+class IManagedPolicy(INamed, IDeployable):
     """
-    IAM Managed Policy
+IAM Managed Policy
     """
-
     roles = schema.List(
-        title = "List of Role Names",
+        title="List of Role Names",
         value_type=schema.TextLine(
             title="Role Name"
         ),
-        required = False,
+        required=False,
     )
     users = schema.List(
-        title = "List of IAM Users",
+        title="List of IAM Users",
         value_type=schema.TextLine(
-            title = "IAM User name"
+            title="IAM User name"
         ),
-        required = False,
+        required=False,
     )
     statement = schema.List(
-        title = "Statements",
+        title="Statements",
         value_type=schema.Object(
             title="Statement",
             schema=IStatement
         ),
-        required = False,
+        required=False,
     )
     path = schema.TextLine(
-        title = "Path",
-        default = "/",
-        required = False,
+        title="Path",
+        default="/",
+        required=False,
     )
 
 
-class IIAM(INamed, IMapping):
+class IIAM(INamed):
     roles = schema.Dict(
-        title = "Roles",
+        title="Roles",
         value_type=schema.Object(
             title="Role",
             schema=IRole
         ),
-        required = False,
+        required=False,
     )
-
     policies = schema.Dict(
-        title = "Policies",
+        title="Policies",
         value_type=schema.Object(
             title="ManagedPolicy",
             schema=IManagedPolicy
         ),
-        required = False,
+        required=False,
     )
 
 class IEFSMount(IDeployable):
     """
-    EFS Mount Folder and Target Configuration
+EFS Mount Folder and Target Configuration
     """
     folder = schema.TextLine(
-        title = 'Folder to mount the EFS target',
-        required = True
+        title='Folder to mount the EFS target',
+        required=True
     )
     target = TextReference(
-        title = 'EFS Target Resource Reference',
-        required = True,
+        title='EFS Target Resource Reference',
+        required=True,
         str_ok = True
     )
 
 class ISimpleCloudWatchAlarm(IParent):
     """
-    A Simple CloudWatch Alarm
+A Simple CloudWatch Alarm
     """
-    alarm_description = schema.Text(
-        title = "Alarm Description",
-        description = "Valid JSON document with Paco fields.",
-        required = False,
+    alarm_description=schema.Text(
+        title="Alarm Description",
+        description="Valid JSON document with Paco fields.",
+        required=False,
     )
     actions_enabled = schema.Bool(
-        title = "Actions Enabled",
-        required = False,
+        title="Actions Enabled",
+        required=False,
     )
     comparison_operator = schema.TextLine(
-        title = "Comparison operator",
+        title="Comparison operator",
         constraint = isComparisonOperator,
-        description = "Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
-        required = False,
+        description="Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
+        required=False,
     )
     evaluation_periods = schema.Int(
-        title = "Evaluation periods",
-        required = False,
+        title="Evaluation periods",
+        required=False,
     )
     metric_name = schema.TextLine(
-        title = "Metric name",
-        required = True,
+        title="Metric name",
+        required=True,
     )
     namespace = schema.TextLine(
-        title = "Namespace",
-        required = False,
+        title="Namespace",
+        required=False,
     )
     period = schema.Int(
-        title = "Period in seconds",
-        required = False,
+        title="Period in seconds",
+        required=False,
     )
     statistic = schema.TextLine(
-        title = "Statistic",
-        required = False,
+        title="Statistic",
+        required=False,
     )
     threshold = schema.Float(
-        title = "Threshold",
-        required = False,
+        title="Threshold",
+        required=False,
     )
     dimensions = schema.List(
-        title = 'Dimensions',
+        title='Dimensions',
         value_type=schema.Object(IDimension),
-        required = False,
+        required=False,
     )
 
 # CloudFormation Init schemas
 
 class ICloudFormationConfigSets(INamed, IMapping):
+    taggedValue('contains', 'mixed')
     @invariant
     def configurations_lists(obj):
         """
@@ -2769,9 +2806,10 @@ class ICloudFormationConfigSets(INamed, IMapping):
                     raise Invalid('ConfigSet name does not match any configurations')
 
 class ICloudFormationConfigurations(INamed, IMapping):
-    pass
+    taggedValue('contains', 'ICloudFormationConfiguration')
 
 class ICloudFormationInitVersionedPackageSet(IMapping):
+    taggedValue('contains', 'mixed')
     @invariant
     def packages_with_optional_versions(obj):
         """
@@ -2796,6 +2834,7 @@ class ICloudFormationInitVersionedPackageSet(IMapping):
                     raise Invalid('Package version must be at least 1 char')
 
 class ICloudFormationInitPathOrUrlPackageSet(IMapping):
+    taggedValue('contains', 'mixed')
     @invariant
     def packages_with_path_or_url(obj):
         """
@@ -2854,7 +2893,7 @@ class ICloudFormationInitUsers(Interface):
     pass
 
 class ICloudFormationInitSources(INamed, IMapping):
-    pass
+    taggedValue('contains', 'mixed')
 
 class InvalidCfnInitEncoding(schema.ValidationError):
     __doc__ = 'File encoding must be one of plain or base64.'
@@ -2869,7 +2908,7 @@ def isValidS3KeyPrefix(value):
     return True
 
 class ICloudFormationInitFiles(INamed, IMapping):
-    pass
+    taggedValue('contains', 'mixed')
 
 class ICloudFormationInitFile(INamed):
     @invariant
@@ -2932,7 +2971,7 @@ class ICloudFormationInitFile(INamed):
     )
 
 class ICloudFormationInitCommands(INamed, IMapping):
-    pass
+    taggedValue('contains', 'mixed')
 
 class ICloudFormationInitCommand(Interface):
     command = schema.Text(
@@ -2999,7 +3038,7 @@ class ICloudFormationInitService(Interface):
     )
 
 class ICloudFormationInitServiceCollection(INamed, IMapping):
-    pass
+    taggedValue('contains', 'mixed')
 
 class ICloudFormationInitServices(INamed):
     sysvinit = schema.Object(
@@ -3051,7 +3090,7 @@ class ICloudFormationConfiguration(INamed):
     )
 
 class ICloudFormationParameters(INamed, IMapping):
-    pass
+    taggedValue('contains', 'mixed')
 
 class ICloudFormationInit(INamed):
     """
@@ -3184,42 +3223,42 @@ not yet implemented.
 
 class IASGLifecycleHooks(INamed, IMapping):
     """
-    Container of ASG LifecycleHOoks
+Container for `ASGLifecycleHook` objects.
     """
-    pass
+    taggedValue('contains', 'IASGLifecycleHook')
 
 class IASGLifecycleHook(INamed, IDeployable):
     """
-    ASG Lifecycle Hook
+ASG Lifecycle Hook
     """
     lifecycle_transition = schema.TextLine(
-        title = 'ASG Lifecycle Transition',
+        title='ASG Lifecycle Transition',
         constraint = IsValidASGLifecycleTransition,
-        required = True
+        required=True
     )
     notification_target_arn = schema.TextLine(
-        title = 'Lifecycle Notification Target Arn',
-        required = True
+        title='Lifecycle Notification Target Arn',
+        required=True
     )
     role_arn = schema.TextLine(
-        title = 'Licecycel Publish Role ARN',
-        required = True
+        title='Licecycel Publish Role ARN',
+        required=True
     )
     default_result = schema.TextLine(
-        title = 'Default Result',
-        required = False,
+        title='Default Result',
+        required=False,
         constraint = IsValidASGLifecycleDefaultResult
     )
 
 class IASGScalingPolicies(INamed, IMapping):
     """
-    Container of Auto Scaling Group Scaling Policies
+Container for `ASGScalingPolicy`_ objects.
     """
-    pass
+    taggedValue('contains', 'IASGScalingPolicy')
 
 class IASGScalingPolicy(INamed, IDeployable):
     """
-    Auto Scaling Group Scaling Policy
+Auto Scaling Group Scaling Policy
     """
     policy_type = schema.TextLine(
         title='Policy Type',
@@ -3238,12 +3277,12 @@ class IASGScalingPolicy(INamed, IDeployable):
     )
     cooldown = schema.Int(
         title='Scaling Cooldown in Seconds',
-        default = 300,
+        default=300,
         min=0,
         required=False
     )
     alarms = schema.List(
-        title = 'Alarms',
+        title='Alarms',
         value_type=schema.Object(ISimpleCloudWatchAlarm),
     )
 
@@ -3260,71 +3299,71 @@ class IASGScalingPolicy(INamed, IDeployable):
 
 class IEIP(IResource):
     """
-    Elastic IP
+Elastic IP
     """
     dns = schema.List(
-        title = "List of DNS for the EIP",
+        title="List of DNS for the EIP",
         value_type = schema.Object(IDNS),
-        required = False
+        required=False
     )
 
 class IEBSVolumeMount(IParent, IDeployable):
     """
-    EBS Volume Mount Configuration
+EBS Volume Mount Configuration
     """
     folder = schema.TextLine(
-        title = 'Folder to mount the EBS Volume',
-        required = True
+        title='Folder to mount the EBS Volume',
+        required=True
     )
     volume = TextReference(
-        title = 'EBS Volume Resource Reference',
-        required = True,
+        title='EBS Volume Resource Reference',
+        required=True,
         str_ok = True
     )
     device = schema.TextLine(
-        title = 'Device to mount the EBS Volume with.',
-        required = True
+        title='Device to mount the EBS Volume with.',
+        required=True
     )
     filesystem = schema.TextLine(
-        title = 'Filesystem to mount the EBS Volume with.',
-        required = True
+        title='Filesystem to mount the EBS Volume with.',
+        required=True
     )
 
 class IEBS(IResource):
     """
-    Elastic Block Store Volume
+Elastic Block Store Volume
     """
 
     size_gib = schema.Int(
         title="Volume Size in GiB",
         description="",
         default=10,
-        required = True
+        required=True
     )
     availability_zone = schema.Int(
         # Can be: 1 | 2 | 3 | 4 | ...
-        title = 'Availability Zone to create Volume in.',
-        required = True
+        title='Availability Zone to create Volume in.',
+        required=True
     )
     volume_type = schema.TextLine(
         title="Volume Type",
         description="Must be one of: gp2 | io1 | sc1 | st1 | standard",
         default='gp2',
         constraint = isValidEBSVolumeType,
-        required = False
+        required=False
     )
 
 class IEC2LaunchOptions(INamed):
     """
-    EC2 Launch Options
+EC2 Launch Options
     """
     update_packages = schema.Bool(
-        title = 'Update Distribution Packages',
-        required = False,
-        default = False
+        title='Update Distribution Packages',
+        required=False,
+        default=False
     )
     cfn_init_config_sets = schema.List(
-        title = "List of cfn-init config sets",
+        title="List of cfn-init config sets",
         value_type = schema.TextLine(
             title="",
             required=False
@@ -3399,19 +3438,19 @@ class IBlockDeviceMapping(IParent):
 
 class IASGRollingUpdatePolicy(INamed, IDeployable):
     """
-    Auto Scaling Group Roling Update Policy
+Auto Scaling Group Roling Update Policy
     """
 
 
 class IASG(IResource, IMonitorable):
     """
-    Auto Scaling Group
+Auto Scaling Group
     """
     associate_public_ip_address = schema.Bool(
         title="Associate Public IP Address",
         description="",
         default=False,
-        required = False,
+        required=False,
     )
     availability_zone = schema.TextLine(
         # Can be: all | 1 | 2 | 3 | 4 | ...
@@ -3437,19 +3476,19 @@ class IASG(IResource, IMonitorable):
         title="Cooldown seconds",
         description="",
         default=300,
-        required = False,
+        required=False,
     )
     desired_capacity = schema.Int(
         title="Desired capacity",
         description="",
         default=1,
-        required = False,
+        required=False,
     )
     ebs_optimized = schema.Bool(
         title="EBS Optimized",
         description="",
         default=False,
-        required = False,
+        required=False,
     )
     ebs_volume_mounts = schema.List(
         title='Elastic Block Store Volume Mounts',
@@ -3463,40 +3502,40 @@ class IASG(IResource, IMonitorable):
     )
     eip = TextReference(
         title="Elastic IP Reference or AllocationId",
-        required = False,
+        required=False,
         str_ok = True
     )
     health_check_grace_period_secs = schema.Int(
         title="Health check grace period in seconds",
         description="",
         default=300,
-        required = False,
+        required=False,
     )
     health_check_type = schema.TextLine(
         title="Health check type",
         description="Must be one of: 'EC2', 'ELB'",
         default='EC2',
         constraint = isValidHealthCheckType,
-        required = False,
+        required=False,
     )
     instance_iam_role = schema.Object(IRole)
     instance_ami = TextReference(
         title="Instance AMI",
         description="",
         str_ok=True,
-        required = False,
+        required=False,
     )
     instance_ami_type = schema.TextLine(
-        title = "The AMI Operating System family",
-        description = "Must be one of amazon, centos, suse, debian, ubuntu, microsoft or redhat.",
+        title="The AMI Operating System family",
+        description="Must be one of amazon, centos, suse, debian, ubuntu, microsoft or redhat.",
         constraint = isValidInstanceAMIType,
-        default = "amazon",
-        required = False,
+        default="amazon",
+        required=False,
     )
     instance_key_pair = TextReference(
-        title = "Instance key pair reference",
+        title="Instance key pair reference",
         description="",
-        required = False,
+        required=False,
     )
     instance_monitoring = schema.Bool(
         title="Instance monitoring",
@@ -3505,10 +3544,10 @@ class IASG(IResource, IMonitorable):
         required=False,
     )
     instance_type = schema.TextLine(
-        title = "Instance type",
+        title="Instance type",
         description="",
         constraint = isValidInstanceSize,
-        required = False,
+        required=False,
     )
     launch_options = schema.Object(
         title='EC2 Launch Options',
@@ -3518,7 +3557,7 @@ class IASG(IResource, IMonitorable):
     lifecycle_hooks = schema.Object(
         title='Lifecycle Hooks',
         schema=IASGLifecycleHooks,
-        required = False
+        required=False
     )
     load_balancers = schema.List(
         title="Target groups",
@@ -3526,41 +3565,41 @@ class IASG(IResource, IMonitorable):
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = False,
+        required=False,
     )
     max_instances = schema.Int(
         title="Maximum instances",
         description="",
         default=2,
-        required = False,
+        required=False,
     )
     min_instances = schema.Int(
         title="Minimum instances",
         description="",
         default=1,
-        required = False,
+        required=False,
     )
     #rolling_update_policy = schema.Object(
     #    title="Rolling Update Policy",
-    #    required = False
+    #    required=False
     #)
 
     update_policy_max_batch_size = schema.Int(
         title="Update policy maximum batch size",
         description="",
         default=1,
-        required = False,
+        required=False,
     )
     update_policy_min_instances_in_service = schema.Int(
         title="Update policy minimum instances in service",
         description="",
         default=1,
-        required = False,
+        required=False,
     )
     scaling_policies = schema.Object(
         title='Scaling Policies',
         schema=IASGScalingPolicies,
-        required = False,
+        required=False,
     )
     scaling_policy_cpu_average = schema.Int(
         title="Average CPU Scaling Polciy",
@@ -3583,12 +3622,12 @@ class IASG(IResource, IMonitorable):
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = False,
+        required=False,
     )
     segment = schema.TextLine(
         title="Segment",
         description="",
-        required = False,
+        required=False,
     )
     target_groups = schema.List(
         title="Target groups",
@@ -3596,7 +3635,7 @@ class IASG(IResource, IMonitorable):
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = False,
+        required=False,
     )
     termination_policies = schema.List(
         title="Terminiation policies",
@@ -3605,7 +3644,7 @@ class IASG(IResource, IMonitorable):
             title="Termination policy",
             description=""
         ),
-        required = False,
+        required=False,
     )
     user_data_pre_script = schema.Text(
         title="User data pre-script",
@@ -3628,23 +3667,23 @@ class ILambdaVariable(IParent):
     Lambda Environment Variable
     """
     key = schema.TextLine(
-        title = 'Variable Name',
-        required = True,
+        title='Variable Name',
+        required=True,
     )
     value = TextReference(
-        title = 'Variable Value',
-        required = True,
+        title='Variable Value',
+        required=True,
         str_ok=True,
     )
 
-class ILambdaEnvironment(IMapping):
+class ILambdaEnvironment(IParent):
     """
-    Lambda Environment
+Lambda Environment
     """
     variables = schema.List(
-        title = "Lambda Function Variables",
+        title="Lambda Function Variables",
         value_type = schema.Object(ILambdaVariable),
-        required = False,
+        required=False,
     )
 
 class ILambdaFunctionCode(IParent):
@@ -3661,37 +3700,37 @@ class ILambdaFunctionCode(IParent):
             raise Invalid("Too bad, so sad. Limit of inline code of 4096 characters exceeded. File is {} chars long.".format(len(obj.zipfile)))
 
     zipfile = StringFileReference(
-        title = "The function as an external file.",
-        description = "Maximum of 4096 characters.",
-        required = False,
+        title="The function as an external file.",
+        description="Maximum of 4096 characters.",
+        required=False,
     )
     s3_bucket = TextReference(
-        title = "An Amazon S3 bucket in the same AWS Region as your function",
-        required = False,
+        title="An Amazon S3 bucket in the same AWS Region as your function",
+        required=False,
         str_ok=True,
     )
     s3_key = schema.TextLine(
-        title = "The Amazon S3 key of the deployment package.",
-        required = False,
+        title="The Amazon S3 key of the deployment package.",
+        required=False,
     )
 
 
 class ILambdaVpcConfig(INamed):
     """
-    Lambda Environment
+Lambda Environment
     """
     segments = schema.List(
-        title = "VPC Segments to attach the function",
-        description = "",
+        title="VPC Segments to attach the function",
+        description="",
         value_type = TextReference(
-            title = "Segment",
+            title="Segment",
         ),
-        required = False
+        required=False
     )
     security_groups = schema.List(
-        title = "List of VPC Security Group Ids",
+        title="List of VPC Security Group Ids",
         value_type = TextReference(),
-        required = False
+        required=False
     )
 
 class ILambda(IResource, IMonitorable):
@@ -3758,76 +3797,76 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
 
 """
     code = schema.Object(
-        title = "The function deployment package.",
+        title="The function deployment package.",
         schema = ILambdaFunctionCode,
-        required = True,
+        required=True,
     )
-    description = schema.TextLine(
-        title = "A description of the function.",
-        required = True,
+    description=schema.TextLine(
+        title="A description of the function.",
+        required=True,
     )
     environment = schema.Object(
-        title = "Lambda Function Environment",
+        title="Lambda Function Environment",
         schema = ILambdaEnvironment,
-        default = None,
-        required = False,
+        default=None,
+        required=False,
     )
     iam_role = schema.Object(
-        title = "The IAM Role this Lambda will execute as.",
-        required = True,
+        title="The IAM Role this Lambda will execute as.",
+        required=True,
         schema = IRole,
     )
     layers = schema.List(
-        title = "Layers",
+        title="Layers",
         value_type = schema.TextLine(),
-        description = "Up to 5 Layer ARNs",
+        description="Up to 5 Layer ARNs",
         constraint = isListOfLayerARNs
     )
     handler = schema.TextLine(
-        title = "Function Handler",
-        required = True,
+        title="Function Handler",
+        required=True,
     )
     memory_size = schema.Int(
-        title = "Function memory size (MB)",
-        min = 128,
-        max = 3008,
-        default = 128,
-        required = False,
+        title="Function memory size (MB)",
+        min=128,
+        max=3008,
+        default=128,
+        required=False,
     )
     reserved_concurrent_executions = schema.Int(
-        title = "Reserved Concurrent Executions",
-        default = 0,
-        required = False,
+        title="Reserved Concurrent Executions",
+        default=0,
+        required=False,
     )
     runtime = schema.TextLine(
-        title = "Runtime environment",
-        required = True,
+        title="Runtime environment",
+        required=True,
         # dotnetcore1.0 | dotnetcore2.1 | go1.x | java8 | nodejs10.x | nodejs8.10 | provided | python2.7 | python3.6 | python3.7 | ruby2.5
-        default = 'python3.7',
+        default='python3.7',
     )
     # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
     timeout = schema.Int(
-        title = "Max function execution time in seconds.",
-        description = "Must be between 0 and 900 seconds.",
-        min = 0,
-        max = 900,
-        required = False,
+        title="Max function execution time in seconds.",
+        description="Must be between 0 and 900 seconds.",
+        min=0,
+        max=900,
+        required=False,
     )
     sdb_cache = schema.Bool(
-        title = "SDB Cache Domain",
+        title="SDB Cache Domain",
         required=False,
         default=False,
     )
     sns_topics = schema.List(
-        title = "List of SNS Topic Paco references",
+        title="List of SNS Topic Paco references",
         value_type =  TextReference(
-            title = "SNS Topic Paco reference",
+            title="SNS Topic Paco reference",
             str_ok=True
         ),
-        required = False,
+        required=False,
     )
     vpc_config = schema.Object(
-        title = "Vpc Configuration",
+        title="Vpc Configuration",
         required=False,
         schema = ILambdaVpcConfig
     )
@@ -3836,33 +3875,33 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
 
 class IApiGatewayMethodMethodResponseModel(Interface):
     content_type = schema.TextLine(
-        title = "Content Type",
-        required = False,
+        title="Content Type",
+        required=False,
     )
     model_name = schema.TextLine(
-        title = "Model name",
-        default = "",
-        required = False,
+        title="Model name",
+        default="",
+        required=False,
     )
 
 class IApiGatewayMethodMethodResponse(Interface):
     status_code = schema.TextLine(
-        title = "HTTP Status code",
-        description = "",
-        required = True,
+        title="HTTP Status code",
+        description="",
+        required=True,
     )
     response_models = schema.List(
-        title = "The resources used for the response's content type.",
-        description = """Specify response models as key-value pairs (string-to-string maps),
+        title="The resources used for the response's content type.",
+        description="""Specify response models as key-value pairs (string-to-string maps),
 with a content type as the key and a Model Paco name as the value.""",
         value_type = schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
-        required = False,
+        required=False,
     )
 
 class IApiGatewayMethodIntegrationResponse(Interface):
     content_handling = schema.TextLine(
-        title = "Specifies how to handle request payload content type conversions.",
-        description = """Valid values are:
+        title="Specifies how to handle request payload content type conversions.",
+        description="""Valid values are:
 
 CONVERT_TO_BINARY: Converts a request payload from a base64-encoded string to a binary blob.
 
@@ -3871,39 +3910,38 @@ CONVERT_TO_TEXT: Converts a request payload from a binary blob to a base64-encod
 If this property isn't defined, the request payload is passed through from the method request
 to the integration request without modification.
 """,
-        required = False
+        required=False
     )
     response_parameters = schema.Dict(
-        title = "Response Parameters",
-        default = {},
-        required = False,
+        title="Response Parameters",
+        default={},
+        required=False,
     )
     response_templates = schema.Dict(
-        title = "Response Templates",
-        default = {},
-        required = False,
+        title="Response Templates",
+        default={},
+        required=False,
     )
     selection_pattern = schema.TextLine(
-        title = "A regular expression that specifies which error strings or status codes from the backend map to the integration response.",
-        required = False,
+        title="A regular expression that specifies which error strings or status codes from the backend map to the integration response.",
+        required=False,
     )
     status_code = schema.TextLine(
-        title = "The status code that API Gateway uses to map the integration response to a MethodResponse status code.",
+        title="The status code that API Gateway uses to map the integration response to a MethodResponse status code.",
         description  = "Must match a status code in the method_respones for this API Gateway REST API.",
-        required = True,
+        required=True,
     )
 
 class IApiGatewayMethodIntegration(IParent):
     integration_responses = schema.List(
-        title = "Integration Responses",
+        title="Integration Responses",
         value_type = schema.Object(IApiGatewayMethodIntegrationResponse),
-        required = False,
+        required=False,
     )
     request_parameters = schema.Dict(
-        title = "The request parameters that API Gateway sends with the backend request.",
-        description = """
-        Specify request parameters as key-value pairs (string-to-string mappings), with a
-destination as the key and a source as the value. Specify the destination by using the
+        title="The request parameters that API Gateway sends with the backend request.",
+        description="""Specify request parameters as key-value pairs (string-to-string mappings),
+with a destination as the key and a source as the value. Specify the destination by using the
 following pattern `integration.request.location.name`, where `location` is query string, path,
 or header, and `name` is a valid, unique parameter name.
 
@@ -3911,129 +3949,133 @@ The source must be an existing method request parameter or a static value. You m
 enclose static values in single quotation marks and pre-encode these values based on
 their destination in the request.
         """,
-        default = {},
-        required = False,
+        default={},
+        required=False,
     )
     integration_http_method = schema.TextLine(
-        title = "Integration HTTP Method",
-        description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
-        default = "POST",
+        title="Integration HTTP Method",
+        description="Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
+        default="POST",
         constraint = isValidHttpMethod,
-        required = False,
+        required=False,
     )
     integration_type = schema.TextLine(
-        title = "Integration Type",
-        description = "Must be one of AWS, AWS_PROXY, HTTP, HTTP_PROXY or MOCK.",
+        title="Integration Type",
+        description="Must be one of AWS, AWS_PROXY, HTTP, HTTP_PROXY or MOCK.",
         constraint = isValidApiGatewayIntegrationType,
-        default = "AWS",
-        required = True,
+        default="AWS",
+        required=True,
     )
     integration_lambda = TextReference(
-        title = "Integration Lambda",
-        required = False,
+        title="Integration Lambda",
+        required=False,
     )
     uri = schema.TextLine(
-        title = "Integration URI",
-        required = False,
+        title="Integration URI",
+        required=False,
     )
 
 
 class IApiGatewayMethod(IResource):
     "API Gateway Method"
     authorization_type = schema.TextLine(
-        title = "Authorization Type",
-        description = "Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
+        title="Authorization Type",
+        description="Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
         constraint = isValidApiGatewayAuthorizationType,
-        required = True,
+        required=True,
     )
     http_method = schema.TextLine(
-        title = "HTTP Method",
-        description = "Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
+        title="HTTP Method",
+        description="Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
         constraint = isValidHttpMethod,
-        required = False,
+        required=False,
     )
     resource_id = schema.TextLine(
-        title = "Resource Id",
-        required = False,
+        title="Resource Id",
+        required=False,
     )
     integration = schema.Object(
-        title = "Integration",
+        title="Integration",
         schema = IApiGatewayMethodIntegration,
-        required = False,
+        required=False,
     )
     method_responses = schema.List(
-        title = "Method Responses",
-        description = "List of ApiGatewayMethod MethodResponses",
+        title="Method Responses",
+        description="List of ApiGatewayMethod MethodResponses",
         value_type = schema.Object(IApiGatewayMethodMethodResponse),
-        required = False,
+        required=False,
     )
     request_parameters = schema.Dict(
-        title = "Request Parameters",
-        description = """Specify request parameters as key-value pairs (string-to-Boolean mapping),
+        title="Request Parameters",
+        description="""Specify request parameters as key-value pairs (string-to-Boolean mapping),
         with a source as the key and a Boolean as the value. The Boolean specifies whether
         a parameter is required. A source must match the format method.request.location.name,
         where the location is query string, path, or header, and name is a valid, unique parameter name.""",
-        default = {},
-        required = False,
+        default={},
+        required=False,
     )
 
 class IApiGatewayModel(IResource):
     content_type = schema.TextLine(
-        title = "Content Type",
-        required = False,
+        title="Content Type",
+        required=False,
     )
-    description = schema.Text(
-        title = "Description",
-        required = False,
+    description=schema.Text(
+        title="Description",
+        required=False,
     )
     schema = schema.Dict(
-        title = "Schema",
-        description = 'JSON format. Will use null({}) if left empty.',
-        default = {},
-        required = False,
+        title="Schema",
+        description='JSON format. Will use null({}) if left empty.',
+        default={},
+        required=False,
     )
 
 class IApiGatewayResource(IResource):
     parent_id = schema.TextLine(
-        title = "Id of the parent resource. Default is 'RootResourceId' for a resource without a parent.",
-        default = "RootResourceId",
-        required = False,
+        title="Id of the parent resource. Default is 'RootResourceId' for a resource without a parent.",
+        default="RootResourceId",
+        required=False,
     )
     path_part = schema.TextLine(
-        title = "Path Part",
-        required = True,
+        title="Path Part",
+        required=True,
     )
     rest_api_id = schema.TextLine(
-        title = "Name of the API Gateway REST API this resource belongs to.",
+        title="Name of the API Gateway REST API this resource belongs to.",
         readonly = True,
     )
 
 class IApiGatewayStage(IResource):
     "API Gateway Stage"
     deployment_id = schema.TextLine(
-        title = "Deployment ID",
-        required = False,
+        title="Deployment ID",
+        required=False,
     )
-    description = schema.Text(
-        title = "Description",
-        required = False,
+    description=schema.Text(
+        title="Description",
+        required=False,
     )
     stage_name = schema.TextLine(
-        title = "Stage name",
-        required = False,
+        title="Stage name",
+        required=False,
     )
 
 class IApiGatewayModels(INamed, IMapping):
-    "Container for API Gateway Model objects"
+    "Container for `ApiGatewayModel`_ objects."
+    taggedValue('contains', 'IApiGatewayModel')
 
 class IApiGatewayMethods(INamed, IMapping):
-    "Container for API Gateway Method objects"
+    "Container for `ApiGatewayMethod`_ objects."
+    taggedValue('contains', 'IApiGatewayMethod')
 
 class IApiGatewayResources(INamed, IMapping):
-    "Container for API Gateway Resource objects"
+    "Container for `ApiGatewayResource`_ objects."
+    taggedValue('contains', 'IApiGatewayResource')
 
 class IApiGatewayStages(INamed, IMapping):
-    "Container for API Gateway Stage objects"
+    "Container for `ApiGatewayStage`_ objects"
+    taggedValue('contains', 'IApiGatewayStages')
 
 class IApiGatewayRestApi(IResource):
     "An Api Gateway Rest API resource"
@@ -4048,119 +4090,119 @@ class IApiGatewayRestApi(IResource):
             raise Invalid("Only one of body, body_file_location or body_s3_location can be set.")
 
     api_key_source_type = schema.TextLine(
-        title = "API Key Source Type",
-        description = "Must be one of 'HEADER' to read the API key from the X-API-Key header of a request or 'AUTHORIZER' to read the API key from the UsageIdentifierKey from a Lambda authorizer.",
+        title="API Key Source Type",
+        description="Must be one of 'HEADER' to read the API key from the X-API-Key header of a request or 'AUTHORIZER' to read the API key from the UsageIdentifierKey from a Lambda authorizer.",
         constraint = isValidApiKeySourceType,
-        required = False,
+        required=False,
     )
     binary_media_types = schema.List(
-        title = "Binary Media Types. The list of binary media types that are supported by the RestApi resource, such as image/png or application/octet-stream. By default, RestApi supports only UTF-8-encoded text payloads.",
-        description = "Duplicates are not allowed. Slashes must be escaped with ~1. For example, image/png would be image~1png in the BinaryMediaTypes list.",
+        title="Binary Media Types. The list of binary media types that are supported by the RestApi resource, such as image/png or application/octet-stream. By default, RestApi supports only UTF-8-encoded text payloads.",
+        description="Duplicates are not allowed. Slashes must be escaped with ~1. For example, image/png would be image~1png in the BinaryMediaTypes list.",
         constraint = isValidBinaryMediaTypes,
         value_type = schema.TextLine(
-            title = "Binary Media Type"
+            title="Binary Media Type"
         ),
-        required = False,
+        required=False,
     )
     body = schema.Text(
-        title = "Body. An OpenAPI specification that defines a set of RESTful APIs in JSON or YAML format. For YAML templates, you can also provide the specification in YAML format.",
-        description = "Must be valid JSON.",
-        required = False,
+        title="Body. An OpenAPI specification that defines a set of RESTful APIs in JSON or YAML format. For YAML templates, you can also provide the specification in YAML format.",
+        description="Must be valid JSON.",
+        required=False,
     )
     body_file_location = StringFileReference(
-        title = "Path to a file containing the Body.",
-        description = "Must be valid path to a valid JSON document.",
-        required = False,
+        title="Path to a file containing the Body.",
+        description="Must be valid path to a valid JSON document.",
+        required=False,
     )
     body_s3_location = schema.TextLine(
-        title = "The Amazon Simple Storage Service (Amazon S3) location that points to an OpenAPI file, which defines a set of RESTful APIs in JSON or YAML format.",
-        description = "Valid S3Location string to a valid JSON or YAML document.",
-        required = False,
+        title="The Amazon Simple Storage Service (Amazon S3) location that points to an OpenAPI file, which defines a set of RESTful APIs in JSON or YAML format.",
+        description="Valid S3Location string to a valid JSON or YAML document.",
+        required=False,
     )
     clone_from = schema.TextLine(
-        title = "CloneFrom. The ID of the RestApi resource that you want to clone.",
-        required = False,
+        title="CloneFrom. The ID of the RestApi resource that you want to clone.",
+        required=False,
     )
-    description = schema.Text(
-        title = "Description of the RestApi resource.",
-        required = False,
+    description=schema.Text(
+        title="Description of the RestApi resource.",
+        required=False,
     )
     endpoint_configuration = schema.List(
-        title = "Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",
-        description = "List of strings, each must be one of 'EDGE', 'REGIONAL', 'PRIVATE'",
+        title="Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",
+        description="List of strings, each must be one of 'EDGE', 'REGIONAL', 'PRIVATE'",
         value_type = schema.TextLine(
-            title = "Endpoint Type",
+            title="Endpoint Type",
             constraint = isValidEndpointConfigurationType
         ),
-        required = False,
+        required=False,
     )
     fail_on_warnings = schema.Bool(
-        title = "Indicates whether to roll back the resource if a warning occurs while API Gateway is creating the RestApi resource.",
-        default = False,
-        required = False,
+        title="Indicates whether to roll back the resource if a warning occurs while API Gateway is creating the RestApi resource.",
+        default=False,
+        required=False,
     )
     methods = schema.Object(
         schema = IApiGatewayMethods,
-        required = False,
+        required=False,
     )
     minimum_compression_size = schema.Int(
-        title = "An integer that is used to enable compression on an API. When compression is enabled, compression or decompression is not applied on the payload if the payload size is smaller than this value. Setting it to zero allows compression for any payload size.",
-        description = "A non-negative integer between 0 and 10485760 (10M) bytes, inclusive.",
-        default = None,
-        required = False,
-        min = 0,
-        max = 10485760,
+        title="An integer that is used to enable compression on an API. When compression is enabled, compression or decompression is not applied on the payload if the payload size is smaller than this value. Setting it to zero allows compression for any payload size.",
+        description="A non-negative integer between 0 and 10485760 (10M) bytes, inclusive.",
+        default=None,
+        required=False,
+        min=0,
+        max=10485760,
     )
     models = schema.Object(
         schema = IApiGatewayModels,
-        required = False,
+        required=False,
     )
     parameters = schema.Dict(
-        title = "Parameters. Custom header parameters for the request.",
-        description = "Dictionary of key/value pairs that are strings.",
-        value_type = schema.TextLine(title = "Value"),
-        default = {},
-        required = False,
+        title="Parameters. Custom header parameters for the request.",
+        description="Dictionary of key/value pairs that are strings.",
+        value_type = schema.TextLine(title="Value"),
+        default={},
+        required=False,
     )
     policy = schema.Text(
-        title = """A policy document that contains the permissions for the RestApi resource, in JSON format. To set the ARN for the policy, use the !Join intrinsic function with "" as delimiter and values of "execute-api:/" and "*".""",
-        description = "Valid JSON document",
+        title="""A policy document that contains the permissions for the RestApi resource, in JSON format. To set the ARN for the policy, use the !Join intrinsic function with "" as delimiter and values of "execute-api:/" and "*".""",
+        description="Valid JSON document",
         constraint = isValidJSONOrNone,
-        required = False,
+        required=False,
     )
     resources = schema.Object(
         schema = IApiGatewayResources,
-        required = False,
+        required=False,
     )
     stages = schema.Object(
         schema = IApiGatewayStages,
-        required = False,
+        required=False,
     )
 
 # Route53
 
 class IRoute53RecordSet(Interface):
     """
-    Route53 Record Set
+Route53 Record Set
     """
     record_name = schema.TextLine(
-        title = 'Record Set Full Name',
-        required = True
+        title='Record Set Full Name',
+        required=True
     )
     type = schema.TextLine(
-        title = 'Record Set Type',
-        required = True,
+        title='Record Set Type',
+        required=True,
         constraint = isValidRoute53RecordSetType
     )
     resource_records = schema.List(
-        title = 'Record Set Values',
-        required = True,
+        title='Record Set Values',
+        required=True,
         value_type = schema.TextLine(title='Resource Record')
     )
     ttl = schema.Int(
-        title = 'Record TTL',
-        required = False,
-        default = 300
+        title='Record TTL',
+        required=False,
+        default=300
     )
 
     @invariant
@@ -4171,55 +4213,55 @@ class IRoute53RecordSet(Interface):
 
 class IRoute53HostedZoneExternalResource(INamed, IDeployable):
     """
-    Existing Hosted Zone configuration
+Existing Hosted Zone configuration
     """
     hosted_zone_id = schema.TextLine(
-        title = 'ID of an existing Hosted Zone',
-        required = True
+        title='ID of an existing Hosted Zone',
+        required=True
     )
     nameservers = schema.List(
-        title = 'List of the Hosted Zones Nameservers',
+        title='List of the Hosted Zones Nameservers',
         value_type = schema.TextLine(title='Nameservers'),
-        required = True
+        required=True
     )
 
 class IRoute53HostedZone(INamed, IDeployable):
     """
-    Route53 Hosted Zone
+Route53 Hosted Zone
     """
     domain_name = schema.TextLine(
-        title = "Domain Name",
-        required = True
+        title="Domain Name",
+        required=True
     )
     account = TextReference(
-        title = "AWS Account Reference",
-        required = True
+        title="AWS Account Reference",
+        required=True
     )
     record_sets = schema.List(
-        title = 'List of Record Sets',
+        title='List of Record Sets',
         value_type = schema.Object(IRoute53RecordSet),
-        required = True
+        required=True
     )
     parent_zone = schema.TextLine(
-        title = 'Parent Hozed Zone name',
-        required = False
+        title='Parent Hozed Zone name',
+        required=False
     )
     external_resource = schema.Object(
-        title = 'External HostedZone Id Configuration',
+        title='External HostedZone Id Configuration',
         schema = IRoute53HostedZoneExternalResource,
-        required = False
+        required=False
     )
 
 
 class IRoute53Resource(INamed):
     """
-    Route53 Service Configuration
+Route53 Service Configuration
     """
     hosted_zones = schema.Dict(
-        title = "Hosted Zones",
+        title="Hosted Zones",
         value_type = schema.Object(IRoute53HostedZone),
-        default = None,
-        required = False,
+        default=None,
+        required=False,
     )
 
 class IRoute53HealthCheck(IResource):
@@ -4250,7 +4292,7 @@ class IRoute53HealthCheck(IResource):
         required=False
     )
     enable_sni = schema.Bool(
-        title = "Enable SNI",
+        title="Enable SNI",
         required=False,
         default=False
     )
@@ -4320,56 +4362,56 @@ class IRoute53HealthCheck(IResource):
 
 class ICodeCommitUser(Interface):
     """
-    CodeCommit User
+CodeCommit User
     """
     username = schema.TextLine(
-        title = "CodeCommit Username",
-        required = False,
+        title="CodeCommit Username",
+        required=False,
     )
     public_ssh_key = schema.TextLine(
-        title = "CodeCommit User Public SSH Key",
-        default = None,
-        required = False,
+        title="CodeCommit User Public SSH Key",
+        default=None,
+        required=False,
     )
 
-class ICodeCommitRepository(INamed, IDeployable, IMapping):
+class ICodeCommitRepository(INamed, IDeployable):
     """
-    CodeCommit Repository Configuration
+CodeCommit Repository
     """
     repository_name = schema.TextLine(
-        title = "Repository Name",
-        required = False,
+        title="Repository Name",
+        required=False,
     )
     account = TextReference(
-        title = "AWS Account Reference",
-        required = True,
+        title="AWS Account Reference",
+        required=True,
     )
     region = schema.TextLine(
-        title = "AWS Region",
-        required = False,
+        title="AWS Region",
+        required=False,
     )
-    description = schema.TextLine(
-        title = "Repository Description",
-        required = False,
+    description=schema.TextLine(
+        title="Repository Description",
+        required=False,
     )
     users = schema.Dict(
-        title = "CodeCommit Users",
+        title="CodeCommit Users",
         value_type = schema.Object(ICodeCommitUser),
-        default = None,
-        required = False,
+        default=None,
+        required=False,
     )
 
 class ICodeCommit(Interface):
     """
-    CodeCommit Service Configuration
+CodeCommit Service Configuration
     """
     repository_groups = schema.Dict(
-        title = "Group of Repositories",
+        title="Group of Repositories",
         value_type = schema.Dict(
-            title = "CodeCommit Repository",
+            title="CodeCommit Repository",
             value_type = schema.Object(ICodeCommitRepository),
         ),
-        required = False,
+        required=False,
     )
 
 class ISNSTopicSubscription(Interface):
@@ -4388,16 +4430,16 @@ class ISNSTopicSubscription(Interface):
             isValidEmail(obj.endpoint)
 
     protocol = schema.TextLine(
-        title = "Notification protocol",
-        default = "email",
-        description = "Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
+        title="Notification protocol",
+        default="email",
+        description="Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
         constraint = isValidSNSSubscriptionProtocol,
-        required = False,
+        required=False,
     )
     endpoint = TextReference(
-        title = "SNS Topic Endpoint",
+        title="SNS Topic Endpoint",
         str_ok = True,
-        required = False,
+        required=False,
     )
 
 class ISNSTopic(IResource):
@@ -4437,330 +4479,331 @@ Simple Notification Service (SNS) Topic resource.
 
 """
     display_name = schema.TextLine(
-        title = "Display name for SMS Messages",
-        required = False,
+        title="Display name for SMS Messages",
+        required=False,
     )
     subscriptions = schema.List(
-        title = "List of SNS Topic Subscriptions",
+        title="List of SNS Topic Subscriptions",
         value_type = schema.Object(ISNSTopicSubscription),
-        required = False,
+        required=False,
     )
     cross_account_access = schema.Bool(
-        title = "Cross-account access from all other accounts in this project.",
-        description = "",
-        required = False,
-        default = False,
+        title="Cross-account access from all other accounts in this project.",
+        description="",
+        required=False,
+        default=False,
     )
 
 class ICloudTrail(IResource):
     """
-    CloudTrail resource
+CloudTrail resource
     """
     accounts = schema.List(
-        title = "Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
-        description = "A list of references to Paco Accounts.",
+        title="Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
+        description="A list of references to Paco Accounts.",
         value_type = TextReference(
-            title = "Account Reference",
+            title="Account Reference",
         ),
-        required = False,
+        required=False,
     )
     cloudwatchlogs_log_group = schema.Object(
-        title = "CloudWatch Logs LogGroup to deliver this trail to.",
-        required = False,
-        default = None,
+        title="CloudWatch Logs LogGroup to deliver this trail to.",
+        required=False,
+        default=None,
         schema = ICloudWatchLogGroup,
     )
     enable_kms_encryption = schema.Bool(
-        title = "Enable KMS Key encryption",
-        default = False,
+        title="Enable KMS Key encryption",
+        default=False,
     )
     enable_log_file_validation = schema.Bool(
-        title = "Enable log file validation",
-        default = True,
-        required = False,
+        title="Enable log file validation",
+        default=True,
+        required=False,
     )
     include_global_service_events = schema.Bool(
-        title = "Include global service events",
-        default = True,
-        required = False,
+        title="Include global service events",
+        default=True,
+        required=False,
     )
     is_multi_region_trail = schema.Bool(
-        title = "Is multi-region trail?",
-        default = True,
-        required = False,
+        title="Is multi-region trail?",
+        default=True,
+        required=False,
     )
     region = schema.TextLine(
-        title = "Region to create the CloudTrail",
-        default = "",
-        description = 'Must be a valid AWS Region name or empty string',
+        title="Region to create the CloudTrail",
+        default="",
+        description='Must be a valid AWS Region name or empty string',
         constraint = isValidAWSRegionNameOrNone,
-        required = False,
+        required=False,
     )
     s3_bucket_account = TextReference(
-        title = "Account which will contain the S3 Bucket that the CloudTrails will be stored in",
-        description = 'Must be an paco.ref to an account',
-        required = True,
+        title="Account which will contain the S3 Bucket that the CloudTrails will be stored in",
+        description='Must be an paco.ref to an account',
+        required=True,
     )
     s3_key_prefix = schema.TextLine(
-        title = "S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
-        description = "Do not include a leading or trailing / in your prefix. They are provided already.",
-        default = "",
+        title="S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
+        description="Do not include a leading or trailing / in your prefix. They are provided already.",
+        default="",
         max_length = 200,
         constraint = isValidS3KeyPrefix,
-        required = False,
+        required=False,
     )
 
 class ICloudTrails(INamed, IMapping):
     """
-    Container for CloudTrail objects
+Container for `CloudTrail`_ objects.
     """
+    taggedValue('contains', 'ICloudTrail')
 
 class ICloudTrailResource(INamed):
     """
-    Global CloudTrail configuration
+Global CloudTrail configuration
     """
     trails = schema.Object(
-        title = "CloudTrails",
+        title="CloudTrails",
         schema = ICloudTrails,
-        default = None,
-        required = False,
+        default=None,
+        required=False,
     )
 
 class ICloudFrontCookies(INamed):
     forward = schema.TextLine(
-        title = "Cookies Forward Action",
+        title="Cookies Forward Action",
         constraint = isValidCloudFrontCookiesForward,
-        default = 'all',
-        required = False
+        default='all',
+        required=False
     )
     whitelisted_names = schema.List(
-        title = "White Listed Names",
+        title="White Listed Names",
         value_type = schema.TextLine(),
-        required = False
+        required=False
     )
 
 class ICloudFrontForwardedValues(INamed):
     query_string = schema.Bool(
-        title = "Forward Query Strings",
-        default = True,
-        required = False
+        title="Forward Query Strings",
+        default=True,
+        required=False
     )
     cookies = schema.Object(
-        title = "Forward Cookies",
+        title="Forward Cookies",
         schema = ICloudFrontCookies,
-        required = False
+        required=False
     )
     headers = schema.List(
-        title = "Forward Headers",
+        title="Forward Headers",
         value_type = schema.TextLine(),
-        default = ['*'],
-        required = False
+        default=['*'],
+        required=False
     )
 
 class ICloudFrontDefaultCacheBehavior(INamed):
     allowed_methods = schema.List(
-        title = "List of Allowed HTTP Methods",
+        title="List of Allowed HTTP Methods",
         value_type = schema.TextLine(),
-        default = [ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ],
-        required = False
+        default=[ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ],
+        required=False
     )
     cached_methods = schema.List(
-        title = "List of HTTP Methods to cache",
+        title="List of HTTP Methods to cache",
         value_type = schema.TextLine(),
-        default = [ 'GET', 'HEAD', 'OPTIONS' ],
-        required = False
+        default=[ 'GET', 'HEAD', 'OPTIONS' ],
+        required=False
     )
     default_ttl = schema.Int(
-        title = "Default TTTL",
+        title="Default TTTL",
         # Disable TTL bydefault, just pass through
-        default = 0
+        default=0
     )
     target_origin = TextReference(
-        title = "Target Origin"
+        title="Target Origin"
     )
     viewer_protocol_policy = schema.TextLine(
-        title = "Viewer Protocol Policy",
+        title="Viewer Protocol Policy",
         constraint = isValidCFViewerProtocolPolicy,
-        default = 'redirect-to-https'
+        default='redirect-to-https'
     )
     forwarded_values = schema.Object(
-        title = "Forwarded Values",
+        title="Forwarded Values",
         schema = ICloudFrontForwardedValues,
-        required = False
+        required=False
     )
     compress = schema.Bool(
-        title = "Compress certain files automatically",
-        required = False,
-        default = False
+        title="Compress certain files automatically",
+        required=False,
+        default=False
     )
 
 class ICloudFrontCacheBehavior(ICloudFrontDefaultCacheBehavior):
     path_pattern = schema.TextLine(
-        title = "Path Pattern",
-        required = True
+        title="Path Pattern",
+        required=True
     )
 
 class ICloudFrontViewerCertificate(INamed):
     certificate = TextReference(
-        title = "Certificate Reference",
-        required = False,
+        title="Certificate Reference",
+        required=False,
     )
     ssl_supported_method = schema.TextLine(
-        title = "SSL Supported Method",
+        title="SSL Supported Method",
         constraint = isValidCFSSLSupportedMethod,
-        required = False,
-        default = 'sni-only'
+        required=False,
+        default='sni-only'
     )
     minimum_protocol_version = schema.TextLine(
-        title = "Minimum SSL Protocol Version",
+        title="Minimum SSL Protocol Version",
         constraint = isValidCFMinimumProtocolVersion,
-        required = False,
-        default = 'TLSv1.1_2016'
+        required=False,
+        default='TLSv1.1_2016'
     )
 
 class ICloudFrontCustomErrorResponse(Interface):
     error_caching_min_ttl = schema.Int(
-        title = "Error Caching Min TTL",
-        required = False
+        title="Error Caching Min TTL",
+        required=False
     )
     error_code = schema.Int(
-        title = "HTTP Error Code",
-        required = False
+        title="HTTP Error Code",
+        required=False
     )
     response_code = schema.Int(
-        title = "HTTP Response Code",
-        required = False
+        title="HTTP Response Code",
+        required=False
     )
     response_page_path = schema.TextLine(
-        title = "Response Page Path",
-        required = False
+        title="Response Page Path",
+        required=False
     )
 
 class ICloudFrontCustomOriginConfig(INamed):
     http_port = schema.Int(
-        title = "HTTP Port",
-        required = False
+        title="HTTP Port",
+        required=False
     )
     https_port = schema.Int(
-        title = "HTTPS Port",
-        required = False,
+        title="HTTPS Port",
+        required=False,
     )
     protocol_policy = schema.TextLine(
-        title = "Protocol Policy",
+        title="Protocol Policy",
         constraint = isValidCFProtocolPolicy,
-        required = False,
+        required=False,
     )
     ssl_protocols = schema.List(
-        title = "List of SSL Protocols",
+        title="List of SSL Protocols",
         value_type = schema.TextLine(),
         constraint = isValidCFSSLProtocol,
-        required = False,
+        required=False,
     )
     read_timeout = schema.Int(
-        title = "Read timeout",
-        min = 4,
-        max = 60,
-        default = 30,
-        required = False,
+        title="Read timeout",
+        min=4,
+        max=60,
+        default=30,
+        required=False,
     )
     keepalive_timeout = schema.Int(
-        title = "HTTP Keepalive Timeout",
-        min = 1,
-        max = 60,
-        default = 5,
-        required = False,
+        title="HTTP Keepalive Timeout",
+        min=1,
+        max=60,
+        default=5,
+        required=False,
     )
 
 class ICloudFrontOrigin(INamed):
     """
-    CloudFront Origin Configuration
+CloudFront Origin Configuration
     """
     s3_bucket = TextReference(
-        title = "Origin S3 Bucket Reference",
-        required = False,
+        title="Origin S3 Bucket Reference",
+        required=False,
     )
     domain_name = TextReference(
-        title = "Origin Resource Reference",
+        title="Origin Resource Reference",
         str_ok = True,
-        required = False,
+        required=False,
     )
     custom_origin_config = schema.Object(
-        title = "Custom Origin Configuration",
+        title="Custom Origin Configuration",
         schema = ICloudFrontCustomOriginConfig,
-        required = False,
+        required=False,
     )
 
 class ICloudFrontFactory(INamed):
     """
-    CloudFront Factory
+CloudFront Factory
     """
     domain_aliases = schema.List(
-        title = "List of DNS for the Distribution",
+        title="List of DNS for the Distribution",
         value_type = schema.Object(IDNS),
-        required = False,
+        required=False,
     )
 
     viewer_certificate = schema.Object(
-        title = "Viewer Certificate",
+        title="Viewer Certificate",
         schema = ICloudFrontViewerCertificate,
-        required = False,
+        required=False,
     )
 
 class ICloudFront(IResource, IDeployable, IMonitorable):
     """
-    CloudFront CDN Configuration
+CloudFront CDN Configuration
     """
     domain_aliases = schema.List(
-        title = "List of DNS for the Distribution",
+        title="List of DNS for the Distribution",
         value_type = schema.Object(IDNS),
-        required = False,
+        required=False,
     )
     default_root_object = schema.TextLine(
-        title = "The default path to load from the origin.",
-        default = 'index.html',
-        required = False,
+        title="The default path to load from the origin.",
+        default='index.html',
+        required=False,
     )
     default_cache_behavior = schema.Object(
-        title = "Default Cache Behavior",
+        title="Default Cache Behavior",
         schema = ICloudFrontDefaultCacheBehavior,
-        required = False,
+        required=False,
     )
     cache_behaviors = schema.List(
-        title = 'List of Cache Behaviors',
+        title='List of Cache Behaviors',
         value_type = schema.Object(ICloudFrontCacheBehavior),
-        required = False
+        required=False
     )
     viewer_certificate = schema.Object(
-        title = "Viewer Certificate",
+        title="Viewer Certificate",
         schema = ICloudFrontViewerCertificate,
-        required = False,
+        required=False,
     )
     price_class = schema.TextLine(
-        title = "Price Class",
+        title="Price Class",
         constraint = isValidCFPriceClass,
-        default = 'All',
-        required = False,
+        default='All',
+        required=False,
     )
     custom_error_responses = schema.List(
-        title = "List of Custom Error Responses",
+        title="List of Custom Error Responses",
         value_type = schema.Object(ICloudFrontCustomErrorResponse),
-        default = None,
-        required = False,
+        default=None,
+        required=False,
     )
     origins = schema.Dict(
-        title = "Map of Origins",
+        title="Map of Origins",
         value_type = schema.Object(ICloudFrontOrigin),
-        required = False,
+        required=False,
     )
     webacl_id = schema.TextLine(
-        title = "WAF WebACLId",
-        required = False,
+        title="WAF WebACLId",
+        required=False,
     )
     factory = schema.Dict(
-        title = "CloudFront Factory",
+        title="CloudFront Factory",
         value_type = schema.Object(ICloudFrontFactory),
-        default = None,
-        required = False,
+        default=None,
+        required=False,
     )
 
 # RDS Schemas
@@ -4771,9 +4814,9 @@ class IDBParameters(IMapping):
 
 class IDBParameterGroup(IResource):
     """
-    AWS::RDS::DBParameterGroup
+AWS::RDS::DBParameterGroup
     """
-    description = schema.Text(
+    description=schema.Text(
         title="Description",
         required=False
     )
@@ -4793,21 +4836,21 @@ class IRDSOptionConfiguration(Interface):
 Option groups enable and configure features that are specific to a particular DB engine.
     """
     option_name = schema.TextLine(
-        title = 'Option Name',
-        required = False,
+        title='Option Name',
+        required=False,
     )
     option_settings = schema.List(
-        title = 'List of option name value pairs.',
+        title='List of option name value pairs.',
         value_type = schema.Object(INameValuePair),
-        required = False,
+        required=False,
     )
     option_version = schema.TextLine(
-        title = 'Option Version',
-        required = False,
+        title='Option Version',
+        required=False,
     )
     port = schema.TextLine(
-        title = 'Port',
-        required = False,
+        title='Port',
+        required=False,
     )
     # - DBSecurityGroupMemberships
     #   A list of DBSecurityGroupMembership name strings used for this option.
@@ -4817,7 +4860,7 @@ Option groups enable and configure features that are specific to a particular DB
 
 class IRDS(IResource, IMonitorable):
     """
-    RDS Common Interface
+RDS Common Interface
     """
     @invariant
     def password_or_snapshot_or_secret(obj):
@@ -4859,8 +4902,8 @@ class IRDS(IResource, IMonitorable):
         # ToDo: Constraint that depends upon the database type, not applicable for Aurora
     )
     db_instance_type = schema.TextLine(
-        title = "RDS Instance Type",
-        required = False,
+        title="RDS Instance Type",
+        required=False,
     )
     db_snapshot_identifier = schema.TextLine(
         title="DB Snapshot Identifier to restore from",
@@ -4907,7 +4950,7 @@ class IRDS(IResource, IMonitorable):
     option_configurations = schema.List(
         title="Option Configurations",
         value_type=schema.Object(IRDSOptionConfiguration),
-        required = False,
+        required=False,
     )
     parameter_group = TextReference(
         title="RDS Parameter Group",
@@ -4964,30 +5007,30 @@ Amazon RDS automatically creates a primary DB Instance and synchronously replica
 in a different Availability Zone (AZ).
     """
     multi_az = schema.Bool(
-        title = "Multiple Availability Zone deployment",
-        default = False,
-        required = False,
+        title="Multiple Availability Zone deployment",
+        default=False,
+        required=False,
     )
 
 class IRDSAurora(IResource, IRDS):
     """
-    RDS Aurora
+RDS Aurora
     """
     secondary_domain_name = TextReference(
-        title = "Secondary Domain Name",
+        title="Secondary Domain Name",
         str_ok = True,
-        required = False,
+        required=False,
     )
     secondary_hosted_zone = TextReference(
-        title = "Secondary Hosted Zone",
-        required = False,
+        title="Secondary Hosted Zone",
+        required=False,
     )
 
 # Cache schemas
 
 class IElastiCache(Interface):
     """
-    Base ElastiCache Interface
+Base ElastiCache Interface
     """
     # ToDo: Invariant for cache_clusters
     # - This parameter is not used if there is more than one node group (shard). You should use ReplicasPerNodeGroup instead.
@@ -5004,7 +5047,7 @@ class IElastiCache(Interface):
     )
     auto_minor_version_upgrade = schema.Bool(
         title="Enable automatic minor version upgrades",
-        required = False,
+        required=False,
     )
     automatic_failover_enabled = schema.Bool(
         title="Specifies whether a read-only replica is automatically promoted to read/write primary if the existing primary fails",
@@ -5026,7 +5069,7 @@ class IElastiCache(Interface):
         description="",
         required=False,
     )
-    description = schema.Text(
+    description=schema.Text(
         title="Replication Description",
         required=False,
     )
@@ -5068,7 +5111,7 @@ class IElastiCache(Interface):
 
 class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
     """
-    Redis ElastiCache Interface
+Redis ElastiCache Interface
     """
     cache_parameter_group_family = schema.TextLine(
         title='Cache Parameter Group Family',
@@ -5087,277 +5130,285 @@ class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
 
 class IIAMUserProgrammaticAccess(IDeployable):
     """
-    IAM User Programmatic Access Configuration
+IAM User Programmatic Access Configuration
     """
     access_key_1_version = schema.Int(
-        title = 'Access key version id',
-        default = 0,
-        required = False
+        title='Access key version id',
+        default=0,
+        required=False
     )
     access_key_2_version = schema.Int(
-        title = 'Access key version id',
-        default = 0,
-        required = False
+        title='Access key version id',
+        default=0,
+        required=False
     )
 
 class IIAMUserPermission(INamed, IDeployable):
     """
-    IAM User Permission
+IAM User Permission
     """
     type = schema.TextLine(
-        title = "Type of IAM User Access",
-        description = "A valid Paco IAM user access type: Administrator, CodeCommit, etc.",
-        required = False,
+        title="Type of IAM User Access",
+        description="A valid Paco IAM user access type: Administrator, CodeCommit, etc.",
+        required=False,
     )
 
 class IIAMUserPermissionAdministrator(IIAMUserPermission):
     """
-    Administrator IAM User Permission
+Administrator IAM User Permission
     """
     accounts = CommaList(
-        title = 'Comma separated list of Paco AWS account names this user has access to',
-        required = False,
+        title='Comma separated list of Paco AWS account names this user has access to',
+        required=False,
     )
     read_only = schema.Bool(
-        title = 'Enabled ReadOnly access',
-        default = False,
-        required = False,
+        title='Enabled ReadOnly access',
+        default=False,
+        required=False,
     )
 
 
 class IIAMUserPermissionCodeCommitRepository(IParent):
     """
-    CodeCommit Repository IAM User Permission Definition
+CodeCommit Repository IAM User Permission Definition
     """
     codecommit = TextReference(
-        title = 'CodeCommit Repository Reference',
-        required = False,
+        title='CodeCommit Repository Reference',
+        required=False,
     )
     permission = schema.TextLine(
-        title = 'Paco Permission policy',
+        title='Paco Permission policy',
         constraint = isPacoCodeCommitPermissionPolicyValid,
-        required = False,
+        required=False,
     )
     console_access_enabled = schema.Bool(
-        title = 'Console Access Boolean',
-        required = False,
+        title='Console Access Boolean',
+        required=False,
     )
     public_ssh_key = schema.TextLine(
-        title = "CodeCommit User Public SSH Key",
-        default = None,
-        required = False,
+        title="CodeCommit User Public SSH Key",
+        default=None,
+        required=False,
     )
 
 class IIAMUserPermissionCodeCommit(IIAMUserPermission):
     """
-    CodeCommit IAM User Permission
+CodeCommit IAM User Permission
     """
     repositories = schema.List(
-        title = 'List of repository permissions',
+        title='List of repository permissions',
         value_type = schema.Object(IIAMUserPermissionCodeCommitRepository),
-        required = False,
+        required=False,
     )
 
 class IIAMUserPermissionCodeBuildResource(IParent):
     """
-    CodeBuild Resource IAM User Permission Definition
+CodeBuild Resource IAM User Permission Definition
     """
     codebuild = TextReference(
-        title = 'CodeBuild Resource Reference',
-        required = False,
+        title='CodeBuild Resource Reference',
+        required=False,
     )
     permission = schema.TextLine(
-        title = 'Paco Permission policy',
+        title='Paco Permission policy',
         constraint = isPacoCodeCommitPermissionPolicyValid,
-        required = False,
+        required=False,
     )
     console_access_enabled = schema.Bool(
-        title = 'Console Access Boolean',
-        required = False,
+        title='Console Access Boolean',
+        required=False,
     )
 
 class IIAMUserPermissionCodeBuild(IIAMUserPermission):
     """
-    CodeBuild IAM User Permission
+CodeBuild IAM User Permission
     """
     resources = schema.List(
-        title = 'List of CodeBuild resources',
+        title='List of CodeBuild resources',
         value_type = schema.Object(IIAMUserPermissionCodeBuildResource),
-        required = False
+        required=False
     )
 
 class IIAMUserPermissionCustomPolicy(IIAMUserPermission):
     """
-    Custom IAM User Permission
+Custom IAM User Permission
     """
     accounts = CommaList(
-        title = 'Comma separated list of Paco AWS account names this user has access to',
-        required = False,
+        title='Comma separated list of Paco AWS account names this user has access to',
+        required=False,
     )
     policies = schema.List(
-        title = "Policies",
+        title="Policies",
         value_type=schema.Object(
             schema=IPolicy
         ),
-        required = False
+        required=False
     )
 
 class IIAMUserPermissions(INamed, IMapping):
     """
-    Group of IAM User Permissions
+Container for IAM User Permission objects.
     """
-    pass
+    taggedValue('contains', 'mixed')
 
 class IIAMUser(INamed, IDeployable):
     """
-    IAM User
+IAM User
     """
     account = TextReference(
-        title = "Paco account reference to install this user",
-        required = True
+        title="Paco account reference to install this user",
+        required=True
     )
     username = schema.TextLine(
-        title = 'IAM Username',
-        required = False,
+        title='IAM Username',
+        required=False,
     )
-    description = schema.TextLine(
-        title = 'IAM User Description',
-        required = False,
+    description=schema.TextLine(
+        title='IAM User Description',
+        required=False,
     )
     console_access_enabled = schema.Bool(
-        title = 'Console Access Boolean'
+        title='Console Access Boolean'
     )
     programmatic_access = schema.Object(
-        title = 'Programmatic Access',
+        title='Programmatic Access',
         schema = IIAMUserProgrammaticAccess,
-        required = False,
+        required=False,
     )
     permissions = schema.Object(
-        title = 'Paco IAM User Permissions',
+        title='Paco IAM User Permissions',
         schema = IIAMUserPermissions,
-        required = False,
+        required=False,
     )
     account_whitelist = CommaList(
-        title = 'Comma separated list of Paco AWS account names this user has access to',
-        required = False,
+        title='Comma separated list of Paco AWS account names this user has access to',
+        required=False,
     )
 
 class IIAMUsers(INamed, IMapping):
-    pass
+    """
+Container for `IAMUser`_ objects.
+    """
+    taggedValue('contains', 'IIAMUser')
+
 
 class IIAMResource(INamed):
     """
 IAM Resource contains IAM Users who can login and have different levels of access to the AWS Console and API.
     """
     users = schema.Object(
-        title = 'IAM Users',
+        title='IAM Users',
         schema=IIAMUsers,
-        required = False,
+        required=False,
     )
 
 class IDeploymentPipelineConfiguration(INamed):
     """
-    Deployment Pipeline General Configuration
+Deployment Pipeline General Configuration
     """
     artifacts_bucket = TextReference(
-        title = "Artifacts S3 Bucket Reference",
+        title="Artifacts S3 Bucket Reference",
         description="",
-        required = False,
+        required=False,
     )
     account = TextReference(
-        title = "The account where Pipeline tools will be provisioned.",
-        required = False,
+        title="The account where Pipeline tools will be provisioned.",
+        required=False,
     )
 
 class IDeploymentPipelineStageAction(INamed, IDeployable, IMapping):
     """
-    Deployment Pipeline Source Stage
+Deployment Pipeline Source Stage
     """
+    taggedValue('contains', 'mixed')
     type = schema.TextLine(
-        title = 'The type of DeploymentPipeline Source Stage',
-        required = False,
+        title='The type of DeploymentPipeline Source Stage',
+        required=False,
     )
     run_order = schema.Int(
-        title = 'The order in which to run this stage',
-        min = 1,
-        max = 999,
-        default = 1,
-        required = False,
+        title='The order in which to run this stage',
+        min=1,
+        max=999,
+        default=1,
+        required=False,
     )
 
 class IDeploymentPipelineSourceCodeCommit(IDeploymentPipelineStageAction):
     """
-    CodeCommit DeploymentPipeline Source Stage
+CodeCommit DeploymentPipeline Source Stage
     """
+    taggedValue('contains', 'mixed')
     codecommit_repository = TextReference(
-        title = 'CodeCommit Respository',
-        required = False,
+        title='CodeCommit Respository',
+        required=False,
     )
 
     deployment_branch_name = schema.TextLine(
-        title = "Deployment Branch Name",
-        description = "",
-        default = "",
-        required = False,
+        title="Deployment Branch Name",
+        description="",
+        default="",
+        required=False,
     )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
     """
-    CodeBuild DeploymentPipeline Build Stage
+CodeBuild DeploymentPipeline Build Stage
     """
+    taggedValue('contains', 'mixed')
     deployment_environment = schema.TextLine(
-        title = "Deployment Environment",
-        description = "",
-        default = "",
-        required = False,
+        title="Deployment Environment",
+        description="",
+        default="",
+        required=False,
     )
     codebuild_image = schema.TextLine(
-        title = 'CodeBuild Docker Image',
-        required = False,
+        title='CodeBuild Docker Image',
+        required=False,
     )
     codebuild_compute_type = schema.TextLine(
-        title = 'CodeBuild Compute Type',
+        title='CodeBuild Compute Type',
         constraint = isValidCodeBuildComputeType,
-        required = False,
+        required=False,
     )
     timeout_mins = schema.Int(
-        title = 'Timeout in Minutes',
-        min = 5,
-        max = 480,
-        default = 60,
-        required = False,
+        title='Timeout in Minutes',
+        min=5,
+        max=480,
+        default=60,
+        required=False,
     )
     role_policies = schema.List(
-        title = 'Project IAM Role Policies',
+        title='Project IAM Role Policies',
         value_type=schema.Object(IPolicy),
-        required = False,
+        required=False,
     )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
     """
-    Amazon S3 Deployment Provider
+Amazon S3 Deployment Provider
     """
+    taggedValue('contains', 'mixed')
     # BucketName: Required
     bucket = TextReference(
-        title = "S3 Bucket Reference",
-        required = False,
+        title="S3 Bucket Reference",
+        required=False,
     )
     # Extract: Required: Required if Extract = false
     extract = schema.Bool(
-        title = "Boolean indicating whether the deployment artifact will be unarchived.",
-        default = True,
-        required = False,
+        title="Boolean indicating whether the deployment artifact will be unarchived.",
+        default=True,
+        required=False,
     )
     # ObjectKey: Required if Extract = false
     object_key = schema.TextLine(
-        title = "S3 object key to store the deployment artifact as.",
-        required = False,
+        title="S3 object key to store the deployment artifact as.",
+        required=False,
     )
     # KMSEncryptionKeyARN: Optional
     # This is used internally for now.
     #kms_encryption_key_arn = schema.TextLine(
-    #    title = "The KMS Key Arn used for artifact encryption.",
-    #    required = False
+    #    title="The KMS Key Arn used for artifact encryption.",
+    #    required=False
     #)
     # : CannedACL: Optional
     # https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
@@ -5375,116 +5426,117 @@ class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
 
 class IDeploymentPipelineManualApproval(IDeploymentPipelineStageAction):
     """
-    ManualApproval DeploymentPipeline
+ManualApproval DeploymentPipeline
     """
+    taggedValue('contains', 'mixed')
     manual_approval_notification_email = schema.List(
         title="Manual Approval Notification Email List",
         description="",
         value_type=schema.TextLine(
-            title = "Manual approval notification email",
-            description = "",
-            default = "",
-            required = False,
+            title="Manual approval notification email",
+            description="",
+            default="",
+            required=False,
         ),
-        required = False
+        required=False
     )
 
 class ICodeDeployMinimumHealthyHosts(INamed):
     """
-    CodeDeploy Minimum Healthy Hosts
+CodeDeploy Minimum Healthy Hosts
     """
     type = schema.TextLine(
-        title = "Deploy Config Type",
-        default = "HOST_COUNT",
-        required = False,
+        title="Deploy Config Type",
+        default="HOST_COUNT",
+        required=False,
     )
     value = schema.Int(
-        title = "Deploy Config Value",
-        default = 0,
-        required = False,
+        title="Deploy Config Value",
+        default=0,
+        required=False,
     )
 
 
 class IDeploymentPipelineDeployCodeDeploy(IDeploymentPipelineStageAction):
     """
-    CodeDeploy DeploymentPipeline Deploy Stage
+CodeDeploy DeploymentPipeline Deploy Stage
     """
     auto_scaling_group = TextReference(
-        title = "ASG Reference",
-        required = False,
+        title="ASG Reference",
+        required=False,
     )
     auto_rollback_enabled = schema.Bool(
-        title = "Automatic rollback enabled",
-        description = "",
-        default = True
+        title="Automatic rollback enabled",
+        description="",
+        default=True
     )
     minimum_healthy_hosts = schema.Object(
-        title = "The minimum number of healthy instances that should be available at any time during the deployment.",
+        title="The minimum number of healthy instances that should be available at any time during the deployment.",
         schema = ICodeDeployMinimumHealthyHosts,
-        required = False
+        required=False
     )
     deploy_style_option = schema.TextLine(
-        title = "Deploy Style Option",
-        description = "",
-        default = "WITH_TRAFFIC_CONTROL",
-        required = False,
+        title="Deploy Style Option",
+        description="",
+        default="WITH_TRAFFIC_CONTROL",
+        required=False,
     )
     deploy_instance_role = TextReference(
-        title = "Deploy Instance Role Reference",
-        required = False,
+        title="Deploy Instance Role Reference",
+        required=False,
     )
     elb_name = schema.TextLine(
-        title = "ELB Name",
-        description = "",
-        default = "",
-        required = False,
+        title="ELB Name",
+        description="",
+        default="",
+        required=False,
     )
     alb_target_group = TextReference(
-        title = "ALB Target Group Reference",
-        required = False,
+        title="ALB Target Group Reference",
+        required=False,
     )
 
 class IDeploymentPipelineSourceStage(INamed, IMapping):
     """
-    A map of DeploymentPipeline source stage actions
+A map of DeploymentPipeline source stage actions
     """
-    pass
+    taggedValue('contains', 'mixed')
 
 class IDeploymentPipelineBuildStage(INamed, IMapping):
     """
-    A map of DeploymentPipeline build stage actions
+A map of DeploymentPipeline build stage actions
     """
-    pass
+    taggedValue('contains', 'mixed')
 
 class IDeploymentPipelineDeployStage(INamed, IMapping):
     """
-    A map of DeploymentPipeline deploy stage actions
+A map of DeploymentPipeline deploy stage actions
     """
-    pass
+    taggedValue('contains', 'mixed')
 
 class IDeploymentPipeline(IResource):
     """
-    Code Pipeline: Build and Deploy
+Code Pipeline: Build and Deploy
     """
     configuration = schema.Object(
-        title = 'Deployment Pipeline General Configuration',
+        title='Deployment Pipeline General Configuration',
         schema = IDeploymentPipelineConfiguration,
-        required = False,
+        required=False,
     )
     source = schema.Object(
-        title = 'Deployment Pipeline Source Stage',
+        title='Deployment Pipeline Source Stage',
         schema = IDeploymentPipelineSourceStage,
-        required = False,
+        required=False,
     )
     build = schema.Object(
-        title = 'Deployment Pipeline Build Stage',
+        title='Deployment Pipeline Build Stage',
         schema = IDeploymentPipelineBuildStage,
-        required = False,
+        required=False,
     )
     deploy = schema.Object(
-        title = 'Deployment Pipeline Deploy Stage',
+        title='Deployment Pipeline Deploy Stage',
         schema =IDeploymentPipelineDeployStage,
-        required = False,
+        required=False,
     )
 
 class IDeploymentGroupS3Location(IParent):
@@ -5504,7 +5556,7 @@ class IDeploymentGroupS3Location(IParent):
     )
 
 class ICodeDeployDeploymentGroups(INamed, IMapping):
-    pass
+    taggedValue('contains', 'mixed')
 
 class ICodeDeployDeploymentGroup(INamed, IDeployable):
     ignore_application_stop_failures = schema.Bool(
@@ -5565,8 +5617,8 @@ class IEFS(IResource):
     Elastic File System Resource
     """
     encrypted = schema.Bool(
-        title = 'Encryption at Rest',
-        default = False
+        title='Encryption at Rest',
+        default=False
     )
     security_groups = schema.List(
         title="Security groups",
@@ -5574,12 +5626,12 @@ class IEFS(IResource):
         value_type=TextReference(
             title="Paco reference"
         ),
-        required = True,
+        required=True,
     )
     segment = schema.TextLine(
         title="Segment",
         description="",
-        required = False,
+        required=False,
     )
 
 # AWS Backup
@@ -5621,7 +5673,7 @@ class IBackupSelectionConditionResourceType(IParent):
     )
 
 class IBackupPlanSelection(IParent):
-    title = schema.TextLine(
+    title=schema.TextLine(
         title="Title",
         default="",
         required=True,
@@ -5653,11 +5705,14 @@ AWS Backup Plan
     )
 
 class IBackupPlans(INamed, IMapping):
-    pass
+    """
+Container for `BackupPlan`_ objects.
+    """
+    taggedValue('contains', 'IBackupPlan')
 
 class IBackupVault(IResource):
     """
-AWS Backup Vault
+An AWS Backup Vault.
     """
     notification_events = schema.List(
         title="Notification Events",
@@ -5679,4 +5734,8 @@ AWS Backup Vault
     )
 
 class IBackupVaults(INamed, IMapping):
-    pass
+    """
+Container for `BackupVault` objects.
+    """
+    taggedValue('contains', 'IBackupVault')
+

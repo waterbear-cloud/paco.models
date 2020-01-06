@@ -398,7 +398,8 @@ class CodeCommitUser():
     public_ssh_key = FieldProperty(schemas.ICodeCommitUser["public_ssh_key"])
 
 @implementer(schemas.ICodeCommitRepository)
-class CodeCommitRepository(Named, Deployable, dict):
+class CodeCommitRepository(Named, Deployable):
+    repository_name = FieldProperty(schemas.ICodeCommitRepository["repository_name"])
     account = FieldProperty(schemas.ICodeCommitRepository["account"])
     region = FieldProperty(schemas.ICodeCommitRepository["region"])
     description = FieldProperty(schemas.ICodeCommitRepository["description"])

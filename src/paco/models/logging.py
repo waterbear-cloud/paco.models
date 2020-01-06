@@ -94,7 +94,7 @@ class CloudWatchLogSets(Named, dict):
         return results
 
 @implementer(schemas.ICloudWatchLogSet)
-class CloudWatchLogSet(Named, dict):
+class CloudWatchLogSet(Named):
     "A set of Log Group objects"
     log_groups = FieldProperty(schemas.ICloudWatchLogSet["log_groups"])
 

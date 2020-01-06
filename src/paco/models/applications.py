@@ -26,7 +26,7 @@ class ApplicationEngines(Named, dict):
     pass
 
 @implementer(schemas.IApplicationEngine)
-class ApplicationEngine(Named, Deployable, Regionalized, Monitorable, dict):
+class ApplicationEngine(Named, Deployable, Regionalized, Monitorable):
     groups = FieldProperty(schemas.IApplicationEngine['groups'])
     order = FieldProperty(schemas.IApplicationEngine['order'])
 
@@ -135,7 +135,7 @@ class ResourceGroups(Named, dict):
 
 
 @implementer(schemas.IResourceGroup)
-class ResourceGroup(Named, Deployable, DNSEnablable, dict):
+class ResourceGroup(Named, Deployable, DNSEnablable):
     resources = FieldProperty(schemas.IResourceGroup['resources'])
 
     def __init__(self, name, __parent__):
@@ -628,7 +628,7 @@ class DNS(Parent):
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ILBApplication)
-class LBApplication(Resource, dict):
+class LBApplication(Resource):
     title = "Application ELB"
     target_groups = FieldProperty(schemas.ILBApplication['target_groups'])
     listeners = FieldProperty(schemas.ILBApplication['listeners'])
@@ -672,13 +672,14 @@ class LambdaVariable(Parent):
         self.value = value
 
 @implementer(schemas.ILambdaEnvironment)
-class LambdaEnvironment(dict):
+class LambdaEnvironment(Parent):
     """
     Lambda Environment
     """
     variables = FieldProperty(schemas.ILambdaEnvironment['variables'])
 
-    def __init__(self):
+    def __init__(self, __parent__):
+        self.__parent__ = __parent__
         self.variables = []
 
 @implementer(schemas.ILambdaFunctionCode)

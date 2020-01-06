@@ -4,8 +4,9 @@ Changelog for paco.models
 6.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Changed
 
+- Schema clean-up, removed IMapping from schemas that do not actual use it.
 
 6.3.1 (2020-01-03)
 ------------------

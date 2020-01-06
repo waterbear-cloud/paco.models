@@ -11,7 +11,7 @@ import troposphere.elasticloadbalancingv2
 from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
-    DNSEnablable, CFNExport
+    DNSEnablable, CFNExport, md5sum
 from paco.models.exceptions import InvalidPacoBucket
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
@@ -345,6 +345,14 @@ class S3Bucket(Resource, Deployable):
         bucket_name = smart_join('-', bucket_name_list)
 
         bucket_name = bucket_name.replace('_', '-').lower()
+
+        # If the generated bucket name is > 63 chars, then prefix a hash of the bucket
+        if len(bucket_name) > 63:
+            bucket_hash = md5sum(str_data=bucket_name)[:8]
+            bucket_copy_size = -(63-9)
+            if bucket_name[bucket_copy_size] != '-':
+                bucket_hash += '-'
+            bucket_name = bucket_hash+bucket_name[bucket_copy_size:]
 
         return bucket_name
 

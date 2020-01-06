@@ -5614,7 +5614,19 @@ CodeDeploy Application
 
 class IEFS(IResource):
     """
-    Elastic File System Resource
+AWS Elastic File System (EFS) resource.
+
+.. code-block:: yaml
+    :caption: Example EFS resource YAML
+
+    type: EFS
+    order: 20
+    enabled: true
+    encrypted: false
+    segment: private
+    security_groups:
+      - paco.ref netenv.mynet.network.vpc.security_groups.cloud.content
+
     """
     encrypted = schema.Bool(
         title='Encryption at Rest',
@@ -5622,7 +5634,7 @@ class IEFS(IResource):
     )
     security_groups = schema.List(
         title="Security groups",
-        description="",
+        description="Paco Reference to a `SecurityGroup`_",
         value_type=TextReference(
             title="Paco reference"
         ),

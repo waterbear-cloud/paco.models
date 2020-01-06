@@ -123,7 +123,6 @@ backup_vaults:
 applications:
   app:
     enabled: true
-    managed_updates: true
     notifications:
       team_bob:
         groups:

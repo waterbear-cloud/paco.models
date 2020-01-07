@@ -4,7 +4,10 @@ Changelog for paco.models
 6.3.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Changed
+
+- CodeCommit contains CodeCommitRepositoryGroups and CodeCommitRepostory group objects instead of a two-level dict.
+  Fixes docs and simplifies loader.
 
 
 6.3.2 (2020-01-06)

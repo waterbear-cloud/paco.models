@@ -405,9 +405,23 @@ class CodeCommitRepository(Named, Deployable):
     description = FieldProperty(schemas.ICodeCommitRepository["description"])
     users = FieldProperty(schemas.ICodeCommitRepository["users"])
 
+@implementer(schemas.ICodeCommitRepositoryGroup)
+class CodeCommitRepositoryGroup(Named, dict):
+    pass
+
+@implementer(schemas.ICodeCommitRepositoryGroups)
+class CodeCommitRepositoryGroups(Named, dict):
+    pass
+
 @implementer(schemas.ICodeCommit)
-class CodeCommit():
-    repository_groups = FieldProperty(schemas.ICodeCommit["repository_groups"])
+class CodeCommit(Named):
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        # cheat on the name and parent as paco.ref's omit the repository_group attribute:
+        # paco.ref resource.codecommit.ccrepogroupname
+        # ToDo: fix this so that CodeCommit contains CodeCommitRepositoryGroups directly
+        repository_groups = CodeCommitRepositoryGroups('codecommit', parent)
 
     def gen_repo_by_account(self):
         self.repo_by_account = {}

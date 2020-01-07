@@ -4401,17 +4401,26 @@ CodeCommit Repository
         required=False,
     )
 
+class ICodeCommitRepositoryGroup(INamed, IMapping):
+    """
+Container for `CodeCommitRepository`_ objects.
+    """
+    taggedValue('contains', 'ICodeCommitRepository')
+
+class ICodeCommitRepositoryGroups(INamed, IMapping):
+    """
+Container for `CodeCommitRepositoryGroup`_ objects.
+    """
+    taggedValue('contains', 'ICodeCommitRepositoryGroup')
+
 class ICodeCommit(Interface):
     """
 CodeCommit Service Configuration
     """
-    repository_groups = schema.Dict(
-        title="Group of Repositories",
-        value_type = schema.Dict(
-            title="CodeCommit Repository",
-            value_type = schema.Object(ICodeCommitRepository),
-        ),
-        required=False,
+    repository_groups = schema.Object(
+        title="Container of CodeCommitRepositoryGroup objects",
+        required=True,
+        schema=ICodeCommitRepositoryGroups,
     )
 
 class ISNSTopicSubscription(Interface):

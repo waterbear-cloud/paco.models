@@ -35,7 +35,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
-    CodeCommit, CodeCommitRepository, CodeCommitUser, \
+    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroups, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
     ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
@@ -460,6 +460,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     SNSTopic: {
         'subscriptions': ('obj_list', SNSTopicSubscription)
+    },
+    CodeCommit: {
+        'repository_groups': ('twolevel_container', (CodeCommitRepositoryGroups, CodeCommitRepositoryGroup, CodeCommitRepository))
     },
     CodeCommitRepository: {
         'users': ('named_obj', CodeCommitUser)
@@ -1616,21 +1619,14 @@ Duplicate key \"{}\" found on line {} at column {}.
         return obj
 
     def instantiate_codecommit(self, config):
+        """Instantiate resource/codecommit.yaml"""
         if config == None:
             return
-        codecommit_obj = CodeCommit()
-        codecommit_obj.repository_groups = {}
-        for group_id in config.keys():
-            group_config = config[group_id]
-            codecommit_obj.repository_groups[group_id] = {}
-            for repo_id in group_config.keys():
-                repo_config = group_config[repo_id]
-                repo_obj = CodeCommitRepository(repo_config['repository_name'], codecommit_obj)
-                apply_attributes_from_config(repo_obj, repo_config, self.config_folder)
-                codecommit_obj.repository_groups[group_id][repo_id] = repo_obj
-        codecommit_obj.gen_repo_by_account()
-
-        return codecommit_obj
+        codecommit = CodeCommit('codecommit', self.project.resource)
+        config = {'repository_groups': config}
+        apply_attributes_from_config(codecommit, config, self.config_folder)
+        codecommit.gen_repo_by_account()
+        return codecommit
 
     def instantiate_ec2(self, config):
         ec2_obj = EC2Resource('ec2', self.project.resource)

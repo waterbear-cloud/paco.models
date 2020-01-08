@@ -213,6 +213,13 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
 
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
+    # If we get a dict here, return that as it is probably looking
+    # for it, as is the case wit S3. Real fix is to make a container
+    # object for the list of buckets in S3.yaml
+    # TODO: Fix S3 bucket container
+    if hasattr(obj, 'resolve_ref') != True and type(obj) == dict:
+        return obj
+
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:

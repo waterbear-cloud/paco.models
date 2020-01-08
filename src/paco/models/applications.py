@@ -225,6 +225,15 @@ class S3LambdaConfiguration(Parent):
 class S3NotificationConfiguration(Parent):
     lambdas = FieldProperty(schemas.IS3NotificationConfiguration['lambdas'])
 
+@implementer(schemas.IS3StaticWebsiteHostingRedirectRequests)
+class S3StaticWebsiteHostingRedirectRequests(Parent):
+    target = FieldProperty(schemas.IS3StaticWebsiteHostingRedirectRequests['target'])
+    protocol = FieldProperty(schemas.IS3StaticWebsiteHostingRedirectRequests['protocol'])
+
+@implementer(schemas.IS3StaticWebsiteHosting)
+class S3StaticWebsiteHosting(Parent, Deployable):
+    redirect_requests = FieldProperty(schemas.IS3StaticWebsiteHosting['redirect_requests'])
+
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
     title = "S3Bucket"

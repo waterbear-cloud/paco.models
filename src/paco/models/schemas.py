@@ -1540,6 +1540,24 @@ class IS3NotificationConfiguration(IParent):
         required=False,
     )
 
+class IS3StaticWebsiteHostingRedirectRequests(IParent):
+    target = TextReference(
+        title="Target bucket or domain.",
+        str_ok = True,
+        required = True
+    )
+    protocol = schema.TextLine(
+        title="Protocol",
+        required=True
+    )
+
+class IS3StaticWebsiteHosting(IParent, IDeployable):
+    redirect_requests = schema.Object(
+        title="Redirect requests configuration.",
+        schema = IS3StaticWebsiteHostingRedirectRequests,
+        required = False
+    )
+
 class IS3Bucket(IResource, IDeployable):
     """
 S3 Bucket : A template describing an S3 Bbucket
@@ -1589,6 +1607,11 @@ S3 Bucket : A template describing an S3 Bbucket
         title="Enable Versioning on the bucket.",
         default=False,
         required=False,
+    )
+    static_website_hosting = schema.Object(
+        title="Static website hosting configuration.",
+        required=False,
+        schema = IS3StaticWebsiteHosting
     )
 
 class IS3Resource(INamed):

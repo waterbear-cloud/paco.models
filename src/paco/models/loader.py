@@ -56,7 +56,7 @@ from paco.models.events import EventsRule
 from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from paco.models.accounts import Account, AdminIAMUser
-from paco.models.references import Reference, TextReference, FileReference
+from paco.models.references import Reference, PacoReference, FileReference
 from paco.models.vocabulary import aws_regions
 from paco.models.references import resolve_ref, is_ref
 from paco.models.yaml import ModelYAML
@@ -194,7 +194,7 @@ SUB_TYPES_CLASS_MAP = {
         'dns': ('obj_list', DNS)
     },
     EFS: {
-        'security_groups': ('str_list', TextReference)
+        'security_groups': ('str_list', PacoReference)
     },
     DBParameterGroup: {
         'parameters': ('dynamic_dict', DBParameters)
@@ -232,12 +232,12 @@ SUB_TYPES_CLASS_MAP = {
     },
     RDSMysql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
-        'security_groups': ('str_list', TextReference),
+        'security_groups': ('str_list', PacoReference),
         'dns': ('obj_list', DNS),
         'monitoring': ('direct_obj', MonitorConfig)
     },
     ElastiCacheRedis: {
-        'security_groups': ('str_list', TextReference),
+        'security_groups': ('str_list', PacoReference),
         'monitoring': ('direct_obj', MonitorConfig)
     },
     CloudFront: {
@@ -287,7 +287,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     LBApplication: {
         'target_groups': ('container', (TargetGroups, TargetGroup)),
-        'security_groups': ('str_list', TextReference),
+        'security_groups': ('str_list', PacoReference),
         'listeners': ('container', (Listeners, Listener)),
         'dns': ('obj_list', DNS),
         'monitoring': ('direct_obj', MonitorConfig)
@@ -303,15 +303,15 @@ SUB_TYPES_CLASS_MAP = {
         'ebs': ('direct_obj', BlockDevice)
     },
     ASG: {
-        'security_groups': ('str_list', TextReference),
-        'target_groups': ('str_list', TextReference),
+        'security_groups': ('str_list', PacoReference),
+        'target_groups': ('str_list', PacoReference),
         'monitoring': ('direct_obj', MonitorConfig),
         'instance_iam_role': ('direct_obj', Role),
         'efs_mounts': ('obj_list', EFSMount),
         'ebs_volume_mounts': ('obj_list', EBSVolumeMount),
         'scaling_policies': ('container', (ASGScalingPolicies, ASGScalingPolicy)),
         'lifecycle_hooks': ('container', (ASGLifecycleHooks, ASGLifecycleHook)),
-        'secrets': ('str_list', TextReference),
+        'secrets': ('str_list', PacoReference),
         'launch_options': ('direct_obj', EC2LaunchOptions),
         'cfn_init': ('obj_raw_config', CloudFormationInit),
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
@@ -324,7 +324,7 @@ SUB_TYPES_CLASS_MAP = {
         'rules': ('named_obj', ListenerRule)
     },
     EC2: {
-        'security_groups': ('str_list', TextReference)
+        'security_groups': ('str_list', PacoReference)
     },
     DeploymentPipelineManualApproval: {
         'manual_approval_notification_email': ('str_list', zope.schema.TextLine)
@@ -383,7 +383,7 @@ SUB_TYPES_CLASS_MAP = {
         'vpc': ('direct_obj', VPC)
     },
     NATGateway: {
-        'default_route_segments': ('str_list', TextReference)
+        'default_route_segments': ('str_list', PacoReference)
     },
     VPC: {
         'nat_gateway': ('named_obj', NATGateway),
@@ -438,8 +438,8 @@ SUB_TYPES_CLASS_MAP = {
         'vpc_config': ('direct_obj', LambdaVpcConfig)
     },
     LambdaVpcConfig: {
-        'security_groups': ('str_list', TextReference),
-        'segments': ('str_list', TextReference)
+        'security_groups': ('str_list', PacoReference),
+        'segments': ('str_list', PacoReference)
     },
     LambdaEnvironment: {
         'variables': ('obj_list', LambdaVariable)
@@ -694,7 +694,7 @@ Verify that '{}' has the correct indentation in the config file.
                     # is the value a reference?
                     if type(value) == type(str()) and is_ref(value):
                         # some fields are meant to be reference only
-                        if schemas.ITextReference.providedBy(field):
+                        if schemas.IPacoReference.providedBy(field):
                             setattr(obj, name, value)
                         else:
                             # reference - set a special _ref_ attribute for later look-up

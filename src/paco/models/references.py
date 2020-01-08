@@ -25,28 +25,28 @@ class YAML(ruamel.yaml.YAML):
             return stream.getvalue()
 
 
-class InvalidTextReferenceString(zope.schema.ValidationError):
-    __doc__ = 'TextReference must be of type (string)'
+class InvalidPacoReferenceString(zope.schema.ValidationError):
+    __doc__ = 'PacoReference must be of type (string)'
 
-class InvalidTextReferenceStartsWith(zope.schema.ValidationError):
-    __doc__ = "TextReference must begin with 'paco.ref'"
+class InvalidPacoReferenceStartsWith(zope.schema.ValidationError):
+    __doc__ = "PacoReference must begin with 'paco.ref'"
 
-class InvalidTextReferenceRefType(zope.schema.ValidationError):
-    __doc__ = "TextReference 'paco.ref must begin with: netenv | resource | accounts | function | service"
+class InvalidPacoReferenceRefType(zope.schema.ValidationError):
+    __doc__ = "PacoReference 'paco.ref must begin with: netenv | resource | accounts | function | service"
 
 def is_ref(paco_ref, raise_enabled=False):
     """Determines if the string value is a Paco reference"""
     if type(paco_ref) != type(str()):
-        if raise_enabled: raise InvalidTextReferenceString
+        if raise_enabled: raise InvalidPacoReferenceString
         return False
     if paco_ref.startswith('paco.ref ') == False:
-        if raise_enabled: raise InvalidTextReferenceStartsWith
+        if raise_enabled: raise InvalidPacoReferenceStartsWith
         return False
     ref_types = ["netenv", "resource", "accounts", "function", "service"]
     for ref_type in ref_types:
         if paco_ref.startswith('paco.ref %s.' % ref_type):
             return True
-    if raise_enabled: raise InvalidTextReferenceRefType
+    if raise_enabled: raise InvalidPacoReferenceRefType
     return False
 
 class FileReference():
@@ -72,13 +72,21 @@ class YAMLFileReference(FileReference, zope.schema.Object):
         self.validate_invariants = kw.pop('validate_invariants', True)
         super(zope.schema.Object, self).__init__(**kw)
 
-class TextReference(zope.schema.Text):
+class PacoReference(zope.schema.Text):
 
     def __init__(self, *args, **kwargs):
         self.str_ok = False
+        self.schema_constraint = ''
         if 'str_ok' in kwargs.keys():
             self.str_ok = kwargs['str_ok']
             del kwargs['str_ok']
+        # schema_constraint is a string name of an ISchema
+        # if a Schema is passed, it is converted to a string
+        if 'schema_constraint' in kwargs.keys():
+            self.schema_constraint = kwargs['schema_constraint']
+            if hasattr(self.schema_constraint, '__name__'):
+                self.schema_constraint = self.schema_constraint.__name__
+            del kwargs['schema_constraint']
         super().__init__(*args, **kwargs)
 
     def constraint(self, value):
@@ -87,7 +95,7 @@ class TextReference(zope.schema.Text):
         """
         if self.str_ok and is_ref(value) == False:
             if isinstance(value, str) == False:
-                raise InvalidTextReferenceString
+                raise InvalidPacoReferenceString
                 #return False
             return True
 

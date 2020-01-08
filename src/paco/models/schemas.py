@@ -4,7 +4,7 @@ from zope.interface.common.sequence import ISequence
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from paco.models import vocabulary
-from paco.models.references import TextReference, FileReference, StringFileReference, YAMLFileReference
+from paco.models.references import PacoReference, FileReference, StringFileReference, YAMLFileReference
 import json
 import re
 import ipaddress
@@ -629,7 +629,6 @@ can break configuration.
         required=False,
     )
 
-
 class IDeployable(Interface):
     """
 Indicates if this configuration tree should be enabled or not.
@@ -651,6 +650,11 @@ A name that can be changed or duplicated with other similar cloud resources with
         required=False,
     )
 
+class IFunction(Interface):
+    """
+A callable function that returns a value.
+    """
+
 class IFileReference(Interface):
     pass
 
@@ -660,12 +664,12 @@ class IStringFileReference(IFileReference):
 class IYAMLFileReference(IFileReference):
     pass
 
-class ITextReference(Interface):
+class IPacoReference(Interface):
     """A field containing a reference an paco model object or attribute"""
     pass
 
 # work around circular imports for references
-classImplements(TextReference, ITextReference)
+classImplements(PacoReference, IPacoReference)
 classImplements(FileReference, IFileReference)
 classImplements(StringFileReference, IStringFileReference)
 classImplements(YAMLFileReference, IYAMLFileReference)
@@ -800,20 +804,22 @@ class ISecurityGroupRule(IName):
 
 class IIngressRule(IParent, ISecurityGroupRule):
     "Security group ingress"
-    source_security_group = TextReference(
+    source_security_group = PacoReference(
         title="Source Security Group Reference",
         required=False,
-        description="An Paco reference to a SecurityGroup",
-        str_ok = True
+        description="A Paco Reference to a SecurityGroup",
+        str_ok=True,
+        schema_constraint='ISecurityGroup'
     )
 
 class IEgressRule(IParent, ISecurityGroupRule):
     "Security group egress"
-    destination_security_group = TextReference(
+    destination_security_group = PacoReference(
         title="Destination Security Group Reference",
         required=False,
         description="A Paco reference to a SecurityGroup",
-        str_ok = True
+        str_ok=True,
+        schema_constraint='ISecurityGroup'
     )
 
 class ISecurityGroup(INamed, IDeployable):
@@ -883,9 +889,10 @@ Services
 
 class IAccountRef(Interface):
     "An account and region for a service"
-    account = TextReference(
+    account = PacoReference(
         title="Account Reference",
         required=False,
+        schema_constraint=IAccount
     )
 
 class IServiceEnvironment(IAccountRef, INamed):
@@ -1006,10 +1013,11 @@ A dimension of a metric
         title="Dimension name",
         required=False,
     )
-    value = TextReference(
-        title="Value to look-up dimension",
+    value = PacoReference(
+        title="String or a Paco Reference to resource output.",
         required=False,
-        str_ok=True
+        str_ok=True,
+        schema_constraint='Interface'
     )
 
 class IAlarm(INamed, IDeployable, IName, INotifiable):
@@ -1370,8 +1378,9 @@ Events Rule
         title="The AWS Resources that are invoked when the Rule is triggered.",
         description="",
         required=True,
-        value_type=TextReference(
-            title="Paco Reference to an AWS Resource to invoke"
+        value_type=PacoReference(
+            title="Paco Reference to an AWS Resource to invoke",
+            schema_constraint='Interface',
         ),
     )
 
@@ -1527,10 +1536,10 @@ class IS3LambdaConfiguration(IParent):
         description="Must be a supported event type: https://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html",
         required=False,
     )
-    # ToDo: constraint to validate the ref is to a Lambda type (tricky?)
-    function = TextReference(
-        title="Reference to a Lambda",
+    function = PacoReference(
+        title="Lambda function to notify",
         required=False,
+        schema_constraint='ILambda',
     )
 
 class IS3NotificationConfiguration(IParent):
@@ -1541,10 +1550,11 @@ class IS3NotificationConfiguration(IParent):
     )
 
 class IS3StaticWebsiteHostingRedirectRequests(IParent):
-    target = TextReference(
-        title="Target bucket or domain.",
-        str_ok = True,
-        required = True
+    target = PacoReference(
+        title="Target S3 Bucket or domain.",
+        str_ok=True,
+        required=True,
+        schema_constraint='IS3Bucket'
     )
     protocol = schema.TextLine(
         title="Protocol",
@@ -1554,13 +1564,13 @@ class IS3StaticWebsiteHostingRedirectRequests(IParent):
 class IS3StaticWebsiteHosting(IParent, IDeployable):
     redirect_requests = schema.Object(
         title="Redirect requests configuration.",
-        schema = IS3StaticWebsiteHostingRedirectRequests,
-        required = False
+        schema=IS3StaticWebsiteHostingRedirectRequests,
+        required=False
     )
 
 class IS3Bucket(IResource, IDeployable):
     """
-S3 Bucket : A template describing an S3 Bbucket
+S3 Bucket
     """
     bucket_name = schema.TextLine(
         title="Bucket Name",
@@ -1568,9 +1578,10 @@ S3 Bucket : A template describing an S3 Bbucket
         default="bucket",
         required=True,
     )
-    account = TextReference(
-        title="Account Reference",
+    account = PacoReference(
+        title="Account that S3 Bucket belongs to.",
         required=False,
+        schema_constraint='IAccount',
     )
     deletion_policy = schema.TextLine(
         title="Bucket Deletion Policy",
@@ -1672,13 +1683,15 @@ Code Pipeline: Build and Deploy
         default="",
         required=False,
     )
-    codecommit_repository = TextReference(
+    codecommit_repository = PacoReference(
         title='CodeCommit Respository',
         required=False,
+        schema_constraint='ICodeCommitRepository',
     )
-    asg = TextReference(
+    asg = PacoReference(
         title="ASG Reference",
         required=False,
+        schema_constraint='IASG'
     )
     auto_rollback_enabled = schema.Bool(
         title="Automatic rollback enabled",
@@ -1704,9 +1717,10 @@ Code Pipeline: Build and Deploy
         default=0,
         required=False,
     )
-    deploy_instance_role = TextReference(
+    deploy_instance_role = PacoReference(
         title="Deploy Instance Role Reference",
         required=False,
+        schema_constraint='IRole'
     )
     elb_name = schema.TextLine(
         title="ELB Name",
@@ -1714,17 +1728,15 @@ Code Pipeline: Build and Deploy
         default="",
         required=False,
     )
-    alb_target_group = TextReference(
-        title="ALB Target Group Reference",
+    alb_target_group = PacoReference(
+        title="ALB Target Group to deploy to",
         required=False,
+        schema_constraint='ITargetGroup'
     )
-    tools_account = TextReference(
-        title="Tools Account Reference",
+    tools_account = PacoReference(
+        title="Account where CodePipeline runs",
         required=False,
-    )
-    data_account = TextReference(
-        title="Data Account Reference",
-        required=False,
+        schema_constraint='IAccount'
     )
     cross_account_support = schema.Bool(
         title="Cross Account Support",
@@ -1732,10 +1744,11 @@ Code Pipeline: Build and Deploy
         default=False,
         required=False,
     )
-    artifacts_bucket = TextReference(
-        title="Artifacts S3 Bucket Reference",
+    artifacts_bucket = PacoReference(
+        title="S3 Bucket for Artifacts",
         description="",
         required=False,
+        schema_constraint=IS3Bucket
     )
     codebuild_image = schema.TextLine(
         title='CodeBuild Docker Image',
@@ -1763,7 +1776,6 @@ EC2 SSH Key Pair
         description="",
         required=True
     )
-
     region = schema.TextLine(
         title="AWS Region",
         description="Must be a valid AWS Region name",
@@ -1772,9 +1784,10 @@ EC2 SSH Key Pair
         required=True,
         constraint=isValidAWSRegionName,
     )
-    account = TextReference(
-        title='AWS Account Reference',
+    account = PacoReference(
+        title='AWS Account the key pair belongs to',
         required=False,
+        schema_constraint='IAccount'
     )
 
 class IEC2KeyPairs(INamed, IMapping):
@@ -1814,10 +1827,11 @@ EC2 Instance
         description="",
         required=False,
     )
-    instance_key_pair = TextReference(
-        title="Instance key pair reference",
+    instance_key_pair = PacoReference(
+        title="key pair for connections to instance",
         description="",
         required=False,
+        schema_constraint=IEC2KeyPair
     )
     instance_type = schema.TextLine(
         title="Instance type",
@@ -1832,8 +1846,9 @@ EC2 Instance
     security_groups = schema.List(
         title="Security groups",
         description="",
-        value_type=TextReference(
-            title="Paco reference"
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ISecurityGroup',
         ),
         required=False,
     )
@@ -1912,30 +1927,34 @@ NAT Gateway
         required=False,
         constraint=IsValidASGAvailabilityZone
     )
-    segment = TextReference(
+    segment = PacoReference(
         title="Segment",
         description="",
         required=False,
+        schema_constraint='ISegment'
     )
     default_route_segments = schema.List(
         title="Default Route Segments",
         description="",
-        value_type=TextReference(
-            title="Segment"
+        value_type=PacoReference(
+            title="Segment",
+            schema_constraint="ISegment"
         ),
         required=False,
     )
     security_groups = schema.List(
         title="Security Groups",
-        value_type=TextReference(
-            title="Paco reference"
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ISecurityGroup'
         ),
         required=False,
     )
-    ec2_key_pair = TextReference(
-        title="EC2 key pair reference",
+    ec2_key_pair = PacoReference(
+        title="EC2 key pair",
         description="",
         required=False,
+        schema_constraint=IEC2KeyPair
     )
     ec2_instance_type = schema.TextLine(
         title="EC2 Instance Type",
@@ -2010,9 +2029,10 @@ class IVPCPeeringRoute(IParent):
     """
 VPC Peering Route
     """
-    segment = TextReference(
-        title="Segment reference",
+    segment = PacoReference(
+        title="Segment",
         required=False,
+        schema_constraint='ISegment'
     )
     cidr = schema.TextLine(
         title="CIDR IP",
@@ -2045,9 +2065,10 @@ VPC Peering
     )
     # network_environment is used when peering with a network environment
     # local to the project.
-    network_environment = TextReference(
+    network_environment = PacoReference(
         title='Network Environment Reference',
-        required=False
+        required=False,
+        schema_constraint='INetworkEnvironment'
     )
     # Routes forward traffic to the peering connection
     routing = schema.List(
@@ -2199,9 +2220,10 @@ class INetwork(INetworkEnvironment):
     # contains Environment objects but do not indicate this
     # in the docs, they are configured under `environments:`.
     taggedValue('contains', 'mixed')
-    aws_account = TextReference(
-        title='Paco Reference to an AWS Account',
+    aws_account = PacoReference(
+        title='Account this Network belongs to',
         required=False,
+        schema_constraint='IAccount',
     )
 
 # Secrets Manager schemas
@@ -2414,8 +2436,9 @@ class IListener(IParent, IPortProtocol):
     )
     ssl_certificates = schema.List(
         title="List of SSL certificate References",
-        value_type = TextReference(
-            title="SSL Certificate Reference"
+        value_type = PacoReference(
+            title="SSL Certificate Reference",
+            schema_constraint='IAWSCertificateManager'
         ),
         required=False,
     )
@@ -2432,19 +2455,22 @@ class IListener(IParent, IPortProtocol):
     )
 
 class IDNS(IParent):
-    hosted_zone = TextReference(
+    hosted_zone = PacoReference(
         title="Hosted Zone Id",
         required=False,
-        str_ok = True
+        str_ok=True,
+        schema_constraint='IRoute53HostedZone'
     )
-    domain_name = TextReference(
+    domain_name = PacoReference(
         title="Domain name",
         required=False,
-        str_ok = True
+        str_ok=True,
+        schema_constraint='IRoute53HostedZone'
      )
-    ssl_certificate = TextReference(
+    ssl_certificate = PacoReference(
         title="SSL certificate Reference",
-        required=False
+        required=False,
+        schema_constraint='IAWSCertificateManager'
     )
     ttl = schema.Int(
         title="TTL",
@@ -2536,8 +2562,9 @@ to a target group, use the ``target_groups`` field on an ASG resource.
     )
     security_groups = schema.List(
         title="Security Groups",
-        value_type=TextReference(
-            title="Paco reference"
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ISecurityGroup',
         ),
         required=False,
     )
@@ -2555,9 +2582,10 @@ to a target group, use the ``target_groups`` field on an ASG resource.
         title="Write access logs to an S3 Bucket",
         required=False
     )
-    access_logs_bucket=TextReference(
+    access_logs_bucket=PacoReference(
         title="Bucket to store access logs in",
-        required=False
+        required=False,
+        schema_constraint='IS3Bucket'
     )
     access_logs_prefix = schema.TextLine(
         title="Access Logs S3 Bucket prefix",
@@ -2744,10 +2772,11 @@ EFS Mount Folder and Target Configuration
         title='Folder to mount the EFS target',
         required=True
     )
-    target = TextReference(
+    target = PacoReference(
         title='EFS Target Resource Reference',
         required=True,
-        str_ok = True
+        str_ok=True,
+        schema_constraint='IEFS'
     )
 
 class ISimpleCloudWatchAlarm(IParent):
@@ -3338,10 +3367,11 @@ EBS Volume Mount Configuration
         title='Folder to mount the EBS Volume',
         required=True
     )
-    volume = TextReference(
+    volume = PacoReference(
         title='EBS Volume Resource Reference',
         required=True,
-        str_ok = True
+        str_ok=True,
+        schema_constraint='IEBS'
     )
     device = schema.TextLine(
         title='Device to mount the EBS Volume with.',
@@ -3523,10 +3553,11 @@ Auto Scaling Group
         value_type=schema.Object(IEFSMount),
         required=False,
     )
-    eip = TextReference(
-        title="Elastic IP Reference or AllocationId",
+    eip = PacoReference(
+        title="Elastic IP or AllocationId to attach to instance at launch",
         required=False,
-        str_ok = True
+        str_ok=True,
+        schema_constraint='IEIP'
     )
     health_check_grace_period_secs = schema.Int(
         title="Health check grace period in seconds",
@@ -3542,11 +3573,12 @@ Auto Scaling Group
         required=False,
     )
     instance_iam_role = schema.Object(IRole)
-    instance_ami = TextReference(
+    instance_ami = PacoReference(
         title="Instance AMI",
         description="",
         str_ok=True,
         required=False,
+        schema_constraint='IFunction'
     )
     instance_ami_type = schema.TextLine(
         title="The AMI Operating System family",
@@ -3555,10 +3587,11 @@ Auto Scaling Group
         default="amazon",
         required=False,
     )
-    instance_key_pair = TextReference(
-        title="Instance key pair reference",
+    instance_key_pair = PacoReference(
+        title="Key pair to connect to launched instances",
         description="",
         required=False,
+        schema_constraint='IEC2KeyPair'
     )
     instance_monitoring = schema.Bool(
         title="Instance monitoring",
@@ -3585,8 +3618,9 @@ Auto Scaling Group
     load_balancers = schema.List(
         title="Target groups",
         description="",
-        value_type=TextReference(
-            title="Paco reference"
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ITargetGroup'
         ),
         required=False,
     )
@@ -3634,16 +3668,18 @@ Auto Scaling Group
     )
     secrets = schema.List(
         title='List of Secrets Manager References',
-        value_type=TextReference(
-            title='Secrets Manager Reference'
+        value_type=PacoReference(
+            title='Secrets Manager Reference',
+            schema_constraint='ISecretsManagerSecret'
         ),
         required=False
     )
     security_groups = schema.List(
         title="Security groups",
         description="",
-        value_type=TextReference(
-            title="Paco reference"
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ISecurityGroup'
         ),
         required=False,
     )
@@ -3655,8 +3691,9 @@ Auto Scaling Group
     target_groups = schema.List(
         title="Target groups",
         description="",
-        value_type=TextReference(
-            title="Paco reference"
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ITargetGroup'
         ),
         required=False,
     )
@@ -3693,10 +3730,11 @@ class ILambdaVariable(IParent):
         title='Variable Name',
         required=True,
     )
-    value = TextReference(
-        title='Variable Value',
+    value = PacoReference(
+        title='String Value or a Paco Reference to a resource output',
         required=True,
         str_ok=True,
+        schema_constraint='Interface'
     )
 
 class ILambdaEnvironment(IParent):
@@ -3727,10 +3765,11 @@ class ILambdaFunctionCode(IParent):
         description="Maximum of 4096 characters.",
         required=False,
     )
-    s3_bucket = TextReference(
+    s3_bucket = PacoReference(
         title="An Amazon S3 bucket in the same AWS Region as your function",
         required=False,
         str_ok=True,
+        schema_constraint='IS3Bucket'
     )
     s3_key = schema.TextLine(
         title="The Amazon S3 key of the deployment package.",
@@ -3745,14 +3784,17 @@ Lambda Environment
     segments = schema.List(
         title="VPC Segments to attach the function",
         description="",
-        value_type = TextReference(
+        value_type = PacoReference(
             title="Segment",
+            schema_constraint='ISegment',
         ),
         required=False
     )
     security_groups = schema.List(
         title="List of VPC Security Group Ids",
-        value_type = TextReference(),
+        value_type = PacoReference(
+            schema_constraint='ISecurityGroup'
+        ),
         required=False
     )
 
@@ -3881,10 +3923,10 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
         default=False,
     )
     sns_topics = schema.List(
-        title="List of SNS Topic Paco references",
-        value_type =  TextReference(
-            title="SNS Topic Paco reference",
-            str_ok=True
+        title="List of SNS Topic Paco references or SNS Topic ARNs to subscribe the Lambda to.",
+        value_type =  PacoReference(
+            str_ok=True,
+            schema_constraint='ISNSTopic'
         ),
         required=False,
     )
@@ -3989,9 +4031,10 @@ their destination in the request.
         default="AWS",
         required=True,
     )
-    integration_lambda = TextReference(
+    integration_lambda = PacoReference(
         title="Integration Lambda",
         required=False,
+        schema_constraint='ILambda'
     )
     uri = schema.TextLine(
         title="Integration URI",
@@ -4256,9 +4299,10 @@ Route53 Hosted Zone
         title="Domain Name",
         required=True
     )
-    account = TextReference(
-        title="AWS Account Reference",
-        required=True
+    account = PacoReference(
+        title="Account this Hosted Zone belongs to",
+        required=True,
+        schema_constraint='IAccount'
     )
     record_sets = schema.List(
         title='List of Record Sets',
@@ -4339,15 +4383,17 @@ class IRoute53HealthCheck(IResource):
         value_type=schema.TextLine(title="AWS Region"),
         constraint=isValidHealthCheckAWSRegionList,
     )
-    ip_address = TextReference(
+    ip_address = PacoReference(
         title="IP Address",
         str_ok=True,
         required=False,
+        schema_constraint='IEIP'
     )
-    load_balancer = TextReference(
+    load_balancer = PacoReference(
         title="Load Balancer Endpoint",
         str_ok=True,
         required=False,
+        schema_constraint='ILBApplication'
     )
     latency_graphs = schema.Bool(
         title="Measure latency and display CloudWatch graph in the AWS Console",
@@ -4405,9 +4451,10 @@ CodeCommit Repository
         title="Repository Name",
         required=False,
     )
-    account = TextReference(
-        title="AWS Account Reference",
+    account = PacoReference(
+        title="Account this repo belongs to.",
         required=True,
+        schema_constraint='IAccount'
     )
     region = schema.TextLine(
         title="AWS Region",
@@ -4468,10 +4515,11 @@ class ISNSTopicSubscription(Interface):
         constraint = isValidSNSSubscriptionProtocol,
         required=False,
     )
-    endpoint = TextReference(
-        title="SNS Topic Endpoint",
-        str_ok = True,
+    endpoint = PacoReference(
+        title="SNS Topic ARN or Paco Reference",
+        str_ok=True,
         required=False,
+        schema_constraint='ISNSTopic'
     )
 
 class ISNSTopic(IResource):
@@ -4532,9 +4580,10 @@ CloudTrail resource
     """
     accounts = schema.List(
         title="Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
-        description="A list of references to Paco Accounts.",
-        value_type = TextReference(
+        description="",
+        value_type = PacoReference(
             title="Account Reference",
+            schema_constraint='IAccount'
         ),
         required=False,
     )
@@ -4570,10 +4619,11 @@ CloudTrail resource
         constraint = isValidAWSRegionNameOrNone,
         required=False,
     )
-    s3_bucket_account = TextReference(
+    s3_bucket_account = PacoReference(
         title="Account which will contain the S3 Bucket that the CloudTrails will be stored in",
         description='Must be an paco.ref to an account',
         required=True,
+        schema_constraint='IS3Bucket'
     )
     s3_key_prefix = schema.TextLine(
         title="S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
@@ -4650,8 +4700,9 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         # Disable TTL bydefault, just pass through
         default=0
     )
-    target_origin = TextReference(
-        title="Target Origin"
+    target_origin = PacoReference(
+        title="Target Origin",
+        schema_constraint='ICloudFrontOrigin'
     )
     viewer_protocol_policy = schema.TextLine(
         title="Viewer Protocol Policy",
@@ -4676,9 +4727,10 @@ class ICloudFrontCacheBehavior(ICloudFrontDefaultCacheBehavior):
     )
 
 class ICloudFrontViewerCertificate(INamed):
-    certificate = TextReference(
+    certificate = PacoReference(
         title="Certificate Reference",
         required=False,
+        schema_constraint='IAWSCertificateManager'
     )
     ssl_supported_method = schema.TextLine(
         title="SSL Supported Method",
@@ -4750,14 +4802,16 @@ class ICloudFrontOrigin(INamed):
     """
 CloudFront Origin Configuration
     """
-    s3_bucket = TextReference(
+    s3_bucket = PacoReference(
         title="Origin S3 Bucket Reference",
         required=False,
+        schema_constraint='IS3Bucket'
     )
-    domain_name = TextReference(
+    domain_name = PacoReference(
         title="Origin Resource Reference",
-        str_ok = True,
+        str_ok=True,
         required=False,
+        schema_constraint='IRoute53HostedZone'
     )
     custom_origin_config = schema.Object(
         title="Custom Origin Configuration",
@@ -4846,7 +4900,7 @@ class IDBParameters(IMapping):
 
 class IDBParameterGroup(IResource):
     """
-AWS::RDS::DBParameterGroup
+DBParameterGroup
     """
     description=schema.Text(
         title="Description",
@@ -4959,9 +5013,10 @@ RDS Common Interface
         title="RDS Engine Version",
         required=False,
     )
-    kms_key_id = TextReference(
+    kms_key_id = PacoReference(
         title="Enable Storage Encryption",
-        required=False
+        required=False,
+        schema_constraint='Interface'
     )
     license_model = schema.TextLine(
         title="License Model",
@@ -4984,18 +5039,21 @@ RDS Common Interface
         value_type=schema.Object(IRDSOptionConfiguration),
         required=False,
     )
-    parameter_group = TextReference(
+    parameter_group = PacoReference(
         title="RDS Parameter Group",
-        required=False
+        required=False,
+        schema_constraint='IDBParameterGroup'
     )
-    primary_domain_name = TextReference(
+    primary_domain_name = PacoReference(
         title="Primary Domain Name",
         str_ok=True,
         required=False,
+        schema_constraint='IRoute53HostedZone'
     )
-    primary_hosted_zone = TextReference(
+    primary_hosted_zone = PacoReference(
         title="Primary Hosted Zone",
         required=False,
+        schema_constraint='IRoute53HostedZone'
     )
     port = schema.Int(
         title="DB Port",
@@ -5005,18 +5063,22 @@ RDS Common Interface
         title="Assign a Public IP address",
         required=False,
     )
-    secrets_password = TextReference(
+    secrets_password = PacoReference(
         title="Secrets Manager password",
-        required=False
+        required=False,
+        schema_constraint='ISecretsManagerSecret'
     )
     security_groups = schema.List(
         title="List of VPC Security Group Ids",
-        value_type=TextReference(),
+        value_type=PacoReference(
+            schema_constraint='ISecurityGroup'
+        ),
         required=False,
     )
-    segment = TextReference(
+    segment = PacoReference(
         title="Segment",
         required=False,
+        schema_constraint='ISegment'
     )
     storage_encrypted = schema.Bool(
         title="Enable Storage Encryption",
@@ -5048,14 +5110,16 @@ class IRDSAurora(IResource, IRDS):
     """
 RDS Aurora
     """
-    secondary_domain_name = TextReference(
+    secondary_domain_name = PacoReference(
         title="Secondary Domain Name",
-        str_ok = True,
+        str_ok=True,
         required=False,
+        schema_constraint='IRoute53HostedZone'
     )
-    secondary_hosted_zone = TextReference(
+    secondary_hosted_zone = PacoReference(
         title="Secondary Hosted Zone",
         required=False,
+        schema_constraint='IRoute53HostedZone'
     )
 
 # Cache schemas
@@ -5121,10 +5185,11 @@ Base ElastiCache Interface
         title="Number of read replicas",
         required=False,
     )
-    parameter_group = TextReference(
-        title='Parameter Group name or reference',
+    parameter_group = PacoReference(
+        title='Parameter Group name',
         str_ok=True,
-        required=False
+        required=False,
+        schema_constraint='Interface'
     )
     port = schema.Int(
         title="Port",
@@ -5132,12 +5197,15 @@ Base ElastiCache Interface
     )
     security_groups = schema.List(
         title="List of Security Groups",
-        value_type=TextReference(),
+        value_type=PacoReference(
+            schema_constraint='ISecurityGroup'
+        ),
         required=False,
     )
-    segment = TextReference(
+    segment = PacoReference(
         title="Segment",
         required=False,
+        schema_constraint='ISegment'
     )
 
 
@@ -5204,9 +5272,10 @@ class IIAMUserPermissionCodeCommitRepository(IParent):
     """
 CodeCommit Repository IAM User Permission Definition
     """
-    codecommit = TextReference(
+    codecommit = PacoReference(
         title='CodeCommit Repository Reference',
         required=False,
+        schema_constraint='ICodeCommitRepository'
     )
     permission = schema.TextLine(
         title='Paco Permission policy',
@@ -5237,9 +5306,10 @@ class IIAMUserPermissionCodeBuildResource(IParent):
     """
 CodeBuild Resource IAM User Permission Definition
     """
-    codebuild = TextReference(
+    codebuild = PacoReference(
         title='CodeBuild Resource Reference',
         required=False,
+        schema_constraint='Interface'
     )
     permission = schema.TextLine(
         title='Paco Permission policy',
@@ -5287,9 +5357,10 @@ class IIAMUser(INamed, IDeployable):
     """
 IAM User
     """
-    account = TextReference(
+    account = PacoReference(
         title="Paco account reference to install this user",
-        required=True
+        required=True,
+        schema_constraint='IAccount',
     )
     username = schema.TextLine(
         title='IAM Username',
@@ -5338,14 +5409,16 @@ class IDeploymentPipelineConfiguration(INamed):
     """
 Deployment Pipeline General Configuration
     """
-    artifacts_bucket = TextReference(
+    artifacts_bucket = PacoReference(
         title="Artifacts S3 Bucket Reference",
         description="",
         required=False,
+        schema_constraint=IS3Bucket,
     )
-    account = TextReference(
+    account = PacoReference(
         title="The account where Pipeline tools will be provisioned.",
         required=False,
+        schema_constraint=IAccount
     )
 
 class IDeploymentPipelineStageAction(INamed, IDeployable, IMapping):
@@ -5370,9 +5443,10 @@ class IDeploymentPipelineSourceCodeCommit(IDeploymentPipelineStageAction):
 CodeCommit DeploymentPipeline Source Stage
     """
     taggedValue('contains', 'mixed')
-    codecommit_repository = TextReference(
+    codecommit_repository = PacoReference(
         title='CodeCommit Respository',
         required=False,
+        schema_constraint='ICodeCommitRepository'
     )
 
     deployment_branch_name = schema.TextLine(
@@ -5421,9 +5495,10 @@ Amazon S3 Deployment Provider
     """
     taggedValue('contains', 'mixed')
     # BucketName: Required
-    bucket = TextReference(
+    bucket = PacoReference(
         title="S3 Bucket Reference",
         required=False,
+        schema_constraint='IS3Bucket'
     )
     # Extract: Required: Required if Extract = false
     extract = schema.Bool(
@@ -5493,9 +5568,10 @@ class IDeploymentPipelineDeployCodeDeploy(IDeploymentPipelineStageAction):
     """
 CodeDeploy DeploymentPipeline Deploy Stage
     """
-    auto_scaling_group = TextReference(
+    auto_scaling_group = PacoReference(
         title="ASG Reference",
         required=False,
+        schema_constraint='IASG'
     )
     auto_rollback_enabled = schema.Bool(
         title="Automatic rollback enabled",
@@ -5513,9 +5589,10 @@ CodeDeploy DeploymentPipeline Deploy Stage
         default="WITH_TRAFFIC_CONTROL",
         required=False,
     )
-    deploy_instance_role = TextReference(
+    deploy_instance_role = PacoReference(
         title="Deploy Instance Role Reference",
         required=False,
+        schema_constraint='IRole'
     )
     elb_name = schema.TextLine(
         title="ELB Name",
@@ -5523,9 +5600,10 @@ CodeDeploy DeploymentPipeline Deploy Stage
         default="",
         required=False,
     )
-    alb_target_group = TextReference(
+    alb_target_group = PacoReference(
         title="ALB Target Group Reference",
         required=False,
+        schema_constraint='ITargetGroup'
     )
 
 class IDeploymentPipelineSourceStage(INamed, IMapping):
@@ -5572,9 +5650,10 @@ Code Pipeline: Build and Deploy
     )
 
 class IDeploymentGroupS3Location(IParent):
-    bucket = TextReference(
+    bucket = PacoReference(
         title="S3 Bucket revision location",
         required=False,
+        schema_constraint='IS3Bucket'
     )
     bundle_type = schema.TextLine(
         title="Bundle Type",
@@ -5601,10 +5680,11 @@ class ICodeDeployDeploymentGroup(INamed, IDeployable):
         schema=IDeploymentGroupS3Location
     )
     autoscalinggroups = schema.List(
-        title="A list of refs to  Auto Scaling groups that CodeDeploy automatically deploys revisions to when new instances are created",
+        title="AutoScalingGroups that CodeDeploy automatically deploys revisions to when new instances are created",
         required=False,
-        value_type=TextReference(
-            title="Paco reference to an ASG resource",
+        value_type=PacoReference(
+            title="AutoScalingGroup",
+            schema_constraint='IASG'
         )
     )
     role_policies = schema.List(
@@ -5666,9 +5746,10 @@ AWS Elastic File System (EFS) resource.
     )
     security_groups = schema.List(
         title="Security groups",
-        description="Paco Reference to a `SecurityGroup`_",
-        value_type=TextReference(
-            title="Paco reference"
+        description="`SecurityGroup`_ the EFS belongs to",
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ISecurityGroup'
         ),
         required=True,
     )
@@ -5729,8 +5810,11 @@ class IBackupPlanSelection(IParent):
     )
     resources = schema.List(
         title="Backup Plan Resources",
-        value_type=TextReference(title="Resource"),
-        required=False
+        value_type=PacoReference(
+            title="Resource",
+            schema_constraint='Interface'
+        ),
+        required=False,
     )
 
 class IBackupPlan(IResource):

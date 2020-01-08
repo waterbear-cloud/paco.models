@@ -4,6 +4,11 @@ Changelog for paco.models
 6.3.3 (unreleased)
 ------------------
 
+### Added
+
+- The TextReference class was renamed PacoRefernce and can now be passed `schema_constraint` with the
+  name or Schema that it must be a reference to.
+
 ### Changed
 
 - CodeCommit contains CodeCommitRepositoryGroups and CodeCommitRepostory group objects instead of a two-level dict.

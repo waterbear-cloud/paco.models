@@ -13,6 +13,8 @@ Changelog for paco.models
 
 ### Changed
 
+- Temporarily disable chmod 400 check on .credentials to support filesystems that don't have permissions.
+
 - CodeCommit contains CodeCommitRepositoryGroups and CodeCommitRepostory group objects instead of a two-level dict.
   Fixes docs and simplifies loader.
 

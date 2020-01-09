@@ -1150,8 +1150,8 @@ Duplicate key \"{}\" found on line {} at column {}.
         if fname == '.credentials.yaml':
             cred_stat = os.stat(path)
             oct_perm = oct(cred_stat.st_mode)
-            if oct_perm != '0o100400':
-                raise PermissionError('Credentials file permissions are too relaxed. Run: chmod 0400 %s' % (path))
+            #if oct_perm != '0o100400':
+            #    raise PermissionError('Credentials file permissions are too relaxed. Run: chmod 0400 %s' % (path))
 
         # Validate Configuration
         if self.config_processor != None:

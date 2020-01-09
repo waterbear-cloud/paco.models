@@ -46,10 +46,11 @@ from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resour
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
     Route53HealthCheck
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
-    CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitUsers, \
-    CloudFormationInitSources, CloudFormationInitFiles, CloudFormationInitFile, CloudFormationInitCommands, \
-    CloudFormationInitCommand, CloudFormationInitServices, CloudFormationConfiguration, CloudFormationInit, \
-    CloudFormationParameters, CloudFormationInitServiceCollection, CloudFormationInitService
+    CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitGroup, \
+    CloudFormationInitUsers, CloudFormationInitUser, CloudFormationInitSources, CloudFormationInitFiles, \
+    CloudFormationInitFile, CloudFormationInitCommands, CloudFormationInitCommand, CloudFormationInitServices, \
+    CloudFormationConfiguration, CloudFormationInit, CloudFormationParameters, CloudFormationInitServiceCollection, \
+    CloudFormationInitService
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
     BackupPlans, BackupVault, BackupVaults
 from paco.models.events import EventsRule
@@ -174,7 +175,9 @@ SUB_TYPES_CLASS_MAP = {
         'commands': ('container', (CloudFormationInitCommands, CloudFormationInitCommand)),
         'files': ('container', (CloudFormationInitFiles, CloudFormationInitFile)),
         'services': ('direct_obj', CloudFormationInitServices),
-        'sources': ('dynamic_dict', CloudFormationInitSources)
+        'sources': ('dynamic_dict', CloudFormationInitSources),
+        'groups': ('container', (CloudFormationInitGroups, CloudFormationInitGroup)),
+        'users': ('container', (CloudFormationInitUsers, CloudFormationInitUser))
     },
     CloudFormationInitPackages: {
         'apt': ('dynamic_dict', CloudFormationInitVersionedPackageSet),

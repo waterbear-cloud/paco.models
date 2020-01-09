@@ -2938,11 +2938,41 @@ class ICloudFormationInitPackages(INamed):
         required=False
     )
 
+class ICloudFormationInitGroup(Interface):
+    gid = schema.TextLine(
+        title="Gid",
+        required=False,
+    )
+
 class ICloudFormationInitGroups(Interface):
-    pass
+    """
+Container for CloudFormationInit Groups
+    """
+
+class ICloudFormationInitUser(Interface):
+    groups = schema.List(
+        title="Groups",
+        required=False,
+        value_type=schema.TextLine(
+            title="Group"
+        ),
+        default=[]
+    )
+    uid = schema.Int(
+        title="Uid",
+        required=False,
+        min=100,
+        max=65535
+    )
+    home_dir = schema.TextLine(
+        title="Home dir",
+        required=True
+    )
 
 class ICloudFormationInitUsers(Interface):
-    pass
+    """
+Container for CloudFormationInit Users
+    """
 
 class ICloudFormationInitSources(INamed, IMapping):
     taggedValue('contains', 'mixed')
@@ -3105,6 +3135,12 @@ class ICloudFormationInitServices(INamed):
     )
 
 class ICloudFormationConfiguration(INamed):
+    @invariant
+    def check_user_group_duplicates(obj):
+        for username in obj.users.keys():
+            if username in obj.groups:
+                raise Invalid("Both user and group with the name {} can not be set. When a user is created it automatically creates a group with the same name. Explicitly creating the group will cause the user add operation to fail.".format(username))
+
     packages = schema.Object(
         title="Packages",
         schema=ICloudFormationInitPackages,
@@ -3499,6 +3535,11 @@ class IASG(IResource, IMonitorable):
     """
 Auto Scaling Group
     """
+    @invariant
+    def min_instances(obj):
+        if obj.update_policy_min_instances_in_service >= obj.max_instances:
+            raise Invalid("ASG update_policy_min_instances_in_service must be less than max_instances.")
+
     associate_public_ip_address = schema.Bool(
         title="Associate Public IP Address",
         description="",
@@ -3636,11 +3677,6 @@ Auto Scaling Group
         default=1,
         required=False,
     )
-    #rolling_update_policy = schema.Object(
-    #    title="Rolling Update Policy",
-    #    required=False
-    #)
-
     update_policy_max_batch_size = schema.Int(
         title="Update policy maximum batch size",
         description="",

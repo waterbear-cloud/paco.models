@@ -21,22 +21,6 @@ def export_attrs_as_dicts(obj, attrs):
 class CloudFormationParameters(Named, dict):
     pass
 
-# @implementer(schemas.ICloudFormationParameter)
-# class CloudFormationParameter():
-#     type = FieldProperty(schemas.ICloudFormationParameter['type'])
-
-# @implementer(schemas.ICloudFormationStringParameter)
-# class CloudFormationStringParameter(CloudFormationParameter):
-#     default = FieldProperty(schemas.ICloudFormationStringParameter['default'])
-#     min_length = FieldProperty(schemas.ICloudFormationStringParameter['min_length'])
-#     max_length = FieldProperty(schemas.ICloudFormationStringParameter['max_length'])
-
-# @implementer(schemas.ICloudFormationNumberParameter)
-# class CloudFormationNumberParameter(CloudFormationParameter):
-#     default = FieldProperty(schemas.ICloudFormationNumberParameter['default'])
-#     min_value = FieldProperty(schemas.ICloudFormationNumberParameter['min_value'])
-#     max_value = FieldProperty(schemas.ICloudFormationNumberParameter['max_value'])
-
 @implementer(schemas.ICloudFormationConfigSets)
 class CloudFormationConfigSets(Named, dict):
 
@@ -87,13 +71,57 @@ class CloudFormationInitPackages(Named):
             ('apt', 'msi', 'python', 'rpm', 'rubygems', 'yum')
         )
 
+@implementer(schemas.ICloudFormationInitGroup)
+class CloudFormationInitGroup(Named):
+    gid = FieldProperty(schemas.ICloudFormationInitGroup['gid'])
+
+    def export_as_troposphere(self):
+        out = {}
+        for name in ('gid'):
+            value = getattr(self, name, None)
+            if value != None:
+                out[name] = value
+        return out
+
 @implementer(schemas.ICloudFormationInitGroups)
-class CloudFormationInitGroups():
-    pass
+class CloudFormationInitGroups(Named, dict):
+
+    def export_as_troposphere(self):
+        out = {}
+        for key, value in self.items():
+            out[key] = self[key].export_as_troposphere()
+        return out
+
+@implementer(schemas.ICloudFormationInitUser)
+class CloudFormationInitUser(Named):
+    groups = FieldProperty(schemas.ICloudFormationInitUser['groups'])
+    uid = FieldProperty(schemas.ICloudFormationInitUser['uid'])
+    home_dir = FieldProperty(schemas.ICloudFormationInitUser['home_dir'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.groups = []
+
+    def export_as_troposphere(self):
+        out = {}
+        for name in ('groups', 'uid', 'home_dir'):
+            value = getattr(self, name, None)
+            if name == 'home_dir':
+                name = 'homeDir'
+            if name == 'uid':
+                value = str(value)
+            if value != None:
+                out[name] = value
+        return out
 
 @implementer(schemas.ICloudFormationInitUsers)
-class CloudFormationInitUsers():
-    pass
+class CloudFormationInitUsers(Named, dict):
+
+    def export_as_troposphere(self):
+        out = {}
+        for key, value in self.items():
+            out[key] = self[key].export_as_troposphere()
+        return out
 
 @implementer(schemas.ICloudFormationInitSources)
 class CloudFormationInitSources(Named, dict):
@@ -243,12 +271,12 @@ class CloudFormationConfiguration(Named):
         self.commands = CloudFormationInitCommands('commands', self)
         self.services = CloudFormationInitServices('services', self)
         self.sources = CloudFormationInitSources('sources', self)
-        self.groups = CloudFormationInitGroups()
-        self.users = CloudFormationInitUsers()
+        self.groups = CloudFormationInitGroups('groups', self)
+        self.users = CloudFormationInitUsers('users', self)
 
     def export_as_troposphere(self):
         out = {}
-        for name in ('packages', 'files', 'commands', 'services', 'sources'): # ToDo: 'groups', 'users'
+        for name in ('packages', 'files', 'commands', 'services', 'sources', 'groups', 'users'):
             obj = getattr(self, name, None)
             if obj:
                 out[name] = obj.export_as_troposphere()

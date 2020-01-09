@@ -9,11 +9,16 @@ Changelog for paco.models
 - The TextReference class was renamed PacoRefernce and can now be passed `schema_constraint` with the
   name or Schema that it must be a reference to.
 
+- Support for `users` and `groups` in cfn-init. Invariant to prevent user name duplicating group name.
+
 ### Changed
 
 - CodeCommit contains CodeCommitRepositoryGroups and CodeCommitRepostory group objects instead of a two-level dict.
   Fixes docs and simplifies loader.
 
+### Fixed
+
+- `Lambad.add_environment_variable` passes parent.
 
 6.3.2 (2020-01-06)
 ------------------

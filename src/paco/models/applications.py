@@ -735,7 +735,7 @@ class Lambda(Resource, Monitorable):
         """Adds a Name-Value pair to the environment field.
         If an environment variable with the name already exists, it will be set to the new value."""
         if self.environment == None:
-            self.environment = LambdaEnvironment()
+            self.environment = LambdaEnvironment(self)
 
         for variable in self.environment.variables:
             if variable.key == name:

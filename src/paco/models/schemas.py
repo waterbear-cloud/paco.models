@@ -3529,7 +3529,30 @@ class IASGRollingUpdatePolicy(INamed, IDeployable):
     """
 Auto Scaling Group Roling Update Policy
     """
-
+    max_batch_size = schema.Int(
+        title="Maximum batch size",
+        description="",
+        default=1,
+        required=False,
+    )
+    min_instances_in_service = schema.Int(
+        title="Minimum instances in service",
+        description="",
+        default=1,
+        required=False,
+    )
+    pause_time = schema.TextLine(
+        title="Minimum instances in service",
+        description="Healthy success timeout",
+        required=False,
+        default='PT0S'
+        #constraint=IsValidUpdatePolicyPauseTime
+    )
+    wait_on_resource_signals = schema.Bool(
+        title="Wait for resource signals",
+        description="",
+        default=False
+    )
 
 class IASG(IResource, IMonitorable):
     """
@@ -3753,6 +3776,13 @@ Auto Scaling Group
         description="",
         default="",
         required=False,
+    )
+    rolling_update_policy = schema.Object(
+        title="Rolling Update Policy",
+        description="",
+        schema=IASGRollingUpdatePolicy,
+        default=None,
+        required=False
     )
 
 

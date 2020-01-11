@@ -29,7 +29,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
     DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
     DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
-    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, EIP, \
+    EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
@@ -318,6 +318,7 @@ SUB_TYPES_CLASS_MAP = {
         'launch_options': ('direct_obj', EC2LaunchOptions),
         'cfn_init': ('obj_raw_config', CloudFormationInit),
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
+        'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy)
     },
     EC2LaunchOptions: {
         'cfn_init_config_sets': ('str_list', zope.schema.TextLine)

@@ -493,6 +493,14 @@ class BlockDeviceMapping(Parent):
         'VirtualName': 'virtual_name',
     }
 
+@implementer(schemas.IASGRollingUpdatePolicy)
+class ASGRollingUpdatePolicy(Named, Deployable):
+    title = "RollingUpdatePolicy"
+    max_batch_size = FieldProperty(schemas.IASGRollingUpdatePolicy['max_batch_size'])
+    min_instances_in_service = FieldProperty(schemas.IASGRollingUpdatePolicy['min_instances_in_service'])
+    pause_time = FieldProperty(schemas.IASGRollingUpdatePolicy['pause_time'])
+    wait_on_resource_signals = FieldProperty(schemas.IASGRollingUpdatePolicy['wait_on_resource_signals'])
+
 @implementer(schemas.IASG)
 class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
@@ -531,6 +539,7 @@ class ASG(Resource, Monitorable):
     secrets = FieldProperty(schemas.IASG['secrets'])
     launch_options = FieldProperty(schemas.IASG['launch_options'])
     block_device_mappings = FieldProperty(schemas.IASG['block_device_mappings'])
+    rolling_update_policy = FieldProperty(schemas.IASG['rolling_update_policy'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

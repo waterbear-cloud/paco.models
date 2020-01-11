@@ -610,6 +610,8 @@ class TargetGroup(Resource, PortProtocol):
     connection_drain_timeout = FieldProperty(schemas.ITargetGroup['connection_drain_timeout'])
 
     def resolve_ref(self, ref):
+        if ref.ref.endswith('.target_groups.'+self.name):
+            return self
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IListenerRule)

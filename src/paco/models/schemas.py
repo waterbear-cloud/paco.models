@@ -3560,8 +3560,15 @@ Auto Scaling Group
     """
     @invariant
     def min_instances(obj):
-        if obj.update_policy_min_instances_in_service >= obj.max_instances:
+        if obj.rolling_update_policy != None:
+            if obj.rolling_update_policy != None and obj.rolling_update_policy.min_instances_in_service >= obj.max_instances:
+                raise Invalid("ASG rolling_update_policy.min_instances_in_service must be less than max_instances.")
+        elif obj.update_policy_min_instances_in_service >= obj.max_instances:
             raise Invalid("ASG update_policy_min_instances_in_service must be less than max_instances.")
+        if obj.min_instances > obj.max_instances:
+            raise Invalid("ASG min_instances must be less than or equal to max_instances.")
+        if obj.desired_capacity > obj.max_instances:
+            raise Invalid("ASG desired_capacity must be less than or equal to max_instances.")
 
     associate_public_ip_address = schema.Bool(
         title="Associate Public IP Address",

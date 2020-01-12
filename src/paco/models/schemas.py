@@ -3556,7 +3556,135 @@ Auto Scaling Group Roling Update Policy
 
 class IASG(IResource, IMonitorable):
     """
-Auto Scaling Group
+An Auto Scaling Group (ASG) contains a collection of Amazon EC2 instances that are treated as a
+logical grouping for the purposes of automatic scaling and management.
+
+The Paco ASG resource provisions an AutoScalingGroup as well as LaunchConfiguration and TargetGroups
+for that ASG.
+
+.. sidebar:: Prescribed Automation
+
+    ``cfn_init``: Contains CloudFormationInit (cfn-init) configuration. Paco allows reading cfn-init
+    files from the filesystem, and also does additional validation checks on the configuration to ensure
+    it is correct. The ``launch_options`` has a ``cfn_init_config_sets`` field which can specify which
+    CfnInitConfigurationSets you want to automatically call during instance launch.
+
+    ``ebs_volume_mounts``: Adds an EBS LaunchBundle to the UserData script that mounts all EBS Volumes
+    to the EC2 instance launched by the ASG. If the EBS Volume is unformatted, it will be formatted to the
+    specified filesystem. **This feature only works with "self-healing" ASGs**. A "self-healing" ASG is an ASG
+    with ``max_instances`` set to 1. Trying to launch a second instance in the ASG will fail to mount the EBS Volume
+    as it can only be mounted to one instance at a time.
+
+    ``efs_mounts``: Adds an EFS LaunchBundle to the UserData script that mounts all EFS locations. A SecurityGroup
+    must still be manually configured to allow the ASG instances to network access to the EFS filesystem.
+
+    ``monitoring``: Any fields specified in the ``metrics`` or ``log_sets`` fields will add a CloudWatchAgent LaunchBundle
+    to the UserData script that will install a CloudWatch Agent and configure it to collect all specified metrics and log sources.
+
+    ``secrets``: Adds a policy to the Instance Role which allows instances to access the specified secrets.
+
+
+.. code-block:: yaml
+    :caption: example ASG configuration
+
+    type: ASG
+    order: 30
+    enabled: true
+    associate_public_ip_address: false
+    cooldown_secs: 200
+    ebs_optimized: false
+    health_check_grace_period_secs: 240
+    health_check_type: EC2
+    availability_zone: 1
+    ebs_volume_mounts:
+      - volume: paco.ref netenv.mynet.applications.app.groups.storage.resources.my_volume
+        enabled: true
+        folder: /var/www/html
+        device: /dev/xvdf
+        filesystem: ext4
+    efs_mounts:
+      - enabled: true
+        folder: /mnt/wp_efs
+        target: paco.ref netenv.mynet.applications.app.groups.storage.resources.my_efs
+    instance_iam_role:
+      enabled: true
+      policies:
+        - name: DNSRecordSet
+          statement:
+            - effect: Allow
+              action:
+                - route53:ChangeResourceRecordSets
+              resource:
+                - 'arn:aws:route53:::hostedzone/HHIHkjhdhu744'
+    instance_ami: paco.ref function.aws.ec2.ami.latest.amazon-linux-2
+    instance_ami_type: amazon
+    instance_key_pair: paco.ref resource.ec2.keypairs.my_keypair
+    instance_monitoring: true
+    instance_type: t2.medium
+    desired_capacity: 1
+    max_instances: 1
+    min_instances: 1
+    target_groups:
+      - paco.ref netenv.mynet.applications.app.groups.web.resources.alb.target_groups.cloud
+    security_groups:
+      - paco.ref netenv.mynet.network.vpc.security_groups.web.asg
+    segment: private
+    termination_policies:
+      - Default
+    update_policy_max_batch_size: 1
+    update_policy_min_instances_in_service: 0
+    scaling_policy_cpu_average: 60
+    launch_options:
+        cfn_init_config_sets:
+        - "InstallApp"
+    cfn_init:
+      config_sets:
+        InstallApp:
+          - "InstallApp"
+      configurations:
+        InstallApp:
+          packages:
+            yum:
+              python3: []
+          users:
+            www-data:
+              uid: 2000
+              home_dir: /home/www-data
+          files:
+            "/etc/systemd/system/pypiserver.service":
+              content_file: ./pypi-config/pypiserver.service
+              mode: '000755'
+              owner: root
+              group: root
+          commands:
+            00_pypiserver:
+              command: "/bin/pip3 install pypiserver"
+            01_passlib_dependency:
+              command: "/bin/pip3 install passlib"
+            02_prep_mount:
+               command: "chown www-data:www-data /var/pypi"
+          services:
+            sysvinit:
+              pypiserver:
+                enabled: true
+                ensure_running: true
+    monitoring:
+      enabled: true
+      collection_interval: 60
+      metrics:
+        - name: swap
+          measurements:
+            - used_percent
+        - name: disk
+          measurements:
+            - free
+          resources:
+            - '/'
+            - '/var/www/html'
+          collection_interval: 300
+    user_data_script: |
+      echo "Hello World!"
+
     """
     @invariant
     def min_instances(obj):
@@ -4217,7 +4345,67 @@ class IApiGatewayStages(INamed, IMapping):
     taggedValue('contains', 'IApiGatewayStages')
 
 class IApiGatewayRestApi(IResource):
-    "An Api Gateway Rest API resource"
+    """
+An Api Gateway Rest API resource.
+
+Intended to allow provisioning of all API Gateway REST API resources (currently only parital field support).
+
+.. code-block:: yaml
+    :caption: API Gateway REST API example
+
+    type: ApiGatewayRestApi
+    order: 10
+    enabled: true
+    fail_on_warnings: true
+    description: "My REST API"
+    endpoint_configuration:
+      - 'REGIONAL'
+    models:
+      emptyjson:
+        content_type: 'application/json'
+    methods:
+      get:
+        http_method: GET
+        integration:
+          integration_type: AWS
+          integration_lambda: paco.ref netenv.mynet.applications.app.groups.restapi.resources.mylambda
+          integration_responses:
+            - status_code: '200'
+              response_templates:
+                'application/json': ''
+          request_parameters:
+            "integration.request.querystring.my_id": "method.request.querystring.my_id"
+        authorization_type: NONE
+        request_parameters:
+          "method.request.querystring.my_id": false
+          "method.request.querystring.token": false
+        method_responses:
+          - status_code: '200'
+            response_models:
+              - content_type: 'application/json'
+                model_name: 'emptyjson'
+      post:
+        http_method: POST
+        integration:
+          integration_type: AWS
+          integration_lambda: paco.ref netenv.mynet.applications.app.groups.restapi.resources.mylambda
+          integration_responses:
+            - status_code: '200'
+              response_templates:
+                'application/json': ''
+        authorization_type: NONE
+        method_responses:
+          - status_code: '200'
+            response_models:
+              - content_type: 'application/json'
+                model_name: 'emptyjson'
+    stages:
+      prod:
+        deployment_id: 'prod'
+        description: 'Prod Stage'
+        stage_name: 'prod'
+
+    """
     @invariant
     def is_valid_body_location(obj):
         "Validate that only one of body or body_file_location or body_s3_location is set or all are empty."

@@ -1000,7 +1000,33 @@ A container of Alarm objects.
 
 class IAlarmSets(INamed, IMapping):
     """
-A container of `AlarmSet`_ objects.
+Alarm Sets are defined in the file ``monitor/alarmsets.yaml``.
+
+AlarmSets are named to match a Paco Resource type, then a unique AlarmSet name.
+
+
+.. code-block:: yaml
+    :caption: Structure of an alarmets.yaml file
+
+    # AutoScalingGroup alarms
+    ASG:
+        launch-health:
+            GroupPendingInstances-Low:
+                # alarm config here ...
+            GroupPendingInstances-Critical:
+                # alarm config here ...
+
+    # Application LoadBalancer alarms
+    LBApplication:
+        instance-health:
+            HealthyHostCount-Critical:
+                # alarm config here ...
+        response-latency:
+            TargetResponseTimeP95-Low:
+                # alarm config here ...
+            HTTPCode_Target_4XX_Count-Low:
+                # alarm config here ...
+
     """
     taggedValue('contains', 'IAlarmSet')
 
@@ -1022,7 +1048,9 @@ A dimension of a metric
 
 class IAlarm(INamed, IDeployable, IName, INotifiable):
     """
-An Alarm
+A Paco Alarm.
+
+This is a base schema which defines metadata useful to categorize an alarm.
     """
     classification = schema.TextLine(
         title="Classification",

@@ -5185,6 +5185,11 @@ CodeCommit Repository
         title="Repository Description",
         required=False,
     )
+    external_resource = schema.Bool(
+        title='Boolean indicating whether the CodeCommit repository already exists or not',
+        default=False,
+        required=False,
+    )
     users = schema.Dict(
         title="CodeCommit Users",
         value_type = schema.Object(ICodeCommitUser),

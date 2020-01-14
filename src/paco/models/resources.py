@@ -404,6 +404,7 @@ class CodeCommitRepository(Named, Deployable):
     region = FieldProperty(schemas.ICodeCommitRepository["region"])
     description = FieldProperty(schemas.ICodeCommitRepository["description"])
     users = FieldProperty(schemas.ICodeCommitRepository["users"])
+    external_resource = FieldProperty(schemas.ICodeCommitRepository["external_resource"])
 
 @implementer(schemas.ICodeCommitRepositoryGroup)
 class CodeCommitRepositoryGroup(Named, dict):

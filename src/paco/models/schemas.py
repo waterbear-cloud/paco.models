@@ -5043,7 +5043,23 @@ Route53 Hosted Zone
 
 class IRoute53Resource(INamed):
     """
-Route53 Service Configuration
+The ``resource/route53.yaml`` file manages AWS Route 53 hosted zones.
+
+Provision Route 53 with:
+
+.. code-block:: bash
+
+    paco provision resource.route53
+
+.. code-block:: yaml
+    :caption: Example resource/route53.yaml file
+
+    hosted_zones:
+      example:
+        enabled: true
+        domain_name: example.com
+        account: aim.ref accounts.prod
+
     """
     hosted_zones = schema.Dict(
         title="Hosted Zones",

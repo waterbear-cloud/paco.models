@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-6.3.4 (unreleased)
+6.3.4 (2020-01-16)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Added external_resource field for ICodeCommit.
 
 
 6.3.3 (2020-01-09)

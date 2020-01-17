@@ -810,6 +810,8 @@ class CloudFrontDefaultCacheBehavior(Named):
     allowed_methods = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['allowed_methods'])
     cached_methods = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['cached_methods'])
     default_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['default_ttl'])
+    min_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['min_ttl'])
+    max_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['max_ttl'])
     target_origin = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['target_origin'])
     viewer_protocol_policy = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['viewer_protocol_policy'])
     forwarded_values = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['forwarded_values'])

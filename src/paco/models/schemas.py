@@ -5422,9 +5422,19 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         required=False
     )
     default_ttl = schema.Int(
-        title="Default TTTL",
+        title="Default TTL",
         # Disable TTL bydefault, just pass through
         default=0
+    )
+    max_ttl = schema.Int(
+        title="Maximum TTL",
+        # -1 i unset
+        default=-1
+    )
+    min_ttl = schema.Int(
+        title="Minimum TTL",
+        # -1 is unset
+        default=-1
     )
     target_origin = PacoReference(
         title="Target Origin",

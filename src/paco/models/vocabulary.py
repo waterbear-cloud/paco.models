@@ -615,7 +615,7 @@ user_data_script = {
 		'ubuntu': """apt-get update
 apt-get -y install python-pip
 pip install awscli
-		""",
+""",
 		'centos': 'ec2lm_pip install awscli'
 	},
 	'install_wget': {

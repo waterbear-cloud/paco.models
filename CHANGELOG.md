@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-6.3.5 (unreleased)
+6.3.5 (2020-01-23)
 ------------------
 
-- Nothing changed yet.
+### Fixed
+
+- Ubuntu awscli install had extra whitespace which could stop up UserData.
 
 
 6.3.4 (2020-01-16)

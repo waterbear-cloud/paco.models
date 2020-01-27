@@ -4,7 +4,9 @@ Changelog for paco.models
 6.3.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Error message when cfn-init files with !Sub and !Join can't be parsed.
 
 
 6.3.5 (2020-01-23)

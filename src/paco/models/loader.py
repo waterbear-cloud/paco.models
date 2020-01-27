@@ -72,6 +72,7 @@ import pathlib
 import pkg_resources
 import re
 import ruamel.yaml
+import ruamel.yaml.composer
 import sys
 import troposphere
 import zope.schema
@@ -1092,12 +1093,29 @@ def load_string_from_path(path, base_path=None, is_yaml=False):
         raise InvalidPacoProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
 
 def read_yaml_file(path):
-    "Same as the ModelLoader method, but available outside that class"
+    """
+    Same as the ModelLoader method, but available outside that class.
+    Used to load cfn-init files which are parsed with Sub and Join CFN parts.
+    """
     yaml = ModelYAML(typ="safe", pure=True)
     yaml.default_flow_sytle = False
     yaml.add_troposphere_constructors()
     with open(path, 'r') as stream:
-        data = yaml.load(stream)
+        try:
+            data = yaml.load(stream)
+        except ruamel.yaml.composer.ComposerError as exc:
+            error = exc
+            raise InvalidPacoProjectFile("""Error in file at {}
+
+YAML load error:
+
+{}
+
+Hint: check the indentation and formatting:
+
+{}
+""".format(path, error, error.problem_mark))
+
     yaml.restore_existing_constructors()
     return data
 

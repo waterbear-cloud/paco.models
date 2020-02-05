@@ -4,7 +4,13 @@ Changelog for paco.models
 6.3.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Full set of fields for `generate_secret_string` for Secrets.
+
+### Fixed
+
+- Lambda.add_environment_variable was not passing the parent.
 
 
 6.3.6 (2020-01-29)

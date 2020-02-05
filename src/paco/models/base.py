@@ -79,7 +79,7 @@ def marshall_fieldname_to_troposphere_value(obj, props, troposphere_name, field_
             else: return value
         else:
             # Shouldn't get here unless the cfn_mapping is incorrect
-            raise InvalidCFNMapping
+            raise InvalidCFNMapping("cfn_mapping is incorrect for {} for {}?".format(mapping_field_name, interface))
 
 def get_all_fields(obj):
     """

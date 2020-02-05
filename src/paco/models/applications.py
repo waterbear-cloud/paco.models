@@ -753,7 +753,7 @@ class Lambda(Resource, Monitorable):
                 variable.value = value
                 return
         self.environment.variables.append(
-            LambdaVariable(name, value)
+            LambdaVariable(self.environment, name, value)
         )
 
     def resolve_ref(self, ref):
@@ -1201,23 +1201,29 @@ class EFS(Resource):
 @implementer(schemas.IGenerateSecretString)
 class GenerateSecretString(Parent, Deployable, CFNExport):
     """Generate SecretString"""
-    secret_string_template = FieldProperty(schemas.IGenerateSecretString['secret_string_template'])
-    generate_string_key = FieldProperty(schemas.IGenerateSecretString['generate_string_key'])
-    password_length = FieldProperty(schemas.IGenerateSecretString['password_length'])
     exclude_characters = FieldProperty(schemas.IGenerateSecretString['exclude_characters'])
+    exclude_lowercase = FieldProperty(schemas.IGenerateSecretString['exclude_lowercase'])
+    exclude_numbers = FieldProperty(schemas.IGenerateSecretString['exclude_numbers'])
+    exclude_punctuation = FieldProperty(schemas.IGenerateSecretString['exclude_punctuation'])
+    exclude_uppercase = FieldProperty(schemas.IGenerateSecretString['exclude_uppercase'])
+    generate_string_key = FieldProperty(schemas.IGenerateSecretString['generate_string_key'])
+    include_space = FieldProperty(schemas.IGenerateSecretString['include_space'])
+    password_length = FieldProperty(schemas.IGenerateSecretString['password_length'])
+    require_each_included_type = FieldProperty(schemas.IGenerateSecretString['require_each_included_type'])
+    secret_string_template = FieldProperty(schemas.IGenerateSecretString['secret_string_template'])
 
     troposphere_props = troposphere.secretsmanager.GenerateSecretString.props
     cfn_mapping = {
-        # 'ExcludeUppercase': (boolean, False),
-        # 'RequireEachIncludedType': (boolean, False),
-        # 'IncludeSpace': (boolean, False),
+        'ExcludeUppercase': 'exclude_uppercase',
+        'RequireEachIncludedType': 'require_each_included_type',
+        'IncludeSpace': 'include_space',
         'ExcludeCharacters': 'exclude_characters',
         'GenerateStringKey': 'generate_string_key',
         'PasswordLength': 'password_length',
-        # 'ExcludePunctuation': (boolean, False),
-        # 'ExcludeLowercase': (boolean, False),
+        'ExcludePunctuation': 'exclude_punctuation',
+        'ExcludeLowercase': 'exclude_lowercase',
         'SecretStringTemplate': 'secret_string_template',
-        # 'ExcludeNumbers': (boolean, False),
+        'ExcludeNumbers': 'exclude_numbers',
     }
 
 @implementer(schemas.ISecretsManagerSecret)

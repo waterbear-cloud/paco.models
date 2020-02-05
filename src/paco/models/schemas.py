@@ -2644,26 +2644,56 @@ class INetwork(INetworkEnvironment):
 # Secrets Manager schemas
 
 class IGenerateSecretString(IParent, IDeployable):
-    secret_string_template = schema.Text(
-        title="A properly structured JSON string that the generated password can be added to.",
+    exclude_characters = schema.Text(
+        title="A string that includes characters that should not be included in the generated password.",
         required=False,
-        max_length=10240
+        max_length=4096
+    )
+    exclude_lowercase = schema.Bool(
+        title="The generated password should not include lowercase letters.",
+        default=False,
+        required=False
+    )
+    exclude_numbers = schema.Bool(
+        title="The generated password should exclude digits.",
+        default=False,
+        required=False
+    )
+    exclude_punctuation = schema.Bool(
+        title="The generated password should not include punctuation characters.",
+        default=False,
+        required=False
+    )
+    exclude_uppercase = schema.Bool(
+        title="The generated password should not include uppercase letters.",
+        default=False,
+        required=False
     )
     generate_string_key = schema.TextLine(
         title="The JSON key name that's used to add the generated password to the JSON structure.",
         required=False,
         max_length=10240
     )
+    include_space = schema.Bool(
+        title="The generated password can include the space character.",
+        required=False
+    )
     password_length = schema.Int(
         title="The desired length of the generated password.",
         default=32,
         required=False
     )
-    exclude_characters = schema.Text(
-        title="A string that includes characters that should not be included in the generated password.",
-        required=False,
-        max_length=4096
+    require_each_included_type = schema.Bool(
+        title="The generated password must include at least one of every allowed character type.",
+        default=True,
+        required=False
     )
+    secret_string_template = schema.Text(
+        title="A properly structured JSON string that the generated password can be added to.",
+        required=False,
+        max_length=10240
+    )
+
 
 class ISecretsManagerSecret(INamed, IDeployable):
     """Secret for the Secrets Manager."""

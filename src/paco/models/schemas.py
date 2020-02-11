@@ -1788,6 +1788,11 @@ Events Rule
         title="Schedule Expression",
         required=True
     )
+    enabled_state = schema.Bool(
+        title="Enabled State",
+        required=False,
+        default=True
+    )
     # ToDo: constrain List to not be empty
     targets = schema.List(
         title="The AWS Resources that are invoked when the Rule is triggered.",
@@ -5249,21 +5254,11 @@ Container for `CodeCommitRepository`_ objects.
     """
     taggedValue('contains', 'ICodeCommitRepository')
 
-class ICodeCommitRepositoryGroups(INamed, IMapping):
+class ICodeCommit(INamed, IMapping):
     """
 Container for `CodeCommitRepositoryGroup`_ objects.
     """
     taggedValue('contains', 'ICodeCommitRepositoryGroup')
-
-class ICodeCommit(Interface):
-    """
-CodeCommit Service Configuration
-    """
-    repository_groups = schema.Object(
-        title="Container of CodeCommitRepositoryGroup objects",
-        required=True,
-        schema=ICodeCommitRepositoryGroups,
-    )
 
 class ISNSTopicSubscription(Interface):
 

@@ -219,7 +219,7 @@ class Testpacodemo(BaseTestModelLoader):
         # Route53
         assert self.project['resource']['route53'].hosted_zones['pacodemo'].domain_name, 'pacodemo.example.com'
         # CodeCommit
-        assert self.project['resource']['codecommit'].repository_groups['pacodemo']['app'].account, 'paco.ref accounts.data'
+        assert self.project['resource']['codecommit']['pacodemo']['app'].account, 'paco.ref accounts.data'
         # EC2
         assert self.project['resource']['ec2'].keypairs['pacodemo_dev'].account, 'paco.ref accounts.dev'
 

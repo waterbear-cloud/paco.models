@@ -35,7 +35,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
-    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroups, CodeCommitRepositoryGroup, CodeCommitUser, \
+    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
     ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
@@ -471,7 +471,6 @@ SUB_TYPES_CLASS_MAP = {
         'subscriptions': ('obj_list', SNSTopicSubscription)
     },
     CodeCommit: {
-        'repository_groups': ('twolevel_container', (CodeCommitRepositoryGroups, CodeCommitRepositoryGroup, CodeCommitRepository))
     },
     CodeCommitRepository: {
         'users': ('named_obj', CodeCommitUser)
@@ -791,11 +790,21 @@ Object
 """.format(read_file_path, name, obj.__class__.__name__, exc, value, field_context_name, exc.__doc__, hint, get_formatted_model_context(obj))
     )
 
-def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, read_file_path=''):
+def sub_types_loader(
+    obj,
+    name,
+    value,
+    config_folder=None,
+    lookup_config=None,
+    read_file_path='',
+    sub_type=None,
+    sub_class=None
+):
     """
     Load sub types
     """
-    sub_type, sub_class = SUB_TYPES_CLASS_MAP[type(obj)][name]
+    if not sub_type:
+        sub_type, sub_class = SUB_TYPES_CLASS_MAP[type(obj)][name]
 
     if sub_type == 'named_obj':
         sub_dict = {}
@@ -1648,9 +1657,15 @@ Duplicate key \"{}\" found on line {} at column {}.
         """Instantiate resource/codecommit.yaml"""
         if config == None:
             return
-        codecommit = CodeCommit('codecommit', self.project.resource)
-        config = {'repository_groups': config}
-        apply_attributes_from_config(codecommit, config, self.config_folder)
+        codecommit = sub_types_loader(
+            self.project.resource,
+            'codecommit',
+            config,
+            config_folder=self.config_folder,
+            read_file_path=self.read_file_path,
+            sub_type='twolevel_container',
+            sub_class=(CodeCommit, CodeCommitRepositoryGroup, CodeCommitRepository)
+        )
         codecommit.gen_repo_by_account()
         return codecommit
 

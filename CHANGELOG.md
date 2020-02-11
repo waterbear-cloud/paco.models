@@ -4,8 +4,14 @@ Changelog for paco.models
 6.3.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- Add enabled_state for IEventRule.
+
+### Changed
+
+- Superflous ICodeCommitRepositoryGroups was removed and ICodeCommit is the container
+  now for an ICodeCommitRepositoryGroup.
 
 6.3.7 (2020-02-05)
 ------------------

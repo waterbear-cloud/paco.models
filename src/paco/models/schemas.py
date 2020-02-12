@@ -560,6 +560,41 @@ def IsValidASGAvailabilityZone(value):
         raise InvalidASGAvailabilityZone
     return True
 
+# Lambda Environment variables
+class InvalidLambdaEnvironmentVariable(schema.ValidationError):
+    __doc__ = 'Can not be a reserved Environment Variable name and must be alphanumeric or _ character only.'
+
+RESERVED_ENVIRONMENT_VARIABLES = [
+    'AWS_ACCESS_KEY',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_DEFAULT_REGION',
+    'AWS_EXECUTION_ENV',
+    'AWS_LAMBDA_FUNCTION_MEMORY_SIZE',
+    'AWS_LAMBDA_FUNCTION_NAME',
+    'AWS_LAMBDA_FUNCTION_VERSION',
+    'AWS_LAMBDA_LOG_GROUP_NAME',
+    'AWS_LAMBDA_LOG_STREAM_NAME',
+    'AWS_REGION',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_SECRET_KEY',
+    'AWS_SECURITY_TOKEN',
+    'AWS_SESSION_TOKEN',
+    'LAMBDA_RUNTIME_DIR',
+    'LAMBDA_TASK_ROOT',
+    'TZ'
+]
+ENVIRONMENT_VARIABLES_NAME_PATTERN = r'[a-zA-Z][a-zA-Z0-9_]+'
+
+def isValidLambdaVariableName(value):
+    # this can be uninitialized
+    if value == '':
+        return True
+    if value in RESERVED_ENVIRONMENT_VARIABLES:
+        raise InvalidLambdaEnvironmentVariable("Reserved name: {}".format(value))
+    elif not re.match(ENVIRONMENT_VARIABLES_NAME_PATTERN, value):
+        raise InvalidLambdaEnvironmentVariable("Invalid characters in name: %s" % value)
+    return True
+
 # EBS Volume Type
 class InvalidEBSVolumeType(schema.ValidationError):
     __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
@@ -4425,6 +4460,7 @@ class ILambdaVariable(IParent):
     key = schema.TextLine(
         title='Variable Name',
         required=True,
+        constraint=isValidLambdaVariableName
     )
     value = PacoReference(
         title='String Value or a Paco Reference to a resource output',
@@ -4548,6 +4584,9 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     memory_size: 128
     runtime: 'python3.7'
     timeout: 900
+    log_group_expire_events_after_days: 90
+    log_group_names:
+      - AppGroupOne
     sns_topics:
       - paco.ref netenv.app.applications.app.groups.web.resources.snstopic
     vpc_config:

@@ -8,6 +8,9 @@ Changelog for paco.models
 
 - Add enabled_state for IEventRule.
 
+- Added log_group_names and expire_events_after_days to ILambda to allow it to
+  manage Log Groups and set a Retention period.
+
 ### Changed
 
 - Superflous ICodeCommitRepositoryGroups was removed and ICodeCommit is the container

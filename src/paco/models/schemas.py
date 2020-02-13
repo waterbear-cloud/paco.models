@@ -4530,7 +4530,7 @@ Lambda Environment
         required=False
     )
 
-class ILambda(IResource, IMonitorable):
+class ILambda(IResource, ICloudWatchLogRetention, IMonitorable):
     """
 Lambda Functions allow you to run code without provisioning servers and only
 pay for the compute time when the code is running.
@@ -4538,7 +4538,26 @@ pay for the compute time when the code is running.
 For the code that the Lambda function will run, use the ``code:`` block and specify
 ``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
 
+.. code-block:: yaml
+    :caption: Lambda code from S3 Bucket or local disk
+
+    code:
+        s3_bucket: my-bucket-name
+        s3_key: 'myapp-1.0.zip'
+
+    code:
+        zipfile: ./lambda-dir/my-lambda.py
+
+
 .. sidebar:: Prescribed Automation
+
+    ``expire_events_after_days``: Sets the Retention for the Lambda execution Log Group.
+
+    ``log_group_names``: Creates CloudWatch Log Group(s) prefixed with '<env>-<appname>-<groupname>-<lambdaname>-'
+    (or for Environment-less applications like Services it will be '<appname>-<groupname>-<lambdaname>-')
+    and grants permission for the Lambda role to interact with those Log Group(s). The ``expire_events_after_days``
+    field will set the Log Group retention period. Paco will also add a comma-seperated Environment Variable
+    named PACO_LOG_GROUPS to the Lambda with the expanded names of the Log Groups.
 
     ``sdb_cache``: Create a SimpleDB Domain and IAM Policy that grants full access to that domain. Will
     also make the domain available to the Lambda function as an environment variable named ``SDB_CACHE_DOMAIN``.
@@ -4584,7 +4603,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     memory_size: 128
     runtime: 'python3.7'
     timeout: 900
-    log_group_expire_events_after_days: 90
+    expire_events_after_days: 90
     log_group_names:
       - AppGroupOne
     sns_topics:
@@ -4618,9 +4637,16 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     )
     layers = schema.List(
         title="Layers",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         description="Up to 5 Layer ARNs",
-        constraint = isListOfLayerARNs
+        constraint=isListOfLayerARNs
+    )
+    log_group_names = schema.List(
+        title="Log Group names",
+        value_type=schema.TextLine(),
+        description="List of Log Group names",
+        required=False,
+        default=[]
     )
     handler = schema.TextLine(
         title="Function Handler",

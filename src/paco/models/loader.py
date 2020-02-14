@@ -1748,6 +1748,8 @@ Duplicate key \"{}\" found on line {} at column {}.
             return
         global_item_config = global_config['applications']
 
+        if env_region_config['applications'] == None: return
+
         for item_name, item_config in env_region_config['applications'].items():
             match = re.match('^(.*){(.*)}$', item_name)
             if match:
@@ -1780,17 +1782,34 @@ Duplicate key \"{}\" found on line {} at column {}.
             else:
                 # merge global with default, then merge that with local config
                 env_default = global_config['environments'][env_region.__parent__.name]['default']
-                if 'applications' in env_default and unique_app_name in env_default['applications']:
-                    try:
-                        default_region_config = env_default['applications'][unique_app_name]
-                        global_item_config[app_name]
-                    except KeyError:
-                        self.raise_env_name_mismatch(unique_app_name, 'applications', env_region)
-                    default_config = merge(global_item_config[app_name], default_region_config)
-                    item_config = merge(default_config, item_config)
-                    annotate_base_config(item, item_config, default_config)
-                # no default config, merge local with global
+                # allow for syntax cases such as
+                #
+                #  dev
+                #    default:
+                #      applications:
+                #     us-west-2:
+                #
+                if env_default != None and 'applications' in env_default and env_default['applications'] != None:
+                    if 'applications' in env_default and unique_app_name in env_default['applications']:
+                        try:
+                            default_region_config = env_default['applications'][unique_app_name]
+                            global_item_config[app_name]
+                        except KeyError:
+                            self.raise_env_name_mismatch(unique_app_name, 'applications', env_region)
+                        default_config = merge(global_item_config[app_name], default_region_config)
+                        item_config = merge(default_config, item_config)
+                        annotate_base_config(item, item_config, default_config)
+                    # no default config, merge local with global
+                    else:
+                        try:
+                            global_item_config[app_name]
+                        except KeyError:
+                            self.raise_env_name_mismatch(item_name, 'applications', env_region)
+                        item_config = merge(global_item_config[app_name], item_config)
+                        annotate_base_config(item, item_config, global_item_config[app_name])
                 else:
+                    # no default config, merge local with global
+                    # erm, this is duplicatey - fix me
                     try:
                         global_item_config[app_name]
                     except KeyError:

@@ -518,6 +518,7 @@ class ASG(Resource, Monitorable):
     eip =  FieldProperty(schemas.IASG['eip'])
     instance_iam_role =  FieldProperty(schemas.IASG['instance_iam_role'])
     instance_ami =  FieldProperty(schemas.IASG['instance_ami'])
+    instance_ami_ignore_changes =  FieldProperty(schemas.IASG['instance_ami_ignore_changes'])
     instance_ami_type =  FieldProperty(schemas.IASG['instance_ami_type'])
     instance_key_pair =  FieldProperty(schemas.IASG['instance_key_pair'])
     instance_type =  FieldProperty(schemas.IASG['instance_type'])

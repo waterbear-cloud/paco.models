@@ -6,6 +6,11 @@ Changelog for paco.models
 
 ### Added
 
+- ASG has instance_ami_ignore_changes field to indicate the AMI Id is being updated
+  externally.
+
+- paco.ref function can now call any arbitrary Python function.
+
 - Add enabled_state for IEventRule.
 
 - Added log_group_names and expire_events_after_days to ILambda to allow it to
@@ -15,6 +20,10 @@ Changelog for paco.models
 
 - Superflous ICodeCommitRepositoryGroups was removed and ICodeCommit is the container
   now for an ICodeCommitRepositoryGroup.
+
+### Fixed
+
+- Fix errors thrown by loader when loading environments with empty config.
 
 6.3.7 (2020-02-05)
 ------------------

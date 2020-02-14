@@ -4309,6 +4309,12 @@ for that ASG.
         required=False,
         schema_constraint='IFunction'
     )
+    instance_ami_ignore_changes = schema.Bool(
+        title="Do not update the instance_ami after creation.",
+        description="",
+        default=False,
+        required=False,
+    )
     instance_ami_type = schema.TextLine(
         title="The AMI Operating System family",
         description="Must be one of amazon, centos, suse, debian, ubuntu, microsoft or redhat.",

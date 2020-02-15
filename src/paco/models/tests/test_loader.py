@@ -309,6 +309,11 @@ class Testpacodemo(BaseTestModelLoader):
         assert lmbda.memory_size, 128
         assert len(lmbda.layers), 1
 
+    def test_esdomain(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        esdomain = demo_env['applications']['app'].groups['site'].resources['esdomain']
+        assert schemas.IElasticsearchDomain.providedBy(esdomain)
+
     def test_paco_project_version(self):
         # test that a version loaded ... we will fiddle with this number in fixtures
         # as we update paco.models
@@ -360,6 +365,7 @@ class Testpacodemo(BaseTestModelLoader):
         assert myvault.title == "All data for MyApp (myapp) application"
         assert myvault.plans['ebs_daily'].plan_rules[0].schedule_expression == 'cron(0 7 ? * * *)'
 
+    # dashboard_file is not reading correctly? disable for now
     def test_dashboard(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         dashboard = demo_env['applications']['app'].groups['site'].resources['dashboard']

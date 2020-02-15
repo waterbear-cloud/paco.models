@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- IElasticsearchDomain schema.
+
 - ASG has instance_ami_ignore_changes field to indicate the AMI Id is being updated
   externally.
 

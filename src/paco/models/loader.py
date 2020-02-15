@@ -32,7 +32,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
-    CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
+    CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -130,10 +131,16 @@ RESOURCES_CLASS_MAP = {
     'EBS': EBS,
     'EBSVolumeMount': EBSVolumeMount,
     'CodeDeployApplication': CodeDeployApplication,
-    'Dashboard': CloudWatchDashboard
+    'Dashboard': CloudWatchDashboard,
+    'ElasticsearchDomain': ElasticsearchDomain,
 }
 
 SUB_TYPES_CLASS_MAP = {
+    ElasticsearchDomain: {
+        'cluster': ('direct_obj', ElasticsearchCluster),
+        'ebs_volumes': ('direct_obj', EBSOptions),
+        'advanced_options': ('dynamic_dict', ESAdvancedOptions),
+    },
     EC2Resource: {
         'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),
     },
@@ -602,10 +609,12 @@ def cast_to_schema(obj, fieldname, value, fields=None):
     field = fields[fieldname]
     if zope.schema.interfaces.IFloat.providedBy(field):
         return float(value)
-    if schemas.IYAMLFileReference.providedBy(field):
+    elif schemas.IYAMLFileReference.providedBy(field):
         # Prevent Troposphere objects from being cast to a string
         return value
-    if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
+    elif schemas.IStringFileReference.providedBy(field):
+        return value
+    elif isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
         # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
         # You can force a string with "field: '404'" but this removes the need to do that.
         value = str(value)
@@ -1095,11 +1104,10 @@ def load_string_from_path(path, base_path=None, is_yaml=False):
         if is_yaml:
             return read_yaml_file(path)
         else:
-            fh = path.open()
-            return fh.read()
+            return path.read_text()
     else:
         # ToDo: better error help
-        raise InvalidPacoProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
+        raise InvalidPacoProjectFile("File does not exist at filesystem path {}".format(path))
 
 def read_yaml_file(path):
     """

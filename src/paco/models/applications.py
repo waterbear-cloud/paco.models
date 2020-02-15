@@ -2,12 +2,6 @@
 All things Application Engine.
 """
 
-import troposphere
-import troposphere.elasticache
-import troposphere.s3
-import troposphere.secretsmanager
-import troposphere.autoscaling
-import troposphere.elasticloadbalancingv2
 from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
@@ -19,6 +13,13 @@ from paco.models.metrics import Monitorable, AlarmNotifications
 from paco.models.vocabulary import application_group_types, aws_regions
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
+import troposphere
+import troposphere.autoscaling
+import troposphere.elasticache
+import troposphere.elasticloadbalancingv2
+import troposphere.elasticsearch
+import troposphere.s3
+import troposphere.secretsmanager
 
 
 @implementer(schemas.IApplicationEngines)
@@ -1083,6 +1084,96 @@ class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
         # The replication group identifier is stored as a lowercase string
         # lower-case the name so that the Dimension name handles MiXeDCase.
         return result.lower()
+
+
+@implementer(schemas.IESAdvancedOptions)
+class ESAdvancedOptions(dict):
+    "A dict of ElasticSearch key-value advanced options"
+
+@implementer(schemas.IEBSOptions)
+class EBSOptions():
+    enabled = FieldProperty(schemas.IEBSOptions['enabled'])
+    iops = FieldProperty(schemas.IEBSOptions['iops'])
+    volume_size_gb = FieldProperty(schemas.IEBSOptions['volume_size_gb'])
+    volume_type = FieldProperty(schemas.IEBSOptions['volume_type'])
+
+    troposphere_props = troposphere.elasticsearch.EBSOptions.props
+    cfn_mapping = {
+        'EBSEnabled': 'enabled',
+        'Iops': 'iops',
+        'VolumeSize': 'volume_size_gb',
+        'VolumeType': 'volume_type'
+    }
+
+@implementer(schemas.IElasticsearchCluster)
+class ElasticsearchCluster():
+    dedicated_master_count = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_count'])
+    dedicated_master_enabled = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_enabled'])
+    dedicated_master_type = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_type'])
+    instance_count = FieldProperty(schemas.IElasticsearchCluster['instance_count'])
+    instance_type = FieldProperty(schemas.IElasticsearchCluster['instance_type'])
+    zone_awareness_availability_zone_count = FieldProperty(schemas.IElasticsearchCluster['zone_awareness_availability_zone_count'])
+    zone_awareness_enabled = FieldProperty(schemas.IElasticsearchCluster['zone_awareness_enabled'])
+
+    @property
+    def zone_awareness_availability_zone_count_cfn(self):
+        if self.zone_awareness_availability_zone_count != None:
+            return {'AvailabilityZoneCount': self.zone_awareness_availability_zone_count}
+
+    troposphere_props = troposphere.elasticsearch.ElasticsearchClusterConfig.props
+    cfn_mapping = {
+        'DedicatedMasterCount': 'dedicated_master_count',
+        'DedicatedMasterEnabled': 'dedicated_master_enabled',
+        'DedicatedMasterType': 'dedicated_master_type',
+        'InstanceCount': 'instance_count',
+        'InstanceType': 'instance_type',
+        'ZoneAwarenessConfig': 'zone_awareness_availability_zone_count',
+        'ZoneAwarenessEnabled': 'zone_awareness_enabled',
+    }
+
+@implementer(schemas.IElasticsearchDomain)
+class ElasticsearchDomain(Resource):
+    title = "Elasticsearch Domain"
+    type = "ElasticsearchDomain"
+    access_policies_json = FieldProperty(schemas.IElasticsearchDomain['access_policies_json'])
+    advanced_options = FieldProperty(schemas.IElasticsearchDomain['advanced_options'])
+    ebs_volumes = FieldProperty(schemas.IElasticsearchDomain['ebs_volumes'])
+    cluster = FieldProperty(schemas.IElasticsearchDomain['cluster'])
+    elasticsearch_version = FieldProperty(schemas.IElasticsearchDomain['elasticsearch_version'])
+    node_to_node_encryption = FieldProperty(schemas.IElasticsearchDomain['node_to_node_encryption'])
+    snapshot_start_hour = FieldProperty(schemas.IElasticsearchDomain['snapshot_start_hour'])
+    security_groups = FieldProperty(schemas.IElasticsearchDomain['security_groups'])
+    segment = FieldProperty(schemas.IElasticsearchDomain['segment'])
+
+    @property
+    def ebsoptions_cfn(self):
+        if self.ebs_volumes != None:
+            return self.ebs_volumes.cfn_export_dict
+
+    @property
+    def cluster_cfn(self):
+        if self.cluster != None:
+            return self.cluster.cfn_export_dict
+
+    @property
+    def snapshot_cfn(self):
+        if self.snapshot_start_hour != None:
+            return {'AutomatedSnapshotStartHour': self.snapshot_start_hour}
+
+    troposphere_props = troposphere.elasticsearch.Domain.props
+    cfn_mapping = {
+        'AccessPolicies': 'access_policies_json',
+        'AdvancedOptions': 'advanced_options',
+        # 'DomainName': computed by AWS,
+        'EBSOptions': 'ebsoptions_cfn',
+        'ElasticsearchClusterConfig': 'cluster_cfn',
+        'ElasticsearchVersion': 'elasticsearch_version',
+        # 'EncryptionAtRestOptions': (EncryptionAtRestOptions, False),
+        'NodeToNodeEncryptionOptions': 'node_to_node_encryption',
+        'SnapshotOptions': 'snapshot_cfn',
+        # 'Tags': ((Tags, list), False),
+        #'VPCOptions': computed in template,
+    }
 
 @implementer(schemas.IDeploymentPipelineConfiguration)
 class DeploymentPipelineConfiguration(Named):

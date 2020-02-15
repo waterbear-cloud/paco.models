@@ -88,7 +88,7 @@ def isValidJSONOrNone(value):
     if not value:
         return True
     try:
-        json.load(value)
+        json.loads(value)
     except json.decoder.JSONDecodeError:
         raise InvalidJSON
     return True
@@ -1641,7 +1641,8 @@ Variables to make available to the dashboard JSON for interpolation.
 class ICloudWatchDashboard(IResource):
     dashboard_file = StringFileReference(
         title="File path to a JSON templated dashboard.",
-        required=True
+        required=True,
+        constraint=isValidJSONOrNone
     )
     variables = schema.Dict(
         title="Dashboard Variables",
@@ -4491,8 +4492,8 @@ class ILambdaFunctionCode(IParent):
     @invariant
     def is_either_s3_or_zipfile(obj):
         "Validate that either zipfile or s3 bucket is set."
-        if not obj.zipfile and not (obj.s3_bucket and obj.s3_key):
-            raise Invalid("Either zipfile or s3_bucket and s3_key must be set. Or zipfile fle is an empty file.")
+        if obj.zipfile == None and not (obj.s3_bucket and obj.s3_key):
+            raise Invalid("Either zipfile or s3_bucket and s3_key must be set. Or zipfile file is an empty file.")
         if obj.zipfile and obj.s3_bucket:
             raise Invalid("Can not set both zipfile and s3_bucket")
         if obj.zipfile and len(obj.zipfile) > 4096:
@@ -6074,6 +6075,132 @@ Redis ElastiCache Interface
         title="The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your node group (shard).",
         required=False,
         # ToDo: constraint for "windows"
+    )
+
+class IESAdvancedOptions(IMapping):
+    "A dict of ElasticSearch key-value advanced options"
+    # ToDo: constraints for options
+
+class IEBSOptions(Interface):
+    # this is not IDeployable so it can have a different title to desribce it's configuration purpose
+    enabled = schema.Bool(
+        title="Specifies whether Amazon EBS volumes are attached to data nodes in the Amazon ES domain.",
+        required=False
+    )
+    iops = schema.Int(
+        title="The number of I/O operations per second (IOPS) that the volume supports.",
+        required=False
+    )
+    volume_size_gb = schema.Int(
+        title="The size (in GiB) of the EBS volume for each data node.",
+        description="The minimum and maximum size of an EBS volume depends on the EBS volume type and the instance type to which it is attached.",
+        required=False,
+    )
+    volume_type = schema.TextLine(
+        title="The EBS volume type to use with the Amazon ES domain.",
+        description="Must be one of: standard, gp2, io1, st1, or sc1",
+        required=False,
+        constraint=isValidEBSVolumeType
+    )
+
+class IElasticsearchCluster(Interface):
+    dedicated_master_count = schema.Int(
+        title="The number of instances to use for the master node.",
+        description="If you specify this field, you must specify true for the dedicated_master_enabled field.",
+        required=False,
+        min=1,
+    )
+    dedicated_master_enabled =schema.Bool(
+        title="Indicates whether to use a dedicated master node for the Amazon ES domain.",
+        required=False,
+    )
+    # ToDo: add constraint for instance types
+    dedicated_master_type = schema.TextLine(
+        title="The hardware configuration of the computer that hosts the dedicated master node",
+        description="Valid Elasticsearch instance type, such as m3.medium.elasticsearch. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html",
+        required=False,
+    )
+    instance_count = schema.Int(
+        title="The number of data nodes (instances) to use in the Amazon ES domain.",
+        required=False,
+    )
+    # ToDo: add constraint for instance types
+    instance_type = schema.TextLine(
+        title="The instance type for your data nodes.",
+        description="Valid Elasticsearch instance type, such as m3.medium.elasticsearch. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html",
+        required=False,
+    )
+    # ToDo: invariant to only allow if zone_awareness_enabled: true
+    zone_awareness_availability_zone_count = schema.Int(
+        title="If you enabled multiple Availability Zones (AZs), the number of AZs that you want the domain to use.",
+        default=2,
+        required=False,
+        min=2,
+        max=3,
+    )
+    zone_awareness_enabled = schema.Bool(
+        title="Enable zone awareness for the Amazon ES domain.",
+        required=False
+    )
+
+class IElasticsearchDomain(IResource):
+    """
+Elasticsearch Domain resource
+    """
+    # ToDo: this could be direct references to IAM things and Paco could generate the JSON?
+    access_policies_json = StringFileReference(
+        title="Policy document that specifies who can access the Amazon ES domain and their permissions.",
+        required=False,
+        constraint=isValidJSONOrNone
+    )
+    advanced_options = schema.Object(
+        title="Advanced Options",
+        schema=IESAdvancedOptions,
+        required=False
+    )
+    ebs_volumes = schema.Object(
+        title="EBS volumes that are attached to data nodes in the Amazon ES domain.",
+        required=False,
+        schema=IEBSOptions,
+    )
+    cluster = schema.Object(
+        title="Elasticsearch Cluster configuration",
+        schema=IElasticsearchCluster,
+        required=False,
+    )
+    # ToDo: provide option to set the UpgradeElasticsearchVersion update policy to true
+    # during stack updates to allow for no downtime upgrades
+    elasticsearch_version = schema.TextLine(
+        title="The version of Elasticsearch to use, such as 2.3.",
+        default="1.5",
+        required=False,
+    )
+    # ToDo: encrypt at rest
+    #encrypt_at_rest_enabled
+    #encrypt_at_rest_kms_key
+    # ToDo: log publishing
+    #log_publishing_log_group
+    #log_publising_enabled
+    node_to_node_encryption = schema.Bool(
+        title="Enable node-to-node encryption",
+        required=False,
+    )
+    snapshot_start_hour = schema.Int(
+        title="The hour in UTC during which the service takes an automated daily snapshot of the indices in the Amazon ES domain.",
+        min=0,
+        max=23,
+        required=False,
+    )
+    security_groups = schema.List(
+        title="List of Security Groups",
+        value_type=PacoReference(
+            schema_constraint='ISecurityGroup'
+        ),
+        required=False,
+    )
+    segment = schema.TextLine(
+        title="Segment",
+        required=False,
     )
 
 class IIAMUserProgrammaticAccess(IDeployable):

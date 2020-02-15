@@ -243,6 +243,11 @@ applications:
             security_groups:
               - paco.ref netenv.pacodemo.network.vpc.security_groups.app.lb
             segment: public
+          esdomain:
+            type: ElasticsearchDomain
+            order: 1
+            enabled: true
+
           dbparams:
             type: DBParameterGroup
             order: 1

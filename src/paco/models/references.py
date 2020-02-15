@@ -415,7 +415,6 @@ def import_and_call_function(ref, project, account_ctx):
     module_name = '.'.join(ref.parts[1:-1])
     function_name = ref.parts[-1:][0]
     module = importlib.import_module(module_name)
-    #breakpoint()
     return getattr(module, function_name)(ref, project, account_ctx)
 
 def resolve_function_ref(ref, project, account_ctx):

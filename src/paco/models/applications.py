@@ -1091,7 +1091,7 @@ class ESAdvancedOptions(dict):
     "A dict of ElasticSearch key-value advanced options"
 
 @implementer(schemas.IEBSOptions)
-class EBSOptions():
+class EBSOptions(CFNExport):
     enabled = FieldProperty(schemas.IEBSOptions['enabled'])
     iops = FieldProperty(schemas.IEBSOptions['iops'])
     volume_size_gb = FieldProperty(schemas.IEBSOptions['volume_size_gb'])
@@ -1106,7 +1106,7 @@ class EBSOptions():
     }
 
 @implementer(schemas.IElasticsearchCluster)
-class ElasticsearchCluster():
+class ElasticsearchCluster(CFNExport):
     dedicated_master_count = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_count'])
     dedicated_master_enabled = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_enabled'])
     dedicated_master_type = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_type'])
@@ -1117,7 +1117,7 @@ class ElasticsearchCluster():
 
     @property
     def zone_awareness_availability_zone_count_cfn(self):
-        if self.zone_awareness_availability_zone_count != None:
+        if self.zone_awareness_enabled:
             return {'AvailabilityZoneCount': self.zone_awareness_availability_zone_count}
 
     troposphere_props = troposphere.elasticsearch.ElasticsearchClusterConfig.props
@@ -1127,7 +1127,7 @@ class ElasticsearchCluster():
         'DedicatedMasterType': 'dedicated_master_type',
         'InstanceCount': 'instance_count',
         'InstanceType': 'instance_type',
-        'ZoneAwarenessConfig': 'zone_awareness_availability_zone_count',
+        'ZoneAwarenessConfig': 'zone_awareness_availability_zone_count_cfn',
         'ZoneAwarenessEnabled': 'zone_awareness_enabled',
     }
 
@@ -1162,7 +1162,7 @@ class ElasticsearchDomain(Resource):
 
     troposphere_props = troposphere.elasticsearch.Domain.props
     cfn_mapping = {
-        'AccessPolicies': 'access_policies_json',
+        # 'AccessPolicies': convert to JSON in the template
         'AdvancedOptions': 'advanced_options',
         # 'DomainName': computed by AWS,
         'EBSOptions': 'ebsoptions_cfn',

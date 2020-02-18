@@ -5527,13 +5527,13 @@ class ICloudFrontCustomOriginConfig(INamed):
     protocol_policy = schema.TextLine(
         title="Protocol Policy",
         constraint = isValidCFProtocolPolicy,
-        required=False,
+        required=True,
     )
     ssl_protocols = schema.List(
         title="List of SSL Protocols",
         value_type = schema.TextLine(),
         constraint = isValidCFSSLProtocol,
-        required=False,
+        required=True,
     )
     read_timeout = schema.Int(
         title="Read timeout",
@@ -5598,7 +5598,7 @@ CloudFront CDN Configuration
     )
     default_root_object = schema.TextLine(
         title="The default path to load from the origin.",
-        default='index.html',
+        default='',
         required=False,
     )
     default_cache_behavior = schema.Object(

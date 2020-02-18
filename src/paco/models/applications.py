@@ -2,12 +2,6 @@
 All things Application Engine.
 """
 
-import troposphere
-import troposphere.elasticache
-import troposphere.s3
-import troposphere.secretsmanager
-import troposphere.autoscaling
-import troposphere.elasticloadbalancingv2
 from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
@@ -19,6 +13,13 @@ from paco.models.metrics import Monitorable, AlarmNotifications
 from paco.models.vocabulary import application_group_types, aws_regions
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
+import troposphere
+import troposphere.autoscaling
+import troposphere.elasticache
+import troposphere.elasticloadbalancingv2
+import troposphere.elasticsearch
+import troposphere.s3
+import troposphere.secretsmanager
 
 
 @implementer(schemas.IApplicationEngines)
@@ -506,6 +507,7 @@ class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
     cfn_init =  FieldProperty(schemas.IASG['cfn_init'])
     desired_capacity =  FieldProperty(schemas.IASG['desired_capacity'])
+    desired_capacity_ignore_changes =  FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
     min_instances =  FieldProperty(schemas.IASG['min_instances'])
     max_instances =  FieldProperty(schemas.IASG['max_instances'])
     update_policy_max_batch_size =  FieldProperty(schemas.IASG['update_policy_max_batch_size'])
@@ -518,6 +520,7 @@ class ASG(Resource, Monitorable):
     eip =  FieldProperty(schemas.IASG['eip'])
     instance_iam_role =  FieldProperty(schemas.IASG['instance_iam_role'])
     instance_ami =  FieldProperty(schemas.IASG['instance_ami'])
+    instance_ami_ignore_changes =  FieldProperty(schemas.IASG['instance_ami_ignore_changes'])
     instance_ami_type =  FieldProperty(schemas.IASG['instance_ami_type'])
     instance_key_pair =  FieldProperty(schemas.IASG['instance_key_pair'])
     instance_type =  FieldProperty(schemas.IASG['instance_type'])
@@ -753,7 +756,7 @@ class Lambda(Resource, Monitorable):
                 variable.value = value
                 return
         self.environment.variables.append(
-            LambdaVariable(name, value)
+            LambdaVariable(self.environment, name, value)
         )
 
     def resolve_ref(self, ref):
@@ -1083,6 +1086,96 @@ class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
         # lower-case the name so that the Dimension name handles MiXeDCase.
         return result.lower()
 
+
+@implementer(schemas.IESAdvancedOptions)
+class ESAdvancedOptions(dict):
+    "A dict of ElasticSearch key-value advanced options"
+
+@implementer(schemas.IEBSOptions)
+class EBSOptions(CFNExport):
+    enabled = FieldProperty(schemas.IEBSOptions['enabled'])
+    iops = FieldProperty(schemas.IEBSOptions['iops'])
+    volume_size_gb = FieldProperty(schemas.IEBSOptions['volume_size_gb'])
+    volume_type = FieldProperty(schemas.IEBSOptions['volume_type'])
+
+    troposphere_props = troposphere.elasticsearch.EBSOptions.props
+    cfn_mapping = {
+        'EBSEnabled': 'enabled',
+        'Iops': 'iops',
+        'VolumeSize': 'volume_size_gb',
+        'VolumeType': 'volume_type'
+    }
+
+@implementer(schemas.IElasticsearchCluster)
+class ElasticsearchCluster(CFNExport):
+    dedicated_master_count = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_count'])
+    dedicated_master_enabled = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_enabled'])
+    dedicated_master_type = FieldProperty(schemas.IElasticsearchCluster['dedicated_master_type'])
+    instance_count = FieldProperty(schemas.IElasticsearchCluster['instance_count'])
+    instance_type = FieldProperty(schemas.IElasticsearchCluster['instance_type'])
+    zone_awareness_availability_zone_count = FieldProperty(schemas.IElasticsearchCluster['zone_awareness_availability_zone_count'])
+    zone_awareness_enabled = FieldProperty(schemas.IElasticsearchCluster['zone_awareness_enabled'])
+
+    @property
+    def zone_awareness_availability_zone_count_cfn(self):
+        if self.zone_awareness_enabled:
+            return {'AvailabilityZoneCount': self.zone_awareness_availability_zone_count}
+
+    troposphere_props = troposphere.elasticsearch.ElasticsearchClusterConfig.props
+    cfn_mapping = {
+        'DedicatedMasterCount': 'dedicated_master_count',
+        'DedicatedMasterEnabled': 'dedicated_master_enabled',
+        'DedicatedMasterType': 'dedicated_master_type',
+        'InstanceCount': 'instance_count',
+        'InstanceType': 'instance_type',
+        'ZoneAwarenessConfig': 'zone_awareness_availability_zone_count_cfn',
+        'ZoneAwarenessEnabled': 'zone_awareness_enabled',
+    }
+
+@implementer(schemas.IElasticsearchDomain)
+class ElasticsearchDomain(Resource):
+    title = "Elasticsearch Domain"
+    type = "ElasticsearchDomain"
+    access_policies_json = FieldProperty(schemas.IElasticsearchDomain['access_policies_json'])
+    advanced_options = FieldProperty(schemas.IElasticsearchDomain['advanced_options'])
+    ebs_volumes = FieldProperty(schemas.IElasticsearchDomain['ebs_volumes'])
+    cluster = FieldProperty(schemas.IElasticsearchDomain['cluster'])
+    elasticsearch_version = FieldProperty(schemas.IElasticsearchDomain['elasticsearch_version'])
+    node_to_node_encryption = FieldProperty(schemas.IElasticsearchDomain['node_to_node_encryption'])
+    snapshot_start_hour = FieldProperty(schemas.IElasticsearchDomain['snapshot_start_hour'])
+    security_groups = FieldProperty(schemas.IElasticsearchDomain['security_groups'])
+    segment = FieldProperty(schemas.IElasticsearchDomain['segment'])
+
+    @property
+    def ebsoptions_cfn(self):
+        if self.ebs_volumes != None:
+            return self.ebs_volumes.cfn_export_dict
+
+    @property
+    def cluster_cfn(self):
+        if self.cluster != None:
+            return self.cluster.cfn_export_dict
+
+    @property
+    def snapshot_cfn(self):
+        if self.snapshot_start_hour != None:
+            return {'AutomatedSnapshotStartHour': self.snapshot_start_hour}
+
+    troposphere_props = troposphere.elasticsearch.Domain.props
+    cfn_mapping = {
+        # 'AccessPolicies': convert to JSON in the template
+        'AdvancedOptions': 'advanced_options',
+        # 'DomainName': computed by AWS,
+        'EBSOptions': 'ebsoptions_cfn',
+        'ElasticsearchClusterConfig': 'cluster_cfn',
+        'ElasticsearchVersion': 'elasticsearch_version',
+        # 'EncryptionAtRestOptions': (EncryptionAtRestOptions, False),
+        'NodeToNodeEncryptionOptions': 'node_to_node_encryption',
+        'SnapshotOptions': 'snapshot_cfn',
+        # 'Tags': ((Tags, list), False),
+        #'VPCOptions': computed in template,
+    }
+
 @implementer(schemas.IDeploymentPipelineConfiguration)
 class DeploymentPipelineConfiguration(Named):
     artifacts_bucket = FieldProperty(schemas.IDeploymentPipelineConfiguration['artifacts_bucket'])
@@ -1201,23 +1294,29 @@ class EFS(Resource):
 @implementer(schemas.IGenerateSecretString)
 class GenerateSecretString(Parent, Deployable, CFNExport):
     """Generate SecretString"""
-    secret_string_template = FieldProperty(schemas.IGenerateSecretString['secret_string_template'])
-    generate_string_key = FieldProperty(schemas.IGenerateSecretString['generate_string_key'])
-    password_length = FieldProperty(schemas.IGenerateSecretString['password_length'])
     exclude_characters = FieldProperty(schemas.IGenerateSecretString['exclude_characters'])
+    exclude_lowercase = FieldProperty(schemas.IGenerateSecretString['exclude_lowercase'])
+    exclude_numbers = FieldProperty(schemas.IGenerateSecretString['exclude_numbers'])
+    exclude_punctuation = FieldProperty(schemas.IGenerateSecretString['exclude_punctuation'])
+    exclude_uppercase = FieldProperty(schemas.IGenerateSecretString['exclude_uppercase'])
+    generate_string_key = FieldProperty(schemas.IGenerateSecretString['generate_string_key'])
+    include_space = FieldProperty(schemas.IGenerateSecretString['include_space'])
+    password_length = FieldProperty(schemas.IGenerateSecretString['password_length'])
+    require_each_included_type = FieldProperty(schemas.IGenerateSecretString['require_each_included_type'])
+    secret_string_template = FieldProperty(schemas.IGenerateSecretString['secret_string_template'])
 
     troposphere_props = troposphere.secretsmanager.GenerateSecretString.props
     cfn_mapping = {
-        # 'ExcludeUppercase': (boolean, False),
-        # 'RequireEachIncludedType': (boolean, False),
-        # 'IncludeSpace': (boolean, False),
+        'ExcludeUppercase': 'exclude_uppercase',
+        'RequireEachIncludedType': 'require_each_included_type',
+        'IncludeSpace': 'include_space',
         'ExcludeCharacters': 'exclude_characters',
         'GenerateStringKey': 'generate_string_key',
         'PasswordLength': 'password_length',
-        # 'ExcludePunctuation': (boolean, False),
-        # 'ExcludeLowercase': (boolean, False),
+        'ExcludePunctuation': 'exclude_punctuation',
+        'ExcludeLowercase': 'exclude_lowercase',
         'SecretStringTemplate': 'secret_string_template',
-        # 'ExcludeNumbers': (boolean, False),
+        'ExcludeNumbers': 'exclude_numbers',
     }
 
 @implementer(schemas.ISecretsManagerSecret)

@@ -1,26 +1,26 @@
 class InvalidPacoFieldType(Exception):
-    pass
+    title = "Invalid Paco field type in YAML"
 
 class InvalidPacoSchema(Exception):
-    pass
+    title = "YAML is not a valid Paco schema"
 
 class InvalidPacoProjectFile(Exception):
-    pass
+    title = "Invalid Paco project YAML file"
 
 class UnusedPacoProjectField(Exception):
-    pass
+    title = "Unused Paco project field in YAML"
 
 class InvalidPacoReference(Exception):
-    pass
+    title = "Invalid Paco reference"
 
 class InvalidCFNMapping(Exception):
-    pass
+    title = "Invalid CloudFormation Mapping from Paco model object"
 
 class InvalidPacoBucket(Exception):
-    pass
+    title = "Invalid Paco Bucket"
 
 class InvalidAWSResourceName(Exception):
-    pass
+    title = "Name is not valid to use as an AWS Resource name"
 
 class TroposphereConversionError(Exception):
-    pass
+    title = "Troposphere Conversion Error"

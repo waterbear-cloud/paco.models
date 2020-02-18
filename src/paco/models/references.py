@@ -1,16 +1,18 @@
 """
-References
+Paco references
 """
 
 import os, pathlib
 import zope.schema
 from paco.models import vocabulary, schemas
 from paco.models.exceptions import InvalidPacoReference
-import ruamel.yaml
 from ruamel.yaml.compat import StringIO
 from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
+import importlib
+import ruamel.yaml
+
 
 ami_cache = {}
 
@@ -342,75 +344,87 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
                         return outputs_value
     return ref_value
 
+def function_ec2_ami_latest(ref, project, account_ctx):
+    """EC2 AMI latest"""
+    ami_description = None
+    ami_name = None
+    if ref.last_part == 'amazon-linux-2':
+        ami_description = "Amazon Linux 2 AMI*"
+        ami_name = 'amzn2-ami-hvm-*'
+    elif ref.last_part == 'amazon-linux':
+        ami_description = "Amazon Linux AMI*"
+        ami_name = 'amzn-ami-hvm-*'
+    elif ref.last_part == 'amazon-linux-nat':
+        ami_description = "Amazon Linux AMI*"
+        ami_name = 'amzn-ami-vpc-nat-hvm-*'
+    else:
+        raise ValueError("Unsupported AMI Name: {}".format(ref.last_part))
+
+    cache_id = ami_name + ami_description
+    if cache_id in ami_cache.keys():
+        return ami_cache[cache_id]
+
+    ec2_client = account_ctx.get_aws_client('ec2')
+    filters = [ {
+        'Name': 'name',
+        'Values': [ami_name]
+    },{
+        'Name': 'description',
+        'Values': [ami_description]
+    },{
+        'Name': 'architecture',
+        'Values': ['x86_64']
+    },{
+        'Name': 'owner-alias',
+        'Values': ['amazon']
+    },{
+        'Name': 'owner-id',
+        'Values': ['137112412989']
+    },{
+        'Name': 'state',
+        'Values': ['available']
+    },{
+        'Name': 'root-device-type',
+        'Values': ['ebs']
+    },{
+        'Name': 'virtualization-type',
+        'Values': ['hvm']
+    },{
+        'Name': 'hypervisor',
+        'Values': ['xen']
+    },{
+        'Name': 'image-type',
+        'Values': ['machine']
+    } ]
+
+    ami_list= ec2_client.describe_images(
+        Filters=filters,
+        Owners=[
+            'amazon'
+        ]
+    )
+    # Sort on Creation date Desc
+    image_details = sorted(ami_list['Images'],key=itemgetter('CreationDate'),reverse=True)
+    ami_id = image_details[0]['ImageId']
+    ami_cache[cache_id] = ami_id
+
+    return ami_id
+
+def import_and_call_function(ref, project, account_ctx):
+    "Import a module and call a function in it with the Reference, Project and AccountContext"
+    module_name = '.'.join(ref.parts[1:-1])
+    function_name = ref.parts[-1:][0]
+    module = importlib.import_module(module_name)
+    return getattr(module, function_name)(ref, project, account_ctx)
 
 def resolve_function_ref(ref, project, account_ctx):
     if account_ctx == None:
         return None
     if ref.ref.startswith('function.aws.ec2.ami.latest'):
-        ami_description = None
-        ami_name = None
-        if ref.last_part == 'amazon-linux-2':
-            ami_description = "Amazon Linux 2 AMI*"
-            ami_name = 'amzn2-ami-hvm-*'
-        elif ref.last_part == 'amazon-linux':
-            ami_description = "Amazon Linux AMI*"
-            ami_name = 'amzn-ami-hvm-*'
-        elif ref.last_part == 'amazon-linux-nat':
-            ami_description = "Amazon Linux AMI*"
-            ami_name = 'amzn-ami-vpc-nat-hvm-*'
-        else:
-            raise ValueError("Unsupported AMI Name: {}".format(ref.last_part))
-
-        cache_id = ami_name + ami_description
-        if cache_id in ami_cache.keys():
-            return ami_cache[cache_id]
-
-        ec2_client = account_ctx.get_aws_client('ec2')
-        filters = [ {
-            'Name': 'name',
-            'Values': [ami_name]
-        },{
-            'Name': 'description',
-            'Values': [ami_description]
-        },{
-            'Name': 'architecture',
-            'Values': ['x86_64']
-        },{
-            'Name': 'owner-alias',
-            'Values': ['amazon']
-        },{
-            'Name': 'owner-id',
-            'Values': ['137112412989']
-        },{
-            'Name': 'state',
-            'Values': ['available']
-        },{
-            'Name': 'root-device-type',
-            'Values': ['ebs']
-        },{
-            'Name': 'virtualization-type',
-            'Values': ['hvm']
-        },{
-            'Name': 'hypervisor',
-            'Values': ['xen']
-        },{
-            'Name': 'image-type',
-            'Values': ['machine']
-        } ]
-
-        ami_list= ec2_client.describe_images(
-            Filters=filters,
-            Owners=[
-                'amazon'
-            ]
-        )
-        # Sort on Creation date Desc
-        image_details = sorted(ami_list['Images'],key=itemgetter('CreationDate'),reverse=True)
-        ami_id = image_details[0]['ImageId']
-
-        ami_cache[cache_id] = ami_id
-
-        return ami_id
+        # ToDo: call this as a proper function ref? migrate it?
+        return function_ec2_ami_latest(ref, project, account_ctx)
+    else:
+        return import_and_call_function(ref, project, account_ctx)
 
 def resolve_accounts_ref(ref, project):
     "Return an IAccount object from the model."

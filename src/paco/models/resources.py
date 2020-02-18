@@ -410,24 +410,16 @@ class CodeCommitRepository(Named, Deployable):
 class CodeCommitRepositoryGroup(Named, dict):
     pass
 
-@implementer(schemas.ICodeCommitRepositoryGroups)
-class CodeCommitRepositoryGroups(Named, dict):
-    pass
-
 @implementer(schemas.ICodeCommit)
-class CodeCommit(Named):
+class CodeCommit(Named, dict):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        # cheat on the name and parent as paco.ref's omit the repository_group attribute:
-        # paco.ref resource.codecommit.ccrepogroupname
-        # ToDo: fix this so that CodeCommit contains CodeCommitRepositoryGroups directly
-        repository_groups = CodeCommitRepositoryGroups('codecommit', parent)
 
     def gen_repo_by_account(self):
         self.repo_by_account = {}
-        for group_id in self.repository_groups.keys():
-            group_config = self.repository_groups[group_id]
+        for group_id in self.keys():
+            group_config = self[group_id]
             for repo_id in group_config.keys():
                 repo_config = group_config[repo_id]
                 account_dict = {'group_id': group_id,
@@ -493,6 +485,11 @@ class CloudTrailResource(Named):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.trails = CloudTrails('trails', self)
+
+    def resolve_ref(self, ref):
+        # Needed to satisfy paco.models.resolve_ref when it walks
+        # to an S3 Bucket within a CloudTrail
+        return None
 
 @implementer(schemas.IIAMUserProgrammaticAccess)
 class IAMUserProgrammaticAccess(Deployable):

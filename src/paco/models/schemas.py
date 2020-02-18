@@ -88,7 +88,7 @@ def isValidJSONOrNone(value):
     if not value:
         return True
     try:
-        json.load(value)
+        json.loads(value)
     except json.decoder.JSONDecodeError:
         raise InvalidJSON
     return True
@@ -560,6 +560,41 @@ def IsValidASGAvailabilityZone(value):
         raise InvalidASGAvailabilityZone
     return True
 
+# Lambda Environment variables
+class InvalidLambdaEnvironmentVariable(schema.ValidationError):
+    __doc__ = 'Can not be a reserved Environment Variable name and must be alphanumeric or _ character only.'
+
+RESERVED_ENVIRONMENT_VARIABLES = [
+    'AWS_ACCESS_KEY',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_DEFAULT_REGION',
+    'AWS_EXECUTION_ENV',
+    'AWS_LAMBDA_FUNCTION_MEMORY_SIZE',
+    'AWS_LAMBDA_FUNCTION_NAME',
+    'AWS_LAMBDA_FUNCTION_VERSION',
+    'AWS_LAMBDA_LOG_GROUP_NAME',
+    'AWS_LAMBDA_LOG_STREAM_NAME',
+    'AWS_REGION',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_SECRET_KEY',
+    'AWS_SECURITY_TOKEN',
+    'AWS_SESSION_TOKEN',
+    'LAMBDA_RUNTIME_DIR',
+    'LAMBDA_TASK_ROOT',
+    'TZ'
+]
+ENVIRONMENT_VARIABLES_NAME_PATTERN = r'[a-zA-Z][a-zA-Z0-9_]+'
+
+def isValidLambdaVariableName(value):
+    # this can be uninitialized
+    if value == '':
+        return True
+    if value in RESERVED_ENVIRONMENT_VARIABLES:
+        raise InvalidLambdaEnvironmentVariable("Reserved name: {}".format(value))
+    elif not re.match(ENVIRONMENT_VARIABLES_NAME_PATTERN, value):
+        raise InvalidLambdaEnvironmentVariable("Invalid characters in name: %s" % value)
+    return True
+
 # EBS Volume Type
 class InvalidEBSVolumeType(schema.ValidationError):
     __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
@@ -699,7 +734,39 @@ class IAccounts(IMapping):
     pass
 
 class IAccount(INamed, IDeployable):
-    "Cloud account information"
+    """
+Cloud accounts.
+
+The specially named `master.yaml` file is for the AWS Master account. It is the only account
+which can have the field `organization_account_ids` which is used to define and create the
+child accounts.
+
+.. code-block:: yaml
+    :caption: Example accounts/master.yaml account file
+
+    name: Master
+    title: Master AWS Account
+    is_master: true
+    account_type: AWS
+    account_id: '123456789012'
+    region: us-west-2
+    organization_account_ids:
+    - prod
+    - tools
+    - dev
+    root_email: master@example.com
+
+.. code-block:: yaml
+    :caption: Example accounts/dev.yaml account file
+
+    name: Development
+    title: Development AWS Account
+    account_type: AWS
+    account_id: '123456789012'
+    region: us-west-2
+    root_email: dev@example.com
+
+"""
     account_type = schema.TextLine(
         title="Account Type",
         description="Supported types: 'AWS'",
@@ -1606,7 +1673,8 @@ Variables to make available to the dashboard JSON for interpolation.
 class ICloudWatchDashboard(IResource):
     dashboard_file = StringFileReference(
         title="File path to a JSON templated dashboard.",
-        required=True
+        required=True,
+        constraint=isValidJSONOrNone
     )
     variables = schema.Dict(
         title="Dashboard Variables",
@@ -1787,6 +1855,11 @@ Events Rule
     schedule_expression = schema.TextLine(
         title="Schedule Expression",
         required=True
+    )
+    enabled_state = schema.Bool(
+        title="Enabled State",
+        required=False,
+        default=True
     )
     # ToDo: constrain List to not be empty
     targets = schema.List(
@@ -2644,26 +2717,56 @@ class INetwork(INetworkEnvironment):
 # Secrets Manager schemas
 
 class IGenerateSecretString(IParent, IDeployable):
-    secret_string_template = schema.Text(
-        title="A properly structured JSON string that the generated password can be added to.",
+    exclude_characters = schema.Text(
+        title="A string that includes characters that should not be included in the generated password.",
         required=False,
-        max_length=10240
+        max_length=4096
+    )
+    exclude_lowercase = schema.Bool(
+        title="The generated password should not include lowercase letters.",
+        default=False,
+        required=False
+    )
+    exclude_numbers = schema.Bool(
+        title="The generated password should exclude digits.",
+        default=False,
+        required=False
+    )
+    exclude_punctuation = schema.Bool(
+        title="The generated password should not include punctuation characters.",
+        default=False,
+        required=False
+    )
+    exclude_uppercase = schema.Bool(
+        title="The generated password should not include uppercase letters.",
+        default=False,
+        required=False
     )
     generate_string_key = schema.TextLine(
         title="The JSON key name that's used to add the generated password to the JSON structure.",
         required=False,
         max_length=10240
     )
+    include_space = schema.Bool(
+        title="The generated password can include the space character.",
+        required=False
+    )
     password_length = schema.Int(
         title="The desired length of the generated password.",
         default=32,
         required=False
     )
-    exclude_characters = schema.Text(
-        title="A string that includes characters that should not be included in the generated password.",
-        required=False,
-        max_length=4096
+    require_each_included_type = schema.Bool(
+        title="The generated password must include at least one of every allowed character type.",
+        default=True,
+        required=False
     )
+    secret_string_template = schema.Text(
+        title="A properly structured JSON string that the generated password can be added to.",
+        required=False,
+        max_length=10240
+    )
+
 
 class ISecretsManagerSecret(INamed, IDeployable):
     """Secret for the Secrets Manager."""
@@ -4196,6 +4299,12 @@ for that ASG.
         default=1,
         required=False,
     )
+    desired_capacity_ignore_changes = schema.Bool(
+        title="Ignore changes to the desired_capacity after the ASG is created.",
+        description="",
+        default=False,
+        required=False,
+    )
     ebs_optimized = schema.Bool(
         title="EBS Optimized",
         description="",
@@ -4238,6 +4347,12 @@ for that ASG.
         str_ok=True,
         required=False,
         schema_constraint='IFunction'
+    )
+    instance_ami_ignore_changes = schema.Bool(
+        title="Do not update the instance_ami after creation.",
+        description="",
+        default=False,
+        required=False,
     )
     instance_ami_type = schema.TextLine(
         title="The AMI Operating System family",
@@ -4390,6 +4505,7 @@ class ILambdaVariable(IParent):
     key = schema.TextLine(
         title='Variable Name',
         required=True,
+        constraint=isValidLambdaVariableName
     )
     value = PacoReference(
         title='String Value or a Paco Reference to a resource output',
@@ -4414,8 +4530,8 @@ class ILambdaFunctionCode(IParent):
     @invariant
     def is_either_s3_or_zipfile(obj):
         "Validate that either zipfile or s3 bucket is set."
-        if not obj.zipfile and not (obj.s3_bucket and obj.s3_key):
-            raise Invalid("Either zipfile or s3_bucket and s3_key must be set. Or zipfile fle is an empty file.")
+        if obj.zipfile == None and not (obj.s3_bucket and obj.s3_key):
+            raise Invalid("Either zipfile or s3_bucket and s3_key must be set. Or zipfile file is an empty file.")
         if obj.zipfile and obj.s3_bucket:
             raise Invalid("Can not set both zipfile and s3_bucket")
         if obj.zipfile and len(obj.zipfile) > 4096:
@@ -4459,7 +4575,7 @@ Lambda Environment
         required=False
     )
 
-class ILambda(IResource, IMonitorable):
+class ILambda(IResource, ICloudWatchLogRetention, IMonitorable):
     """
 Lambda Functions allow you to run code without provisioning servers and only
 pay for the compute time when the code is running.
@@ -4467,7 +4583,26 @@ pay for the compute time when the code is running.
 For the code that the Lambda function will run, use the ``code:`` block and specify
 ``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
 
+.. code-block:: yaml
+    :caption: Lambda code from S3 Bucket or local disk
+
+    code:
+        s3_bucket: my-bucket-name
+        s3_key: 'myapp-1.0.zip'
+
+    code:
+        zipfile: ./lambda-dir/my-lambda.py
+
+
 .. sidebar:: Prescribed Automation
+
+    ``expire_events_after_days``: Sets the Retention for the Lambda execution Log Group.
+
+    ``log_group_names``: Creates CloudWatch Log Group(s) prefixed with '<env>-<appname>-<groupname>-<lambdaname>-'
+    (or for Environment-less applications like Services it will be '<appname>-<groupname>-<lambdaname>-')
+    and grants permission for the Lambda role to interact with those Log Group(s). The ``expire_events_after_days``
+    field will set the Log Group retention period. Paco will also add a comma-seperated Environment Variable
+    named PACO_LOG_GROUPS to the Lambda with the expanded names of the Log Groups.
 
     ``sdb_cache``: Create a SimpleDB Domain and IAM Policy that grants full access to that domain. Will
     also make the domain available to the Lambda function as an environment variable named ``SDB_CACHE_DOMAIN``.
@@ -4513,6 +4648,9 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     memory_size: 128
     runtime: 'python3.7'
     timeout: 900
+    expire_events_after_days: 90
+    log_group_names:
+      - AppGroupOne
     sns_topics:
       - paco.ref netenv.app.applications.app.groups.web.resources.snstopic
     vpc_config:
@@ -4544,9 +4682,16 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     )
     layers = schema.List(
         title="Layers",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         description="Up to 5 Layer ARNs",
-        constraint = isListOfLayerARNs
+        constraint=isListOfLayerARNs
+    )
+    log_group_names = schema.List(
+        title="Log Group names",
+        value_type=schema.TextLine(),
+        description="List of Log Group names",
+        required=False,
+        default=[]
     )
     handler = schema.TextLine(
         title="Function Handler",
@@ -5219,21 +5364,11 @@ Container for `CodeCommitRepository`_ objects.
     """
     taggedValue('contains', 'ICodeCommitRepository')
 
-class ICodeCommitRepositoryGroups(INamed, IMapping):
+class ICodeCommit(INamed, IMapping):
     """
 Container for `CodeCommitRepositoryGroup`_ objects.
     """
     taggedValue('contains', 'ICodeCommitRepositoryGroup')
-
-class ICodeCommit(Interface):
-    """
-CodeCommit Service Configuration
-    """
-    repository_groups = schema.Object(
-        title="Container of CodeCommitRepositoryGroup objects",
-        required=True,
-        schema=ICodeCommitRepositoryGroups,
-    )
 
 class ISNSTopicSubscription(Interface):
 
@@ -5978,6 +6113,171 @@ Redis ElastiCache Interface
         title="The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your node group (shard).",
         required=False,
         # ToDo: constraint for "windows"
+    )
+
+class IESAdvancedOptions(IMapping):
+    "A dict of ElasticSearch key-value advanced options"
+    # ToDo: constraints for options
+
+class IEBSOptions(Interface):
+    # this is not IDeployable so it can have a different title to desribce it's configuration purpose
+    enabled = schema.Bool(
+        title="Specifies whether Amazon EBS volumes are attached to data nodes in the Amazon ES domain.",
+        required=False
+    )
+    iops = schema.Int(
+        title="The number of I/O operations per second (IOPS) that the volume supports.",
+        required=False
+    )
+    volume_size_gb = schema.Int(
+        title="The size (in GiB) of the EBS volume for each data node.",
+        description="The minimum and maximum size of an EBS volume depends on the EBS volume type and the instance type to which it is attached.",
+        required=False,
+    )
+    volume_type = schema.TextLine(
+        title="The EBS volume type to use with the Amazon ES domain.",
+        description="Must be one of: standard, gp2, io1, st1, or sc1",
+        required=False,
+        constraint=isValidEBSVolumeType
+    )
+
+class IElasticsearchCluster(Interface):
+    dedicated_master_count = schema.Int(
+        title="The number of instances to use for the master node.",
+        description="If you specify this field, you must specify true for the dedicated_master_enabled field.",
+        required=False,
+        min=1,
+    )
+    dedicated_master_enabled =schema.Bool(
+        title="Indicates whether to use a dedicated master node for the Amazon ES domain.",
+        required=False,
+    )
+    # ToDo: add constraint for instance types
+    dedicated_master_type = schema.TextLine(
+        title="The hardware configuration of the computer that hosts the dedicated master node",
+        description="Valid Elasticsearch instance type, such as m3.medium.elasticsearch. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html",
+        required=False,
+    )
+    instance_count = schema.Int(
+        title="The number of data nodes (instances) to use in the Amazon ES domain.",
+        required=False,
+    )
+    # ToDo: add constraint for instance types
+    instance_type = schema.TextLine(
+        title="The instance type for your data nodes.",
+        description="Valid Elasticsearch instance type, such as m3.medium.elasticsearch. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html",
+        required=False,
+    )
+    # ToDo: invariant to only allow if zone_awareness_enabled: true
+    zone_awareness_availability_zone_count = schema.Int(
+        title="If you enabled multiple Availability Zones (AZs), the number of AZs that you want the domain to use.",
+        default=2,
+        required=False,
+        min=2,
+        max=3,
+    )
+    zone_awareness_enabled = schema.Bool(
+        title="Enable zone awareness for the Amazon ES domain.",
+        required=False
+    )
+
+class IElasticsearchDomain(IResource):
+    """
+Amazon Elasticsearch Service (Amazon ES) is a managed service for Elasticsearch clusters.
+An Amazon ES domain is synonymous with an Elasticsearch cluster. Domains are clusters with the
+settings, instance types, instance counts, and storage resources that you specify.
+
+.. sidebar:: Prescribed Automation
+
+    ``segment``: Including the segment will place the Elasticsearch cluster within the Availability
+    Zones for that segment. If an Elasticsearch ServiceLinkedRole is not already provisioned for that
+    account and region, Paco will create it for you. This role is used by AWS to place the Elasticsearch
+    cluster within the subnets that belong that segment and VPC.
+
+    If segment is not set, then you will have a public Elasticsearch cluster with an endpoint.
+
+.. code-block:: yaml
+    :caption: example Elasticsearch configuration
+
+    type: ElasticsearchDomain
+    order: 10
+    title: "Elasticsearch Domain"
+    enabled: true
+    access_policies_json: ./es-config/es-access.json
+    advanced_options:
+      indices.fielddata.cache.size: ""
+      rest.action.multi.allow_explicit_index: "true"
+    cluster:
+      instance_count: 2
+      zone_awareness_enabled: false
+      instance_type: "t2.micro.elasticsearch"
+      dedicated_master_enabled: true
+      dedicated_master_type: "t2.micro.elasticsearch"
+      dedicated_master_count: 2
+    ebs_volumes:
+      enabled: true
+      iops: 0
+      volume_size_gb: 10
+      volume_type: 'gp2'
+    segment: web
+    security_groups:
+      - paco.ref netenv.mynet.network.vpc.security_groups.app.search
+
+    """
+    # ToDo: this could be direct references to IAM things and Paco could generate the JSON?
+    access_policies_json = StringFileReference(
+        title="Policy document that specifies who can access the Amazon ES domain and their permissions.",
+        required=False,
+        constraint=isValidJSONOrNone
+    )
+    advanced_options = schema.Object(
+        title="Advanced Options",
+        schema=IESAdvancedOptions,
+        required=False
+    )
+    ebs_volumes = schema.Object(
+        title="EBS volumes that are attached to data nodes in the Amazon ES domain.",
+        required=False,
+        schema=IEBSOptions,
+    )
+    cluster = schema.Object(
+        title="Elasticsearch Cluster configuration",
+        schema=IElasticsearchCluster,
+        required=False,
+    )
+    # ToDo: provide option to set the UpgradeElasticsearchVersion update policy to true
+    # during stack updates to allow for no downtime upgrades
+    elasticsearch_version = schema.TextLine(
+        title="The version of Elasticsearch to use, such as 2.3.",
+        default="1.5",
+        required=False,
+    )
+    # ToDo: encrypt at rest
+    #encrypt_at_rest_enabled
+    #encrypt_at_rest_kms_key
+    # ToDo: log publishing
+    #log_publishing_log_group
+    #log_publising_enabled
+    node_to_node_encryption = schema.Bool(
+        title="Enable node-to-node encryption",
+        required=False,
+    )
+    snapshot_start_hour = schema.Int(
+        title="The hour in UTC during which the service takes an automated daily snapshot of the indices in the Amazon ES domain.",
+        min=0,
+        max=23,
+        required=False,
+    )
+    security_groups = schema.List(
+        title="List of Security Groups",
+        value_type=PacoReference(
+            schema_constraint='ISecurityGroup'
+        ),
+        required=False,
+    )
+    segment = schema.TextLine(
+        title="Segment",
+        required=False,
     )
 
 class IIAMUserProgrammaticAccess(IDeployable):

@@ -9,6 +9,7 @@ class EventsRule(Resource):
     title = "CloudWatch Event Rule"
     description = FieldProperty(schemas.IEventsRule['description'])
     schedule_expression = FieldProperty(schemas.IEventsRule['schedule_expression'])
+    enabled_state = FieldProperty(schemas.IEventsRule['enabled_state'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

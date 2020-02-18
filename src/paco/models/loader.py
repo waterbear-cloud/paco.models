@@ -32,10 +32,11 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
-    CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location
+    CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
-    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroups, CodeCommitRepositoryGroup, CodeCommitUser, \
+    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
     ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
@@ -130,10 +131,16 @@ RESOURCES_CLASS_MAP = {
     'EBS': EBS,
     'EBSVolumeMount': EBSVolumeMount,
     'CodeDeployApplication': CodeDeployApplication,
-    'Dashboard': CloudWatchDashboard
+    'Dashboard': CloudWatchDashboard,
+    'ElasticsearchDomain': ElasticsearchDomain,
 }
 
 SUB_TYPES_CLASS_MAP = {
+    ElasticsearchDomain: {
+        'cluster': ('direct_obj', ElasticsearchCluster),
+        'ebs_volumes': ('direct_obj', EBSOptions),
+        'advanced_options': ('dynamic_dict', ESAdvancedOptions),
+    },
     EC2Resource: {
         'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),
     },
@@ -471,7 +478,6 @@ SUB_TYPES_CLASS_MAP = {
         'subscriptions': ('obj_list', SNSTopicSubscription)
     },
     CodeCommit: {
-        'repository_groups': ('twolevel_container', (CodeCommitRepositoryGroups, CodeCommitRepositoryGroup, CodeCommitRepository))
     },
     CodeCommitRepository: {
         'users': ('named_obj', CodeCommitUser)
@@ -603,10 +609,12 @@ def cast_to_schema(obj, fieldname, value, fields=None):
     field = fields[fieldname]
     if zope.schema.interfaces.IFloat.providedBy(field):
         return float(value)
-    if schemas.IYAMLFileReference.providedBy(field):
+    elif schemas.IYAMLFileReference.providedBy(field):
         # Prevent Troposphere objects from being cast to a string
         return value
-    if isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
+    elif schemas.IStringFileReference.providedBy(field):
+        return value
+    elif isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
         # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
         # You can force a string with "field: '404'" but this removes the need to do that.
         value = str(value)
@@ -791,11 +799,21 @@ Object
 """.format(read_file_path, name, obj.__class__.__name__, exc, value, field_context_name, exc.__doc__, hint, get_formatted_model_context(obj))
     )
 
-def sub_types_loader(obj, name, value, config_folder=None, lookup_config=None, read_file_path=''):
+def sub_types_loader(
+    obj,
+    name,
+    value,
+    config_folder=None,
+    lookup_config=None,
+    read_file_path='',
+    sub_type=None,
+    sub_class=None
+):
     """
     Load sub types
     """
-    sub_type, sub_class = SUB_TYPES_CLASS_MAP[type(obj)][name]
+    if not sub_type:
+        sub_type, sub_class = SUB_TYPES_CLASS_MAP[type(obj)][name]
 
     if sub_type == 'named_obj':
         sub_dict = {}
@@ -1086,11 +1104,10 @@ def load_string_from_path(path, base_path=None, is_yaml=False):
         if is_yaml:
             return read_yaml_file(path)
         else:
-            fh = path.open()
-            return fh.read()
+            return path.read_text()
     else:
         # ToDo: better error help
-        raise InvalidPacoProjectFile("For FileReference field, File does not exist at filesystem path {}".format(path))
+        raise InvalidPacoProjectFile("File does not exist at filesystem path {}".format(path))
 
 def read_yaml_file(path):
     """
@@ -1648,9 +1665,15 @@ Duplicate key \"{}\" found on line {} at column {}.
         """Instantiate resource/codecommit.yaml"""
         if config == None:
             return
-        codecommit = CodeCommit('codecommit', self.project.resource)
-        config = {'repository_groups': config}
-        apply_attributes_from_config(codecommit, config, self.config_folder)
+        codecommit = sub_types_loader(
+            self.project.resource,
+            'codecommit',
+            config,
+            config_folder=self.config_folder,
+            read_file_path=self.read_file_path,
+            sub_type='twolevel_container',
+            sub_class=(CodeCommit, CodeCommitRepositoryGroup, CodeCommitRepository)
+        )
         codecommit.gen_repo_by_account()
         return codecommit
 
@@ -1733,6 +1756,8 @@ Duplicate key \"{}\" found on line {} at column {}.
             return
         global_item_config = global_config['applications']
 
+        if env_region_config['applications'] == None: return
+
         for item_name, item_config in env_region_config['applications'].items():
             match = re.match('^(.*){(.*)}$', item_name)
             if match:
@@ -1765,17 +1790,34 @@ Duplicate key \"{}\" found on line {} at column {}.
             else:
                 # merge global with default, then merge that with local config
                 env_default = global_config['environments'][env_region.__parent__.name]['default']
-                if 'applications' in env_default and unique_app_name in env_default['applications']:
-                    try:
-                        default_region_config = env_default['applications'][unique_app_name]
-                        global_item_config[app_name]
-                    except KeyError:
-                        self.raise_env_name_mismatch(unique_app_name, 'applications', env_region)
-                    default_config = merge(global_item_config[app_name], default_region_config)
-                    item_config = merge(default_config, item_config)
-                    annotate_base_config(item, item_config, default_config)
-                # no default config, merge local with global
+                # allow for syntax cases such as
+                #
+                #  dev
+                #    default:
+                #      applications:
+                #     us-west-2:
+                #
+                if env_default != None and 'applications' in env_default and env_default['applications'] != None:
+                    if 'applications' in env_default and unique_app_name in env_default['applications']:
+                        try:
+                            default_region_config = env_default['applications'][unique_app_name]
+                            global_item_config[app_name]
+                        except KeyError:
+                            self.raise_env_name_mismatch(unique_app_name, 'applications', env_region)
+                        default_config = merge(global_item_config[app_name], default_region_config)
+                        item_config = merge(default_config, item_config)
+                        annotate_base_config(item, item_config, default_config)
+                    # no default config, merge local with global
+                    else:
+                        try:
+                            global_item_config[app_name]
+                        except KeyError:
+                            self.raise_env_name_mismatch(item_name, 'applications', env_region)
+                        item_config = merge(global_item_config[app_name], item_config)
+                        annotate_base_config(item, item_config, global_item_config[app_name])
                 else:
+                    # no default config, merge local with global
+                    # erm, this is duplicatey - fix me
                     try:
                         global_item_config[app_name]
                     except KeyError:

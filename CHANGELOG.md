@@ -1,10 +1,48 @@
 Changelog for paco.models
 =========================
 
-6.3.7 (unreleased)
+6.4.1 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+6.4.0 (2020-02-17)
+------------------
+
+### Added
+
+- IElasticsearchDomain schema.
+
+- ASG has instance_ami_ignore_changes field to indicate the AMI Id is being updated
+  externally.
+
+- paco.ref function can now call any arbitrary Python function.
+
+- Add enabled_state for IEventRule.
+
+- Added log_group_names and expire_events_after_days to ILambda to allow it to
+  manage Log Groups and set a Retention period.
+
+### Changed
+
+- Superflous ICodeCommitRepositoryGroups was removed and ICodeCommit is the container
+  now for an ICodeCommitRepositoryGroup.
+
+### Fixed
+
+- Fix errors thrown by loader when loading environments with empty config.
+
+6.3.7 (2020-02-05)
+------------------
+
+### Added
+
+- Full set of fields for `generate_secret_string` for Secrets.
+
+### Fixed
+
+- Lambda.add_environment_variable was not passing the parent.
 
 
 6.3.6 (2020-01-29)

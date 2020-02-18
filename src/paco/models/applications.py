@@ -507,6 +507,7 @@ class ASG(Resource, Monitorable):
     title = "AutoScalingGroup"
     cfn_init =  FieldProperty(schemas.IASG['cfn_init'])
     desired_capacity =  FieldProperty(schemas.IASG['desired_capacity'])
+    desired_capacity_ignore_changes =  FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
     min_instances =  FieldProperty(schemas.IASG['min_instances'])
     max_instances =  FieldProperty(schemas.IASG['max_instances'])
     update_policy_max_batch_size =  FieldProperty(schemas.IASG['update_policy_max_batch_size'])

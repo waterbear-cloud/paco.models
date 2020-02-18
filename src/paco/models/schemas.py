@@ -734,7 +734,39 @@ class IAccounts(IMapping):
     pass
 
 class IAccount(INamed, IDeployable):
-    "Cloud account information"
+    """
+Cloud accounts.
+
+The specially named `master.yaml` file is for the AWS Master account. It is the only account
+which can have the field `organization_account_ids` which is used to define and create the
+child accounts.
+
+.. code-block:: yaml
+    :caption: Example accounts/master.yaml account file
+
+    name: Master
+    title: Master AWS Account
+    is_master: true
+    account_type: AWS
+    account_id: '123456789012'
+    region: us-west-2
+    organization_account_ids:
+    - prod
+    - tools
+    - dev
+    root_email: master@example.com
+
+.. code-block:: yaml
+    :caption: Example accounts/dev.yaml account file
+
+    name: Development
+    title: Development AWS Account
+    account_type: AWS
+    account_id: '123456789012'
+    region: us-west-2
+    root_email: dev@example.com
+
+"""
     account_type = schema.TextLine(
         title="Account Type",
         description="Supported types: 'AWS'",
@@ -4265,6 +4297,12 @@ for that ASG.
         title="Desired capacity",
         description="",
         default=1,
+        required=False,
+    )
+    desired_capacity_ignore_changes = schema.Bool(
+        title="Ignore changes to the desired_capacity after the ASG is created.",
+        description="",
+        default=False,
         required=False,
     )
     ebs_optimized = schema.Bool(

@@ -17,7 +17,7 @@ from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, a
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
-from paco.models.project import Project, Credentials
+from paco.models.project import VersionControl, Project, Credentials
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
@@ -136,6 +136,9 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    Project: {
+        'version_control': ('direct_obj', VersionControl)
+    },
     ElasticsearchDomain: {
         'cluster': ('direct_obj', ElasticsearchCluster),
         'ebs_volumes': ('direct_obj', EBSOptions),
@@ -764,11 +767,6 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
         field_context_name = 'Not applicable'
 
     hint = ""
-    if not schemas.IResource.providedBy(obj):
-        if type(obj) not in SUB_TYPES_CLASS_MAP:
-            hint = "Hint: {} was not found in the SUB_TYPES_CLASS_MAP or RESOURCES_CLASS_MAP\n".format(obj.__class__.__name__)
-        elif name not in SUB_TYPES_CLASS_MAP[type(obj)]:
-            hint = "Hint: {} not found in SUB_TYPES_CLASS_MAP[{}]\n".format(name, obj.__class__.__name__)
     if name == None:
         # Invariants trigger schema errors without being specific to a single field
         raise InvalidPacoProjectFile(
@@ -1530,9 +1528,19 @@ Duplicate key \"{}\" found on line {} at column {}.
         if name == 'project':
             self.project = Project(config['name'], None)
             self.project['home'] = self.config_folder
-            apply_attributes_from_config(self.project, config, self.config_folder, read_file_path=self.read_file_path)
+            apply_attributes_from_config(
+                self.project,
+                config,
+                self.config_folder,
+                read_file_path=self.read_file_path
+            )
         elif name == '.credentials':
-            apply_attributes_from_config(self.project['credentials'], config, self.config_folder, read_file_path=self.read_file_path)
+            apply_attributes_from_config(
+                self.project['credentials'],
+                config,
+                self.config_folder,
+                read_file_path=self.read_file_path
+            )
 
     def instantiate_services(self):
         """

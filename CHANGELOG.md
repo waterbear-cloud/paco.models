@@ -4,7 +4,9 @@ Changelog for paco.models
 6.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- New IVersionControl schema for a IProject configuration.
 
 
 6.4.0 (2020-02-17)

@@ -595,6 +595,15 @@ def isValidLambdaVariableName(value):
         raise InvalidLambdaEnvironmentVariable("Invalid characters in name: %s" % value)
     return True
 
+class InvalidBranchEnvMappings(schema.ValidationError):
+    __doc__ = 'Branch to environment mappings must be in the form <branch-name>:<environment-name>.'
+
+def isValidBranchEnvMappings(value):
+    for mapping in value:
+        if len(mapping.split(':')) != 2:
+            raise InvalidBranchEnvMappings("Could not map from branch to env for '{}'.".format(mapping))
+    return True
+
 # EBS Volume Type
 class InvalidEBSVolumeType(schema.ValidationError):
     __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
@@ -2372,6 +2381,33 @@ Container for `NetworkEnvironment`_ objects.
     """
     taggedValue('contains', 'INetworkEnvironment')
 
+class IVersionControl(INamed):
+    "Version control configuration for Paco"
+    enforce_branch_environments = schema.Bool(
+        title="Enforce vcs branches to provision environments",
+        default=False,
+        required=False,
+    )
+    environment_branch_prefix = schema.TextLine(
+        title="Environment branch prefix",
+        default="ENV-",
+        required=False,
+    )
+    git_branch_environment_mappings = schema.List(
+        title="Git branch to environment mappings",
+        description="Must be in the format <environment-name>:<branch-name>. The branch name " + \
+        "will not be prefixed with the normal environment branch prefix.",
+        default=[],
+        value_type=schema.TextLine(),
+        required=False,
+        constraint=isValidBranchEnvMappings,
+    )
+    global_environment_name = schema.TextLine(
+        title="Name of the environment that controls global resources.",
+        default="prod",
+        required=False,
+    )
+
 class IProject(INamed, IMapping):
     "Project : the root node in the config for a Paco Project"
     taggedValue('contains', 'mixed')
@@ -2382,14 +2418,20 @@ class IProject(INamed, IMapping):
     )
     active_regions = schema.List(
         title="Regions that resources can be provisioned in",
-        value_type = schema.TextLine(),
-        constraint = isValidAWSRegionList,
+        value_type=schema.TextLine(),
+        constraint=isValidAWSRegionList,
         required=False,
     )
     legacy_flags = schema.List(
         title='List of Legacy Flags',
-        value_type = schema.TextLine(),
-        constraint = isValidLegacyFlagList,
+        value_type=schema.TextLine(),
+        constraint=isValidLegacyFlagList,
+        required=False,
+    )
+    version_control = schema.Object(
+        title="Version Control integration",
+        description="",
+        schema=IVersionControl,
         required=False,
     )
 

@@ -3,10 +3,21 @@ import paco.models.networks
 import paco.models.resources
 from paco.models import schemas
 from paco.models.base import Named
-from paco.models.schemas import IProject
+from paco.models.schemas import IProject, IVersionControl
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
+
+@implementer(IVersionControl)
+class VersionControl(Named):
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.git_branch_environment_mappings = []
+
+    enforce_branch_environments = FieldProperty(schemas.IVersionControl["enforce_branch_environments"])
+    environment_branch_prefix = FieldProperty(schemas.IVersionControl["environment_branch_prefix"])
+    git_branch_environment_mappings = FieldProperty(schemas.IVersionControl["git_branch_environment_mappings"])
+    global_environment_name = FieldProperty(schemas.IVersionControl["global_environment_name"])
 
 @implementer(IProject)
 class Project(Named, dict):
@@ -17,6 +28,9 @@ class Project(Named, dict):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.legacy_flags = []
+
+        # Version Control
+        self.version_control = VersionControl('version_control', self)
 
         # Credentials
         self.credentials = paco.models.project.Credentials('credentials', self)

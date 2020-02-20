@@ -7,6 +7,7 @@ from paco.models import schemas
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from paco.models import loader
+import json
 
 
 @implementer(schemas.IIAM)
@@ -59,6 +60,21 @@ class Role(Named, Deployable):
 class Policy(Parent):
     name = FieldProperty(schemas.IPolicy["name"])
     statement = FieldProperty(schemas.IPolicy["statement"])
+
+    def export_as_json(self):
+        "Export policy as JSON"
+        # Policies are normally included in a CloudFormation template as YAML
+        # this JSON export is used by parliment to analyze policy problems.
+        policy = {"Version": "2012-10-17", "Statement": []}
+        for statement in self.statement:
+            policy["Statement"].append(
+                {
+                    "Effect": statement.effect,
+                    "Action": statement.action,
+                    "Resource": statement.resource,
+                }
+            )
+        return json.dumps(policy)
 
 @implementer(schemas.IAssumeRolePolicy)
 class AssumeRolePolicy(Parent):

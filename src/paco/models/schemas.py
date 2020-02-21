@@ -2408,6 +2408,37 @@ class IVersionControl(INamed):
         required=False,
     )
 
+class IPacoWorkBucket(INamed):
+    bucket_name = schema.TextLine(
+        title="Bucket Name",
+        description="A short unique name to assign the bucket",
+        default="paco-work",
+        required=False,
+    )
+    enabled = schema.Bool(
+        title="Enable sharing the .paco-work directory by syncing to an S3 Bucket.",
+        required=False,
+        default=False,
+    )
+    account = PacoReference(
+        title="Account Reference",
+        required=True,
+        schema_constraint=IAccount
+    )
+    region = schema.TextLine(
+        title="AWS Region",
+        required=False,
+        constraint=isValidAWSRegionNameOrNone,
+    )
+
+class ISharedState(INamed):
+    paco_work_bucket = schema.Object(
+        title="Paco work bucket",
+        description="",
+        schema=IPacoWorkBucket,
+        required=False
+    )
+
 class IProject(INamed, IMapping):
     "Project : the root node in the config for a Paco Project"
     taggedValue('contains', 'mixed')
@@ -2433,6 +2464,12 @@ class IProject(INamed, IMapping):
         description="",
         schema=IVersionControl,
         required=False,
+    )
+    shared_state = schema.Object(
+        title="Shared State",
+        description="",
+        schema=ISharedState,
+        required=False
     )
 
 class IInternetGateway(IDeployable):

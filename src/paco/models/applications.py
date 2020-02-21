@@ -340,11 +340,9 @@ class S3Bucket(Resource, Deployable):
         # They rely on bucket_name_prefix and bucket_name_suffix attributes being set on the S3Bucket object
         else:
             if self.bucket_name_prefix == None or self.bucket_name_suffix == None:
-                raise InvalidPacoBucket("""
-                Custom named bucket requires a bucket_name_prefix and bucket_name_suffix attributes to be set.
+                raise InvalidPacoBucket("""Custom named bucket requires a bucket_name_prefix and bucket_name_suffix attributes to be set.
 
-                {}
-                """.format(get_formatted_model_context(self)))
+{}""".format(get_formatted_model_context(self)))
             bucket_name_list.extend([
                 self.bucket_name_prefix,
                 self.name,

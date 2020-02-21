@@ -3,7 +3,7 @@ import paco.models.networks
 import paco.models.resources
 from paco.models import schemas
 from paco.models.base import Named
-from paco.models.schemas import IProject, IVersionControl
+from paco.models.schemas import IProject, IVersionControl, IPacoWorkBucket, ISharedState
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -19,6 +19,25 @@ class VersionControl(Named):
     git_branch_environment_mappings = FieldProperty(schemas.IVersionControl["git_branch_environment_mappings"])
     global_environment_name = FieldProperty(schemas.IVersionControl["global_environment_name"])
 
+@implementer(IPacoWorkBucket)
+class PacoWorkBucket(Named):
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.account = 'paco.ref accounts.master'
+
+    bucket_name = FieldProperty(schemas.IPacoWorkBucket["bucket_name"])
+    enabled = FieldProperty(schemas.IPacoWorkBucket["enabled"])
+    account = FieldProperty(schemas.IPacoWorkBucket["account"])
+    region = FieldProperty(schemas.IPacoWorkBucket["region"])
+
+@implementer(ISharedState)
+class SharedState(Named):
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.paco_work_bucket = PacoWorkBucket('paco_work_bucket', self)
+
+    paco_work_bucket = FieldProperty(schemas.ISharedState["paco_work_bucket"])
+
 @implementer(IProject)
 class Project(Named, dict):
     """Paco project"""
@@ -31,6 +50,9 @@ class Project(Named, dict):
 
         # Version Control
         self.version_control = VersionControl('version_control', self)
+
+        # Shared State
+        self.shared_state = SharedState('shared_state', self)
 
         # Credentials
         self.credentials = paco.models.project.Credentials('credentials', self)

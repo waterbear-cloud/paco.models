@@ -1,9 +1,6 @@
 """
 Paco references
 """
-
-import os, pathlib
-import zope.schema
 from paco.models import vocabulary, schemas
 from paco.models.exceptions import InvalidPacoReference
 from ruamel.yaml.compat import StringIO
@@ -11,7 +8,10 @@ from zope.schema.interfaces import ITextLine
 from zope.interface import implementer, Interface
 from operator import itemgetter
 import importlib
+import os
+import pathlib
 import ruamel.yaml
+import zope.schema
 
 
 ami_cache = {}
@@ -240,20 +240,16 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
         raise_invalid_reference(ref, obj, ref.parts[part_idx:][0])
     return response
 
-def resolve_ref_outputs(ref, project_folder):
+def resolve_ref_outputs(ref, project_home_path):
     key = ref.parts[0]
-    outputs_path = pathlib.Path(
-            os.path.join(
-                project_folder,
-                'Outputs',
-                key+'.yaml'
-            ))
-    if outputs_path.exists() == False:
+    # ToDo: .paco-work is part of paco not paco.models, refactor?
+    output_filepath = pathlib.Path(project_home_path) / '.paco-work' / 'outputs' / key + '.yaml'
+    if output_filepath.exists() == False:
         return None
 
     yaml = YAML(typ="safe", pure=True)
     yaml.default_flow_sytle = False
-    with open(outputs_path, "r") as output_fd:
+    with open(output_filepath, "r") as output_fd:
         outputs_dict = yaml.load(output_fd)
 
     for part in ref.parts:

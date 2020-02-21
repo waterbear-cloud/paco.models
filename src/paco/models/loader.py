@@ -17,7 +17,7 @@ from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, a
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
-from paco.models.project import VersionControl, Project, Credentials
+from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
@@ -136,8 +136,12 @@ RESOURCES_CLASS_MAP = {
 }
 
 SUB_TYPES_CLASS_MAP = {
+    SharedState: {
+        'paco_work_bucket': ('direct_obj', PacoWorkBucket),
+    },
     Project: {
-        'version_control': ('direct_obj', VersionControl)
+        'version_control': ('direct_obj', VersionControl),
+        'shared_state': ('direct_obj', SharedState),
     },
     ElasticsearchDomain: {
         'cluster': ('direct_obj', ElasticsearchCluster),
@@ -1226,7 +1230,6 @@ Duplicate key \"{}\" found on line {} at column {}.
                     instantiate_method(name, config, os.path.join(subdir, fname))
         self.instantiate_services()
         self.check_notification_config()
-        self.load_outputs()
         self.load_core_monitoring()
         self.yaml.restore_existing_constructors()
 
@@ -1282,61 +1285,6 @@ Duplicate key \"{}\" found on line {} at column {}.
                 # ASG
                 if model.monitoring.asg_metrics == None or len(model.monitoring.asg_metrics) == 0:
                     model.monitoring.asg_metrics = asg_builtin_metrics
-
-    def load_outputs_file(self, rfile, ne_outputs_path):
-        # parse filename
-        info = rfile.split('.')[0]
-        ne_name = info.split('-')[0]
-        env_name = info.split('-')[1]
-        region = info[len(ne_name) + len(env_name) + 2:]
-
-        env_reg = self.project['netenv'][ne_name][env_name][region]
-        reg_config = self.read_yaml(ne_outputs_path, rfile)
-        if reg_config == None:
-            return
-        if 'applications' in reg_config:
-            for app_name in reg_config['applications'].keys():
-                groups_config = reg_config['applications'][app_name]['groups']
-                for grp_name in groups_config:
-                    for res_name in groups_config[grp_name]['resources']:
-                        # Standard AWS Resources in an Application's Resource Group
-                        resource_config = groups_config[grp_name]['resources'][res_name]
-                        resource = env_reg.applications[app_name].groups[grp_name].resources[res_name]
-
-                        if 'fullname' in resource_config:
-                            resource.resource_fullname = resource_config['fullname']['__name__']
-                        if 'name' in resource_config:
-                            # ALB have a name attribute with an embedded __name__
-                            resource.resource_name = resource_config['name']['__name__']
-                            # TargetGroups are nested in the ALB Output
-                            if 'target_groups' in resource_config:
-                                for tg_name, tg_config in resource_config['target_groups'].items():
-                                    tg_resource = resource.target_groups[tg_name]
-                                    tg_resource.resource_name = tg_config['name']['__name__']
-                                    tg_resource.resource_fullname = tg_config['arn']['__name__'].split(':')[-1:][0]
-                        elif '__name__' in resource_config:
-                            resource.resource_name = resource_config['__name__']
-
-                        # CloudWatch Alarms
-                        if 'monitoring' in resource_config:
-                            if 'alarm_sets' in resource_config['monitoring']:
-                                for alarm_set_name in resource_config['monitoring']['alarm_sets']:
-                                    for alarm_name in resource_config['monitoring']['alarm_sets'][alarm_set_name]:
-                                        alarm = resource.monitoring.alarm_sets[alarm_set_name][alarm_name]
-                                        alarm.resource_name = resource_config['monitoring']['alarm_sets'][alarm_set_name][alarm_name]['__name__']
-
-    def load_outputs(self):
-        "Loads resource ids from CFN Outputs"
-        base_output_path = 'Outputs' + os.sep
-        ne_outputs_path = base_output_path + 'NetworkEnvironments'
-        if os.path.isdir(self.config_folder + os.sep + ne_outputs_path):
-            for rfile in os.listdir(self.config_folder + os.sep + ne_outputs_path):
-                try:
-                    self.load_outputs_file(rfile, ne_outputs_path)
-                except KeyError:
-                    outputs_file_path = pathlib.Path(self.config_folder + os.sep + ne_outputs_path, rfile)
-                    print("!! Outputs File: Missing key detected, removing: {}".format(outputs_file_path))
-                    outputs_file_path.unlink()
 
     def load_iam_group(self, res_groups, app_config, local_config={}):
         """
@@ -1570,8 +1518,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                 read_file_path=services_dir + fname
             )
             self.project['service'][plugin_name.lower()] = service
-            if hasattr(plugin_module, 'load_outputs'):
-                plugin_module.load_outputs(self)
+
         return
 
     def check_notification_config(self):

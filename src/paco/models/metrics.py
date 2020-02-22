@@ -12,10 +12,10 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
 
-@implementer(schemas.INotificationGroups)
-class NotificationGroups(AccountRef, Named, dict):
-    "Container for NotificationGroups"
-    regions = FieldProperty(schemas.INotificationGroups["regions"])
+@implementer(schemas.ISNSTopics)
+class SNSTopics(AccountRef, Named, dict):
+    "Container for SNS Topics"
+    regions = FieldProperty(schemas.ISNSTopics["regions"])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -103,7 +103,7 @@ class Alarm(Named, Regionalized, Deployable):
 
         return [key for key in groups.keys()]
 
-    def get_alarm_actions_paco_refs(self, notificationgroups=None):
+    def get_alarm_actions_paco_refs(self, snstopics=None):
         """Return a list of alarm actions in the form of paco.ref SNS Topic ARNs, e.g.
 
         'paco.ref service.notification.applications.notification.groups.lambda.resources.snstopic.arn'
@@ -111,9 +111,9 @@ class Alarm(Named, Regionalized, Deployable):
         This will by default be a list of SNS Topics that the alarm is subscribed to.
         However, if a plugin is registered, it will provide the actions instead.
         """
-        if not notificationgroups:
+        if not snstopics:
             project = get_parent_by_interface(self, schemas.IProject)
-            notificationgroups = project['resource']['notificationgroups']
+            snstopics = project['resource']['snstopics']
 
         # if a service plugin provides override_alarm_actions, call that instead
         service_plugins = paco.models.services.list_service_plugins()
@@ -132,7 +132,7 @@ class Alarm(Named, Regionalized, Deployable):
 
         # default behaviour is to use notification groups directly
         notification_arns = [
-            notificationgroups[group].paco_ref + '.arn' for group in self.notification_groups
+            snstopics[group].paco_ref + '.arn' for group in self.notification_groups
         ]
         if len(notification_arns) > 5:
             raise paco.models.exceptions.InvalidPacoProjectFile("""

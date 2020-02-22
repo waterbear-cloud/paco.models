@@ -285,8 +285,8 @@ class Testpacodemo(BaseTestModelLoader):
         assert alarm_five.notification_groups, ['santa']
 
     def test_notification_groups(self):
-        groups = self.project['resource']['notificationgroups']
-        assert schemas.INotificationGroups.providedBy(groups)
+        groups = self.project['resource']['snstopics']
+        assert schemas.ISNSTopics.providedBy(groups)
         assert groups.account, 'paco.ref accounts.master'
         assert groups['us-west-2']['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
         assert len(groups['us-west-2']['bobs_team'].subscriptions), 2

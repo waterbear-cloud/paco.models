@@ -1,11 +1,13 @@
 Changelog for paco.models
 =========================
 
-6.4.2 (unreleased)
+6.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Migration
 
+- NotifcationGroups was renamed to SNSTopics.
+  Migration: mv resource/NotificationGroups.yaml resource/snstopics.yaml
 
 6.4.1 (2020-02-19)
 ------------------

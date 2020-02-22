@@ -12,7 +12,7 @@ from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile,
     TroposphereConversionError, InvalidPacoSchema
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
-    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
+    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
     HealthChecks, CloudWatchLogAlarm, CloudWatchDashboard, DashboardVariables
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
@@ -1525,7 +1525,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         """Detect misconfigured alarm notification situations.
         This happens after both MonitorConfig and NetworkEnvironments have loaded.
         """
-        if 'notificationgroups' in self.project['resource']:
+        if 'snstopics' in self.project['resource']:
             for app in self.project.get_all_applications():
                 if app.is_enabled():
                     for alarm_info in app.list_alarm_info():
@@ -1539,7 +1539,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                         # alarms with groups that do not exist
                         region = self.project.active_regions[0] # regions are all the same, just choose the first
                         for groupname in alarm.notification_groups:
-                            if groupname not in self.project['resource']['notificationgroups'][region]:
+                            if groupname not in self.project['resource']['snstopics'][region]:
                                 raise InvalidPacoProjectFile(
                                     "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
                                         alarm.name,
@@ -1568,17 +1568,17 @@ Duplicate key \"{}\" found on line {} at column {}.
                 self.project['cw_logging'] = cw_logging
             self.monitor_config['logging'] = config
 
-    def instantiate_notificationgroups(self, config):
-        notificationgroups = NotificationGroups('notificationgroups', self.project.resource)
+    def instantiate_snstopics(self, config):
+        snstopics = SNSTopics('snstopics', self.project.resource)
         if 'groups' in config:
             # 'groups' gets duplicated and placed into a region_name key for every active region
             groups_config = deepcopy_except_parent(config['groups'])
             del config['groups']
-            apply_attributes_from_config(notificationgroups, config, read_file_path=self.read_file_path)
+            apply_attributes_from_config(snstopics, config, read_file_path=self.read_file_path)
             # load SNS Topics
             for region_name in self.project.active_regions:
-                region = RegionContainer(region_name, notificationgroups)
-                notificationgroups[region_name] = region
+                region = RegionContainer(region_name, snstopics)
+                snstopics[region_name] = region
                 for topicname, topic_config in groups_config.items():
                     topic = SNSTopic(topicname, region)
                     apply_attributes_from_config(topic, topic_config, read_file_path=self.read_file_path)
@@ -1586,7 +1586,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         else:
             raise InvalidPacoProjectFile("resource/snstopics.yaml does not have a top-level `groups:`.")
 
-        return notificationgroups
+        return snstopics
 
     def instantiate_cloudwatch_log_groups(self, config):
         cw_log_groups = CWLogGroups()
@@ -1663,10 +1663,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         #   s3
         #   cloudtrail
         #   iam
-        #   notificationgroups / snstopics
-        # snstopics.yaml is an alias for notificationgroups.yaml
-        if name == 'snstopics':
-            name = 'notificationgroups'
+        #   snstopics
         instantiate_method = getattr(self, 'instantiate_' + name, None)
         if instantiate_method == None:
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))

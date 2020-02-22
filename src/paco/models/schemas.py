@@ -1664,8 +1664,8 @@ class ICloudWatchLogAlarm(ICloudWatchAlarm):
         required=True
     )
 
-class INotificationGroups(IAccountRef):
-    "Container for Notification Groups"
+class ISNSTopics(IAccountRef):
+    "Container for SNS Topics"
     regions = schema.List(
         title="Regions to provision the Notification Groups in. Special list of ['ALL'] will select all of the project's active regions.",
         required=False,

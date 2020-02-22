@@ -198,7 +198,7 @@ def get_model_obj_from_ref(ref, project):
             obj = next_obj
         else:
             message = "\nCould not find model at {}\n".format(ref.raw)
-            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'notificationgroups', 's3', 'route53', 'resources']:
+            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'snstopics', 's3', 'route53', 'resources']:
                 message += "Did you mean to run:\n"
                 message += "paco <command> resource.{}?\n".format(ref.ref)
             raise InvalidPacoReference(message)
@@ -328,7 +328,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         if value_type == "<class 'paco.stack_group.stack_group.Stack'>":
             # TODO: This is only useful when we are looking up values
             # for stacks that will not be provisioned. ie. SNS Topic Arns
-            # from NotificationGroups referenced by code in Network Environments.
+            # from SNSTopics referenced by code in Network Environments.
             # XXX: For now we are only looking at cached outputs for stacks
             # outside of NetworkEnvironments.
             # XXX: This check causes a Stack cache check which queries

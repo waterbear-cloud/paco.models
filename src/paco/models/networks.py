@@ -128,9 +128,41 @@ class VPCPeering(Named, Deployable):
     peer_region = FieldProperty(schemas.IVPCPeering["peer_region"])
     network_environment  = FieldProperty(schemas.IVPCPeering["network_environment"])
 
+@implementer(schemas.INATGateways)
+class NATGateways(Named, dict):
+    pass
+
+@implementer(schemas.IVPNGateways)
+class VPNGateways(Named, dict):
+    pass
+
+@implementer(schemas.ISecurityGroups)
+class SecurityGroups(Named, dict):
+    pass
+
+@implementer(schemas.ISecurityGroupSets)
+class SecurityGroupSets(Named, dict):
+    pass
+
+@implementer(schemas.ISegments)
+class Segments(Named, dict):
+    pass
+
+@implementer(schemas.IVPCPeerings)
+class VPCPeerings(Named, dict):
+    pass
+
 @implementer(schemas.IVPC)
 class VPC(Named, Deployable):
     "VPC"
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.nat_gateway = NATGateways('nat_gateway', self)
+        self.vpn_gateway = VPNGateways('vpn_gateway', self)
+        self.security_groups = SecurityGroupSets('security_groups', self)
+        self.segments = Segments('segments', self)
+        self.peering = VPCPeerings('peering', self)
+
     cidr = FieldProperty(schemas.IVPC["cidr"])
     enable_dns_hostnames = FieldProperty(schemas.IVPC["enable_dns_hostnames"])
     enable_dns_support = FieldProperty(schemas.IVPC["enable_dns_support"])
@@ -162,10 +194,8 @@ class NATGateway(Named, Deployable):
     ec2_instance_type = FieldProperty(schemas.INATGateway["ec2_instance_type"])
 
 @implementer(schemas.IVPNGateway)
-class VPNGateway(Deployable):
-    """
-VPN Gateway
-    """
+class VPNGateway(Named, Deployable):
+    """VPN Gateway"""
 
 @implementer(schemas.IPrivateHostedZone)
 class PrivateHostedZone(Deployable):

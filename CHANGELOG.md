@@ -7,7 +7,12 @@ Changelog for paco.models
 ### Migration
 
 - NotifcationGroups was renamed to SNSTopics.
-  Migration: mv resource/NotificationGroups.yaml resource/snstopics.yaml
+  Migration: git mv resource/NotificationGroups.yaml resource/snstopics.yaml
+
+### Fixed
+
+- All IVPC schemas with dicts have been replaced by container objects so that
+  every object can provide it's paco_ref.
 
 6.4.1 (2020-02-19)
 ------------------

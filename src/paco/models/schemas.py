@@ -2478,9 +2478,7 @@ AWS Resource: IGW
     """
 
 class INATGateway(INamed, IDeployable):
-    """
-NAT Gateway
-    """
+    """NAT Gateway"""
     type = schema.TextLine(
         title='NAT Gateway type',
         default='Managed',
@@ -2529,16 +2527,11 @@ NAT Gateway
         default='t2.nano'
     )
 
-
-class IVPNGateway(IDeployable):
-    """
-VPN Gateway
-    """
+class IVPNGateway(INamed, IDeployable):
+    """VPN Gateway"""
 
 class IPrivateHostedZone(IDeployable):
-    """
-Private Hosted Zone
-    """
+    """Private Hosted Zone"""
     name = schema.TextLine(
         title="Hosted zone name",
         required=False,
@@ -2644,10 +2637,32 @@ VPC Peering
         required=True
     )
 
+class INATGateways(INamed, IMapping):
+    """Container for `INATGateway`_ objects."""
+    taggedValue('contains', 'INATGateway')
+
+class IVPNGateways(INamed, IMapping):
+    """Container for `IVPNGateway`_ objects."""
+    taggedValue('contains', 'IVPNGateway')
+
+class ISecurityGroups(INamed, IMapping):
+    """Container for `ISecurityGroup`_ objects."""
+    taggedValue('contains', 'ISecurityGroup')
+
+class ISecurityGroupSets(INamed, IMapping):
+    """Container for `ISecurityGroups`_ objects."""
+    taggedValue('contains', 'ISecurityGroups')
+
+class ISegments(INamed, IMapping):
+    """Container for `ISegment`_ objects."""
+    taggedValue('contains', 'ISegment')
+
+class IVPCPeerings(INamed, IMapping):
+    """Container for `IVPCPeering`_ objects."""
+    taggedValue('contains', 'IVPCPeering')
+
 class IVPC(INamed, IDeployable):
-    """
-AWS Resource: VPC
-    """
+    """VPC"""
     cidr = schema.TextLine(
         title="CIDR",
         description="",
@@ -2672,48 +2687,45 @@ AWS Resource: VPC
         default=False,
         required=False,
     )
-    nat_gateway = schema.Dict(
-        title="NAT Gateway",
+    nat_gateway = schema.Object(
+        title="NAT Gateways",
         description="",
-        value_type = schema.Object(INATGateway),
+        schema=INATGateways,
         required=True,
-        default={}
     )
-    vpn_gateway = schema.Dict(
-        title="VPN Gateway",
+    vpn_gateway = schema.Object(
+        title="VPN Gateways",
         description="",
-        value_type = schema.Object(IVPNGateway),
+        schema=IVPNGateways,
         required=True,
-        default={}
     )
     private_hosted_zone = schema.Object(
         title="Private hosted zone",
         description="",
-        schema = IPrivateHostedZone,
+        schema=IPrivateHostedZone,
         required=False,
     )
-    security_groups = schema.Dict(
-        # This is a dict of dicts ...
-        title="Security groups",
-        default={},
-        description="Two level deep dictionary: first key is Application name, second key is Resource name.",
-        required=False,
+    security_groups = schema.Object(
+        title="Security Group Sets",
+        description="Security Groups Sets are containers for SecurityGroups containers.",
+        schema=ISecurityGroupSets,
+        required=True,
     )
-    segments = schema.Dict(
+    segments = schema.Object(
         title="Segments",
-        value_type = schema.Object(ISegment),
-        required=False,
+        description="",
+        schema=ISegments,
+        required=True,
     )
-    peering = schema.Dict(
-        title='VPC Peering',
-        value_type = schema.Object(IVPCPeering),
-        required=False,
+    peering = schema.Object(
+        title="VPC Peering",
+        description="",
+        schema=IVPCPeerings,
+        required=True,
     )
 
 class INetworkEnvironment(INamed, IDeployable, IMapping):
-    """
-NetworkEnvironment : A template for a network.
-    """
+    """NetworkEnvironment"""
     # technically contains IEnvironment but there are set by the loader
     # for the docs we do not want to indicate that environments are configured from within
     # the network: key.

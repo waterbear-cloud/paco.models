@@ -16,7 +16,8 @@ from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, a
     HealthChecks, CloudWatchLogAlarm, CloudWatchDashboard, DashboardVariables
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
-    PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
+    PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
+    VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
@@ -405,12 +406,12 @@ SUB_TYPES_CLASS_MAP = {
         'default_route_segments': ('str_list', PacoReference)
     },
     VPC: {
-        'nat_gateway': ('named_obj', NATGateway),
-        'vpn_gateway': ('named_obj', VPNGateway),
+        'nat_gateway': ('container', (NATGateways, NATGateway)),
+        'vpn_gateway': ('container', (VPNGateways, VPNGateway)),
         'private_hosted_zone': ('direct_obj', PrivateHostedZone),
-        'segments': ('named_obj', Segment),
-        'security_groups': ('named_twolevel_dict', SecurityGroup),
-        'peering': ('named_obj', VPCPeering)
+        'segments': ('container', (Segments, Segment)),
+        'security_groups': ('twolevel_container', (SecurityGroupSets, SecurityGroups, SecurityGroup)),
+        'peering': ('container', (VPCPeerings, VPCPeering)),
     },
     PrivateHostedZone: {
         'vpc_associations': ('str_list', zope.schema.TextLine)
@@ -919,19 +920,6 @@ Configuration section:
                     apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
                     container[first_key][second_key] = second_obj
         return container
-
-    elif sub_type == 'named_twolevel_dict':
-        sub_dict = {}
-        for first_key, first_value in value.items():
-            sub_dict[first_key]  = {}
-            for sub_key, sub_value in first_value.items():
-                if schemas.INamed.implementedBy(sub_class):
-                    sub_obj = sub_class(name+'.'+first_key+'.'+sub_key, obj)
-                else:
-                    sub_obj = sub_class()
-                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
-                sub_dict[first_key][sub_key] = sub_obj
-        return sub_dict
 
     elif sub_type == 'direct_obj':
         if schemas.INamed.implementedBy(sub_class):

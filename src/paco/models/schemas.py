@@ -2376,9 +2376,7 @@ EC2 Instance
 
 
 class INetworkEnvironments(INamed, IMapping):
-    """
-Container for `NetworkEnvironment`_ objects.
-    """
+    """Container for `NetworkEnvironment`_ objects."""
     taggedValue('contains', 'INetworkEnvironment')
 
 class IVersionControl(INamed):
@@ -2730,18 +2728,6 @@ class INetworkEnvironment(INamed, IDeployable, IMapping):
     # for the docs we do not want to indicate that environments are configured from within
     # the network: key.
     taggedValue('contains', 'mixed')
-    availability_zones = schema.Int(
-        title="Availability Zones",
-        description="",
-        default=0,
-        required=False,
-    )
-    vpc = schema.Object(
-        title="VPC",
-        description="",
-        schema=IVPC,
-        required=False,
-    )
 
 class ICredentials(INamed):
     aws_access_key_id = schema.TextLine(
@@ -2795,7 +2781,7 @@ class ICredentials(INamed):
         required=False,
     )
 
-class INetwork(INetworkEnvironment):
+class INetwork(INamed, IDeployable, IMapping):
     # contains Environment objects but do not indicate this
     # in the docs, they are configured under `environments:`.
     taggedValue('contains', 'mixed')
@@ -2803,6 +2789,18 @@ class INetwork(INetworkEnvironment):
         title='Account this Network belongs to',
         required=False,
         schema_constraint='IAccount',
+    )
+    availability_zones = schema.Int(
+        title="Availability Zones",
+        description="",
+        default=0,
+        required=False,
+    )
+    vpc = schema.Object(
+        title="VPC",
+        description="",
+        schema=IVPC,
+        required=False,
     )
 
 # Secrets Manager schemas
@@ -5798,15 +5796,12 @@ CloudFront Origin Configuration
     )
 
 class ICloudFrontFactory(INamed):
-    """
-CloudFront Factory
-    """
+    """CloudFront Factory"""
     domain_aliases = schema.List(
         title="List of DNS for the Distribution",
         value_type = schema.Object(IDNS),
         required=False,
     )
-
     viewer_certificate = schema.Object(
         title="Viewer Certificate",
         schema = ICloudFrontViewerCertificate,

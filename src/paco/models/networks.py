@@ -16,32 +16,9 @@ from paco.models import references
 class NetworkEnvironments(Named, dict):
     pass
 
-
 @implementer(schemas.INetworkEnvironment)
 class NetworkEnvironment(Named, Deployable, dict):
-    """
-    Network information and container for Environment objects.
-    """
-    availability_zones = FieldProperty(schemas.INetworkEnvironment["availability_zones"])
-    vpc = FieldProperty(schemas.INetworkEnvironment["vpc"])
-
-    def environment_pairs(self):
-        "Returns a List of Tuples of sorted Environment pairs"
-        # used to build UI
-        pairs = []
-        count = 0
-        temp_env = None
-        envs = list(self.values())
-        for env in envs:
-            if count == 0:
-                temp_env = env
-                count += 1
-            else:
-                pairs.append( (temp_env, env) )
-                count = 0
-        if count == 1: # got a left-over
-            pairs.append( (temp_env, None))
-        return pairs
+    """NetworkEnvironment"""
 
     @property
     def environments(self):
@@ -106,8 +83,10 @@ class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
 
 
 @implementer(schemas.INetwork)
-class Network(NetworkEnvironment):
+class Network(Named, Deployable, dict):
+    availability_zones = FieldProperty(schemas.INetwork["availability_zones"])
     aws_account = FieldProperty(schemas.INetwork["aws_account"])
+    vpc = FieldProperty(schemas.INetwork["vpc"])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'aws_account':

@@ -211,20 +211,25 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
     model and should have a resolve_ref method that can be called.
     """
     for part_idx in range(part_idx_start, len(ref.parts)):
+        # the model can be walked with either obj[name] or obj.name
+        # depending on what is being walked
+        name = ref.parts[part_idx]
         try:
-            next_obj = obj[ref.parts[part_idx]]
+            next_obj = obj[name]
         except (TypeError, KeyError):
-            next_obj = getattr(obj, ref.parts[part_idx], None)
+            next_obj = getattr(obj, name, None)
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
         else:
-            # ToDo: Should this throw an error instead?
+            # Given a ref of 'netenv.websites.prod.[...].resources.database.endpoint.address' then
+            # after walks to the RDS Resource named '.database' it won't be able to find the next '.endpoint'
+            # and will break here
             break
 
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
     # If we get a dict here, return that as it is probably looking
-    # for it, as is the case wit S3. Real fix is to make a container
+    # for it, as is the case with S3. Real fix is to make a container
     # object for the list of buckets in S3.yaml
     # TODO: Fix S3 bucket container
     if hasattr(obj, 'resolve_ref') != True and type(obj) == dict:
@@ -243,7 +248,7 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
 def resolve_ref_outputs(ref, project_home_path):
     key = ref.parts[0]
     # ToDo: .paco-work is part of paco not paco.models, refactor?
-    output_filepath = pathlib.Path(project_home_path) / '.paco-work' / 'outputs' / key + '.yaml'
+    output_filepath = pathlib.Path(project_home_path) / '.paco-work' / 'outputs' / f"{key}.yaml"
     if output_filepath.exists() == False:
         return None
 

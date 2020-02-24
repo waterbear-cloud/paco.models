@@ -9,6 +9,11 @@ Changelog for paco.models
 - NotifcationGroups was renamed to SNSTopics.
   Migration: git mv resource/NotificationGroups.yaml resource/snstopics.yaml
 
+### Changed
+
+- IS3Resource now has an IS3Buckets instead of a dict and references for global buckets
+  has been cleaned up.
+
 ### Fixed
 
 - All IVPC schemas with dicts have been replaced by container objects so that

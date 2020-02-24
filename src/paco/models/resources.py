@@ -255,9 +255,17 @@ class EC2Resource(Named):
 
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IS3Buckets)
+class S3Buckets(Named, dict):
+    pass
+
 @implementer(schemas.IS3Resource)
 class S3Resource(Named):
     buckets = FieldProperty(schemas.IS3Resource['buckets'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.buckets = S3Buckets('buckets', self)
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

@@ -35,7 +35,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
-from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
+from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -351,6 +351,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     CodePipeBuildDeploy: {
         'artifacts_bucket': ('named_obj', S3Bucket)
+    },
+    S3Resource: {
+        'buckets': ('container', (S3Buckets, S3Bucket)),
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy),
@@ -1628,14 +1631,9 @@ Duplicate key \"{}\" found on line {} at column {}.
     def instantiate_s3(self, config):
         if config == None or 'buckets' not in config.keys():
             return
-        s3_obj = S3Resource('s3', self.project.resource)
-        s3_obj.buckets = {}
-        for bucket_id in config['buckets'].keys():
-            bucket_config = config['buckets'][bucket_id]
-            bucket_obj = S3Bucket(bucket_id, s3_obj)
-            apply_attributes_from_config(bucket_obj, bucket_config, self.config_folder)
-            s3_obj.buckets[bucket_id] = bucket_obj
-        return s3_obj
+        s3_resource = S3Resource('s3', self.project.resource)
+        apply_attributes_from_config(s3_resource, config, self.config_folder)
+        return s3_resource
 
     def instantiate_iam(self, config):
         iam_obj = IAMResource('iam', self.project.resource)

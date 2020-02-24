@@ -1,6 +1,7 @@
 """
-Paco references
+Paco References
 """
+
 from paco.models import vocabulary, schemas
 from paco.models.exceptions import InvalidPacoReference
 from ruamel.yaml.compat import StringIO
@@ -228,13 +229,6 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
 
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
-    # If we get a dict here, return that as it is probably looking
-    # for it, as is the case with S3. Real fix is to make a container
-    # object for the list of buckets in S3.yaml
-    # TODO: Fix S3 bucket container
-    if hasattr(obj, 'resolve_ref') != True and type(obj) == dict:
-        return obj
-
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
@@ -285,13 +279,10 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         ref = Reference(ref_str)
     ref_value = None
     if ref.type == "resource":
-        if ref.parts[1] == 's3':
-            ref_value = get_resolve_ref_obj(project, project['resource']['s3'], ref, part_idx_start=2)
-        else:
-            try:
-                ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
-            except KeyError:
-                raise_invalid_reference(ref, project['resource'], ref.parts[1])
+        try:
+            ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
+        except KeyError:
+            raise_invalid_reference(ref, project['resource'], ref.parts[1])
     elif ref.type == "service":
         ref_value = get_resolve_ref_obj(project, project, ref, part_idx_start=0)
         return ref_value

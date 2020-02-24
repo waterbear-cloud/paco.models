@@ -2066,9 +2066,7 @@ class IS3StaticWebsiteHosting(IParent, IDeployable):
     )
 
 class IS3Bucket(IResource, IDeployable):
-    """
-S3 Bucket
-    """
+    """S3 Bucket"""
     bucket_name = schema.TextLine(
         title="Bucket Name",
         description="A short unique name to assign the bucket.",
@@ -2122,15 +2120,17 @@ S3 Bucket
         schema = IS3StaticWebsiteHosting
     )
 
+class IS3Buckets(INamed, IMapping):
+    """Container for `S3Bucket`_ objects.
+"""
+    taggedValue('contains', 'IS3Bucket')
+
 class IS3Resource(INamed):
-    """
-EC2 Resource Configuration
-    """
-    buckets = schema.Dict(
+    """S3 Bucket"""
+    buckets = schema.Object(
         title="Dictionary of S3Bucket objects",
-        value_type = schema.Object(IS3Bucket),
-        default={},
-        required=False,
+        schema=IS3Buckets,
+        required=True,
     )
 
 class IApplicationEngine(INamed, IDeployable, INotifiable, IMonitorable, IDNSEnablable):

@@ -6488,10 +6488,20 @@ class IIAMUser(INamed, IDeployable):
     """
 IAM User
     """
+    @invariant
+    def assume_mfa_role_account(obj):
+        if obj.assume_mfa_role_enabled == True and obj.account != 'paco.ref accounts.master':
+            raise Invalid('Field `account` must be set to `master` when `assume_mfa_role_enabled` is true.')
+
     account = PacoReference(
         title="Paco account reference to install this user",
         required=True,
         schema_constraint='IAccount',
+    )
+    assume_mfa_role_enabled = schema.Bool(
+        title='Enables support for assuming an MFA role',
+        default=True,
+        required=False
     )
     username = schema.TextLine(
         title='IAM Username',

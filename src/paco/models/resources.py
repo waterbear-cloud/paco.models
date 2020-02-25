@@ -545,6 +545,7 @@ class IAMUser(Named, Deployable):
     account = FieldProperty(schemas.IIAMUser['account'])
     username = FieldProperty(schemas.IIAMUser['username'])
     description = FieldProperty(schemas.IIAMUser['description'])
+    assume_mfa_role_enabled = FieldProperty(schemas.IIAMUser['assume_mfa_role_enabled'])
     console_access_enabled = FieldProperty(schemas.IIAMUser['console_access_enabled'])
     programmatic_access = FieldProperty(schemas.IIAMUser['programmatic_access'])
     permissions = FieldProperty(schemas.IIAMUser['permissions'])

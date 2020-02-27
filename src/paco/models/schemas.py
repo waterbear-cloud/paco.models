@@ -3315,15 +3315,14 @@ class IRole(INamed, IDeployable):
         required=False
     )
 
-#class IManagedPolicies(IMapping):
-#    """
-#    Container of IAM Managed Policices
-#    """
-
 class IManagedPolicy(INamed, IDeployable):
     """
 IAM Managed Policy
     """
+    policy_name = schema.TextLine(
+        title="Policy Name used in AWS. This will be prefixed with an 8 character hash.",
+        required=True,
+    )
     roles = schema.List(
         title="List of Role Names",
         value_type=schema.TextLine(

@@ -9,6 +9,10 @@ Changelog for paco.models
 - NotifcationGroups was renamed to SNSTopics.
   Migration: git mv resource/NotificationGroups.yaml resource/snstopics.yaml
 
+### Added
+
+- IManagedPolicy has a policy_name field which can be used to specify the name of IAM Policy in AWS.
+
 ### Changed
 
 - IS3Resource now has an IS3Buckets instead of a dict and references for global buckets

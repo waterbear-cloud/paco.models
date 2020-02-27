@@ -94,13 +94,10 @@ class Statement(Named):
         self.action = []
         self.resource = []
 
-#@implementer(schemas.IManagedPolicy)
-#class ManagedPolicies(Named, dict):
-#    pass
 
 @implementer(schemas.IManagedPolicy)
 class ManagedPolicy(Named, Deployable):
-    name = FieldProperty(schemas.IManagedPolicy["name"])
+    policy_name = FieldProperty(schemas.IManagedPolicy["policy_name"])
     statement = FieldProperty(schemas.IManagedPolicy["statement"])
     roles = FieldProperty(schemas.IManagedPolicy["roles"])
     users = FieldProperty(schemas.IManagedPolicy["users"])

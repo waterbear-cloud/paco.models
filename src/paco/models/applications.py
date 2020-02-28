@@ -1195,9 +1195,17 @@ class DeploymentPipelineStageAction(Named, Deployable, dict):
 
 @implementer(schemas.IDeploymentPipelineSourceCodeCommit)
 class DeploymentPipelineSourceCodeCommit(DeploymentPipelineStageAction):
-    title = 'CodeBuild.Build'
+    title = 'CodeCommit.Source'
     codecommit_repository = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['codecommit_repository'])
     deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['deployment_branch_name'])
+
+@implementer(schemas.IDeploymentPipelineSourceGitHub)
+class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
+    title = 'GitHub.Source'
+    deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['deployment_branch_name'])
+    github_owner = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_owner'])
+    github_repository = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_repository'])
+    github_token_parameter_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_token_parameter_name'])
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):

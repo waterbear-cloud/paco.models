@@ -34,7 +34,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
-    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
+    DeploymentPipelineSourceGitHub
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -95,6 +96,7 @@ logger = get_logger()
 
 DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
+    'GitHub.Source': DeploymentPipelineSourceGitHub,
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
     'ManualApproval': DeploymentPipelineManualApproval,
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,

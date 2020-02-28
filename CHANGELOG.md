@@ -13,6 +13,8 @@ Changelog for paco.models
 
 - IManagedPolicy has a policy_name field which can be used to specify the name of IAM Policy in AWS.
 
+- IDeploymentPipelineSourceGitHub to model GitHub.Source actions for CodePipeline.
+
 ### Changed
 
 - IS3Resource now has an IS3Buckets instead of a dict and references for global buckets

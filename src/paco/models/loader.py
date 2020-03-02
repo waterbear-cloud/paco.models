@@ -19,23 +19,24 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
     VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
-from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
+from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
-    DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
-    DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
-    DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
+    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, \
+    DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
+    DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
+    DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
+    DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, \
+    CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
-    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
-    DeploymentPipelineSourceGitHub
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -100,7 +101,8 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
     'ManualApproval': DeploymentPipelineManualApproval,
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
-    'S3.Deploy': DeploymentPipelineDeployS3
+    'S3.Deploy': DeploymentPipelineDeployS3,
+    'Lambda.Invoke': DeploymentPipelineLambdaInvoke,
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
@@ -113,7 +115,6 @@ IAM_USER_PERMISSIONS_CLASS_MAP = {
 RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
-    'CodePipeBuildDeploy': CodePipeBuildDeploy,
     'ACM': AWSCertificateManager,
     'RDS': RDS,
     'DBParameterGroup': DBParameterGroup,
@@ -231,6 +232,7 @@ SUB_TYPES_CLASS_MAP = {
         'source': ('deployment_pipeline_stage', DeploymentPipelineSourceStage),
         'build': ('deployment_pipeline_stage', DeploymentPipelineBuildStage),
         'deploy': ('deployment_pipeline_stage', DeploymentPipelineDeployStage),
+        'stages': ('deployment_pipeline_stages', CodePipelineStages),
     },
     ApiGatewayRestApi: {
         'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
@@ -350,9 +352,6 @@ SUB_TYPES_CLASS_MAP = {
     },
     DeploymentPipelineManualApproval: {
         'manual_approval_notification_email': ('str_list', zope.schema.TextLine)
-    },
-    CodePipeBuildDeploy: {
-        'artifacts_bucket': ('named_obj', S3Bucket)
     },
     S3Resource: {
         'buckets': ('container', (S3Buckets, S3Bucket)),
@@ -1057,6 +1056,8 @@ Configuration section:
         return instantiate_iam_user_permissions(value, obj, read_file_path)
     elif sub_type == 'deployment_pipeline_stage':
         return instantiate_deployment_pipeline_stage(name, sub_class, value, obj, read_file_path)
+    elif sub_type == 'deployment_pipeline_stages':
+        return instantiate_deployment_pipeline_stages(name, sub_class, value, obj, read_file_path)
 
 def instantiate_notifications(value, obj, read_file_path):
     notifications = AlarmNotifications('notifications', obj)
@@ -1085,6 +1086,20 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
         apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
         stage_obj[action_name] = action_obj
     return stage_obj
+
+def instantiate_deployment_pipeline_stages(name, stages_class, value, parent, read_file_path):
+    "Instanties CodePipelineStages which contain CodePipelineActions which contain dynamic Action types"
+    stages_obj = stages_class(name, parent)
+    for stage_name in value.keys():
+        stage_config = value[stage_name]
+        stage_obj = CodePipelineStage(stage_name, stages_obj)
+        stages_obj[stage_name] = stage_obj
+        for action_name in stage_config.keys():
+            action_config = stage_config[action_name]
+            action_obj = DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP[action_config['type']](action_name, stage_obj)
+            apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
+            stage_obj[action_name] = action_obj
+    return stages_obj
 
 def load_string_from_path(path, base_path=None, is_yaml=False):
     """Reads file contents from a path and returns a string.

@@ -15,6 +15,9 @@ Changelog for paco.models
 
 - IDeploymentPipelineSourceGitHub to model GitHub.Source actions for CodePipeline.
 
+- IDeploymentPipeline has a stages field which can be used to create more flexible Stages and Actions
+  than the pre-baked source/build/deploy fields.
+
 ### Changed
 
 - IS3Resource now has an IS3Buckets instead of a dict and references for global buckets

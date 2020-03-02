@@ -52,9 +52,10 @@ class Testpacodemo(BaseTestModelLoader):
         assert dev_alb_domain == "dev.pacodemo.waterbear.cloud"
         assert dev_cert_domain == "dev.pacodemo.waterbear.cloud"
 
-    def test_cpbd(self):
-        cpbd = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
-        assert cpbd.asg != None
+    def test_deployment_pipeline(self):
+        deploy_pipeline = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['pipeline']
+        assert schemas.IDeploymentPipeline.providedBy(deploy_pipeline)
+        assert deploy_pipeline.stages['source']['github'].type, 'GitHub.Source'
 
     def test_ne_vpc(self):
         vpc = self.project['netenv']['pacodemo'].vpc

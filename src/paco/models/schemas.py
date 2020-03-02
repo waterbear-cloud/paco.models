@@ -2152,118 +2152,6 @@ class IApplication(IApplicationEngine):
 An Application is groups of cloud resources to support a workload.
     """
 
-class ICodePipeBuildDeploy(IResource):
-    """
-Code Pipeline: Build and Deploy
-    """
-    deployment_environment = schema.TextLine(
-        title="Deployment Environment",
-        description="",
-        default="",
-        required=False,
-    )
-    deployment_branch_name = schema.TextLine(
-        title="Deployment Branch Name",
-        description="",
-        default="",
-        required=False,
-    )
-    manual_approval_enabled = schema.Bool(
-        title="Manual approval enabled",
-        description="",
-        default=False,
-        required=False,
-    )
-    manual_approval_notification_email = schema.TextLine(
-        title="Manual approval notification email",
-        description="",
-        default="",
-        required=False,
-    )
-    codecommit_repository = PacoReference(
-        title='CodeCommit Respository',
-        required=False,
-        schema_constraint='ICodeCommitRepository',
-    )
-    asg = PacoReference(
-        title="ASG Reference",
-        required=False,
-        schema_constraint='IASG'
-    )
-    auto_rollback_enabled = schema.Bool(
-        title="Automatic rollback enabled",
-        description="",
-        default=True,
-        required=False,
-    )
-    deploy_config_type = schema.TextLine(
-        title="Deploy Config Type",
-        description="",
-        default="HOST_COUNT",
-        required=False,
-    )
-    deploy_style_option = schema.TextLine(
-        title="Deploy Style Option",
-        description="",
-        default="WITH_TRAFFIC_CONTROL",
-        required=False,
-    )
-    deploy_config_value = schema.Int(
-        title="Deploy Config Value",
-        description="",
-        default=0,
-        required=False,
-    )
-    deploy_instance_role = PacoReference(
-        title="Deploy Instance Role Reference",
-        required=False,
-        schema_constraint='IRole'
-    )
-    elb_name = schema.TextLine(
-        title="ELB Name",
-        description="",
-        default="",
-        required=False,
-    )
-    alb_target_group = PacoReference(
-        title="ALB Target Group to deploy to",
-        required=False,
-        schema_constraint='ITargetGroup'
-    )
-    tools_account = PacoReference(
-        title="Account where CodePipeline runs",
-        required=False,
-        schema_constraint='IAccount'
-    )
-    cross_account_support = schema.Bool(
-        title="Cross Account Support",
-        description="",
-        default=False,
-        required=False,
-    )
-    artifacts_bucket = PacoReference(
-        title="S3 Bucket for Artifacts",
-        description="",
-        required=False,
-        schema_constraint=IS3Bucket
-    )
-    codebuild_image = schema.TextLine(
-        title='CodeBuild Docker Image',
-        required=False,
-    )
-    codebuild_compute_type = schema.TextLine(
-        title='CodeBuild Compute Type',
-        constraint = isValidCodeBuildComputeType,
-        required=False,
-    )
-    timeout_mins = schema.Int(
-        title='Timeout in Minutes',
-        min=5,
-        max=480,
-        default=60,
-        required=False,
-    )
-
 class IEC2KeyPair(INamed):
     """
 EC2 SSH Key Pair
@@ -6585,12 +6473,26 @@ CodeCommit DeploymentPipeline Source Stage
         required=False,
         schema_constraint='ICodeCommitRepository'
     )
-
     deployment_branch_name = schema.TextLine(
         title="Deployment Branch Name",
         description="",
         default="",
         required=False,
+    )
+
+class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
+    """Lambad Invocation Action"""
+    taggedValue('contains', 'mixed')
+    target_lambda = PacoReference(
+        title='Lambda function',
+        required=True,
+        schema_constraint='ILamba',
+    )
+    user_parameters = schema.TextLine(
+        title="User Parameters string that can be processed by the Lambda",
+        description="",
+        required=False,
+        default="",
     )
 
 class IDeploymentPipelineSourceGitHub(IDeploymentPipelineStageAction):
@@ -6794,28 +6696,48 @@ A map of DeploymentPipeline deploy stage actions
     """
     taggedValue('contains', 'mixed')
 
+class ICodePipelineStage(INamed, IMapping):
+    "Container for different types of DeploymentPipelineStageAction objects."
+    taggedValue('contains', 'mixed')
+
+class ICodePipelineStages(INamed, IMapping):
+    "Container for `CodePipelineActions`_ objects."
+    taggedValue('contains', 'ICodePipelineActions')
+
 class IDeploymentPipeline(IResource):
     """
-Code Pipeline: Build and Deploy
+CodePipeline: Source, Build and Deploy or Stages
     """
+    @invariant
+    def stages_or_sourcebuildeploy(obj):
+        "Either use stages or source/build/deploy"
+        if obj.stages != None:
+            if obj.source != None or obj.build != None or obj.deploy != None:
+                raise Invalid("Can only specify stages field or the source/build/deploy fields but not both.")
+
     configuration = schema.Object(
         title='Deployment Pipeline General Configuration',
-        schema = IDeploymentPipelineConfiguration,
+        schema=IDeploymentPipelineConfiguration,
         required=False,
     )
     source = schema.Object(
         title='Deployment Pipeline Source Stage',
-        schema = IDeploymentPipelineSourceStage,
+        schema=IDeploymentPipelineSourceStage,
         required=False,
     )
     build = schema.Object(
         title='Deployment Pipeline Build Stage',
-        schema = IDeploymentPipelineBuildStage,
+        schema=IDeploymentPipelineBuildStage,
         required=False,
     )
     deploy = schema.Object(
         title='Deployment Pipeline Deploy Stage',
-        schema =IDeploymentPipelineDeployStage,
+        schema=IDeploymentPipelineDeployStage,
+        required=False,
+    )
+    stages = schema.Object(
+        title='Stages',
+        schema=ICodePipelineStages,
         required=False,
     )
 

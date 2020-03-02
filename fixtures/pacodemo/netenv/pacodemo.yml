@@ -134,6 +134,48 @@ applications:
         title: Deployment
         order: 10
         resources:
+          deploybucket:
+            type: S3Bucket
+            enabled: true
+            order: 10
+            external_resource: true
+            bucket_name: "deploy-artifacts"
+          codedeploy:
+            type: CodeDeployApplication
+            order: 20
+            compute_platform: "Server"
+            deployment_groups:
+              deployment:
+                title: "My Deployment Group description"
+                ignore_application_stop_failures: true
+                revision_location_s3:
+                    bucket: paco.ref netenv.pacodemo.applications.app.groups.deploybucket
+                    bundle_type: "zip"
+                    key: 'bigbear.zip'
+                role_policies:
+                  - name: AppFrontendBucket
+                    statement:
+                      - effect: Allow
+                        action:
+                          - s3:*
+                        resource:
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.origin.arn}/*'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.origin.arn}'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.office_origin.arn}/*'
+                          - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.webapp.resources.office_origin.arn}'
+                  - name: CloudFrontInvalidation
+                    statement:
+                      - effect: Allow
+                        action:
+                          - cloudfront:GetDistribution
+                          - cloudfront:GetDistributionConfig
+                          - cloudfront:ListDistributions
+                          - cloudfront:CreateInvalidation
+                        resource:
+                          - '*'
+                autoscalinggroups:
+                  - paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp
+
           pipeline_s3:
             type: S3Bucket
             enabled: true

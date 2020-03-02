@@ -129,13 +129,6 @@ class Testpacodemo(BaseTestModelLoader):
 
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
-        # Basic paco.ref netenv
-        ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg
-        assert ref_value == "paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
-
-        # paco.sub netenf.ref
-        #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
-        #assert ref_value == "paco.sub 'arn:aws:s3:::${paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
@@ -348,7 +341,6 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.IApplication.providedBy(apps['appmouse'])
         assert schemas.IApplication.providedBy(apps['appelephant'])
         assert schemas.IApplication.providedBy(apps['app'])
-        assert apps['appmouse'].groups['cicd'].resources['cpbd'].asg == 'paco.ref netenv.pacodemo.demo.us-west-2.applications.appmouse.groups.site.resources.webapp'
 
     def test_codedeploy_application(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

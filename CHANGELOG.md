@@ -9,6 +9,9 @@ Changelog for paco.models
 - NotifcationGroups was renamed to SNSTopics.
   Migration: git mv resource/NotificationGroups.yaml resource/snstopics.yaml
 
+- IEventsRule now has an IEventTarget instead of just a paco.ref to the target. This
+  allows you to specify the input_json for the target.
+
 ### Added
 
 - IManagedPolicy has a policy_name field which can be used to specify the name of IAM Policy in AWS.

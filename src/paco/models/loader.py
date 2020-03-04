@@ -57,7 +57,7 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
     CloudFormationInitService
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
     BackupPlans, BackupVault, BackupVaults
-from paco.models.events import EventsRule
+from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from paco.models.accounts import Account, AdminIAMUser
@@ -212,6 +212,9 @@ SUB_TYPES_CLASS_MAP = {
     },
 
     # Assorted unsorted
+    EventsRule: {
+        'targets': ('obj_list', EventTarget),
+    },
     EIP: {
         'dns': ('obj_list', DNS)
     },

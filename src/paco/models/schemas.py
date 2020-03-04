@@ -1849,6 +1849,18 @@ CloudWatch Logging configuration
 
 # Events
 
+class IEventTarget(INamed):
+    target = PacoReference(
+        title="Paco Reference to an AWS Resource to invoke",
+        schema_constraint='Interface',
+        required=True,
+    )
+    input_json = schema.TextLine(
+        title="Valid JSON passed as input to the target.",
+        required=False,
+        constraint=isValidJSONOrNone,
+    )
+
 class IEventsRule(IResource):
     """
 Events Rule
@@ -1875,10 +1887,7 @@ Events Rule
         title="The AWS Resources that are invoked when the Rule is triggered.",
         description="",
         required=True,
-        value_type=PacoReference(
-            title="Paco Reference to an AWS Resource to invoke",
-            schema_constraint='Interface',
-        ),
+        value_type=schema.Object(IEventTarget),
     )
 
 # Metric and monitoring schemas

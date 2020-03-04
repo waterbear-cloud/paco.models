@@ -58,7 +58,7 @@ class Testpacodemo(BaseTestModelLoader):
         assert deploy_pipeline.stages['source']['github'].type, 'GitHub.Source'
 
     def test_ne_vpc(self):
-        vpc = self.project['netenv']['pacodemo'].vpc
+        vpc = self.project['netenv']['pacodemo']['demo']['us-west-2'].network.vpc
         assert vpc.enable_dns_support == True
         assert vpc.vpn_gateway['app'].enabled == False
         assert vpc.private_hosted_zone.name == 'example.internal'

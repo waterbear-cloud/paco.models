@@ -42,9 +42,9 @@ class Testpacodemo(BaseTestModelLoader):
         assert self.project.name == 'waterbear-networks'
         assert self.project.title.startswith('Waterbear Networks')
 
-    def test_network_environment(self):
-        ne = self.project['netenv']['pacodemo']
-        assert ne.availability_zones == 2
+    def test_network_az(self):
+        network = self.project['netenv']['pacodemo']['demo']['us-west-2'].network
+        assert network.availability_zones == 2
 
     def test_environment_state(self):
         dev_alb_domain = self.project['netenv']['pacodemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['alb'].dns[0].domain_name

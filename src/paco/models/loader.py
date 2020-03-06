@@ -1413,7 +1413,13 @@ Duplicate key \"{}\" found on line {} at column {}.
                 # app{dog} --> appdog
                 # apple: <-- ToDo: fix this use-case
                 # ToDo: look at application._suffix
-                if application.name.startswith(app_name) and application.name != app_name:
+
+                # If the appname has a {} appended, then avoid replacing as we
+                # are explicitly signally we want to reference the base application.
+                if app_name.endswith('{}') == True:
+                    ref.parts[3] = ref.parts[3][:-2]
+                elif application.name.startswith(app_name) and application.name != app_name:
+
                     ref.parts[3] = application.name
 
         ref.parts.insert(2, env_id)

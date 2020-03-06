@@ -591,6 +591,7 @@ class ListenerRule(Deployable):
     host = FieldProperty(schemas.IListenerRule['host'])
     redirect_host = FieldProperty(schemas.IListenerRule['redirect_host'])
     target_group = FieldProperty(schemas.IListenerRule['target_group'])
+    path_pattern = FieldProperty(schemas.IListenerRule['path_pattern'])
 
 @implementer(schemas.IListeners)
 class Listeners(Named, dict):

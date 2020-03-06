@@ -242,7 +242,8 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
 def resolve_ref_outputs(ref, project_home_path):
     key = ref.parts[0]
     # ToDo: .paco-work is part of paco not paco.models, refactor?
-    output_filepath = pathlib.Path(project_home_path) / '.paco-work' / 'outputs' / f"{key}.yaml"
+    output_filepath = pathlib.Path(project_home_path) / '.paco-work' / 'outputs' / key
+    output_filepath = output_filepath.with_suffix('.yaml')
     if output_filepath.exists() == False:
         return None
 

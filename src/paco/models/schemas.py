@@ -2915,6 +2915,11 @@ class IListenerRule(IDeployable):
         title="Host header value",
         required=False,
     )
+    path_pattern = schema.List(
+        title="List of paths to match",
+        value_type = schema.TextLine(),
+        required=False
+    )
     # Redirect Rule Variables
     redirect_host = schema.TextLine(
         title="The host to redirect to",

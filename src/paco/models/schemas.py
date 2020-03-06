@@ -2533,27 +2533,27 @@ VPC Peering
     )
 
 class INATGateways(INamed, IMapping):
-    """Container for `INATGateway`_ objects."""
+    """Container for `NATGateway`_ objects."""
     taggedValue('contains', 'INATGateway')
 
 class IVPNGateways(INamed, IMapping):
-    """Container for `IVPNGateway`_ objects."""
+    """Container for `VPNGateway`_ objects."""
     taggedValue('contains', 'IVPNGateway')
 
 class ISecurityGroups(INamed, IMapping):
-    """Container for `ISecurityGroup`_ objects."""
+    """Container for `SecurityGroup`_ objects."""
     taggedValue('contains', 'ISecurityGroup')
 
 class ISecurityGroupSets(INamed, IMapping):
-    """Container for `ISecurityGroups`_ objects."""
+    """Container for `SecurityGroups`_ objects."""
     taggedValue('contains', 'ISecurityGroups')
 
 class ISegments(INamed, IMapping):
-    """Container for `ISegment`_ objects."""
+    """Container for `Segment`_ objects."""
     taggedValue('contains', 'ISegment')
 
 class IVPCPeerings(INamed, IMapping):
-    """Container for `IVPCPeering`_ objects."""
+    """Container for `VPCPeering`_ objects."""
     taggedValue('contains', 'IVPCPeering')
 
 class IVPC(INamed, IDeployable):
@@ -6715,8 +6715,8 @@ class ICodePipelineStage(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
 class ICodePipelineStages(INamed, IMapping):
-    "Container for `CodePipelineActions`_ objects."
-    taggedValue('contains', 'ICodePipelineActions')
+    "Container for `CodePipelineStage`_ objects."
+    taggedValue('contains', 'ICodePipelineStage')
 
 class IDeploymentPipeline(IResource):
     """

@@ -172,37 +172,6 @@ class Resources(Named, dict):
         # resources only
         pass
 
-#@implementer(schemas.IDeployment)
-#class Deployment(Named, Deployable):
-#    type = FieldProperty(schemas.IDeployment['type'])
-
-@implementer(schemas.ICodePipeBuildDeploy)
-class CodePipeBuildDeploy(Resource):
-    title = "CodePipeBuildDeploy"
-    deployment_environment = FieldProperty(schemas.ICodePipeBuildDeploy['deployment_environment'])
-    deployment_branch_name = FieldProperty(schemas.ICodePipeBuildDeploy['deployment_branch_name'])
-    manual_approval_enabled = FieldProperty(schemas.ICodePipeBuildDeploy['manual_approval_enabled'])
-    manual_approval_notification_email = FieldProperty(schemas.ICodePipeBuildDeploy['manual_approval_notification_email'])
-    auto_rollback_enabled = FieldProperty(schemas.ICodePipeBuildDeploy['auto_rollback_enabled'])
-    deploy_config_type = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_config_type'])
-    deploy_style_option = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_style_option'])
-    deploy_config_value = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_config_value'])
-    elb_name = FieldProperty(schemas.ICodePipeBuildDeploy['elb_name'])
-    tools_account = FieldProperty(schemas.ICodePipeBuildDeploy['tools_account'])
-    cross_account_support = FieldProperty(schemas.ICodePipeBuildDeploy['cross_account_support'])
-    asg = FieldProperty(schemas.ICodePipeBuildDeploy['asg'])
-    alb_target_group = FieldProperty(schemas.ICodePipeBuildDeploy['alb_target_group'])
-    artifacts_bucket = FieldProperty(schemas.ICodePipeBuildDeploy['artifacts_bucket'])
-    codecommit_repository = FieldProperty(schemas.ICodePipeBuildDeploy['codecommit_repository'])
-    deploy_instance_role = FieldProperty(schemas.ICodePipeBuildDeploy['deploy_instance_role'])
-    codebuild_image = FieldProperty(schemas.ICodePipeBuildDeploy['codebuild_image'])
-    codebuild_compute_type = FieldProperty(schemas.ICodePipeBuildDeploy['codebuild_compute_type'])
-    timeout_mins = FieldProperty(schemas.ICodePipeBuildDeploy['timeout_mins'])
-
-    def resolve_ref(self, ref):
-        if ref.resource_ref == 'kms':
-            return self
-        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IS3BucketPolicy)
 class S3BucketPolicy(Parent):
@@ -1196,9 +1165,23 @@ class DeploymentPipelineStageAction(Named, Deployable, dict):
 
 @implementer(schemas.IDeploymentPipelineSourceCodeCommit)
 class DeploymentPipelineSourceCodeCommit(DeploymentPipelineStageAction):
-    title = 'CodeBuild.Build'
+    title = 'CodeCommit.Source'
     codecommit_repository = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['codecommit_repository'])
     deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['deployment_branch_name'])
+
+@implementer(schemas.IDeploymentPipelineLambdaInvoke)
+class DeploymentPipelineLambdaInvoke(DeploymentPipelineStageAction):
+    title = 'Lambda.Invoke'
+    target_lambda = FieldProperty(schemas.IDeploymentPipelineLambdaInvoke['target_lambda'])
+    user_parameters = FieldProperty(schemas.IDeploymentPipelineLambdaInvoke['user_parameters'])
+
+@implementer(schemas.IDeploymentPipelineSourceGitHub)
+class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
+    title = 'GitHub.Source'
+    deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['deployment_branch_name'])
+    github_owner = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_owner'])
+    github_repository = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_repository'])
+    github_token_parameter_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_token_parameter_name'])
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
@@ -1261,6 +1244,14 @@ class DeploymentPipelineBuildStage(Named, dict):
 class DeploymentPipelineDeployStage(Named, dict):
     pass
 
+@implementer(schemas.ICodePipelineStage)
+class CodePipelineStage(Named, dict):
+    pass
+
+@implementer(schemas.ICodePipelineStages)
+class CodePipelineStages(Named, dict):
+    pass
+
 @implementer(schemas.IDeploymentPipeline)
 class DeploymentPipeline(Resource):
     title = "DeploymentPipeline"
@@ -1268,6 +1259,7 @@ class DeploymentPipeline(Resource):
     source = FieldProperty(schemas.IDeploymentPipeline['source'])
     build = FieldProperty(schemas.IDeploymentPipeline['build'])
     deploy = FieldProperty(schemas.IDeploymentPipeline['deploy'])
+    stages = FieldProperty(schemas.IDeploymentPipeline['stages'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'kms':

@@ -16,32 +16,9 @@ from paco.models import references
 class NetworkEnvironments(Named, dict):
     pass
 
-
 @implementer(schemas.INetworkEnvironment)
 class NetworkEnvironment(Named, Deployable, dict):
-    """
-    Network information and container for Environment objects.
-    """
-    availability_zones = FieldProperty(schemas.INetworkEnvironment["availability_zones"])
-    vpc = FieldProperty(schemas.INetworkEnvironment["vpc"])
-
-    def environment_pairs(self):
-        "Returns a List of Tuples of sorted Environment pairs"
-        # used to build UI
-        pairs = []
-        count = 0
-        temp_env = None
-        envs = list(self.values())
-        for env in envs:
-            if count == 0:
-                temp_env = env
-                count += 1
-            else:
-                pairs.append( (temp_env, env) )
-                count = 0
-        if count == 1: # got a left-over
-            pairs.append( (temp_env, None))
-        return pairs
+    """NetworkEnvironment"""
 
     @property
     def environments(self):
@@ -106,8 +83,10 @@ class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
 
 
 @implementer(schemas.INetwork)
-class Network(NetworkEnvironment):
+class Network(Named, Deployable, dict):
+    availability_zones = FieldProperty(schemas.INetwork["availability_zones"])
     aws_account = FieldProperty(schemas.INetwork["aws_account"])
+    vpc = FieldProperty(schemas.INetwork["vpc"])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'aws_account':
@@ -128,9 +107,41 @@ class VPCPeering(Named, Deployable):
     peer_region = FieldProperty(schemas.IVPCPeering["peer_region"])
     network_environment  = FieldProperty(schemas.IVPCPeering["network_environment"])
 
+@implementer(schemas.INATGateways)
+class NATGateways(Named, dict):
+    pass
+
+@implementer(schemas.IVPNGateways)
+class VPNGateways(Named, dict):
+    pass
+
+@implementer(schemas.ISecurityGroups)
+class SecurityGroups(Named, dict):
+    pass
+
+@implementer(schemas.ISecurityGroupSets)
+class SecurityGroupSets(Named, dict):
+    pass
+
+@implementer(schemas.ISegments)
+class Segments(Named, dict):
+    pass
+
+@implementer(schemas.IVPCPeerings)
+class VPCPeerings(Named, dict):
+    pass
+
 @implementer(schemas.IVPC)
 class VPC(Named, Deployable):
     "VPC"
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.nat_gateway = NATGateways('nat_gateway', self)
+        self.vpn_gateway = VPNGateways('vpn_gateway', self)
+        self.security_groups = SecurityGroupSets('security_groups', self)
+        self.segments = Segments('segments', self)
+        self.peering = VPCPeerings('peering', self)
+
     cidr = FieldProperty(schemas.IVPC["cidr"])
     enable_dns_hostnames = FieldProperty(schemas.IVPC["enable_dns_hostnames"])
     enable_dns_support = FieldProperty(schemas.IVPC["enable_dns_support"])
@@ -162,10 +173,8 @@ class NATGateway(Named, Deployable):
     ec2_instance_type = FieldProperty(schemas.INATGateway["ec2_instance_type"])
 
 @implementer(schemas.IVPNGateway)
-class VPNGateway(Deployable):
-    """
-VPN Gateway
-    """
+class VPNGateway(Named, Deployable):
+    """VPN Gateway"""
 
 @implementer(schemas.IPrivateHostedZone)
 class PrivateHostedZone(Deployable):

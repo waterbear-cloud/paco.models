@@ -1,11 +1,35 @@
 Changelog for paco.models
 =========================
 
-6.4.2 (unreleased)
+6.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Migration
 
+- NotifcationGroups was renamed to SNSTopics.
+  Migration: git mv resource/NotificationGroups.yaml resource/snstopics.yaml
+
+- IEventsRule now has an IEventTarget instead of just a paco.ref to the target. This
+  allows you to specify the input_json for the target.
+
+### Added
+
+- IManagedPolicy has a policy_name field which can be used to specify the name of IAM Policy in AWS.
+
+- IDeploymentPipelineSourceGitHub to model GitHub.Source actions for CodePipeline.
+
+- IDeploymentPipeline has a stages field which can be used to create more flexible Stages and Actions
+  than the pre-baked source/build/deploy fields.
+
+### Changed
+
+- IS3Resource now has an IS3Buckets instead of a dict and references for global buckets
+  has been cleaned up.
+
+### Fixed
+
+- All IVPC schemas with dicts have been replaced by container objects so that
+  every object can provide it's paco_ref.
 
 6.4.1 (2020-02-19)
 ------------------

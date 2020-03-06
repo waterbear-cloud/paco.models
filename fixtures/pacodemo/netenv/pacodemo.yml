@@ -131,30 +131,9 @@ applications:
     groups:
       cicd:
         type: Deployment
-        title: 'CI/CD'
+        title: Deployment
         order: 10
         resources:
-          cpbd:
-            type: CodePipeBuildDeploy
-            order: 1
-            #wait_order: 1
-            enabled: true
-            deployment_environment: "" # Override in sub-environment
-            deployment_branch_name: "" # Override in sub-environments
-            manual_approval_enabled: false
-            manual_approval_notification_email: ""
-            codecommit_repository: paco.ref resource.codecommit.pacodemo.app
-            asg: paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp
-            auto_rollback_enabled: true
-            deploy_config_type: HOST_COUNT
-            deploy_style_option: WITH_TRAFFIC_CONTROL
-            deploy_config_value: 1
-            deploy_instance_role: paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp.instance_iam_role
-            elb_name: ""
-            alb_target_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.alb.target_groups.app
-            tools_account: paco.ref accounts.tools
-            cross_account_support: true
-            artifacts_bucket: paco.ref netenv.pacodemo.applications.app.groups.cicd.resources.cpbd_s3
           deploybucket:
             type: S3Bucket
             enabled: true
@@ -197,6 +176,50 @@ applications:
                 autoscalinggroups:
                   - paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp
 
+          pipeline_s3:
+            type: S3Bucket
+            enabled: true
+            order: 10
+            bucket_name: "artifacts"
+            deletion_policy: "delete"
+            account: paco.ref accounts.dev
+            policy:
+              - aws:
+                  - paco.sub '${paco.ref netenv.pacodemo.applications.app.groups.site.resources.webapp.instance_iam_role.arn}'
+                effect: 'Allow'
+                action:
+                  - 's3:Get*'
+                  - 's3:List*'
+                resource_suffix:
+                  - '/*'
+                  - ''
+          pipeline:
+            type: DeploymentPipeline
+            order: 20
+            enabled: true
+            configuration:
+              artifacts_bucket: paco.ref netenv.pacodemo.applications.app.groups.cicd.resources.pipeline_s3
+              account: paco.ref accounts.dev
+            stages:
+              source:
+                github:
+                  type: GitHub.Source
+                  enabled: true
+                  deployment_branch_name: "master"
+                  github_token_parameter_name: TestGitHubToken
+                  github_owner: waterbear-cloud
+                  github_repository: example-saas-app
+                codecommit:
+                  type: CodeCommit.Source
+                  enabled: false
+                  codecommit_repository: paco.ref resource.codecommit.aimdemo.app
+                  deployment_branch_name: "dev"
+              invoke:
+                image_deploy:
+                  type: Lambda.Invoke
+                  enabled: true
+                  target_lambda: paco.ref netenv.pacodemo.notification.groups.lambda.resources.function
+                  user_parameters: '{"action": "start-from-pipeline"}'
       site:
         type: Application
         order: 1
@@ -592,12 +615,6 @@ environments:
               resources:
                 api_gateway_rest_api:
                   body_file_location: 'swagger/dev-pet-store.json'
-            cicd:
-              resources:
-                cpbd:
-                  deployment_environment: "master"
-                  deployment_branch_name: "master"
-                  deploy_config_value: 0
             bastion:
               resources:
                 instance:
@@ -688,12 +705,6 @@ environments:
         app:
           enabled: true
           groups:
-            cicd:
-              resources:
-                cpbd:
-                  deployment_environment: "dev"
-                  deployment_branch_name: "dev"
-                  deploy_config_value: 0
             bastion:
               resources:
                 instance:

@@ -1,6 +1,7 @@
 """
-Paco references
+Paco References
 """
+
 from paco.models import vocabulary, schemas
 from paco.models.exceptions import InvalidPacoReference
 from ruamel.yaml.compat import StringIO
@@ -198,7 +199,7 @@ def get_model_obj_from_ref(ref, project):
             obj = next_obj
         else:
             message = "\nCould not find model at {}\n".format(ref.raw)
-            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'notificationgroups', 's3', 'route53', 'resources']:
+            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'snstopics', 's3', 'route53', 'resources']:
                 message += "Did you mean to run:\n"
                 message += "paco <command> resource.{}?\n".format(ref.ref)
             raise InvalidPacoReference(message)
@@ -211,25 +212,23 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
     model and should have a resolve_ref method that can be called.
     """
     for part_idx in range(part_idx_start, len(ref.parts)):
+        # the model can be walked with either obj[name] or obj.name
+        # depending on what is being walked
+        name = ref.parts[part_idx]
         try:
-            next_obj = obj[ref.parts[part_idx]]
+            next_obj = obj[name]
         except (TypeError, KeyError):
-            next_obj = getattr(obj, ref.parts[part_idx], None)
+            next_obj = getattr(obj, name, None)
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
         else:
-            # ToDo: Should this throw an error instead?
+            # Given a ref of 'netenv.websites.prod.[...].resources.database.endpoint.address' then
+            # after walks to the RDS Resource named '.database' it won't be able to find the next '.endpoint'
+            # and will break here
             break
 
     ref.resource_ref = '.'.join(ref.parts[part_idx:])
     ref.resource = obj
-    # If we get a dict here, return that as it is probably looking
-    # for it, as is the case wit S3. Real fix is to make a container
-    # object for the list of buckets in S3.yaml
-    # TODO: Fix S3 bucket container
-    if hasattr(obj, 'resolve_ref') != True and type(obj) == dict:
-        return obj
-
     try:
         response = obj.resolve_ref(ref)
     except AttributeError:
@@ -281,13 +280,10 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         ref = Reference(ref_str)
     ref_value = None
     if ref.type == "resource":
-        if ref.parts[1] == 's3':
-            ref_value = get_resolve_ref_obj(project, project['resource']['s3'], ref, part_idx_start=2)
-        else:
-            try:
-                ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
-            except KeyError:
-                raise_invalid_reference(ref, project['resource'], ref.parts[1])
+        try:
+            ref_value = project['resource'][ref.parts[1]].resolve_ref(ref)
+        except KeyError:
+            raise_invalid_reference(ref, project['resource'], ref.parts[1])
     elif ref.type == "service":
         ref_value = get_resolve_ref_obj(project, project, ref, part_idx_start=0)
         return ref_value
@@ -329,7 +325,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         if value_type == "<class 'paco.stack_group.stack_group.Stack'>":
             # TODO: This is only useful when we are looking up values
             # for stacks that will not be provisioned. ie. SNS Topic Arns
-            # from NotificationGroups referenced by code in Network Environments.
+            # from SNSTopics referenced by code in Network Environments.
             # XXX: For now we are only looking at cached outputs for stacks
             # outside of NetworkEnvironments.
             # XXX: This check causes a Stack cache check which queries

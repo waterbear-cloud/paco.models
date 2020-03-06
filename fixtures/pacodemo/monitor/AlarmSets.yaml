@@ -186,8 +186,7 @@ LBApplication:
       metric_name: "TargetResponseTime"
       period: 60
       evaluation_periods: 5
-      extended_statistic: p95
-      evaluate_low_sample_count_percentile: ignore
+      statistic: Maximum
       threshold: 2.0
       comparison_operator: GreaterThanOrEqualToThreshold
       treat_missing_data: notBreaching

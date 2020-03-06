@@ -1664,8 +1664,8 @@ class ICloudWatchLogAlarm(ICloudWatchAlarm):
         required=True
     )
 
-class INotificationGroups(IAccountRef):
-    "Container for Notification Groups"
+class ISNSTopics(IAccountRef):
+    "Container for SNS Topics"
     regions = schema.List(
         title="Regions to provision the Notification Groups in. Special list of ['ALL'] will select all of the project's active regions.",
         required=False,
@@ -1849,6 +1849,18 @@ CloudWatch Logging configuration
 
 # Events
 
+class IEventTarget(INamed):
+    target = PacoReference(
+        title="Paco Reference to an AWS Resource to invoke",
+        schema_constraint='Interface',
+        required=True,
+    )
+    input_json = schema.TextLine(
+        title="Valid JSON passed as input to the target.",
+        required=False,
+        constraint=isValidJSONOrNone,
+    )
+
 class IEventsRule(IResource):
     """
 Events Rule
@@ -1875,10 +1887,7 @@ Events Rule
         title="The AWS Resources that are invoked when the Rule is triggered.",
         description="",
         required=True,
-        value_type=PacoReference(
-            title="Paco Reference to an AWS Resource to invoke",
-            schema_constraint='Interface',
-        ),
+        value_type=schema.Object(IEventTarget),
     )
 
 # Metric and monitoring schemas
@@ -2066,9 +2075,7 @@ class IS3StaticWebsiteHosting(IParent, IDeployable):
     )
 
 class IS3Bucket(IResource, IDeployable):
-    """
-S3 Bucket
-    """
+    """S3 Bucket"""
     bucket_name = schema.TextLine(
         title="Bucket Name",
         description="A short unique name to assign the bucket.",
@@ -2122,15 +2129,17 @@ S3 Bucket
         schema = IS3StaticWebsiteHosting
     )
 
+class IS3Buckets(INamed, IMapping):
+    """Container for `S3Bucket`_ objects.
+"""
+    taggedValue('contains', 'IS3Bucket')
+
 class IS3Resource(INamed):
-    """
-EC2 Resource Configuration
-    """
-    buckets = schema.Dict(
+    """S3 Bucket"""
+    buckets = schema.Object(
         title="Dictionary of S3Bucket objects",
-        value_type = schema.Object(IS3Bucket),
-        default={},
-        required=False,
+        schema=IS3Buckets,
+        required=True,
     )
 
 class IApplicationEngine(INamed, IDeployable, INotifiable, IMonitorable, IDNSEnablable):
@@ -2151,118 +2160,6 @@ class IApplication(IApplicationEngine):
     """
 An Application is groups of cloud resources to support a workload.
     """
-
-class ICodePipeBuildDeploy(IResource):
-    """
-Code Pipeline: Build and Deploy
-    """
-    deployment_environment = schema.TextLine(
-        title="Deployment Environment",
-        description="",
-        default="",
-        required=False,
-    )
-    deployment_branch_name = schema.TextLine(
-        title="Deployment Branch Name",
-        description="",
-        default="",
-        required=False,
-    )
-    manual_approval_enabled = schema.Bool(
-        title="Manual approval enabled",
-        description="",
-        default=False,
-        required=False,
-    )
-    manual_approval_notification_email = schema.TextLine(
-        title="Manual approval notification email",
-        description="",
-        default="",
-        required=False,
-    )
-    codecommit_repository = PacoReference(
-        title='CodeCommit Respository',
-        required=False,
-        schema_constraint='ICodeCommitRepository',
-    )
-    asg = PacoReference(
-        title="ASG Reference",
-        required=False,
-        schema_constraint='IASG'
-    )
-    auto_rollback_enabled = schema.Bool(
-        title="Automatic rollback enabled",
-        description="",
-        default=True,
-        required=False,
-    )
-    deploy_config_type = schema.TextLine(
-        title="Deploy Config Type",
-        description="",
-        default="HOST_COUNT",
-        required=False,
-    )
-    deploy_style_option = schema.TextLine(
-        title="Deploy Style Option",
-        description="",
-        default="WITH_TRAFFIC_CONTROL",
-        required=False,
-    )
-    deploy_config_value = schema.Int(
-        title="Deploy Config Value",
-        description="",
-        default=0,
-        required=False,
-    )
-    deploy_instance_role = PacoReference(
-        title="Deploy Instance Role Reference",
-        required=False,
-        schema_constraint='IRole'
-    )
-    elb_name = schema.TextLine(
-        title="ELB Name",
-        description="",
-        default="",
-        required=False,
-    )
-    alb_target_group = PacoReference(
-        title="ALB Target Group to deploy to",
-        required=False,
-        schema_constraint='ITargetGroup'
-    )
-    tools_account = PacoReference(
-        title="Account where CodePipeline runs",
-        required=False,
-        schema_constraint='IAccount'
-    )
-    cross_account_support = schema.Bool(
-        title="Cross Account Support",
-        description="",
-        default=False,
-        required=False,
-    )
-    artifacts_bucket = PacoReference(
-        title="S3 Bucket for Artifacts",
-        description="",
-        required=False,
-        schema_constraint=IS3Bucket
-    )
-    codebuild_image = schema.TextLine(
-        title='CodeBuild Docker Image',
-        required=False,
-    )
-    codebuild_compute_type = schema.TextLine(
-        title='CodeBuild Compute Type',
-        constraint = isValidCodeBuildComputeType,
-        required=False,
-    )
-    timeout_mins = schema.Int(
-        title='Timeout in Minutes',
-        min=5,
-        max=480,
-        default=60,
-        required=False,
-    )
 
 class IEC2KeyPair(INamed):
     """
@@ -2376,9 +2273,7 @@ EC2 Instance
 
 
 class INetworkEnvironments(INamed, IMapping):
-    """
-Container for `NetworkEnvironment`_ objects.
-    """
+    """Container for `NetworkEnvironment`_ objects."""
     taggedValue('contains', 'INetworkEnvironment')
 
 class IVersionControl(INamed):
@@ -2478,9 +2373,7 @@ AWS Resource: IGW
     """
 
 class INATGateway(INamed, IDeployable):
-    """
-NAT Gateway
-    """
+    """NAT Gateway"""
     type = schema.TextLine(
         title='NAT Gateway type',
         default='Managed',
@@ -2529,16 +2422,11 @@ NAT Gateway
         default='t2.nano'
     )
 
-
-class IVPNGateway(IDeployable):
-    """
-VPN Gateway
-    """
+class IVPNGateway(INamed, IDeployable):
+    """VPN Gateway"""
 
 class IPrivateHostedZone(IDeployable):
-    """
-Private Hosted Zone
-    """
+    """Private Hosted Zone"""
     name = schema.TextLine(
         title="Hosted zone name",
         required=False,
@@ -2644,10 +2532,32 @@ VPC Peering
         required=True
     )
 
+class INATGateways(INamed, IMapping):
+    """Container for `INATGateway`_ objects."""
+    taggedValue('contains', 'INATGateway')
+
+class IVPNGateways(INamed, IMapping):
+    """Container for `IVPNGateway`_ objects."""
+    taggedValue('contains', 'IVPNGateway')
+
+class ISecurityGroups(INamed, IMapping):
+    """Container for `ISecurityGroup`_ objects."""
+    taggedValue('contains', 'ISecurityGroup')
+
+class ISecurityGroupSets(INamed, IMapping):
+    """Container for `ISecurityGroups`_ objects."""
+    taggedValue('contains', 'ISecurityGroups')
+
+class ISegments(INamed, IMapping):
+    """Container for `ISegment`_ objects."""
+    taggedValue('contains', 'ISegment')
+
+class IVPCPeerings(INamed, IMapping):
+    """Container for `IVPCPeering`_ objects."""
+    taggedValue('contains', 'IVPCPeering')
+
 class IVPC(INamed, IDeployable):
-    """
-AWS Resource: VPC
-    """
+    """VPC"""
     cidr = schema.TextLine(
         title="CIDR",
         description="",
@@ -2672,64 +2582,49 @@ AWS Resource: VPC
         default=False,
         required=False,
     )
-    nat_gateway = schema.Dict(
-        title="NAT Gateway",
+    nat_gateway = schema.Object(
+        title="NAT Gateways",
         description="",
-        value_type = schema.Object(INATGateway),
+        schema=INATGateways,
         required=True,
-        default={}
     )
-    vpn_gateway = schema.Dict(
-        title="VPN Gateway",
+    vpn_gateway = schema.Object(
+        title="VPN Gateways",
         description="",
-        value_type = schema.Object(IVPNGateway),
+        schema=IVPNGateways,
         required=True,
-        default={}
     )
     private_hosted_zone = schema.Object(
         title="Private hosted zone",
         description="",
-        schema = IPrivateHostedZone,
+        schema=IPrivateHostedZone,
         required=False,
     )
-    security_groups = schema.Dict(
-        # This is a dict of dicts ...
-        title="Security groups",
-        default={},
-        description="Two level deep dictionary: first key is Application name, second key is Resource name.",
-        required=False,
+    security_groups = schema.Object(
+        title="Security Group Sets",
+        description="Security Groups Sets are containers for SecurityGroups containers.",
+        schema=ISecurityGroupSets,
+        required=True,
     )
-    segments = schema.Dict(
+    segments = schema.Object(
         title="Segments",
-        value_type = schema.Object(ISegment),
-        required=False,
+        description="",
+        schema=ISegments,
+        required=True,
     )
-    peering = schema.Dict(
-        title='VPC Peering',
-        value_type = schema.Object(IVPCPeering),
-        required=False,
+    peering = schema.Object(
+        title="VPC Peering",
+        description="",
+        schema=IVPCPeerings,
+        required=True,
     )
 
 class INetworkEnvironment(INamed, IDeployable, IMapping):
-    """
-NetworkEnvironment : A template for a network.
-    """
+    """NetworkEnvironment"""
     # technically contains IEnvironment but there are set by the loader
     # for the docs we do not want to indicate that environments are configured from within
     # the network: key.
     taggedValue('contains', 'mixed')
-    availability_zones = schema.Int(
-        title="Availability Zones",
-        description="",
-        default=0,
-        required=False,
-    )
-    vpc = schema.Object(
-        title="VPC",
-        description="",
-        schema=IVPC,
-        required=False,
-    )
 
 class ICredentials(INamed):
     aws_access_key_id = schema.TextLine(
@@ -2783,7 +2678,7 @@ class ICredentials(INamed):
         required=False,
     )
 
-class INetwork(INetworkEnvironment):
+class INetwork(INamed, IDeployable, IMapping):
     # contains Environment objects but do not indicate this
     # in the docs, they are configured under `environments:`.
     taggedValue('contains', 'mixed')
@@ -2791,6 +2686,18 @@ class INetwork(INetworkEnvironment):
         title='Account this Network belongs to',
         required=False,
         schema_constraint='IAccount',
+    )
+    availability_zones = schema.Int(
+        title="Availability Zones",
+        description="",
+        default=0,
+        required=False,
+    )
+    vpc = schema.Object(
+        title="VPC",
+        description="",
+        schema=IVPC,
+        required=False,
     )
 
 # Secrets Manager schemas
@@ -3310,15 +3217,14 @@ class IRole(INamed, IDeployable):
         required=False
     )
 
-#class IManagedPolicies(IMapping):
-#    """
-#    Container of IAM Managed Policices
-#    """
-
 class IManagedPolicy(INamed, IDeployable):
     """
 IAM Managed Policy
     """
+    policy_name = schema.TextLine(
+        title="Policy Name used in AWS. This will be prefixed with an 8 character hash.",
+        required=True,
+    )
     roles = schema.List(
         title="List of Role Names",
         value_type=schema.TextLine(
@@ -5791,15 +5697,12 @@ CloudFront Origin Configuration
     )
 
 class ICloudFrontFactory(INamed):
-    """
-CloudFront Factory
-    """
+    """CloudFront Factory"""
     domain_aliases = schema.List(
         title="List of DNS for the Distribution",
         value_type = schema.Object(IDNS),
         required=False,
     )
-
     viewer_certificate = schema.Object(
         title="Viewer Certificate",
         schema = ICloudFrontViewerCertificate,
@@ -6584,12 +6487,59 @@ CodeCommit DeploymentPipeline Source Stage
         required=False,
         schema_constraint='ICodeCommitRepository'
     )
-
     deployment_branch_name = schema.TextLine(
         title="Deployment Branch Name",
         description="",
         default="",
         required=False,
+    )
+
+class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
+    """Lambad Invocation Action"""
+    taggedValue('contains', 'mixed')
+    target_lambda = PacoReference(
+        title='Lambda function',
+        required=True,
+        schema_constraint='ILamba',
+    )
+    user_parameters = schema.TextLine(
+        title="User Parameters string that can be processed by the Lambda",
+        description="",
+        required=False,
+        default="",
+    )
+
+class IDeploymentPipelineSourceGitHub(IDeploymentPipelineStageAction):
+    """GitHub DeploymentPipeline Source Stage
+
+To configure a GitHub source, first create an OAuth Token in your GitHub account with the scopes
+``repo`` and ``admin:repoHook``. See the AWS documentation on how to `Configure Your Pipeline to Use a Personal Access Token`_.
+
+Using the AWS Console for the account and region that the CodePipeline will be provisioned in, go to AWS Systems Manager
+and in Parameter Store choose "create parameter" and create a SecureString. Store the OAuth Token created by GitHub as the value
+of this parameter. Put the name you gave your paramter in the ``github_token_parameter_name`` field.
+
+.. _Configure Your Pipeline to Use a Personal Access Token: https://docs.aws.amazon.com/codepipeline/latest/userguide/GitHub-create-personal-token-CLI.html
+
+"""
+    taggedValue('contains', 'mixed')
+    deployment_branch_name = schema.TextLine(
+        title="The name of the branch where source changes are to be detected.",
+        description="",
+        default="master",
+        required=False,
+    )
+    github_owner = schema.TextLine(
+        title='The name of the GitHub user or organization who owns the GitHub repository.',
+        required=True,
+    )
+    github_repository = schema.TextLine(
+        title='The name of the repository where source changes are to be detected.',
+        required=True,
+    )
+    github_token_parameter_name = schema.TextLine(
+        title='The name of the SSM Parameter SecureString that contains the GitHub OAuth Token.',
+        required=True,
     )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
@@ -6760,28 +6710,48 @@ A map of DeploymentPipeline deploy stage actions
     """
     taggedValue('contains', 'mixed')
 
+class ICodePipelineStage(INamed, IMapping):
+    "Container for different types of DeploymentPipelineStageAction objects."
+    taggedValue('contains', 'mixed')
+
+class ICodePipelineStages(INamed, IMapping):
+    "Container for `CodePipelineActions`_ objects."
+    taggedValue('contains', 'ICodePipelineActions')
+
 class IDeploymentPipeline(IResource):
     """
-Code Pipeline: Build and Deploy
+CodePipeline: Source, Build and Deploy or Stages
     """
+    @invariant
+    def stages_or_sourcebuildeploy(obj):
+        "Either use stages or source/build/deploy"
+        if obj.stages != None:
+            if obj.source != None or obj.build != None or obj.deploy != None:
+                raise Invalid("Can only specify stages field or the source/build/deploy fields but not both.")
+
     configuration = schema.Object(
         title='Deployment Pipeline General Configuration',
-        schema = IDeploymentPipelineConfiguration,
+        schema=IDeploymentPipelineConfiguration,
         required=False,
     )
     source = schema.Object(
         title='Deployment Pipeline Source Stage',
-        schema = IDeploymentPipelineSourceStage,
+        schema=IDeploymentPipelineSourceStage,
         required=False,
     )
     build = schema.Object(
         title='Deployment Pipeline Build Stage',
-        schema = IDeploymentPipelineBuildStage,
+        schema=IDeploymentPipelineBuildStage,
         required=False,
     )
     deploy = schema.Object(
         title='Deployment Pipeline Deploy Stage',
-        schema =IDeploymentPipelineDeployStage,
+        schema=IDeploymentPipelineDeployStage,
+        required=False,
+    )
+    stages = schema.Object(
+        title='Stages',
+        schema=ICodePipelineStages,
         required=False,
     )
 

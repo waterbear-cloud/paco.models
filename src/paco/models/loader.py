@@ -12,29 +12,32 @@ from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile,
     TroposphereConversionError, InvalidPacoSchema
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
-    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, NotificationGroups, Dimension, \
+    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
     HealthChecks, CloudWatchLogAlarm, CloudWatchDashboard, DashboardVariables
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
-    PrivateHostedZone, SecurityGroup, IngressRule, EgressRule
+    PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
+    VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
-from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, CodePipeBuildDeploy, ASG, \
+from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, DeploymentPipeline, DeploymentPipelineConfiguration, \
-    DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, DeploymentPipelineDeployStage, \
-    DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, DeploymentPipelineDeployCodeDeploy, \
-    DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, DeploymentPipelineDeployS3, \
+    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, \
+    DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
+    DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
+    DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
+    DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, \
+    CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
-from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, \
+from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -54,7 +57,7 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
     CloudFormationInitService
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
     BackupPlans, BackupVault, BackupVaults
-from paco.models.events import EventsRule
+from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
 from paco.models.accounts import Account, AdminIAMUser
@@ -94,10 +97,12 @@ logger = get_logger()
 
 DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
+    'GitHub.Source': DeploymentPipelineSourceGitHub,
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
     'ManualApproval': DeploymentPipelineManualApproval,
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
-    'S3.Deploy': DeploymentPipelineDeployS3
+    'S3.Deploy': DeploymentPipelineDeployS3,
+    'Lambda.Invoke': DeploymentPipelineLambdaInvoke,
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
@@ -110,7 +115,6 @@ IAM_USER_PERMISSIONS_CLASS_MAP = {
 RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
-    'CodePipeBuildDeploy': CodePipeBuildDeploy,
     'ACM': AWSCertificateManager,
     'RDS': RDS,
     'DBParameterGroup': DBParameterGroup,
@@ -208,6 +212,9 @@ SUB_TYPES_CLASS_MAP = {
     },
 
     # Assorted unsorted
+    EventsRule: {
+        'targets': ('obj_list', EventTarget),
+    },
     EIP: {
         'dns': ('obj_list', DNS)
     },
@@ -228,6 +235,7 @@ SUB_TYPES_CLASS_MAP = {
         'source': ('deployment_pipeline_stage', DeploymentPipelineSourceStage),
         'build': ('deployment_pipeline_stage', DeploymentPipelineBuildStage),
         'deploy': ('deployment_pipeline_stage', DeploymentPipelineDeployStage),
+        'stages': ('deployment_pipeline_stages', CodePipelineStages),
     },
     ApiGatewayRestApi: {
         'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
@@ -348,8 +356,8 @@ SUB_TYPES_CLASS_MAP = {
     DeploymentPipelineManualApproval: {
         'manual_approval_notification_email': ('str_list', zope.schema.TextLine)
     },
-    CodePipeBuildDeploy: {
-        'artifacts_bucket': ('named_obj', S3Bucket)
+    S3Resource: {
+        'buckets': ('container', (S3Buckets, S3Bucket)),
     },
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy),
@@ -405,12 +413,12 @@ SUB_TYPES_CLASS_MAP = {
         'default_route_segments': ('str_list', PacoReference)
     },
     VPC: {
-        'nat_gateway': ('named_obj', NATGateway),
-        'vpn_gateway': ('named_obj', VPNGateway),
+        'nat_gateway': ('container', (NATGateways, NATGateway)),
+        'vpn_gateway': ('container', (VPNGateways, VPNGateway)),
         'private_hosted_zone': ('direct_obj', PrivateHostedZone),
-        'segments': ('named_obj', Segment),
-        'security_groups': ('named_twolevel_dict', SecurityGroup),
-        'peering': ('named_obj', VPCPeering)
+        'segments': ('container', (Segments, Segment)),
+        'security_groups': ('twolevel_container', (SecurityGroupSets, SecurityGroups, SecurityGroup)),
+        'peering': ('container', (VPCPeerings, VPCPeering)),
     },
     PrivateHostedZone: {
         'vpc_associations': ('str_list', zope.schema.TextLine)
@@ -920,19 +928,6 @@ Configuration section:
                     container[first_key][second_key] = second_obj
         return container
 
-    elif sub_type == 'named_twolevel_dict':
-        sub_dict = {}
-        for first_key, first_value in value.items():
-            sub_dict[first_key]  = {}
-            for sub_key, sub_value in first_value.items():
-                if schemas.INamed.implementedBy(sub_class):
-                    sub_obj = sub_class(name+'.'+first_key+'.'+sub_key, obj)
-                else:
-                    sub_obj = sub_class()
-                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
-                sub_dict[first_key][sub_key] = sub_obj
-        return sub_dict
-
     elif sub_type == 'direct_obj':
         if schemas.INamed.implementedBy(sub_class):
             sub_obj = sub_class(name, obj)
@@ -1064,6 +1059,8 @@ Configuration section:
         return instantiate_iam_user_permissions(value, obj, read_file_path)
     elif sub_type == 'deployment_pipeline_stage':
         return instantiate_deployment_pipeline_stage(name, sub_class, value, obj, read_file_path)
+    elif sub_type == 'deployment_pipeline_stages':
+        return instantiate_deployment_pipeline_stages(name, sub_class, value, obj, read_file_path)
 
 def instantiate_notifications(value, obj, read_file_path):
     notifications = AlarmNotifications('notifications', obj)
@@ -1092,6 +1089,20 @@ def instantiate_deployment_pipeline_stage(name, stage_class, value, parent, read
         apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
         stage_obj[action_name] = action_obj
     return stage_obj
+
+def instantiate_deployment_pipeline_stages(name, stages_class, value, parent, read_file_path):
+    "Instanties CodePipelineStages which contain CodePipelineActions which contain dynamic Action types"
+    stages_obj = stages_class(name, parent)
+    for stage_name in value.keys():
+        stage_config = value[stage_name]
+        stage_obj = CodePipelineStage(stage_name, stages_obj)
+        stages_obj[stage_name] = stage_obj
+        for action_name in stage_config.keys():
+            action_config = stage_config[action_name]
+            action_obj = DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP[action_config['type']](action_name, stage_obj)
+            apply_attributes_from_config(action_obj, action_config, read_file_path=read_file_path)
+            stage_obj[action_name] = action_obj
+    return stages_obj
 
 def load_string_from_path(path, base_path=None, is_yaml=False):
     """Reads file contents from a path and returns a string.
@@ -1531,7 +1542,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         """Detect misconfigured alarm notification situations.
         This happens after both MonitorConfig and NetworkEnvironments have loaded.
         """
-        if 'notificationgroups' in self.project['resource']:
+        if 'snstopics' in self.project['resource']:
             for app in self.project.get_all_applications():
                 if app.is_enabled():
                     for alarm_info in app.list_alarm_info():
@@ -1545,7 +1556,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                         # alarms with groups that do not exist
                         region = self.project.active_regions[0] # regions are all the same, just choose the first
                         for groupname in alarm.notification_groups:
-                            if groupname not in self.project['resource']['notificationgroups'][region]:
+                            if groupname not in self.project['resource']['snstopics'][region]:
                                 raise InvalidPacoProjectFile(
                                     "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
                                         alarm.name,
@@ -1574,17 +1585,17 @@ Duplicate key \"{}\" found on line {} at column {}.
                 self.project['cw_logging'] = cw_logging
             self.monitor_config['logging'] = config
 
-    def instantiate_notificationgroups(self, config):
-        notificationgroups = NotificationGroups('notificationgroups', self.project.resource)
+    def instantiate_snstopics(self, config):
+        snstopics = SNSTopics('snstopics', self.project.resource)
         if 'groups' in config:
             # 'groups' gets duplicated and placed into a region_name key for every active region
             groups_config = deepcopy_except_parent(config['groups'])
             del config['groups']
-            apply_attributes_from_config(notificationgroups, config, read_file_path=self.read_file_path)
+            apply_attributes_from_config(snstopics, config, read_file_path=self.read_file_path)
             # load SNS Topics
             for region_name in self.project.active_regions:
-                region = RegionContainer(region_name, notificationgroups)
-                notificationgroups[region_name] = region
+                region = RegionContainer(region_name, snstopics)
+                snstopics[region_name] = region
                 for topicname, topic_config in groups_config.items():
                     topic = SNSTopic(topicname, region)
                     apply_attributes_from_config(topic, topic_config, read_file_path=self.read_file_path)
@@ -1592,7 +1603,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         else:
             raise InvalidPacoProjectFile("resource/snstopics.yaml does not have a top-level `groups:`.")
 
-        return notificationgroups
+        return snstopics
 
     def instantiate_cloudwatch_log_groups(self, config):
         cw_log_groups = CWLogGroups()
@@ -1646,14 +1657,9 @@ Duplicate key \"{}\" found on line {} at column {}.
     def instantiate_s3(self, config):
         if config == None or 'buckets' not in config.keys():
             return
-        s3_obj = S3Resource('s3', self.project.resource)
-        s3_obj.buckets = {}
-        for bucket_id in config['buckets'].keys():
-            bucket_config = config['buckets'][bucket_id]
-            bucket_obj = S3Bucket(bucket_id, s3_obj)
-            apply_attributes_from_config(bucket_obj, bucket_config, self.config_folder)
-            s3_obj.buckets[bucket_id] = bucket_obj
-        return s3_obj
+        s3_resource = S3Resource('s3', self.project.resource)
+        apply_attributes_from_config(s3_resource, config, self.config_folder)
+        return s3_resource
 
     def instantiate_iam(self, config):
         iam_obj = IAMResource('iam', self.project.resource)
@@ -1669,10 +1675,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         #   s3
         #   cloudtrail
         #   iam
-        #   notificationgroups / snstopics
-        # snstopics.yaml is an alias for notificationgroups.yaml
-        if name == 'snstopics':
-            name = 'notificationgroups'
+        #   snstopics
         instantiate_method = getattr(self, 'instantiate_' + name, None)
         if instantiate_method == None:
             print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))

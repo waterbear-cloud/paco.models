@@ -42,9 +42,9 @@ class Testpacodemo(BaseTestModelLoader):
         assert self.project.name == 'waterbear-networks'
         assert self.project.title.startswith('Waterbear Networks')
 
-    def test_network_environment(self):
-        ne = self.project['netenv']['pacodemo']
-        assert ne.availability_zones == 2
+    def test_network_az(self):
+        network = self.project['netenv']['pacodemo']['demo']['us-west-2'].network
+        assert network.availability_zones == 2
 
     def test_environment_state(self):
         dev_alb_domain = self.project['netenv']['pacodemo']['dev']['us-west-2']['applications']['app'].groups['site'].resources['alb'].dns[0].domain_name
@@ -52,12 +52,13 @@ class Testpacodemo(BaseTestModelLoader):
         assert dev_alb_domain == "dev.pacodemo.waterbear.cloud"
         assert dev_cert_domain == "dev.pacodemo.waterbear.cloud"
 
-    def test_cpbd(self):
-        cpbd = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['cpbd']
-        assert cpbd.asg != None
+    def test_deployment_pipeline(self):
+        deploy_pipeline = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['pipeline']
+        assert schemas.IDeploymentPipeline.providedBy(deploy_pipeline)
+        assert deploy_pipeline.stages['source']['github'].type, 'GitHub.Source'
 
     def test_ne_vpc(self):
-        vpc = self.project['netenv']['pacodemo'].vpc
+        vpc = self.project['netenv']['pacodemo']['demo']['us-west-2'].network.vpc
         assert vpc.enable_dns_support == True
         assert vpc.vpn_gateway['app'].enabled == False
         assert vpc.private_hosted_zone.name == 'example.internal'
@@ -128,13 +129,6 @@ class Testpacodemo(BaseTestModelLoader):
 
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
-        # Basic paco.ref netenv
-        ref_value = demo_env.applications['app'].groups['cicd'].resources['cpbd'].asg
-        assert ref_value == "paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.site.resources.webapp"
-
-        # paco.sub netenf.ref
-        #ref_value = demo_env.iam['app'].roles['instance_role'].policies[1].statement[0].resource[0]
-        #assert ref_value == "paco.sub 'arn:aws:s3:::${paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.cicd.resources.cpbd.artifacts_bucket.name}/*'"
 
         # netenf.ref in a List
         ref_value = demo_env.applications['app'].groups['site'].resources['alb'].security_groups[0]
@@ -285,8 +279,8 @@ class Testpacodemo(BaseTestModelLoader):
         assert alarm_five.notification_groups, ['santa']
 
     def test_notification_groups(self):
-        groups = self.project['resource']['notificationgroups']
-        assert schemas.INotificationGroups.providedBy(groups)
+        groups = self.project['resource']['snstopics']
+        assert schemas.ISNSTopics.providedBy(groups)
         assert groups.account, 'paco.ref accounts.master'
         assert groups['us-west-2']['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
         assert len(groups['us-west-2']['bobs_team'].subscriptions), 2
@@ -347,7 +341,6 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.IApplication.providedBy(apps['appmouse'])
         assert schemas.IApplication.providedBy(apps['appelephant'])
         assert schemas.IApplication.providedBy(apps['app'])
-        assert apps['appmouse'].groups['cicd'].resources['cpbd'].asg == 'paco.ref netenv.pacodemo.demo.us-west-2.applications.appmouse.groups.site.resources.webapp'
 
     def test_codedeploy_application(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

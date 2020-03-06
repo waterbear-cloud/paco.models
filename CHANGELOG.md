@@ -1,7 +1,7 @@
 Changelog for paco.models
 =========================
 
-6.5.0 (unreleased)
+7.0.0 (unreleased)
 ------------------
 
 ### Migration
@@ -28,8 +28,7 @@ Changelog for paco.models
 
 ### Fixed
 
-- All IVPC schemas with dicts have been replaced by container objects so that
-  every object can provide it's paco_ref.
+- All IVPC schemas with dicts have been replaced by INamed objects so that they can provide a paco_ref.
 
 6.4.1 (2020-02-19)
 ------------------

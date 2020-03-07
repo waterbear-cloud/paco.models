@@ -168,6 +168,7 @@ class Reference():
         self.sub_part('<environment>', environment_name)
 
     def set_region(self, region):
+        self.region = region
         self.sub_part('<region>', region)
 
     def resolve(self, project, account_ctx=None):
@@ -357,7 +358,7 @@ def function_ec2_ami_latest(ref, project, account_ctx):
     if cache_id in ami_cache.keys():
         return ami_cache[cache_id]
 
-    ec2_client = account_ctx.get_aws_client('ec2')
+    ec2_client = account_ctx.get_aws_client('ec2', aws_region=ref.region)
     filters = [ {
         'Name': 'name',
         'Values': [ami_name]
@@ -400,7 +401,6 @@ def function_ec2_ami_latest(ref, project, account_ctx):
     image_details = sorted(ami_list['Images'],key=itemgetter('CreationDate'),reverse=True)
     ami_id = image_details[0]['ImageId']
     ami_cache[cache_id] = ami_id
-
     return ami_id
 
 def import_and_call_function(ref, project, account_ctx):

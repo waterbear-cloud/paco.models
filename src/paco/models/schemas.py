@@ -6494,6 +6494,16 @@ CodeCommit DeploymentPipeline Source Stage
         required=False,
     )
 
+class IDeploymentPipelinePacoCreateThenDeployImage(IDeploymentPipelineStageAction):
+    """Paco CreateThenDeployImage Action"""
+    taggedValue('contains', 'mixed')
+    resource_name = schema.TextLine(
+        title="Name of an external resource identifier",
+        description="",
+        required=True,
+        default="",
+    )
+
 class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
     """Lambad Invocation Action"""
     taggedValue('contains', 'mixed')

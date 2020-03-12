@@ -31,7 +31,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, \
-    CodePipelineStage, CodePipelineStages, \
+    DeploymentPipelinePacoCreateThenDeployImage, CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
@@ -103,6 +103,7 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
     'S3.Deploy': DeploymentPipelineDeployS3,
     'Lambda.Invoke': DeploymentPipelineLambdaInvoke,
+    'Paco.CreateThenDeployImage': DeploymentPipelinePacoCreateThenDeployImage,
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {

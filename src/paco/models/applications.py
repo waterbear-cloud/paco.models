@@ -1175,6 +1175,11 @@ class DeploymentPipelineLambdaInvoke(DeploymentPipelineStageAction):
     target_lambda = FieldProperty(schemas.IDeploymentPipelineLambdaInvoke['target_lambda'])
     user_parameters = FieldProperty(schemas.IDeploymentPipelineLambdaInvoke['user_parameters'])
 
+@implementer(schemas.IDeploymentPipelinePacoCreateThenDeployImage)
+class DeploymentPipelinePacoCreateThenDeployImage(DeploymentPipelineStageAction):
+    title = 'Paco.CreateThenDeployImage'
+    resource_name = FieldProperty(schemas.IDeploymentPipelinePacoCreateThenDeployImage['resource_name'])
+
 @implementer(schemas.IDeploymentPipelineSourceGitHub)
 class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
     title = 'GitHub.Source'

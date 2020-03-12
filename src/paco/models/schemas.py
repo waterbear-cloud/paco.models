@@ -4403,13 +4403,13 @@ for that ASG.
     update_policy_max_batch_size = schema.Int(
         title="Update policy maximum batch size",
         description="",
-        default=1,
+        default=0,
         required=False,
     )
     update_policy_min_instances_in_service = schema.Int(
         title="Update policy minimum instances in service",
         description="",
-        default=1,
+        default=0,
         required=False,
     )
     scaling_policies = schema.Object(

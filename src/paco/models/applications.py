@@ -1203,10 +1203,16 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
 
 @implementer(schemas.IDeploymentPipelineDeployS3)
 class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.input_artifacts = []
+
     title = 'S3.Deploy'
     bucket = FieldProperty(schemas.IDeploymentPipelineDeployS3['bucket'])
     extract = FieldProperty(schemas.IDeploymentPipelineDeployS3['extract'])
     object_key = FieldProperty(schemas.IDeploymentPipelineDeployS3['object_key'])
+    input_artifacts = FieldProperty(schemas.IDeploymentPipelineDeployS3['input_artifacts'])
     #kms_encryption_key_arn = FieldProperty(schemas.IDeploymentPipelineDeployS3['kms_encryption_key_arn'])
 
 @implementer(schemas.IDeploymentPipelineManualApproval)

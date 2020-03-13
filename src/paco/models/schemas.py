@@ -6607,6 +6607,13 @@ Amazon S3 Deployment Provider
         title="S3 object key to store the deployment artifact as.",
         required=False,
     )
+    input_artifacts = schema.List(
+        title="Input Artifacts",
+        required=False,
+        value_type=schema.TextLine(
+            title="Stage.Action",
+        )
+    )
     # KMSEncryptionKeyARN: Optional
     # This is used internally for now.
     #kms_encryption_key_arn = schema.TextLine(

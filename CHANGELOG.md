@@ -4,8 +4,9 @@ Changelog for paco.models
 7.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- IDeploymentPipelineDeployS3 has input_artifacts field for Stages/Actions.
 
 7.0.0 (2020-03-06)
 ------------------

@@ -4,7 +4,9 @@ Changelog for paco.models
 7.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Fixed
+
+- Restore cfn-init wget command.
 
 
 7.0.1 (2020-03-14)

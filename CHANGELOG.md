@@ -1,11 +1,26 @@
 Changelog for paco.models
 =========================
 
-7.0.1 (unreleased)
+7.0.3 (unreleased)
 ------------------
 
 - Nothing changed yet.
 
+
+7.0.2 (2020-03-14)
+------------------
+
+### Fixed
+
+- Restore cfn-init wget command.
+
+
+7.0.1 (2020-03-14)
+------------------
+
+### Added
+
+- IDeploymentPipelineDeployS3 has input_artifacts field for Stages/Actions.
 
 7.0.0 (2020-03-06)
 ------------------

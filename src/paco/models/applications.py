@@ -6,7 +6,7 @@ from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
     DNSEnablable, CFNExport, md5sum
-from paco.models.exceptions import InvalidPacoBucket
+from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
 from paco.models.metrics import Monitorable, AlarmNotifications
@@ -521,21 +521,37 @@ class ASG(Resource, Monitorable):
 
     def get_aws_name(self):
         "AutoScalingGroup Name for AWS"
+        name_list = []
+
+        # NetworkEnvironment or Service name
         netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        if netenv == None:
+            service = get_parent_by_interface(self, schemas.IService)
+            if service == None:
+                raise InvalidModelObject("""Unable to find an INetworkEnvironment or IService model object.""")
+            name_list.append('Service')
+        else:
+            name_list.append(netenv.name)
+
+        # Environment name or Blank if one does not exist
         env = get_parent_by_interface(self, schemas.IEnvironment)
+        if env != None:
+            name_list.append(env.name)
+
+        # Application Name
         app = get_parent_by_interface(self, schemas.IApplication)
         resource_group = get_parent_by_interface(self, schemas.IResourceGroup)
-        return self.create_resource_name_join(
-                name_list=[
-                    netenv.name,
-                    env.name,
-                    app.name,
-                    resource_group.name,
-                    self.name
-                ],
+        name_list.extend([
+            app.name,
+            resource_group.name,
+            self.name
+        ])
+        aws_name = self.create_resource_name_join(
+                name_list=name_list,
                 separator='-',
                 camel_case=True
         )
+        return aws_name
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'name':
@@ -1186,7 +1202,7 @@ class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
     deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['deployment_branch_name'])
     github_owner = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_owner'])
     github_repository = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_repository'])
-    github_token_parameter_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_token_parameter_name'])
+    github_access_token = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_access_token'])
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):

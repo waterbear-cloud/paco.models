@@ -2,12 +2,12 @@ import copy
 from paco.models.loader import ModelLoader
 
 
-def load_project_from_yaml(path, config_processor=None):
+def load_project_from_yaml(path, config_processor=None, warn=None):
     """
     Reads a project directory of YAML files and
     returns a complete set of model instances.
     """
-    loader = ModelLoader(path, config_processor)
+    loader = ModelLoader(path, config_processor, warn)
     loader.load_all()
     return loader.project
 

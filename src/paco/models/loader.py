@@ -1156,7 +1156,8 @@ class ModelLoader():
     Loads YAML config files into paco.models instances
     """
 
-    def __init__(self, config_folder, config_processor=None):
+    def __init__(self, config_folder, config_processor=None, warn=None):
+        self.warn = warn
         self.config_folder = config_folder
         self.config_subdirs = {
             "monitor": self.instantiate_monitor_config,
@@ -1241,7 +1242,6 @@ Duplicate key \"{}\" found on line {} at column {}.
                     config = self.read_yaml(subdir, fname)
                     instantiate_method(name, config, os.path.join(subdir, fname))
         self.instantiate_services()
-        self.check_notification_config()
         self.load_core_monitoring()
         self.yaml.restore_existing_constructors()
 
@@ -1539,33 +1539,6 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         return
 
-    def check_notification_config(self):
-        """Detect misconfigured alarm notification situations.
-        This happens after both MonitorConfig and NetworkEnvironments have loaded.
-        """
-        if 'snstopics' in self.project['resource']:
-            for app in self.project.get_all_applications():
-                if app.is_enabled():
-                    for alarm_info in app.list_alarm_info():
-                        alarm = alarm_info['alarm']
-                        # warn on alarms with no subscriptions
-                        if len(alarm.notification_groups) == 0:
-                            print("Alarm {} for app {} does not have any notifications.".format(
-                                alarm.name,
-                                app.name
-                            ))
-                        # alarms with groups that do not exist
-                        region = self.project.active_regions[0] # regions are all the same, just choose the first
-                        for groupname in alarm.notification_groups:
-                            if groupname not in self.project['resource']['snstopics'][region]:
-                                raise InvalidPacoProjectFile(
-                                    "Alarm {} for app {} notifies to group '{}' which does belong in Notification service group names.".format(
-                                        alarm.name,
-                                        app.name,
-                                        groupname
-                                    )
-                                )
-
     def instantiate_monitor_config(self, name, config, read_file_path):
         """
         Loads Logging and AlarmSets config
@@ -1679,7 +1652,8 @@ Duplicate key \"{}\" found on line {} at column {}.
         #   snstopics
         instantiate_method = getattr(self, 'instantiate_' + name, None)
         if instantiate_method == None:
-            print("!! No method to instantiate resource: {}: {}".format(name, read_file_path))
+            if self.warn:
+                print("WARNING: File ignored, perhaps it is misnamed? {}".format(read_file_path))
         else:
             self.project['resource'][name] = instantiate_method(config)
             if self.project['resource'][name] != None:

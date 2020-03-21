@@ -1529,7 +1529,7 @@ This is a base schema which defines metadata useful to categorize an alarm.
     )
     notification_groups = schema.List(
         readonly = True,
-        title="List of notificationn groups the alarm is subscribed to.",
+        title="List of notification groups the alarm is subscribed to.",
         value_type=schema.TextLine(title="Notification group name"),
         required=False,
     )

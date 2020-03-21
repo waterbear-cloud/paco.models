@@ -333,6 +333,12 @@ applications:
             max_instances: 3
             min_instances: 1
             desired_capacity: 1
+            rolling_update_policy:
+              enabled: true
+              max_batch_size: 1
+              min_instances_in_service: 0
+              pause_time: PT1M
+              wait_on_resource_signals: false
             target_groups:
               - paco.ref netenv.pacodemo.applications.app.groups.site.resources.alb.target_groups.app
             security_groups:
@@ -340,8 +346,6 @@ applications:
             segment: webapp
             termination_policies:
               - Default
-            update_policy_max_batch_size: 1
-            update_policy_min_instances_in_service: 0
             cfn_init:
               parameters:
                 TestString: 'catdog'
@@ -540,8 +544,6 @@ applications:
             segment: public
             termination_policies:
               - Default
-            update_policy_max_batch_size: 1
-            update_policy_min_instances_in_service: 0
             security_groups:
               - paco.ref netenv.pacodemo.network.vpc.security_groups.app.bastion
             user_data_script: |

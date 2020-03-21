@@ -81,6 +81,12 @@ class Testpacodemo(BaseTestModelLoader):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         asg = demo_env.applications['app'].groups['site'].resources['webapp']
 
+        # rolling_udpate_policy
+        assert asg.rolling_update_policy.max_batch_size == 1
+        assert asg.rolling_update_policy.min_instances_in_service == 0
+        assert asg.rolling_update_policy.pause_time == 'PT1M'
+        assert asg.rolling_update_policy.wait_on_resource_signals == False
+
         # CloudFormation Init
         cfn_init = asg.cfn_init
         assert schemas.ICloudFormationInit.providedBy(cfn_init)

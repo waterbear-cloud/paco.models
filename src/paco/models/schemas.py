@@ -4080,17 +4080,19 @@ AutoScalingRollingUpdate Policy
         title="Maximum batch size",
         description="",
         default=1,
+        min=1,
         required=False,
     )
     min_instances_in_service = schema.Int(
         title="Minimum instances in service",
         description="",
         default=1,
+        min=0,
         required=False,
     )
     pause_time = schema.TextLine(
         title="Minimum instances in service",
-        description="Healthy success timeout",
+        description="Must be in the format PT#H#M#S",
         required=False,
         default='',
     )
@@ -4179,8 +4181,13 @@ for that ASG.
     instance_monitoring: true
     instance_type: t2.medium
     desired_capacity: 1
-    max_instances: 1
+    max_instances: 3
     min_instances: 1
+    rolling_update_policy:
+      max_batch_size: 1
+      min_instances_in_service: 1
+      pause_time: PT3M
+      wait_on_resource_signals: false
     target_groups:
       - paco.ref netenv.mynet.applications.app.groups.web.resources.alb.target_groups.cloud
     security_groups:
@@ -4245,9 +4252,9 @@ AutoScalingGroup Rolling Update Policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When changes are applied to an AutoScalingGroup that modify the configuration of newly launched instances,
-then AWS can automatically launch instances with the new configuration and terminate old instances with stale configuration.
-Typically this can be configured so that there is no interruprtion to service as the new instances replace old ones.
-This configuration is set with the ASGs ``rolling_update_policy`` field.
+AWS can automatically launch instances with the new configuration and terminate old instances that have stale configuration.
+This can be configured so that there is no interruption of service as the new instances gradually replace old ones.
+This configuration is set with the ``rolling_update_policy`` field.
 
 The rolling update policy must be able to work within the minimum/maximum number of instances in the ASG.
 Consider the following ASG configuration.
@@ -4266,24 +4273,27 @@ Consider the following ASG configuration.
       wait_on_resource_signals: false # default setting
 
 This will normally run a single instance in the ASG. The ASG is never allowed to launch more than 2 instances at one time.
-When an update happens, a new batch of instances is launched - in this configuration just one instance. After the instance
+When an update happens, a new batch of instances is launched - in this example just one instance. There wil be only 1 instance
+in service, but the capacity will be at 2 instances will the new instance is launched. After the instance
 is put into service by the ASG, it will immediately terminate the old instance.
 
-The ``wait_on_resource_signals`` can be set to tell AWS CloudFormation updates to wait until a new instance is finished
-configuring and installing applications and is ready for service. If this field is enabled, then the ``pause_time``
-default is PT05 (5 minutes). If CloudFormation does not get a SUCCESS signal within the ``pause_time`` then it will
-mark the new instance as failed and terminate it.
+The ``wait_on_resource_signals`` can be set to tell AWS CloudFormation to wait on making changes to the AutoScalingGroup configuration
+until a new instance is finished configuring and installing applications and is ready for service. If this field is enabled,
+then the ``pause_time`` default is PT05 (5 minutes). If CloudFormation does not get a SUCCESS signal within the ``pause_time``
+then it will mark the new instance as failed and terminate it.
 
-If you use ``pause_time`` without ``wait_on_resource_signals`` then AWS will simply wait for the full duration of the
-pause time and then consider the instance ready. ``pause_time`` is in format PT#H#M#S, where each # is the number of
+If you use ``pause_time`` with the default ``wait_on_resource_signals: false`` then AWS will simply wait for the full
+duration of the pause time and then consider the instance ready. ``pause_time`` is in format PT#H#M#S, where each # is the number of
 hours, minutes, and seconds, respectively. The maximum ``pause_time`` is one hour. For example:
 
 .. code-block:: yaml
+
     pause_time: PT0S # 0 seconds
     pause_time: PT5M # 5 minutes
     pause_time: PT2M30S # 2 minutes and 30 seconds
 
-If you do not want to use an update policies, then you must disable the ``rolling_update_policy`` explicitly:
+ASGs will use default settings for a rolling update policy. If you do not want to use an update policies at all, then
+you must disable the ``rolling_update_policy`` explicitly:
 
 .. code-block:: yaml
 
@@ -4298,18 +4308,17 @@ proprely until some point in the future when new instances are requested by the 
 
 .. sidebar:: Prescribed Automation
 
-    Paco can help you send signals to CloudFormation when using ``pause_time`` and ``wait_on_resource_signals``.
-    If you set ``wait_on_resource_signals: true``or use a ``pause_time`` value greater than 0 seconds, then Paco will
-    automatically grant the needed ``cloudformation:SignalResource`` and ``cloudformation:DescribeStacks`` to the IAM Role associated
-    with the instance for you. Paco also provides a ``ec2lm_signal_asg_resource`` BASH function available in your ``user_data_script``
-    that you can run to signal the instance is ready: ``ec2lm_signal_asg_resource SUCCESS`` or ``ec2lm_signal_asg_resource SUCCESS``.
+    Paco can help you send signals to CloudFormation when using ``wait_on_resource_signals``.
+    If you set ``wait_on_resource_signals: true`` then Paco will automatically grant the needed ``cloudformation:SignalResource`` and
+    ``cloudformation:DescribeStacks`` to the IAM Role associated with the instance for you. Paco also provides an
+    ``ec2lm_signal_asg_resource`` BASH function available in your ``user_data_script`` that you can run to signal the instance is
+    ready: ``ec2lm_signal_asg_resource SUCCESS`` or ``ec2lm_signal_asg_resource SUCCESS``.
 
-    Note that if you are using additional tooling to install applications, such as CodeDeploy, you will need to signal CloudFormation
-    using another method. For example, if you are using ELB health checks, you can wait until those health checks
-    are passing and then signal the CloudFormation.
+    If you want to wait until load balancer health checks are passing before an instance is considered healthy, then send the SUCCESS
+    signal to CloudFormation, you will need to configure this yourself.
 
         .. code-block:: bash
-            :caption: example ASG signal
+            :caption: example ASG signalling using ELB health checks
 
             'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
             --load-balancer-name ${ElasticLoadBalancer}
@@ -4317,9 +4326,9 @@ proprely until some point in the future when new instances are requested by the 
             --query InstanceStates[0].State); sleep 10; done'
 
 
-For more information on how this policy configuration is used by AWS see their `UpdatePolicy`_ documentation.
+See the AWS documentation for more information on how `AutoScalingRollingUpdate Policy`_ configuration is used.
 
-.. _UpdatePolicy: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-replacingupdate
+.. _AutoScalingRollingUpdate Policy: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-replacingupdate
 
     """
     @invariant

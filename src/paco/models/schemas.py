@@ -4086,7 +4086,7 @@ AutoScalingRollingUpdate Policy
     min_instances_in_service = schema.Int(
         title="Minimum instances in service",
         description="",
-        default=1,
+        default=0,
         min=0,
         required=False,
     )

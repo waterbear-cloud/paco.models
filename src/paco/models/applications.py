@@ -259,6 +259,7 @@ class S3Bucket(Resource, Deployable):
             return self.bucket_name
 
         ne = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        service = get_parent_by_interface(self, schemas.IService)
         app = get_parent_by_interface(self, schemas.IApplication)
 
 
@@ -277,7 +278,7 @@ class S3Bucket(Resource, Deployable):
         bucket_name_list = []
         # Bucket in a NetworkEnvironment contained Application
         if ne != None and app != None:
-            # NE buckets are in the format:
+            # NetworkEnvironment Application buckets are in the format:
             # ne-<netenv>-<env>-app-<app>-<resourcegroup>-<resource>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
             bucket_name_list.extend([
                 'ne',
@@ -288,12 +289,11 @@ class S3Bucket(Resource, Deployable):
                 get_parent_by_interface(self, schemas.IResourceGroup).name,
             ])
             bucket_name_list.extend(bucket_name_list_standard)
-        # currently only seen in Services ... ToDo: allow these names to add an additional prefix?
-        elif app != None:
-            # Application buckets are in the format:
-            # app-<app>-<resourcegroup>-<resource>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
+        elif service != None and app != None:
+            # Service Application buckets are in the format:
+            # service-<app>-<resourcegroup>-<resource>-<bucket_name_prefix>-<bucketname>-<bucket_name_suffix>-<shortregionname>
             bucket_name_list.extend([
-                'app',
+                'service',
                 app.name,
                 get_parent_by_interface(self, schemas.IResourceGroup).name,
             ])

@@ -88,6 +88,12 @@ network:
       webapp:
         enabled: true
 
+secrets_manager:
+  group:
+    app:
+      github_access_token:
+        enabled: true
+
 backup_vaults:
   myapp:
     enabled: false
@@ -206,7 +212,7 @@ applications:
                   type: GitHub.Source
                   enabled: true
                   deployment_branch_name: "master"
-                  github_token_parameter_name: TestGitHubToken
+                  github_access_token: paco.ref netenv.pacodemo.secretsmanager.group.app.github_access_token
                   github_owner: waterbear-cloud
                   github_repository: example-saas-app
                 codecommit:
@@ -586,6 +592,11 @@ applications:
 environments:
   demo:
     default:
+      secrets_manager:
+        group:
+          app:
+            github_access_token:
+              enabled: true
       backup_vaults:
         myapp:
           enabled: true

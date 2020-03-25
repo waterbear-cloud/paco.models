@@ -24,3 +24,6 @@ class InvalidAWSResourceName(Exception):
 
 class TroposphereConversionError(Exception):
     title = "Troposphere Conversion Error"
+
+class InvalidModelObject(Exception):
+    title = "Invalide Model Object"

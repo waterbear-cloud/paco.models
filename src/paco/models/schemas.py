@@ -6599,34 +6599,41 @@ class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
 class IDeploymentPipelineSourceGitHub(IDeploymentPipelineStageAction):
     """GitHub DeploymentPipeline Source Stage
 
-To configure a GitHub source, first create an OAuth Token in your GitHub account with the scopes
+To configure a GitHub source, first create a Personal Access Token in your GitHub account with the scopes
 ``repo`` and ``admin:repoHook``. See the AWS documentation on how to `Configure Your Pipeline to Use a Personal Access Token`_.
 
-Using the AWS Console for the account and region that the CodePipeline will be provisioned in, go to AWS Systems Manager
-and in Parameter Store choose "create parameter" and create a SecureString. Store the OAuth Token created by GitHub as the value
-of this parameter. Put the name you gave your paramter in the ``github_token_parameter_name`` field.
+Create a secrets_manager resource in your network environment and set your GitHub personal access token there:
 
-.. _Configure Your Pipeline to Use a Personal Access Token: https://docs.aws.amazon.com/codepipeline/latest/userguide/GitHub-create-personal-token-CLI.html
+secrets_manager:
+  group:
+    app:
+      github_access_token:
+        enabled: true
 
+paco set netenv.<name>.<env>.<region>.secrets_manager.<group>.<application>.github_access_token
+
+Assign the secert to the ``github_access_token`` GitHub action field by using the secrets_manager reference:
+
+github_access_token: paco.ref netenv.<name>.<env>.<region>.secrets_manager.<group>.<application>.github_access_token
 """
     taggedValue('contains', 'mixed')
     deployment_branch_name = schema.TextLine(
         title="The name of the branch where source changes are to be detected.",
         description="",
         default="master",
-        required=False,
+        required=False
     )
     github_owner = schema.TextLine(
         title='The name of the GitHub user or organization who owns the GitHub repository.',
-        required=True,
+        required=True
     )
     github_repository = schema.TextLine(
         title='The name of the repository where source changes are to be detected.',
-        required=True,
+        required=True
     )
-    github_token_parameter_name = schema.TextLine(
-        title='The name of the SSM Parameter SecureString that contains the GitHub OAuth Token.',
-        required=True,
+    github_access_token = PacoReference(
+        title='A reference to a Secrets Manager resource with the GitHub access token',
+        required=True
     )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):

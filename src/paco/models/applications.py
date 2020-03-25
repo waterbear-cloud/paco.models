@@ -462,8 +462,9 @@ class BlockDeviceMapping(Parent):
     }
 
 @implementer(schemas.IASGRollingUpdatePolicy)
-class ASGRollingUpdatePolicy(Named, Deployable):
+class ASGRollingUpdatePolicy(Named):
     title = "RollingUpdatePolicy"
+    enabled = FieldProperty(schemas.IASGRollingUpdatePolicy['enabled'])
     max_batch_size = FieldProperty(schemas.IASGRollingUpdatePolicy['max_batch_size'])
     min_instances_in_service = FieldProperty(schemas.IASGRollingUpdatePolicy['min_instances_in_service'])
     pause_time = FieldProperty(schemas.IASGRollingUpdatePolicy['pause_time'])
@@ -477,8 +478,6 @@ class ASG(Resource, Monitorable):
     desired_capacity_ignore_changes =  FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
     min_instances =  FieldProperty(schemas.IASG['min_instances'])
     max_instances =  FieldProperty(schemas.IASG['max_instances'])
-    update_policy_max_batch_size =  FieldProperty(schemas.IASG['update_policy_max_batch_size'])
-    update_policy_min_instances_in_service =  FieldProperty(schemas.IASG['update_policy_min_instances_in_service'])
     associate_public_ip_address =  FieldProperty(schemas.IASG['associate_public_ip_address'])
     cooldown_secs =  FieldProperty(schemas.IASG['cooldown_secs'])
     ebs_optimized =  FieldProperty(schemas.IASG['ebs_optimized'])
@@ -518,6 +517,7 @@ class ASG(Resource, Monitorable):
         self.load_balancers = []
         self.efs_mounts = []
         self.ebs_volume_mounts = []
+        self.rolling_update_policy = ASGRollingUpdatePolicy('rolling_update_policy', self)
 
     def get_aws_name(self):
         "AutoScalingGroup Name for AWS"

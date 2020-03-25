@@ -286,20 +286,7 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
         except KeyError:
             raise_invalid_reference(ref, project['resource'], ref.parts[1])
     elif ref.type == "service":
-        ref_value = get_resolve_ref_obj(project, project, ref, part_idx_start=0)
-        return ref_value
-        part_idx_start = 0
-        if ref.parts[2] == 'applications':
-            # This is the case if the ref does not contain an account and region
-            part_idx_start = 2
-        elif ref.parts[4] == 'applications':
-            part_idx_start = 4
-        if part_idx_start > 0:
-            obj = project['service'][ref.parts[1]]
-            response = get_resolve_ref_obj(project, obj, ref, part_idx_start=part_idx_start)
-            ref_value = response
-        else:
-            ref_value = project[ref.parts[1]].resolve_ref(ref)
+        return get_resolve_ref_obj(project, project, ref, part_idx_start=0)
     elif ref.type == "netenv":
         try:
             obj = project['netenv']
@@ -316,26 +303,6 @@ def resolve_ref(ref_str, project, account_ctx=None, ref=None):
     else:
         raise ValueError("Unsupported ref type: {}".format(ref.type))
 
-    # If the reference returned a Stack, and that Stack has not been
-    # modified by checking is_stack_cached(), then check the outputs
-    # to see if a value is there and return it. Otherwise continue
-    # to deal with waiting for new stack outputs.
-    # XXX: Disabled
-    if True == False and 'home' in project.keys():
-        value_type = "{}".format(type(ref_value))
-        if value_type == "<class 'paco.stack_group.stack_group.Stack'>":
-            # TODO: This is only useful when we are looking up values
-            # for stacks that will not be provisioned. ie. SNS Topic Arns
-            # from SNSTopics referenced by code in Network Environments.
-            # XXX: For now we are only looking at cached outputs for stacks
-            # outside of NetworkEnvironments.
-            # XXX: This check causes a Stack cache check which queries
-            # cloudformation which incurs a delay
-            if ref.ref.startswith('netenv') == False:
-                if ref_value.is_stack_cached():
-                    outputs_value = resolve_ref_outputs(ref, project['home'])
-                    if outputs_value != None:
-                        return outputs_value
     return ref_value
 
 def function_ec2_ami_latest(ref, project, account_ctx):

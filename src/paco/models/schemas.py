@@ -4562,6 +4562,49 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         required=True
     )
 
+# IoT
+
+class IIoTTopicRuleLambdaAction(IParent):
+    function = PacoReference(
+        title='Lambda function',
+        required=True,
+        schema_constraint='ILambda'
+    )
+
+class IIoTTopicRuleAction(IParent):
+    awslambda = schema.Object(
+        title="Lambda Action",
+        required=False,
+        schema=IIoTTopicRuleLambdaAction,
+    )
+
+class IIoTTopicRule(IResource):
+    """
+IoTTopicRule allows you to create a list of actions that will be triggered from a
+MQTT message coming in to IoT Core.
+"""
+    actions = schema.List(
+        title="Actions",
+        description="An IoTTopicRule must define at least one action.",
+        required=True,
+        value_type=schema.Object(IIoTTopicRuleAction),
+        default=[],
+    )
+    aws_iot_sql_version = schema.TextLine(
+        title="AWS IoT SQL Version",
+        default="2016-03-23",
+        required=False,
+    )
+    rule_enabled = schema.Bool(
+        title="Rule is Enabled",
+        default=True,
+        required=False,
+    )
+    sql = schema.Text(
+        title="SQL statement used to query the topic",
+        description="Must be a valid Sql statement",
+        required=True
+    )
 
 # Lambda
 
@@ -4729,7 +4772,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
 """
     code = schema.Object(
         title="The function deployment package.",
-        schema = ILambdaFunctionCode,
+        schema=ILambdaFunctionCode,
         required=True,
     )
     description=schema.TextLine(
@@ -4738,14 +4781,14 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     )
     environment = schema.Object(
         title="Lambda Function Environment",
-        schema = ILambdaEnvironment,
+        schema=ILambdaEnvironment,
         default=None,
         required=False,
     )
     iam_role = schema.Object(
         title="The IAM Role this Lambda will execute as.",
         required=True,
-        schema = IRole,
+        schema=IRole,
     )
     layers = schema.List(
         title="Layers",
@@ -4797,7 +4840,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     )
     sns_topics = schema.List(
         title="List of SNS Topic Paco references or SNS Topic ARNs to subscribe the Lambda to.",
-        value_type =  PacoReference(
+        value_type=PacoReference(
             str_ok=True,
             schema_constraint='ISNSTopic'
         ),
@@ -4806,7 +4849,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     vpc_config = schema.Object(
         title="Vpc Configuration",
         required=False,
-        schema = ILambdaVpcConfig
+        schema=ILambdaVpcConfig
     )
 
 # API Gateway
@@ -6587,7 +6630,7 @@ class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
     target_lambda = PacoReference(
         title='Lambda function',
         required=True,
-        schema_constraint='ILamba',
+        schema_constraint='ILambda',
     )
     user_parameters = schema.TextLine(
         title="User Parameters string that can be processed by the Lambda",

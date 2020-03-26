@@ -135,6 +135,23 @@ applications:
          - bob
         classification: 'performance'
     groups:
+      iot:
+        type: Application
+        order: 100
+        enabled: true
+        resources:
+          iottopic:
+            type: IoTTopicRule
+            order: 200
+            enabled: true
+            title: "Some extra notes"
+            actions:
+              - awslambda:
+                  function: paco.ref netenv.anet.applications.iotapp.groups.app.resources.iotfunc
+            aws_iot_sql_version: '2016-03-23'
+            rule_enabled: true
+            sql: "SELECT * FROM 'iot/myTestTopic'"
+
       cicd:
         type: Deployment
         title: Deployment

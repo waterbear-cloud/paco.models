@@ -371,3 +371,9 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.ICloudWatchDashboard.providedBy(dashboard)
         assert dashboard.title == "Demo-Dashboard"
         assert 'WebAsg.name' in dashboard.variables
+
+    def test_iotcore(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        iottopic = demo_env['applications']['app'].groups['iot'].resources['iottopic']
+        assert schemas.IIoTTopicRule.providedBy(iottopic)
+        assert iottopic.sql == "SELECT * FROM 'iot/myTestTopic'"

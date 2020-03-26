@@ -1383,3 +1383,24 @@ class CodeDeployDeploymentGroup(Named, Deployable):
 class CodeDeployApplication(Resource):
     compute_platform = FieldProperty(schemas.ICodeDeployApplication['compute_platform'])
     deployment_groups = FieldProperty(schemas.ICodeDeployApplication['deployment_groups'])
+
+# IoT
+
+@implementer(schemas.IIoTTopicRuleLambdaAction)
+class IoTTopicRuleLambdaAction(Parent):
+    function = FieldProperty(schemas.IIoTTopicRuleLambdaAction['function'])
+
+@implementer(schemas.IIoTTopicRuleAction)
+class IoTTopicRuleAction(Parent):
+    awslambda = FieldProperty(schemas.IIoTTopicRuleAction['awslambda'])
+
+@implementer(schemas.IIoTTopicRule)
+class IoTTopicRule(Resource):
+    actions = FieldProperty(schemas.IIoTTopicRule['actions'])
+    aws_iot_sql_version = FieldProperty(schemas.IIoTTopicRule['aws_iot_sql_version'])
+    rule_enabled = FieldProperty(schemas.IIoTTopicRule['rule_enabled'])
+    sql = FieldProperty(schemas.IIoTTopicRule['sql'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.actions = []

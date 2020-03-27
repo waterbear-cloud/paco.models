@@ -37,7 +37,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
-    IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction
+    IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, IoTTopicRuleIoTAnalyticsAction, \
+    IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, IotAnalyticsStorage
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -140,6 +141,7 @@ RESOURCES_CLASS_MAP = {
     'Dashboard': CloudWatchDashboard,
     'ElasticsearchDomain': ElasticsearchDomain,
     'IoTTopicRule': IoTTopicRule,
+    'IoTAnalyticsPipeline': IotAnalyticsPipeline,
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -150,11 +152,17 @@ SUB_TYPES_CLASS_MAP = {
         'version_control': ('direct_obj', VersionControl),
         'shared_state': ('direct_obj', SharedState),
     },
+    IotAnalyticsPipeline: {
+        'channel_storage': ('direct_obj', IotAnalyticsStorage),
+        'datastore_storage': ('direct_obj', IotAnalyticsStorage),
+        'pipeline_activities': ('container', IoTPipelineActivities, IoTPipelineActivity),
+    },
     IoTTopicRule: {
         'actions': ('obj_list', IoTTopicRuleAction),
     },
     IoTTopicRuleAction: {
         'awslambda': ('direct_obj', IoTTopicRuleLambdaAction),
+        'iotanalytics': ('direct_obj', IoTTopicRuleIoTAnalyticsAction),
     },
     ElasticsearchDomain: {
         'cluster': ('direct_obj', ElasticsearchCluster),

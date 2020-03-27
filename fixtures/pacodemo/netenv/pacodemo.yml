@@ -140,6 +140,27 @@ applications:
         order: 100
         enabled: true
         resources:
+          testiotbucket:
+            type: S3Bucket
+            enabled: true
+            order: 10
+            deletion_policy: "delete"
+            account: paco.ref accounts.dev
+
+          raw_analysis:
+            type: IoTAnalyticsPipeline
+            order: 100
+            enabled: true
+            title: simple raw test pipeline
+            channel_storage:
+              bucket: paco.ref netenv.pacodemo.applications.app.groups.iot.resources.testiotbucket
+              key_prefix: raw_input
+              expire_events_after_days: 3
+            datastore_storage:
+              bucket: paco.ref netenv.pacodemo.applications.app.groups.iot.resources.testiotbucket
+              key_prefix: raw_output
+              expire_events_after_days: 30
+
           iottopic:
             type: IoTTopicRule
             order: 200

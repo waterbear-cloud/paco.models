@@ -1386,6 +1386,39 @@ class CodeDeployApplication(Resource):
 
 # IoT
 
+@implementer(schemas.IStorageRetention)
+class StorageRetention():
+    expire_events_after_days = FieldProperty(schemas.IStorageRetention['expire_events_after_days'])
+
+@implementer(schemas.IIotAnalyticsStorage)
+class IotAnalyticsStorage(Named, StorageRetention):
+    bucket = FieldProperty(schemas.IIotAnalyticsStorage['bucket'])
+    key_prefix = FieldProperty(schemas.IIotAnalyticsStorage['key_prefix'])
+
+@implementer(schemas.IIoTPipelineActivity)
+class IoTPipelineActivity(Named):
+    activity_type = FieldProperty(schemas.IIoTPipelineActivity['activity_type'])
+    function = FieldProperty(schemas.IIoTPipelineActivity['function'])
+
+@implementer(schemas.IIoTPipelineActivities)
+class IoTPipelineActivities(Named, dict):
+    pass
+
+@implementer(schemas.IIotAnalyticsPipeline)
+class IotAnalyticsPipeline(Resource):
+    channel_storage = FieldProperty(schemas.IIotAnalyticsPipeline['channel_storage'])
+    datastore_storage = FieldProperty(schemas.IIotAnalyticsPipeline['datastore_storage'])
+    pipeline_activities = FieldProperty(schemas.IIotAnalyticsPipeline['pipeline_activities'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.channel_storage = IotAnalyticsStorage('channel_storage', self)
+        self.datastore_storage = IotAnalyticsStorage('dataset_storage', self)
+
+@implementer(schemas.IIoTTopicRuleIoTAnalyticsAction)
+class IoTTopicRuleIoTAnalyticsAction(Parent):
+    pipeline = FieldProperty(schemas.IIoTTopicRuleIoTAnalyticsAction['pipeline'])
+
 @implementer(schemas.IIoTTopicRuleLambdaAction)
 class IoTTopicRuleLambdaAction(Parent):
     function = FieldProperty(schemas.IIoTTopicRuleLambdaAction['function'])
@@ -1393,6 +1426,7 @@ class IoTTopicRuleLambdaAction(Parent):
 @implementer(schemas.IIoTTopicRuleAction)
 class IoTTopicRuleAction(Parent):
     awslambda = FieldProperty(schemas.IIoTTopicRuleAction['awslambda'])
+    iotanalytics = FieldProperty(schemas.IIoTTopicRuleAction['iotanalytics'])
 
 @implementer(schemas.IIoTTopicRule)
 class IoTTopicRule(Resource):

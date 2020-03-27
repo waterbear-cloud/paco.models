@@ -815,13 +815,13 @@ child accounts.
     )
     organization_account_ids = schema.List(
         title="A list of account ids to add to the Master account's AWS Organization",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         required=False,
         description='Each string in the list must contain only digits.'
     )
     admin_iam_users = schema.Dict(
         title="Admin IAM Users",
-        value_type = schema.Object(IAdminIAMUser),
+        value_type=schema.Object(IAdminIAMUser),
         required=False,
     )
 
@@ -1567,7 +1567,7 @@ A CloudWatch Alarm
     alarm_actions = schema.List(
         title="Alarm Actions",
         readonly = True,
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="Alarm Action",
             required=False,
         ),
@@ -1592,7 +1592,7 @@ A CloudWatch Alarm
     )
     dimensions = schema.List(
         title="Dimensions",
-        value_type = schema.Object(schema=IDimension),
+        value_type=schema.Object(schema=IDimension),
         required=False,
     )
     enable_ok_actions = schema.Bool(
@@ -1994,7 +1994,7 @@ S3 Bucket Policy
     aws = schema.List(
         title="List of AWS Principles.",
         description="Either this field or the principal field must be set.",
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="AWS Principle"
         ),
         required=False,
@@ -2051,7 +2051,7 @@ class IS3LambdaConfiguration(IParent):
 class IS3NotificationConfiguration(IParent):
     lambdas = schema.List(
         title="Lambda configurations",
-        value_type = schema.Object(IS3LambdaConfiguration),
+        value_type=schema.Object(IS3LambdaConfiguration),
         required=False,
     )
 
@@ -2434,7 +2434,7 @@ class IPrivateHostedZone(IDeployable):
     vpc_associations = schema.List(
         title="List of VPC Ids",
         required=False,
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="VPC ID"
         ),
         default=None
@@ -2528,7 +2528,7 @@ VPC Peering
     # Routes forward traffic to the peering connection
     routing = schema.List(
         title="Peering routes",
-        value_type = schema.Object(IVPCPeeringRoute),
+        value_type=schema.Object(IVPCPeeringRoute),
         required=True
     )
 
@@ -2917,7 +2917,7 @@ class IListenerRule(IDeployable):
     )
     path_pattern = schema.List(
         title="List of paths to match",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         required=False
     )
     # Redirect Rule Variables
@@ -2945,7 +2945,7 @@ class IListener(IParent, IPortProtocol):
     )
     ssl_certificates = schema.List(
         title="List of SSL certificate References",
-        value_type = PacoReference(
+        value_type=PacoReference(
             title="SSL Certificate Reference",
             schema_constraint='IAWSCertificateManager'
         ),
@@ -2958,7 +2958,7 @@ class IListener(IParent, IPortProtocol):
     )
     rules = schema.Dict(
         title="Container of listener rules",
-        value_type = schema.Object(IListenerRule),
+        value_type=schema.Object(IListenerRule),
         required=False,
         default=None
     )
@@ -3916,7 +3916,7 @@ Elastic IP (EIP) resource.
     """
     dns = schema.List(
         title="List of DNS for the EIP",
-        value_type = schema.Object(IDNS),
+        value_type=schema.Object(IDNS),
         required=False
     )
 
@@ -3994,7 +3994,7 @@ EC2 Launch Options
     )
     cfn_init_config_sets = schema.List(
         title="List of cfn-init config sets",
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="",
             required=False
         ),
@@ -4564,6 +4564,61 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
 
 # IoT
 
+# Different from ICloudWatchLogRetention.expire_events_after_days in that it is
+# not constrained to fixed periods - this can be any X number of days. If set
+# to 0 then it will be considered 'Unlimited' by IoC Analytics Storage.
+class IStorageRetention(Interface):
+    expire_events_after_days = schema.Int(
+        title="Expire Events After Days",
+        description="Must be 1 or greater. If set to an explicit 0 then it is considered unlimited.",
+        default=0,
+        required=False,
+    )
+
+class IIotAnalyticsStorage(INamed, IStorageRetention):
+    bucket = PacoReference(
+        title='S3 Bucket',
+        required=False,
+        schema_constraint='IS3Bucket'
+    )
+    key_prefix = schema.TextLine(
+        title="Key Prefix for S3 Bucket",
+        required=False,
+        default="",
+    )
+
+class IIoTPipelineActivity(INamed):
+    activity_type = schema.TextLine(
+        title='Activity Type',
+        required=True,
+    )
+    function = PacoReference(
+        title='Lambda function',
+        required=False,
+        schema_constraint='ILambda'
+    )
+
+class IIoTPipelineActivities(INamed, IMapping):
+    "Container for `IoTPipelineActivity`_ objects."
+    taggedValue('contains', 'IIoTPipelineActivity')
+
+class IIotAnalyticsPipeline(IResource):
+    channel_storage = schema.Object(
+        title="IoT Analytics Channel raw storage",
+        schema=IIotAnalyticsStorage,
+        required=False,
+    )
+    datastore_storage = schema.Object(
+        title="IoT Analytics Datastore storage",
+        schema=IIotAnalyticsStorage,
+        required=False,
+    )
+    pipeline_activities = schema.Object(
+        title="IoT Analytics Pipeline Activies",
+        schema=IIoTPipelineActivities,
+        required=False
+    )
+
 class IIoTTopicRuleLambdaAction(IParent):
     function = PacoReference(
         title='Lambda function',
@@ -4571,11 +4626,23 @@ class IIoTTopicRuleLambdaAction(IParent):
         schema_constraint='ILambda'
     )
 
+class IIoTTopicRuleIoTAnalyticsAction(IParent):
+    pipeline = PacoReference(
+        title='IoT Analytics pipeline',
+        required=True,
+        schema_constraint='IIotAnalyticsPipeline'
+    )
+
 class IIoTTopicRuleAction(IParent):
     awslambda = schema.Object(
         title="Lambda Action",
         required=False,
         schema=IIoTTopicRuleLambdaAction,
+    )
+    iotanalytics = schema.Object(
+        title="IoT Analytics Action",
+        required=False,
+        schema=IIoTTopicRuleIoTAnalyticsAction,
     )
 
 class IIoTTopicRule(IResource):
@@ -4630,7 +4697,7 @@ Lambda Environment
     """
     variables = schema.List(
         title="Lambda Function Variables",
-        value_type = schema.Object(ILambdaVariable),
+        value_type=schema.Object(ILambdaVariable),
         required=False,
     )
 
@@ -4671,7 +4738,7 @@ Lambda Environment
     segments = schema.List(
         title="VPC Segments to attach the function",
         description="",
-        value_type = PacoReference(
+        value_type=PacoReference(
             title="Segment",
             schema_constraint='ISegment',
         ),
@@ -4679,7 +4746,7 @@ Lambda Environment
     )
     security_groups = schema.List(
         title="List of VPC Security Group Ids",
-        value_type = PacoReference(
+        value_type=PacoReference(
             schema_constraint='ISecurityGroup'
         ),
         required=False
@@ -4875,7 +4942,7 @@ class IApiGatewayMethodMethodResponse(Interface):
         title="The resources used for the response's content type.",
         description="""Specify response models as key-value pairs (string-to-string maps),
 with a content type as the key and a Model Paco name as the value.""",
-        value_type = schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
+        value_type=schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
         required=False,
     )
 
@@ -4916,7 +4983,7 @@ to the integration request without modification.
 class IApiGatewayMethodIntegration(IParent):
     integration_responses = schema.List(
         title="Integration Responses",
-        value_type = schema.Object(IApiGatewayMethodIntegrationResponse),
+        value_type=schema.Object(IApiGatewayMethodIntegrationResponse),
         required=False,
     )
     request_parameters = schema.Dict(
@@ -4984,7 +5051,7 @@ class IApiGatewayMethod(IResource):
     method_responses = schema.List(
         title="Method Responses",
         description="List of ApiGatewayMethod MethodResponses",
-        value_type = schema.Object(IApiGatewayMethodMethodResponse),
+        value_type=schema.Object(IApiGatewayMethodMethodResponse),
         required=False,
     )
     request_parameters = schema.Dict(
@@ -5141,7 +5208,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         title="Binary Media Types. The list of binary media types that are supported by the RestApi resource, such as image/png or application/octet-stream. By default, RestApi supports only UTF-8-encoded text payloads.",
         description="Duplicates are not allowed. Slashes must be escaped with ~1. For example, image/png would be image~1png in the BinaryMediaTypes list.",
         constraint = isValidBinaryMediaTypes,
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="Binary Media Type"
         ),
         required=False,
@@ -5172,7 +5239,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     endpoint_configuration = schema.List(
         title="Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",
         description="List of strings, each must be one of 'EDGE', 'REGIONAL', 'PRIVATE'",
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="Endpoint Type",
             constraint = isValidEndpointConfigurationType
         ),
@@ -5202,7 +5269,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     parameters = schema.Dict(
         title="Parameters. Custom header parameters for the request.",
         description="Dictionary of key/value pairs that are strings.",
-        value_type = schema.TextLine(title="Value"),
+        value_type=schema.TextLine(title="Value"),
         default={},
         required=False,
     )
@@ -5239,7 +5306,7 @@ Route53 Record Set
     resource_records = schema.List(
         title='Record Set Values',
         required=True,
-        value_type = schema.TextLine(title='Resource Record')
+        value_type=schema.TextLine(title='Resource Record')
     )
     ttl = schema.Int(
         title='Record TTL',
@@ -5263,7 +5330,7 @@ Existing Hosted Zone configuration
     )
     nameservers = schema.List(
         title='List of the Hosted Zones Nameservers',
-        value_type = schema.TextLine(title='Nameservers'),
+        value_type=schema.TextLine(title='Nameservers'),
         required=True
     )
 
@@ -5282,7 +5349,7 @@ Route53 Hosted Zone
     )
     record_sets = schema.List(
         title='List of Record Sets',
-        value_type = schema.Object(IRoute53RecordSet),
+        value_type=schema.Object(IRoute53RecordSet),
         required=True
     )
     parent_zone = schema.TextLine(
@@ -5318,7 +5385,7 @@ Provision Route 53 with:
     """
     hosted_zones = schema.Dict(
         title="Hosted Zones",
-        value_type = schema.Object(IRoute53HostedZone),
+        value_type=schema.Object(IRoute53HostedZone),
         default=None,
         required=False,
     )
@@ -5463,7 +5530,7 @@ CodeCommit Repository
     )
     users = schema.Dict(
         title="CodeCommit Users",
-        value_type = schema.Object(ICodeCommitUser),
+        value_type=schema.Object(ICodeCommitUser),
         default=None,
         required=False,
     )
@@ -5551,7 +5618,7 @@ Simple Notification Service (SNS) Topic resource.
     )
     subscriptions = schema.List(
         title="List of SNS Topic Subscriptions",
-        value_type = schema.Object(ISNSTopicSubscription),
+        value_type=schema.Object(ISNSTopicSubscription),
         required=False,
     )
     cross_account_access = schema.Bool(
@@ -5568,7 +5635,7 @@ CloudTrail resource
     accounts = schema.List(
         title="Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
         description="",
-        value_type = PacoReference(
+        value_type=PacoReference(
             title="Account Reference",
             schema_constraint='IAccount'
         ),
@@ -5647,7 +5714,7 @@ class ICloudFrontCookies(INamed):
     )
     whitelisted_names = schema.List(
         title="White Listed Names",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         required=False
     )
 
@@ -5664,7 +5731,7 @@ class ICloudFrontForwardedValues(INamed):
     )
     headers = schema.List(
         title="Forward Headers",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         default=['*'],
         required=False
     )
@@ -5672,13 +5739,13 @@ class ICloudFrontForwardedValues(INamed):
 class ICloudFrontDefaultCacheBehavior(INamed):
     allowed_methods = schema.List(
         title="List of Allowed HTTP Methods",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         default=[ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ],
         required=False
     )
     cached_methods = schema.List(
         title="List of HTTP Methods to cache",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         default=[ 'GET', 'HEAD', 'OPTIONS' ],
         required=False
     )
@@ -5776,7 +5843,7 @@ class ICloudFrontCustomOriginConfig(INamed):
     )
     ssl_protocols = schema.List(
         title="List of SSL Protocols",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         constraint = isValidCFSSLProtocol,
         required=True,
     )
@@ -5820,7 +5887,7 @@ class ICloudFrontFactory(INamed):
     """CloudFront Factory"""
     domain_aliases = schema.List(
         title="List of DNS for the Distribution",
-        value_type = schema.Object(IDNS),
+        value_type=schema.Object(IDNS),
         required=False,
     )
     viewer_certificate = schema.Object(
@@ -5835,7 +5902,7 @@ CloudFront CDN Configuration
     """
     domain_aliases = schema.List(
         title="List of DNS for the Distribution",
-        value_type = schema.Object(IDNS),
+        value_type=schema.Object(IDNS),
         required=False,
     )
     default_root_object = schema.TextLine(
@@ -5850,7 +5917,7 @@ CloudFront CDN Configuration
     )
     cache_behaviors = schema.List(
         title='List of Cache Behaviors',
-        value_type = schema.Object(ICloudFrontCacheBehavior),
+        value_type=schema.Object(ICloudFrontCacheBehavior),
         required=False
     )
     viewer_certificate = schema.Object(
@@ -5866,13 +5933,13 @@ CloudFront CDN Configuration
     )
     custom_error_responses = schema.List(
         title="List of Custom Error Responses",
-        value_type = schema.Object(ICloudFrontCustomErrorResponse),
+        value_type=schema.Object(ICloudFrontCustomErrorResponse),
         default=None,
         required=False,
     )
     origins = schema.Dict(
         title="Map of Origins",
-        value_type = schema.Object(ICloudFrontOrigin),
+        value_type=schema.Object(ICloudFrontOrigin),
         required=False,
     )
     webacl_id = schema.TextLine(
@@ -5881,7 +5948,7 @@ CloudFront CDN Configuration
     )
     factory = schema.Dict(
         title="CloudFront Factory",
-        value_type = schema.Object(ICloudFrontFactory),
+        value_type=schema.Object(ICloudFrontFactory),
         default=None,
         required=False,
     )
@@ -5921,7 +5988,7 @@ Option groups enable and configure features that are specific to a particular DB
     )
     option_settings = schema.List(
         title='List of option name value pairs.',
-        value_type = schema.Object(INameValuePair),
+        value_type=schema.Object(INameValuePair),
         required=False,
     )
     option_version = schema.TextLine(
@@ -6457,7 +6524,7 @@ CodeCommit IAM User Permission
     """
     repositories = schema.List(
         title='List of repository permissions',
-        value_type = schema.Object(IIAMUserPermissionCodeCommitRepository),
+        value_type=schema.Object(IIAMUserPermissionCodeCommitRepository),
         required=False,
     )
 
@@ -6486,7 +6553,7 @@ CodeBuild IAM User Permission
     """
     resources = schema.List(
         title='List of CodeBuild resources',
-        value_type = schema.Object(IIAMUserPermissionCodeBuildResource),
+        value_type=schema.Object(IIAMUserPermissionCodeBuildResource),
         required=False
     )
 

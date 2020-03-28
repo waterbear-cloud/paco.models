@@ -1415,6 +1415,9 @@ class IotAnalyticsPipeline(Resource):
         self.channel_storage = IotAnalyticsStorage('channel_storage', self)
         self.datastore_storage = IotAnalyticsStorage('dataset_storage', self)
 
+    def resolve_ref(self, ref):
+        return self.stack.template.resolve_ref(ref)
+
 @implementer(schemas.IIoTTopicRuleIoTAnalyticsAction)
 class IoTTopicRuleIoTAnalyticsAction(Parent):
     pipeline = FieldProperty(schemas.IIoTTopicRuleIoTAnalyticsAction['pipeline'])

@@ -3497,6 +3497,16 @@ def isValidS3KeyPrefix(value):
         raise InvalidS3KeyPrefix
     return True
 
+class InvalidStorageKeyPrefix(schema.ValidationError):
+    __doc__ = "Not a valid key prefix. Must match regular expression pattern ^[a-zA-Z0-9!_.*'()/{}:-]*/$"
+
+KEYPREFIX_RE = re.compile(r"^[a-zA-Z0-9!_.*'()/{}:-]*/$")
+def isValidStorageKeyPrefix(value):
+    if value == '': return True
+    if not KEYPREFIX_RE.match(value):
+        raise InvalidStorageKeyPrefix
+    return True
+
 class ICloudFormationInitFiles(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
@@ -4576,6 +4586,15 @@ class IStorageRetention(Interface):
     )
 
 class IIotAnalyticsStorage(INamed, IStorageRetention):
+    @invariant
+    def is_either_customer_or_service(obj):
+        "Validate that either customer or service options are set."
+        if (obj.bucket != None and obj.key_prefix == '') or (obj.bucket == None and obj.key_prefix != ''):
+            raise Invalid("Must set both bucket and key_prefix for customer managed storage bucket.")
+        if obj.expire_events_after_days > 0:
+            if obj.bucket != None or obj.key_prefix != '':
+                raise Invalid("Can not set expire_events_after_days for a customer managed S3 Bucket")
+
     bucket = PacoReference(
         title='S3 Bucket',
         required=False,
@@ -4585,6 +4604,7 @@ class IIotAnalyticsStorage(INamed, IStorageRetention):
         title="Key Prefix for S3 Bucket",
         required=False,
         default="",
+        constraint=isValidStorageKeyPrefix,
     )
 
 class IIoTPipelineActivity(INamed):

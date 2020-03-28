@@ -1414,6 +1414,7 @@ class IotAnalyticsPipeline(Resource):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.channel_storage = IotAnalyticsStorage('channel_storage', self)
+        self.pipeline_activities = IoTPipelineActivities('pipeline_activities', self)
         self.datastore_storage = IotAnalyticsStorage('dataset_storage', self)
 
     def resolve_ref(self, ref):

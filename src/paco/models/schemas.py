@@ -2951,6 +2951,12 @@ class IListener(IParent, IPortProtocol):
         ),
         required=False,
     )
+    ssl_policy = schema.Choice(
+        title="SSL Policy",
+        default="",
+        vocabulary=vocabulary.lb_ssl_policy,
+        required=False,
+    )
     target_group = schema.TextLine(
         title="Target group",
         default="",

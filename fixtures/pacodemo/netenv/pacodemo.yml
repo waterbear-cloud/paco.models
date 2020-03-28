@@ -154,11 +154,8 @@ applications:
             title: simple raw test pipeline
             channel_storage:
               bucket: paco.ref netenv.pacodemo.applications.app.groups.iot.resources.testiotbucket
-              key_prefix: raw_input
-              expire_events_after_days: 3
+              key_prefix: raw_input/
             datastore_storage:
-              bucket: paco.ref netenv.pacodemo.applications.app.groups.iot.resources.testiotbucket
-              key_prefix: raw_output
               expire_events_after_days: 30
 
           iottopic:

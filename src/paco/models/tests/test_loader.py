@@ -382,5 +382,5 @@ class Testpacodemo(BaseTestModelLoader):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         iotpipeline = demo_env['applications']['app'].groups['iot'].resources['raw_analysis']
         assert schemas.IIotAnalyticsPipeline.providedBy(iotpipeline)
-        assert iotpipeline.channel_storage.key_prefix == 'raw_input'
-        assert iotpipeline.datastore_storage.key_prefix == 'raw_output'
+        assert iotpipeline.channel_storage.key_prefix == 'raw_input/'
+        assert iotpipeline.datastore_storage.expire_events_after_days == 30

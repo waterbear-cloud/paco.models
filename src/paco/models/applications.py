@@ -617,6 +617,7 @@ class Listeners(Named, dict):
 class Listener(Named, PortProtocol):
     redirect = FieldProperty(schemas.IListener['redirect'])
     ssl_certificates = FieldProperty(schemas.IListener['ssl_certificates'])
+    ssl_policy = FieldProperty(schemas.IListener['ssl_policy'])
     target_group = FieldProperty(schemas.IListener['target_group'])
     rules = FieldProperty(schemas.IListener['rules'])
 
@@ -627,7 +628,7 @@ class Listener(Named, PortProtocol):
         # 'LoadBalancerArn': (basestring, True),
         'Port': 'port',
         'Protocol': 'protocol',
-        # 'SslPolicy': (basestring, False)
+        # 'SslPolicy': computed in template
     }
 
 @implementer(schemas.IDNS)

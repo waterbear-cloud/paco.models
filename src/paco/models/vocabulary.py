@@ -571,6 +571,19 @@ target_group_protocol = SimpleVocabulary.fromValues(
     ['HTTP','HTTPS']
 )
 
+lb_ssl_policy = SimpleVocabulary.fromValues([
+	'',
+	'ELBSecurityPolicy-2016-08',
+	'ELBSecurityPolicy-TLS-1-0-2015-04',
+	'ELBSecurityPolicy-TLS-1-1-2017-01',
+	'ELBSecurityPolicy-TLS-1-2-2017-01',
+	'ELBSecurityPolicy-TLS-1-2-Ext-2018-06',
+	'ELBSecurityPolicy-FS-2018-06',
+	'ELBSecurityPolicy-FS-1-1-2019-08',
+	'ELBSecurityPolicy-FS-1-2-2019-08',
+	'ELBSecurityPolicy-FS-1-2-Res-2019-08',
+])
+
 lb_scheme = SimpleVocabulary.fromValues(
     ['internet-facing','internal']
 )

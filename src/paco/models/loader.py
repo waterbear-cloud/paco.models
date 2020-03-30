@@ -38,7 +38,9 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, IoTTopicRuleIoTAnalyticsAction, \
-    IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, IotAnalyticsStorage
+    IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, IotAnalyticsStorage, Attributes, \
+    IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, DatasetContentDeliveryRule, \
+    DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, DatasetVariables, DatasetVariable
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -155,7 +157,20 @@ SUB_TYPES_CLASS_MAP = {
     IotAnalyticsPipeline: {
         'channel_storage': ('direct_obj', IotAnalyticsStorage),
         'datastore_storage': ('direct_obj', IotAnalyticsStorage),
-        'pipeline_activities': ('container', IoTPipelineActivities, IoTPipelineActivity),
+        'pipeline_activities': ('container', (IoTPipelineActivities, IoTPipelineActivity)),
+        'datasets': ('container', (IoTDatasets, IoTDataset)),
+    },
+    IoTDataset: {
+        'container_action': ('direct_obj', DatasetContainerAction),
+        'query_action': ('direct_obj', DatasetQueryAction),
+        'content_delivery_rules': ('container', (DatasetContentDeliveryRules, DatasetContentDeliveryRule)),
+        'triggers': ('obj_list', DatasetTrigger),
+    },
+    DatasetContentDeliveryRule: {
+        's3_destination': ('direct_obj', DatasetS3Destination),
+    },
+    IoTPipelineActivity: {
+        'attributes': ('dynamic_dict', Attributes)
     },
     IoTTopicRule: {
         'actions': ('obj_list', IoTTopicRuleAction),

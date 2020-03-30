@@ -588,6 +588,11 @@ lb_scheme = SimpleVocabulary.fromValues(
     ['internet-facing','internal']
 )
 
+iot_dataset_container_types = SimpleVocabulary.fromValues([
+	'ACU_1',
+	'ACU_2',
+])
+
 iam_policy_effect = SimpleVocabulary.fromValues(
     ['Allow','Deny']
 )

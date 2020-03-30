@@ -4613,20 +4613,215 @@ class IIotAnalyticsStorage(INamed, IStorageRetention):
         constraint=isValidStorageKeyPrefix,
     )
 
+class IAttributes(INamed, IMapping):
+    pass
+
 class IIoTPipelineActivity(INamed):
+    """
+Each activity must have an ``activity_type`` and supply fields specific for that type.
+There is an implicit Channel activity before all other activities and an an implicit Datastore
+activity after all other activities.
+
+.. code-block: yaml
+    :caption: All example types for IotAnalyticsPipeline pipeline_activities
+
+    activity_type: lambda
+    batch_size: 1
+    function: paco.ref netenv.mynet[...]mylambda
+
+    activity_type: add_attributes
+    attributes:
+    key1: hello
+    key2: world
+
+    activity_type: remove_attributes
+    attribute_list:
+      - key1
+      - key2
+
+    activity_type: select_attributes
+    attribute_list:
+      - key1
+      - key2
+
+    activity_type: filter
+    filter: "attribute1 > 40 AND attribute2 < 20"
+
+    activity_type: math
+    attribute: "attribute1"
+    math: "attribute1 - 10"
+
+    activity_type: device_registry_enrich
+    attribute: "attribute1"
+    thing_name: "mything"
+
+    activity_type: device_shadow_enrich
+    attribute: "attribute1"
+    thing_name: "mything"
+
+"""
     activity_type = schema.TextLine(
         title='Activity Type',
         required=True,
+    )
+    attributes = schema.Object(
+        title="Attributes",
+        required=False,
+        schema=IAttributes,
+    )
+    attribute_list = schema.List(
+        title="Attribute List",
+        required=False,
+    )
+    attribute = schema.TextLine(
+        title="Attribute",
+        required=False,
+    )
+    batch_size = schema.Int(
+        title="Batch Size",
+        min=1,
+        max=1000,
+        required=False,
+        default=1,
+    )
+    filter = schema.TextLine(
+        title="Filter",
+        required=False,
     )
     function = PacoReference(
         title='Lambda function',
         required=False,
         schema_constraint='ILambda'
     )
+    math = schema.TextLine(
+        title="Math",
+        required=False,
+    )
+    thing_name = schema.TextLine(
+        title="Thing Name",
+        required=False,
+    )
 
 class IIoTPipelineActivities(INamed, IMapping):
     "Container for `IoTPipelineActivity`_ objects."
     taggedValue('contains', 'IIoTPipelineActivity')
+
+class IDatasetVariable(INamed):
+    double_value = schema.Float(
+        title="Double Value",
+        required=False,
+    )
+    output_file_uri_value = schema.TextLine(
+        title="Output file URI value",
+        description="The URI of the location where dataset contents are stored, usually the URI of a file in an S3 bucket.",
+        required=False,
+    )
+    string_value = schema.Text(
+        title="String Value",
+        required=False,
+    )
+
+class IDatasetVariables(INamed, IMapping):
+    "Container for `DatasetVariables`_ objects."
+    taggedValue('contains', 'IDatasetVariables')
+
+class IDatasetContainerAction(INamed):
+    image_arn = schema.TextLine(
+        title="Image ARN",
+        required=True,
+    )
+    resource_compute_type = schema.Choice(
+        title="Resource Compute Type",
+        vocabulary=vocabulary.iot_dataset_container_types,
+        description="Either ACU_1 (vCPU=4, memory=16 GiB) or ACU_2 (vCPU=8, memory=32 GiB)",
+        required=True,
+    )
+    resource_volume_size_gb = schema.Int(
+        title="Resource Volume Size in GB",
+        min=1,
+        max=50,
+        required=True
+    )
+    variables = schema.Object(
+        title="Variables",
+        schema=IDatasetVariables,
+        required=True,
+    )
+
+class IDatasetQueryAction(INamed):
+    filters = schema.List(
+        title="Filters",
+        required=False,
+    )
+    sql_query = schema.TextLine(
+        title="Sql Query Dataset Action object",
+        required=True,
+    )
+
+class IDatasetS3Destination(IParent):
+    bucket = PacoReference(
+        title='S3 Bucket',
+        required=True,
+        schema_constraint='IS3Bucket'
+    )
+    key = schema.TextLine(
+        title="Key",
+        required=True,
+    )
+
+class IDatasetContentDeliveryRule(INamed):
+    s3_destination = schema.Object(
+        title="S3 Destination",
+        required=False,
+        schema=IDatasetS3Destination,
+    )
+
+class IDatasetContentDeliveryRules(INamed, IMapping):
+    "Container for `DatasetContentDeliveryRule`_ objects."
+    taggedValue('contains', 'IDatasetContentDeliveryRule')
+
+class IDatasetTrigger(IParent):
+    schedule_expression = schema.TextLine(
+        title="Schedule Expression",
+        required=False,
+    )
+    triggering_dataset = schema.TextLine(
+        title="Triggering Dataset",
+        required=False
+    )
+
+class IIoTDataset(INamed, IStorageRetention):
+    container_action = schema.Object(
+        title="Dataset Container action",
+        required=False,
+        schema=IDatasetContainerAction,
+    )
+    query_action = schema.Object(
+        title="SQL Query action",
+        required=False,
+        schema=IDatasetQueryAction,
+    )
+    content_delivery_rules = schema.Object(
+        title="Content Delivery Rules",
+        schema=IDatasetContentDeliveryRules,
+        required=False,
+    )
+    triggers = schema.List(
+        title="Triggers",
+        value_type=schema.Object(IDatasetTrigger),
+        required=False,
+        default=[],
+    )
+    version_history = schema.Int(
+        title="How many versions of dataset contents are kept. 0 indicates Unlimited. If not specified or set to null, only the latest version plus the latest succeeded version (if they are different) are kept for the time period specified by expire_events_after_days field.",
+        min=0,
+        max=1000,
+        required=False,
+    )
+
+class IIoTDatasets(INamed, IMapping):
+    "Container for `IoTDataset`_ objects."
+    taggedValue('contains', 'IIoTDataset')
 
 class IIotAnalyticsPipeline(IResource):
     channel_storage = schema.Object(
@@ -4643,6 +4838,11 @@ class IIotAnalyticsPipeline(IResource):
         title="IoT Analytics Pipeline Activies",
         schema=IIoTPipelineActivities,
         required=False
+    )
+    datasets = schema.Object(
+        title="IoT Analytics Datasets",
+        schema=IIoTDatasets,
+        required=True,
     )
 
 class IIoTTopicRuleLambdaAction(IParent):

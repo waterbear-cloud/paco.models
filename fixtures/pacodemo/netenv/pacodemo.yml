@@ -155,8 +155,44 @@ applications:
             channel_storage:
               bucket: paco.ref netenv.pacodemo.applications.app.groups.iot.resources.testiotbucket
               key_prefix: raw_input/
+            pipeline_activities:
+              extra_bit:
+                activity_type: add_attributes
+                attributes:
+                  key1: heyguy
+                  key2: heynow
+              compute_extra:
+                activity_type: lambda
+                function: paco.ref netenv.anet.applications.iotapp.groups.app.resources.iotfunc
+                batch_size: 2
+              remove:
+                activity_type: remove_attributes
+                attribute_list:
+                  - "attr1"
+              select:
+                activity_type: select_attributes
+                attribute_list:
+                  - "attr1"
+              filter:
+                activity_type: filter
+                filter: "attribute1 > 40 AND attribute2 < 20"
+              math:
+                activity_type: math
+                attribute: "attribute1"
+                math: "attribute1 - 10"
             datastore_storage:
               expire_events_after_days: 30
+            datasets:
+              sample:
+                query_action:
+                  sql_query: "SELECT * FROM example"
+                content_delivery_rules:
+                  s3dump:
+                    s3_destination:
+                      bucket: paco.ref netenv.pacodemo.applications.app.groups.iot.resources.testiotbucket
+                      key: "/DataSet/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv"
+                expire_events_after_days: 3
+                version_history: 2
 
           iottopic:
             type: IoTTopicRule

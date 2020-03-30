@@ -384,3 +384,11 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.IIotAnalyticsPipeline.providedBy(iotpipeline)
         assert iotpipeline.channel_storage.key_prefix == 'raw_input/'
         assert iotpipeline.datastore_storage.expire_events_after_days == 30
+        assert iotpipeline.pipeline_activities['extra_bit'].attributes['key1'] == 'heyguy'
+
+        # datasets
+        sample = iotpipeline.datasets['sample']
+        assert sample.query_action.sql_query == "SELECT * FROM example"
+        assert sample.content_delivery_rules['s3dump'].s3_destination.key == "/DataSet/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv"
+        assert sample.version_history == 2
+        assert sample.expire_events_after_days == 3

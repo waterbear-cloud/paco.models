@@ -4752,6 +4752,7 @@ class IDatasetQueryAction(INamed):
     filters = schema.List(
         title="Filters",
         required=False,
+        default=[],
     )
     sql_query = schema.TextLine(
         title="Sql Query Dataset Action object",

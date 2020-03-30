@@ -1441,6 +1441,10 @@ class DatasetQueryAction(Named):
     filters = FieldProperty(schemas.IDatasetQueryAction['filters'])
     sql_query = FieldProperty(schemas.IDatasetQueryAction['sql_query'])
 
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.filters = []
+
 @implementer(schemas.IDatasetS3Destination)
 class DatasetS3Destination(Named):
     bucket = FieldProperty(schemas.IDatasetS3Destination['bucket'])

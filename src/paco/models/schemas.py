@@ -4631,8 +4631,8 @@ activity after all other activities.
 
     activity_type: add_attributes
     attributes:
-    key1: hello
-    key2: world
+      key1: hello
+      key2: world
 
     activity_type: remove_attributes
     attribute_list:
@@ -4660,6 +4660,58 @@ activity after all other activities.
     thing_name: "mything"
 
 """
+    @invariant
+    def is_correct_type_schema(obj):
+        "Validate that fields are set for the activity_type"
+        field_types = {
+            'lambda': {
+                'batch_size': False,
+                'function': True,
+            },
+            'add_attributes': {
+                'attributes': True,
+            },
+            'remove_attributes': {
+                'attribute_list': True,
+            },
+            'select_attributes': {
+                'attribute_list': True,
+            },
+            'filter': {
+                'filter': True,
+            },
+            'math': {
+                'attribute': True,
+                'math': True,
+            },
+            'device_registry_enrich': {
+                'attribute': True,
+                'thing_name': True,
+            },
+            'device_shadow_enrich': {
+                'attribute': True,
+                'thing_name': True,
+            },
+        }
+        field_list = [
+            'attributes',
+            'attribute_list',
+            'attribute',
+            'batch_size',
+            'filter',
+            'function',
+            'math',
+            'thing_name',
+        ]
+        allowed = field_types[obj.activity_type]
+        for field in field_list:
+            if field not in allowed:
+                if getattr(obj, field, None):
+                    raise Invalid(f"Activity {obj.name} of activity_type: {obj.activity_type} has inapplicable field '{field}'.")
+            else:
+                if not getattr(obj, field, None) and allowed[field] == True:
+                    raise Invalid(f"Activity {obj.name} of activity_type: {obj.activity_type} is missing field '{field}'.")
+
     activity_type = schema.TextLine(
         title='Activity Type',
         required=True,
@@ -4682,7 +4734,6 @@ activity after all other activities.
         min=1,
         max=1000,
         required=False,
-        default=1,
     )
     filter = schema.TextLine(
         title="Filter",
@@ -4825,9 +4876,77 @@ class IIoTDatasets(INamed, IMapping):
     taggedValue('contains', 'IIoTDataset')
 
 class IIotAnalyticsPipeline(IResource):
+    """
+An IoTAnalyticsPipeline composes four closely related resources: IoT Analytics Channel, IoT Analytics Pipeline,
+IoT Analytics Datastore and IoT Analytics Dataset.
+
+An IoT Analytics Pipeline begins with a Channel. A Channel is an S3 Bucket of raw incoming messages.
+A Channel provides an ARN that an IoTTopicRule can send MQTT messages to. These messages can later be re-processed
+if the analysis pipeline changes. Use the ``channel_storage`` field to configure the Channel storage.
+
+Next the Pipeline applies a series of ``pipeline_activities`` to the incoming Channel messages. After any message
+modifications have been made, they are stored in a Datastore.
+
+A Datastore is S3 Bucket storage of messages that are ready to be analyzed. Use the ``datastore_storage`` field to configure
+the Datastore storage. The ``datastore_name`` is an optional field to give your Datastore a fixed name, this can
+be useful if you use Dataset SQL Query analysis which needs to use the Datastore name in a SELECT query. However,
+if you use ``datastore_name`` it doesn't vary by Environment - if you use name then it is recommended to use different
+Regions and Accounts for each IoTAnalytics environment.
+
+Lastly the Datastore can be analyzed and have the resulting output saved as a Dataset. There may be multiple Datasets
+to create different analysis of the data. Datasets can be analyzed on a managed host running a Docker container or
+with an SQL Query to create subsets of a Datastore suitable for analysis with tools such as AWS QuickSight.
+
+.. sidebar:: Prescribed Automation
+
+    Every IoTAnalyticsPipeline has an IAM Role associated with it. This Role will have access to every S3 Bucket
+    that is referenced by a Channel, Datastore or Dataset.
+
+    ``pipeline_activities``: Every list of activities beings with an implicit Channel activity and ends with a
+    Datastore activity.
+
+
+.. code-block:: yaml
+    :caption: example IoTAnalyticsPipeline configuration
+
+    type: IoTAnalyticsPipeline
+    title: My IoT Analytics Pipeline
+    order: 100
+    enabled: true
+    channel_storage:
+      bucket: paco.ref netenv.mynet.applications.app.groups.iot.resources.iotbucket
+      key_prefix: raw_input/
+    pipeline_activities:
+      adddatetime:
+        activity_type: lambda
+        function: paco.ref netenv.mynet.applications.app.groups.iot.resources.iotfunc
+        batch_size: 10
+      filter:
+        activity_type: filter
+        filter: "temperature > 0"
+    datastore_name: example
+    datastore_storage:
+      expire_events_after_days: 30
+    datasets:
+      hightemp:
+        query_action:
+          sql_query: "SELECT * FROM example WHERE temperature > 20"
+        content_delivery_rules:
+          s3temperature:
+            s3_destination:
+              bucket: paco.ref netenv.mynet.applications.app.groups.iot.resources.iotbucket
+              key: "/HighTemp/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv"
+        expire_events_after_days: 3
+        version_history: 5
+
+    """
     channel_storage = schema.Object(
         title="IoT Analytics Channel raw storage",
         schema=IIotAnalyticsStorage,
+        required=False,
+    )
+    datastore_name = schema.TextLine(
+        title="Datastore name",
         required=False,
     )
     datastore_storage = schema.Object(

@@ -1478,6 +1478,7 @@ class IoTDatasets(Named, dict):
 @implementer(schemas.IIotAnalyticsPipeline)
 class IotAnalyticsPipeline(Resource):
     channel_storage = FieldProperty(schemas.IIotAnalyticsPipeline['channel_storage'])
+    datastore_name = FieldProperty(schemas.IIotAnalyticsPipeline['datastore_name'])
     datastore_storage = FieldProperty(schemas.IIotAnalyticsPipeline['datastore_storage'])
     pipeline_activities = FieldProperty(schemas.IIotAnalyticsPipeline['pipeline_activities'])
 

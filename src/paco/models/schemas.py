@@ -6911,12 +6911,21 @@ Custom IAM User Permission
         title='Comma separated list of Paco AWS account names this user has access to',
         required=False,
     )
+    managed_policies = schema.List(
+        title="AWS Managed Policies",
+        value_type=schema.Choice(
+            title="Managed policies",
+            vocabulary=vocabulary.iam_managed_policies,
+        ),
+        required=False,
+        default=[],
+    )
     policies = schema.List(
         title="Policies",
         value_type=schema.Object(
             schema=IPolicy
         ),
-        required=False
+        required=False,
     )
 
 class IIAMUserPermissions(INamed, IMapping):

@@ -538,11 +538,13 @@ class IAMUserPermissionCodeBuild(IAMUserPermission):
 @implementer(schemas.IIAMUserPermissionCustomPolicy)
 class IAMUserPermissionCustomPolicy(IAMUserPermission):
     accounts = FieldProperty(schemas.IIAMUserPermissionCustomPolicy['accounts'])
+    managed_policies = FieldProperty(schemas.IIAMUserPermissionCustomPolicy['managed_policies'])
     policies = FieldProperty(schemas.IIAMUserPermissionCustomPolicy['policies'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.policies = []
+        self.managed_policies = []
 
 @implementer(schemas.IIAMUserPermissions)
 class IAMUserPermissions(Named, dict):

@@ -3920,16 +3920,15 @@ Elastic IP (EIP) resource.
 .. code-block:: yaml
     :caption: Example EIP resource YAML
 
-    eip:
-      type: EIP
-      order: 5
-      enabled: true
-      dns:
-        - domain_name: example.com
-          hosted_zone: paco.ref resource.route53.examplecom
-          ttl: 60
+    type: EIP
+    order: 5
+    enabled: true
+    dns:
+      - domain_name: example.com
+        hosted_zone: paco.ref resource.route53.examplecom
+        ttl: 60
 
-    """
+"""
     dns = schema.List(
         title="List of DNS for the EIP",
         value_type=schema.Object(IDNS),
@@ -3970,13 +3969,12 @@ If the volume is going to be used by an ASG, it should launch an instance in the
 .. code-block:: yaml
     :caption: Example EBS resource YAML
 
-    my_volume:
-      type: EBS
-      order: 5
-      enabled: true
-      size_gib: 4
-      volume_type: gp2
-      availability_zone: 1
+    type: EBS
+    order: 5
+    enabled: true
+    size_gib: 4
+    volume_type: gp2
+    availability_zone: 1
 
     """
 
@@ -4614,7 +4612,10 @@ class IIotAnalyticsStorage(INamed, IStorageRetention):
     )
 
 class IAttributes(INamed, IMapping):
-    pass
+    """
+Dictionary of Attributes
+    """
+    taggedValue('contains', 'mixed')
 
 class IIoTPipelineActivity(INamed):
     """
@@ -4899,8 +4900,8 @@ with an SQL Query to create subsets of a Datastore suitable for analysis with to
 
 .. sidebar:: Prescribed Automation
 
-    Every IoTAnalyticsPipeline has an IAM Role associated with it. This Role will have access to every S3 Bucket
-    that is referenced by a Channel, Datastore or Dataset.
+    **IoTAnalyticsPipeline Role** Every IoTAnalyticsPipeline has an IAM Role associated with it. This Role will
+    have access to every S3 Bucket that is referenced by a Channel, Datastore or Dataset.
 
     ``pipeline_activities``: Every list of activities beings with an implicit Channel activity and ends with a
     Datastore activity.
@@ -4995,6 +4996,28 @@ class IIoTTopicRule(IResource):
     """
 IoTTopicRule allows you to create a list of actions that will be triggered from a
 MQTT message coming in to IoT Core.
+
+.. sidebar:: Prescribed Automation
+
+    **IoTTopicRule Role** Every IoTTopicRule will have a Role created that it can assume to perform any actions
+    that it has. For example, it will be allowed to call a Lambda or an IoTAnalyticsPipeline.
+
+.. code-block:: yaml
+    :caption: example IoTTopicRule configuration
+
+    type: IoTTopicRule
+    title: Rule to take action for MQTT messages sent to 'sensor/example'
+    order: 20
+    enabled: true
+    actions:
+      - awslambda:
+          function: paco.ref netenv.mynet.applications.app.groups.app.resources.iotlambda
+      - iotanalytics:
+          pipeline: paco.ref netenv.mynet.applications.app.groups.app.resources.analyticspipeline
+    aws_iot_sql_version: '2016-03-23'
+    rule_enabled: true
+    sql: "SELECT * FROM 'sensor/example'"
+
 """
     actions = schema.List(
         title="Actions",
@@ -5134,11 +5157,9 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     Paco will create an SNS Topic Subscription so that the Lambda function will recieve all messages sent to that SNS Topic.
     It will also create a Lambda Permission granting that SNS Topic the ability to publish to the Lambda.
 
-    **S3 Bucket Notification permission** Paco will check all resources in the Application for any S3 Buckets configured
-    to notify this Lambda. Lambda Permissions will be created to allow those S3 Buckets to invoke the Lambda.
-
-    **Events Rule permission** Paco will check all resources in the Application for CloudWatch Events Rule that are configured
-    to notify this Lambda and create a Lambda permission to allow that Event Rule to invoke the Lambda.
+    **Lambda Permissions** Paco will check all resources in the Application for any: S3Bucket configured
+    to notify this Lambda, EventsRule to invoke this Lambda, IoTAnalyticsPipeline activities to invoke this Lambda.
+    These resources will automatically gain a Lambda Permission to be able to invoke the Lambda.
 
 .. code-block:: yaml
     :caption: Lambda function resource YAML
@@ -6936,7 +6957,40 @@ Container for IAM User Permission objects.
 
 class IIAMUser(INamed, IDeployable):
     """
-IAM User
+IAM User represents a user that will exist in one account, but can also
+have delegate IAM Roles in other accounts that they are allowed to assume.
+
+.. code-block:: yaml
+    :caption: example IAM User
+
+    enabled: true
+    account: paco.ref accounts.master
+    username: yourusername
+    description: 'Your Name - Paco Administrator'
+    console_access_enabled: true
+    programmatic_access:
+      enabled: true
+      access_key_1_version: 1
+      access_key_2_version: 0
+    account_whitelist: all
+    permissions:
+      administrator:
+        type: Administrator
+        accounts: all
+      custom:
+        accounts: dev
+        managed_policies:
+           - 'AWSDirectConnectReadOnlyAccess'
+           - 'AmazonGlacierReadOnlyAccess'
+        policies:
+          - name: "AWS Polly full access"
+            statement:
+              - effect: Allow
+                action:
+                  - 'polly:*'
+                resource:
+                  - '*'
+
     """
     account = PacoReference(
         title="Paco account reference to install this user",
@@ -7097,8 +7151,9 @@ github_access_token: paco.ref netenv.<name>.<env>.<region>.secrets_manager.<grou
         required=True
     )
     github_access_token = PacoReference(
-        title='A reference to a Secrets Manager resource with the GitHub access token',
-        required=True
+        title='Secrets Manager Secret with a GitHub access token',
+        required=True,
+        schema_constraint='ISecretsManagerSecret',
     )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):

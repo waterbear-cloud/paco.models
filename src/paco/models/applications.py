@@ -617,6 +617,7 @@ class Listeners(Named, dict):
 class Listener(Named, PortProtocol):
     redirect = FieldProperty(schemas.IListener['redirect'])
     ssl_certificates = FieldProperty(schemas.IListener['ssl_certificates'])
+    ssl_policy = FieldProperty(schemas.IListener['ssl_policy'])
     target_group = FieldProperty(schemas.IListener['target_group'])
     rules = FieldProperty(schemas.IListener['rules'])
 
@@ -627,7 +628,7 @@ class Listener(Named, PortProtocol):
         # 'LoadBalancerArn': (basestring, True),
         'Port': 'port',
         'Protocol': 'protocol',
-        # 'SslPolicy': (basestring, False)
+        # 'SslPolicy': computed in template
     }
 
 @implementer(schemas.IDNS)
@@ -1383,3 +1384,134 @@ class CodeDeployDeploymentGroup(Named, Deployable):
 class CodeDeployApplication(Resource):
     compute_platform = FieldProperty(schemas.ICodeDeployApplication['compute_platform'])
     deployment_groups = FieldProperty(schemas.ICodeDeployApplication['deployment_groups'])
+
+# IoT
+
+@implementer(schemas.IStorageRetention)
+class StorageRetention():
+    expire_events_after_days = FieldProperty(schemas.IStorageRetention['expire_events_after_days'])
+
+@implementer(schemas.IIotAnalyticsStorage)
+class IotAnalyticsStorage(Named, StorageRetention):
+    bucket = FieldProperty(schemas.IIotAnalyticsStorage['bucket'])
+    key_prefix = FieldProperty(schemas.IIotAnalyticsStorage['key_prefix'])
+
+@implementer(schemas.IAttributes)
+class Attributes(Named, dict):
+    pass
+
+@implementer(schemas.IIoTPipelineActivity)
+class IoTPipelineActivity(Named):
+    activity_type = FieldProperty(schemas.IIoTPipelineActivity['activity_type'])
+    attributes = FieldProperty(schemas.IIoTPipelineActivity['attributes'])
+    attribute_list = FieldProperty(schemas.IIoTPipelineActivity['attribute_list'])
+    batch_size = FieldProperty(schemas.IIoTPipelineActivity['batch_size'])
+    filter = FieldProperty(schemas.IIoTPipelineActivity['filter'])
+    function = FieldProperty(schemas.IIoTPipelineActivity['function'])
+    math = FieldProperty(schemas.IIoTPipelineActivity['math'])
+    thing_name = FieldProperty(schemas.IIoTPipelineActivity['thing_name'])
+
+@implementer(schemas.IIoTPipelineActivities)
+class IoTPipelineActivities(Named, dict):
+    pass
+
+@implementer(schemas.IDatasetVariable)
+class DatasetVariable(Named):
+    double_value = FieldProperty(schemas.IDatasetVariable['double_value'])
+    output_file_uri_value = FieldProperty(schemas.IDatasetVariable['output_file_uri_value'])
+    string_value = FieldProperty(schemas.IDatasetVariable['string_value'])
+
+@implementer(schemas.IDatasetVariables)
+class DatasetVariables(Named, dict):
+    pass
+
+@implementer(schemas.IDatasetContainerAction)
+class DatasetContainerAction(Named):
+    image_arn = FieldProperty(schemas.IDatasetContainerAction['image_arn'])
+    resource_compute_type = FieldProperty(schemas.IDatasetContainerAction['resource_compute_type'])
+    resource_volume_size_gb = FieldProperty(schemas.IDatasetContainerAction['resource_volume_size_gb'])
+    variables = FieldProperty(schemas.IDatasetContainerAction['variables'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.variables = DatasetVariables('variables', self)
+
+@implementer(schemas.IDatasetQueryAction)
+class DatasetQueryAction(Named):
+    filters = FieldProperty(schemas.IDatasetQueryAction['filters'])
+    sql_query = FieldProperty(schemas.IDatasetQueryAction['sql_query'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.filters = []
+
+@implementer(schemas.IDatasetS3Destination)
+class DatasetS3Destination(Named):
+    bucket = FieldProperty(schemas.IDatasetS3Destination['bucket'])
+    key = FieldProperty(schemas.IDatasetS3Destination['key'])
+
+@implementer(schemas.IDatasetContentDeliveryRule)
+class DatasetContentDeliveryRule(Named):
+    s3_destination = FieldProperty(schemas.IDatasetContentDeliveryRule['s3_destination'])
+
+@implementer(schemas.IDatasetContentDeliveryRules)
+class DatasetContentDeliveryRules(Named, dict):
+    pass
+
+@implementer(schemas.IDatasetTrigger)
+class DatasetTrigger(Parent):
+    schedule_expression = FieldProperty(schemas.IDatasetTrigger['schedule_expression'])
+    triggering_dataset = FieldProperty(schemas.IDatasetTrigger['triggering_dataset'])
+
+@implementer(schemas.IIoTDataset)
+class IoTDataset(Named, StorageRetention):
+    container_action = FieldProperty(schemas.IIoTDataset['container_action'])
+    query_action = FieldProperty(schemas.IIoTDataset['query_action'])
+    content_delivery_rules = FieldProperty(schemas.IIoTDataset['content_delivery_rules'])
+    triggers = FieldProperty(schemas.IIoTDataset['triggers'])
+    version_history = FieldProperty(schemas.IIoTDataset['version_history'])
+
+@implementer(schemas.IIoTDatasets)
+class IoTDatasets(Named, dict):
+    pass
+
+@implementer(schemas.IIotAnalyticsPipeline)
+class IotAnalyticsPipeline(Resource):
+    channel_storage = FieldProperty(schemas.IIotAnalyticsPipeline['channel_storage'])
+    datastore_name = FieldProperty(schemas.IIotAnalyticsPipeline['datastore_name'])
+    datastore_storage = FieldProperty(schemas.IIotAnalyticsPipeline['datastore_storage'])
+    pipeline_activities = FieldProperty(schemas.IIotAnalyticsPipeline['pipeline_activities'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.channel_storage = IotAnalyticsStorage('channel_storage', self)
+        self.pipeline_activities = IoTPipelineActivities('pipeline_activities', self)
+        self.datastore_storage = IotAnalyticsStorage('dataset_storage', self)
+        self.datasets = IoTDatasets('datasets', self)
+
+    def resolve_ref(self, ref):
+        return self.stack
+
+@implementer(schemas.IIoTTopicRuleIoTAnalyticsAction)
+class IoTTopicRuleIoTAnalyticsAction(Parent):
+    pipeline = FieldProperty(schemas.IIoTTopicRuleIoTAnalyticsAction['pipeline'])
+
+@implementer(schemas.IIoTTopicRuleLambdaAction)
+class IoTTopicRuleLambdaAction(Parent):
+    function = FieldProperty(schemas.IIoTTopicRuleLambdaAction['function'])
+
+@implementer(schemas.IIoTTopicRuleAction)
+class IoTTopicRuleAction(Parent):
+    awslambda = FieldProperty(schemas.IIoTTopicRuleAction['awslambda'])
+    iotanalytics = FieldProperty(schemas.IIoTTopicRuleAction['iotanalytics'])
+
+@implementer(schemas.IIoTTopicRule)
+class IoTTopicRule(Resource):
+    actions = FieldProperty(schemas.IIoTTopicRule['actions'])
+    aws_iot_sql_version = FieldProperty(schemas.IIoTTopicRule['aws_iot_sql_version'])
+    rule_enabled = FieldProperty(schemas.IIoTTopicRule['rule_enabled'])
+    sql = FieldProperty(schemas.IIoTTopicRule['sql'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.actions = []

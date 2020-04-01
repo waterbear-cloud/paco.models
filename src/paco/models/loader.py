@@ -36,7 +36,11 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
-    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
+    IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, IoTTopicRuleIoTAnalyticsAction, \
+    IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, IotAnalyticsStorage, Attributes, \
+    IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, DatasetContentDeliveryRule, \
+    DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, DatasetVariables, DatasetVariable
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -138,6 +142,8 @@ RESOURCES_CLASS_MAP = {
     'CodeDeployApplication': CodeDeployApplication,
     'Dashboard': CloudWatchDashboard,
     'ElasticsearchDomain': ElasticsearchDomain,
+    'IoTTopicRule': IoTTopicRule,
+    'IoTAnalyticsPipeline': IotAnalyticsPipeline,
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -147,6 +153,31 @@ SUB_TYPES_CLASS_MAP = {
     Project: {
         'version_control': ('direct_obj', VersionControl),
         'shared_state': ('direct_obj', SharedState),
+    },
+    IotAnalyticsPipeline: {
+        'channel_storage': ('direct_obj', IotAnalyticsStorage),
+        'datastore_storage': ('direct_obj', IotAnalyticsStorage),
+        'pipeline_activities': ('container', (IoTPipelineActivities, IoTPipelineActivity)),
+        'datasets': ('container', (IoTDatasets, IoTDataset)),
+    },
+    IoTDataset: {
+        'container_action': ('direct_obj', DatasetContainerAction),
+        'query_action': ('direct_obj', DatasetQueryAction),
+        'content_delivery_rules': ('container', (DatasetContentDeliveryRules, DatasetContentDeliveryRule)),
+        'triggers': ('obj_list', DatasetTrigger),
+    },
+    DatasetContentDeliveryRule: {
+        's3_destination': ('direct_obj', DatasetS3Destination),
+    },
+    IoTPipelineActivity: {
+        'attributes': ('dynamic_dict', Attributes)
+    },
+    IoTTopicRule: {
+        'actions': ('obj_list', IoTTopicRuleAction),
+    },
+    IoTTopicRuleAction: {
+        'awslambda': ('direct_obj', IoTTopicRuleLambdaAction),
+        'iotanalytics': ('direct_obj', IoTTopicRuleIoTAnalyticsAction),
     },
     ElasticsearchDomain: {
         'cluster': ('direct_obj', ElasticsearchCluster),

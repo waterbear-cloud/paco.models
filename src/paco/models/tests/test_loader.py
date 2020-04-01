@@ -371,3 +371,24 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.ICloudWatchDashboard.providedBy(dashboard)
         assert dashboard.title == "Demo-Dashboard"
         assert 'WebAsg.name' in dashboard.variables
+
+    def test_iotcore(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        iottopic = demo_env['applications']['app'].groups['iot'].resources['iottopic']
+        assert schemas.IIoTTopicRule.providedBy(iottopic)
+        assert iottopic.sql == "SELECT * FROM 'iot/myTestTopic'"
+
+    def test_iotanalyticspipeline(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        iotpipeline = demo_env['applications']['app'].groups['iot'].resources['raw_analysis']
+        assert schemas.IIotAnalyticsPipeline.providedBy(iotpipeline)
+        assert iotpipeline.channel_storage.key_prefix == 'raw_input/'
+        assert iotpipeline.datastore_storage.expire_events_after_days == 30
+        assert iotpipeline.pipeline_activities['extra_bit'].attributes['key1'] == 'heyguy'
+
+        # datasets
+        sample = iotpipeline.datasets['sample']
+        assert sample.query_action.sql_query == "SELECT * FROM example"
+        assert sample.content_delivery_rules['s3dump'].s3_destination.key == "/DataSet/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv"
+        assert sample.version_history == 2
+        assert sample.expire_events_after_days == 3

@@ -815,13 +815,13 @@ child accounts.
     )
     organization_account_ids = schema.List(
         title="A list of account ids to add to the Master account's AWS Organization",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         required=False,
         description='Each string in the list must contain only digits.'
     )
     admin_iam_users = schema.Dict(
         title="Admin IAM Users",
-        value_type = schema.Object(IAdminIAMUser),
+        value_type=schema.Object(IAdminIAMUser),
         required=False,
     )
 
@@ -1567,7 +1567,7 @@ A CloudWatch Alarm
     alarm_actions = schema.List(
         title="Alarm Actions",
         readonly = True,
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="Alarm Action",
             required=False,
         ),
@@ -1592,7 +1592,7 @@ A CloudWatch Alarm
     )
     dimensions = schema.List(
         title="Dimensions",
-        value_type = schema.Object(schema=IDimension),
+        value_type=schema.Object(schema=IDimension),
         required=False,
     )
     enable_ok_actions = schema.Bool(
@@ -1994,7 +1994,7 @@ S3 Bucket Policy
     aws = schema.List(
         title="List of AWS Principles.",
         description="Either this field or the principal field must be set.",
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="AWS Principle"
         ),
         required=False,
@@ -2051,7 +2051,7 @@ class IS3LambdaConfiguration(IParent):
 class IS3NotificationConfiguration(IParent):
     lambdas = schema.List(
         title="Lambda configurations",
-        value_type = schema.Object(IS3LambdaConfiguration),
+        value_type=schema.Object(IS3LambdaConfiguration),
         required=False,
     )
 
@@ -2434,7 +2434,7 @@ class IPrivateHostedZone(IDeployable):
     vpc_associations = schema.List(
         title="List of VPC Ids",
         required=False,
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="VPC ID"
         ),
         default=None
@@ -2528,7 +2528,7 @@ VPC Peering
     # Routes forward traffic to the peering connection
     routing = schema.List(
         title="Peering routes",
-        value_type = schema.Object(IVPCPeeringRoute),
+        value_type=schema.Object(IVPCPeeringRoute),
         required=True
     )
 
@@ -2917,7 +2917,7 @@ class IListenerRule(IDeployable):
     )
     path_pattern = schema.List(
         title="List of paths to match",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         required=False
     )
     # Redirect Rule Variables
@@ -2945,10 +2945,16 @@ class IListener(IParent, IPortProtocol):
     )
     ssl_certificates = schema.List(
         title="List of SSL certificate References",
-        value_type = PacoReference(
+        value_type=PacoReference(
             title="SSL Certificate Reference",
             schema_constraint='IAWSCertificateManager'
         ),
+        required=False,
+    )
+    ssl_policy = schema.Choice(
+        title="SSL Policy",
+        default="",
+        vocabulary=vocabulary.lb_ssl_policy,
         required=False,
     )
     target_group = schema.TextLine(
@@ -2958,7 +2964,7 @@ class IListener(IParent, IPortProtocol):
     )
     rules = schema.Dict(
         title="Container of listener rules",
-        value_type = schema.Object(IListenerRule),
+        value_type=schema.Object(IListenerRule),
         required=False,
         default=None
     )
@@ -3497,6 +3503,16 @@ def isValidS3KeyPrefix(value):
         raise InvalidS3KeyPrefix
     return True
 
+class InvalidStorageKeyPrefix(schema.ValidationError):
+    __doc__ = "Not a valid key prefix. Must match regular expression pattern ^[a-zA-Z0-9!_.*'()/{}:-]*/$"
+
+KEYPREFIX_RE = re.compile(r"^[a-zA-Z0-9!_.*'()/{}:-]*/$")
+def isValidStorageKeyPrefix(value):
+    if value == '': return True
+    if not KEYPREFIX_RE.match(value):
+        raise InvalidStorageKeyPrefix
+    return True
+
 class ICloudFormationInitFiles(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
@@ -3916,7 +3932,7 @@ Elastic IP (EIP) resource.
     """
     dns = schema.List(
         title="List of DNS for the EIP",
-        value_type = schema.Object(IDNS),
+        value_type=schema.Object(IDNS),
         required=False
     )
 
@@ -3994,7 +4010,7 @@ EC2 Launch Options
     )
     cfn_init_config_sets = schema.List(
         title="List of cfn-init config sets",
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="",
             required=False
         ),
@@ -4562,6 +4578,446 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         required=True
     )
 
+# IoT
+
+# Different from ICloudWatchLogRetention.expire_events_after_days in that it is
+# not constrained to fixed periods - this can be any X number of days. If set
+# to 0 then it will be considered 'Unlimited' by IoC Analytics Storage.
+class IStorageRetention(Interface):
+    expire_events_after_days = schema.Int(
+        title="Expire Events After Days",
+        description="Must be 1 or greater. If set to an explicit 0 then it is considered unlimited.",
+        default=0,
+        required=False,
+    )
+
+class IIotAnalyticsStorage(INamed, IStorageRetention):
+    @invariant
+    def is_either_customer_or_service(obj):
+        "Validate that either customer or service options are set."
+        if (obj.bucket != None and obj.key_prefix == '') or (obj.bucket == None and obj.key_prefix != ''):
+            raise Invalid("Must set both bucket and key_prefix for customer managed storage bucket.")
+        if obj.expire_events_after_days > 0:
+            if obj.bucket != None or obj.key_prefix != '':
+                raise Invalid("Can not set expire_events_after_days for a customer managed S3 Bucket")
+
+    bucket = PacoReference(
+        title='S3 Bucket',
+        required=False,
+        schema_constraint='IS3Bucket'
+    )
+    key_prefix = schema.TextLine(
+        title="Key Prefix for S3 Bucket",
+        required=False,
+        default="",
+        constraint=isValidStorageKeyPrefix,
+    )
+
+class IAttributes(INamed, IMapping):
+    pass
+
+class IIoTPipelineActivity(INamed):
+    """
+Each activity must have an ``activity_type`` and supply fields specific for that type.
+There is an implicit Channel activity before all other activities and an an implicit Datastore
+activity after all other activities.
+
+.. code-block: yaml
+    :caption: All example types for IotAnalyticsPipeline pipeline_activities
+
+    activity_type: lambda
+    batch_size: 1
+    function: paco.ref netenv.mynet[...]mylambda
+
+    activity_type: add_attributes
+    attributes:
+      key1: hello
+      key2: world
+
+    activity_type: remove_attributes
+    attribute_list:
+      - key1
+      - key2
+
+    activity_type: select_attributes
+    attribute_list:
+      - key1
+      - key2
+
+    activity_type: filter
+    filter: "attribute1 > 40 AND attribute2 < 20"
+
+    activity_type: math
+    attribute: "attribute1"
+    math: "attribute1 - 10"
+
+    activity_type: device_registry_enrich
+    attribute: "attribute1"
+    thing_name: "mything"
+
+    activity_type: device_shadow_enrich
+    attribute: "attribute1"
+    thing_name: "mything"
+
+"""
+    @invariant
+    def is_correct_type_schema(obj):
+        "Validate that fields are set for the activity_type"
+        field_types = {
+            'lambda': {
+                'batch_size': False,
+                'function': True,
+            },
+            'add_attributes': {
+                'attributes': True,
+            },
+            'remove_attributes': {
+                'attribute_list': True,
+            },
+            'select_attributes': {
+                'attribute_list': True,
+            },
+            'filter': {
+                'filter': True,
+            },
+            'math': {
+                'attribute': True,
+                'math': True,
+            },
+            'device_registry_enrich': {
+                'attribute': True,
+                'thing_name': True,
+            },
+            'device_shadow_enrich': {
+                'attribute': True,
+                'thing_name': True,
+            },
+        }
+        field_list = [
+            'attributes',
+            'attribute_list',
+            'attribute',
+            'batch_size',
+            'filter',
+            'function',
+            'math',
+            'thing_name',
+        ]
+        allowed = field_types[obj.activity_type]
+        for field in field_list:
+            if field not in allowed:
+                if getattr(obj, field, None):
+                    raise Invalid(f"Activity {obj.name} of activity_type: {obj.activity_type} has inapplicable field '{field}'.")
+            else:
+                if not getattr(obj, field, None) and allowed[field] == True:
+                    raise Invalid(f"Activity {obj.name} of activity_type: {obj.activity_type} is missing field '{field}'.")
+
+    activity_type = schema.TextLine(
+        title='Activity Type',
+        required=True,
+    )
+    attributes = schema.Object(
+        title="Attributes",
+        required=False,
+        schema=IAttributes,
+    )
+    attribute_list = schema.List(
+        title="Attribute List",
+        required=False,
+    )
+    attribute = schema.TextLine(
+        title="Attribute",
+        required=False,
+    )
+    batch_size = schema.Int(
+        title="Batch Size",
+        min=1,
+        max=1000,
+        required=False,
+    )
+    filter = schema.TextLine(
+        title="Filter",
+        required=False,
+    )
+    function = PacoReference(
+        title='Lambda function',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    math = schema.TextLine(
+        title="Math",
+        required=False,
+    )
+    thing_name = schema.TextLine(
+        title="Thing Name",
+        required=False,
+    )
+
+class IIoTPipelineActivities(INamed, IMapping):
+    "Container for `IoTPipelineActivity`_ objects."
+    taggedValue('contains', 'IIoTPipelineActivity')
+
+class IDatasetVariable(INamed):
+    double_value = schema.Float(
+        title="Double Value",
+        required=False,
+    )
+    output_file_uri_value = schema.TextLine(
+        title="Output file URI value",
+        description="The URI of the location where dataset contents are stored, usually the URI of a file in an S3 bucket.",
+        required=False,
+    )
+    string_value = schema.Text(
+        title="String Value",
+        required=False,
+    )
+
+class IDatasetVariables(INamed, IMapping):
+    "Container for `DatasetVariables`_ objects."
+    taggedValue('contains', 'IDatasetVariables')
+
+class IDatasetContainerAction(INamed):
+    image_arn = schema.TextLine(
+        title="Image ARN",
+        required=True,
+    )
+    resource_compute_type = schema.Choice(
+        title="Resource Compute Type",
+        vocabulary=vocabulary.iot_dataset_container_types,
+        description="Either ACU_1 (vCPU=4, memory=16 GiB) or ACU_2 (vCPU=8, memory=32 GiB)",
+        required=True,
+    )
+    resource_volume_size_gb = schema.Int(
+        title="Resource Volume Size in GB",
+        min=1,
+        max=50,
+        required=True
+    )
+    variables = schema.Object(
+        title="Variables",
+        schema=IDatasetVariables,
+        required=True,
+    )
+
+class IDatasetQueryAction(INamed):
+    filters = schema.List(
+        title="Filters",
+        required=False,
+        default=[],
+    )
+    sql_query = schema.TextLine(
+        title="Sql Query Dataset Action object",
+        required=True,
+    )
+
+class IDatasetS3Destination(IParent):
+    bucket = PacoReference(
+        title='S3 Bucket',
+        required=True,
+        schema_constraint='IS3Bucket'
+    )
+    key = schema.TextLine(
+        title="Key",
+        required=True,
+    )
+
+class IDatasetContentDeliveryRule(INamed):
+    s3_destination = schema.Object(
+        title="S3 Destination",
+        required=False,
+        schema=IDatasetS3Destination,
+    )
+
+class IDatasetContentDeliveryRules(INamed, IMapping):
+    "Container for `DatasetContentDeliveryRule`_ objects."
+    taggedValue('contains', 'IDatasetContentDeliveryRule')
+
+class IDatasetTrigger(IParent):
+    schedule_expression = schema.TextLine(
+        title="Schedule Expression",
+        required=False,
+    )
+    triggering_dataset = schema.TextLine(
+        title="Triggering Dataset",
+        required=False
+    )
+
+class IIoTDataset(INamed, IStorageRetention):
+    container_action = schema.Object(
+        title="Dataset Container action",
+        required=False,
+        schema=IDatasetContainerAction,
+    )
+    query_action = schema.Object(
+        title="SQL Query action",
+        required=False,
+        schema=IDatasetQueryAction,
+    )
+    content_delivery_rules = schema.Object(
+        title="Content Delivery Rules",
+        schema=IDatasetContentDeliveryRules,
+        required=False,
+    )
+    triggers = schema.List(
+        title="Triggers",
+        value_type=schema.Object(IDatasetTrigger),
+        required=False,
+        default=[],
+    )
+    version_history = schema.Int(
+        title="How many versions of dataset contents are kept. 0 indicates Unlimited. If not specified or set to null, only the latest version plus the latest succeeded version (if they are different) are kept for the time period specified by expire_events_after_days field.",
+        min=0,
+        max=1000,
+        required=False,
+    )
+
+class IIoTDatasets(INamed, IMapping):
+    "Container for `IoTDataset`_ objects."
+    taggedValue('contains', 'IIoTDataset')
+
+class IIotAnalyticsPipeline(IResource):
+    """
+An IoTAnalyticsPipeline composes four closely related resources: IoT Analytics Channel, IoT Analytics Pipeline,
+IoT Analytics Datastore and IoT Analytics Dataset.
+
+An IoT Analytics Pipeline begins with a Channel. A Channel is an S3 Bucket of raw incoming messages.
+A Channel provides an ARN that an IoTTopicRule can send MQTT messages to. These messages can later be re-processed
+if the analysis pipeline changes. Use the ``channel_storage`` field to configure the Channel storage.
+
+Next the Pipeline applies a series of ``pipeline_activities`` to the incoming Channel messages. After any message
+modifications have been made, they are stored in a Datastore.
+
+A Datastore is S3 Bucket storage of messages that are ready to be analyzed. Use the ``datastore_storage`` field to configure
+the Datastore storage. The ``datastore_name`` is an optional field to give your Datastore a fixed name, this can
+be useful if you use Dataset SQL Query analysis which needs to use the Datastore name in a SELECT query. However,
+if you use ``datastore_name`` it doesn't vary by Environment - if you use name then it is recommended to use different
+Regions and Accounts for each IoTAnalytics environment.
+
+Lastly the Datastore can be analyzed and have the resulting output saved as a Dataset. There may be multiple Datasets
+to create different analysis of the data. Datasets can be analyzed on a managed host running a Docker container or
+with an SQL Query to create subsets of a Datastore suitable for analysis with tools such as AWS QuickSight.
+
+.. sidebar:: Prescribed Automation
+
+    Every IoTAnalyticsPipeline has an IAM Role associated with it. This Role will have access to every S3 Bucket
+    that is referenced by a Channel, Datastore or Dataset.
+
+    ``pipeline_activities``: Every list of activities beings with an implicit Channel activity and ends with a
+    Datastore activity.
+
+
+.. code-block:: yaml
+    :caption: example IoTAnalyticsPipeline configuration
+
+    type: IoTAnalyticsPipeline
+    title: My IoT Analytics Pipeline
+    order: 100
+    enabled: true
+    channel_storage:
+      bucket: paco.ref netenv.mynet.applications.app.groups.iot.resources.iotbucket
+      key_prefix: raw_input/
+    pipeline_activities:
+      adddatetime:
+        activity_type: lambda
+        function: paco.ref netenv.mynet.applications.app.groups.iot.resources.iotfunc
+        batch_size: 10
+      filter:
+        activity_type: filter
+        filter: "temperature > 0"
+    datastore_name: example
+    datastore_storage:
+      expire_events_after_days: 30
+    datasets:
+      hightemp:
+        query_action:
+          sql_query: "SELECT * FROM example WHERE temperature > 20"
+        content_delivery_rules:
+          s3temperature:
+            s3_destination:
+              bucket: paco.ref netenv.mynet.applications.app.groups.iot.resources.iotbucket
+              key: "/HighTemp/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv"
+        expire_events_after_days: 3
+        version_history: 5
+
+    """
+    channel_storage = schema.Object(
+        title="IoT Analytics Channel raw storage",
+        schema=IIotAnalyticsStorage,
+        required=False,
+    )
+    datastore_name = schema.TextLine(
+        title="Datastore name",
+        required=False,
+    )
+    datastore_storage = schema.Object(
+        title="IoT Analytics Datastore storage",
+        schema=IIotAnalyticsStorage,
+        required=False,
+    )
+    pipeline_activities = schema.Object(
+        title="IoT Analytics Pipeline Activies",
+        schema=IIoTPipelineActivities,
+        required=False
+    )
+    datasets = schema.Object(
+        title="IoT Analytics Datasets",
+        schema=IIoTDatasets,
+        required=True,
+    )
+
+class IIoTTopicRuleLambdaAction(IParent):
+    function = PacoReference(
+        title='Lambda function',
+        required=True,
+        schema_constraint='ILambda'
+    )
+
+class IIoTTopicRuleIoTAnalyticsAction(IParent):
+    pipeline = PacoReference(
+        title='IoT Analytics pipeline',
+        required=True,
+        schema_constraint='IIotAnalyticsPipeline'
+    )
+
+class IIoTTopicRuleAction(IParent):
+    awslambda = schema.Object(
+        title="Lambda Action",
+        required=False,
+        schema=IIoTTopicRuleLambdaAction,
+    )
+    iotanalytics = schema.Object(
+        title="IoT Analytics Action",
+        required=False,
+        schema=IIoTTopicRuleIoTAnalyticsAction,
+    )
+
+class IIoTTopicRule(IResource):
+    """
+IoTTopicRule allows you to create a list of actions that will be triggered from a
+MQTT message coming in to IoT Core.
+"""
+    actions = schema.List(
+        title="Actions",
+        description="An IoTTopicRule must define at least one action.",
+        required=True,
+        value_type=schema.Object(IIoTTopicRuleAction),
+        default=[],
+    )
+    aws_iot_sql_version = schema.TextLine(
+        title="AWS IoT SQL Version",
+        default="2016-03-23",
+        required=False,
+    )
+    rule_enabled = schema.Bool(
+        title="Rule is Enabled",
+        default=True,
+        required=False,
+    )
+    sql = schema.Text(
+        title="SQL statement used to query the topic",
+        description="Must be a valid Sql statement",
+        required=True
+    )
 
 # Lambda
 
@@ -4587,7 +5043,7 @@ Lambda Environment
     """
     variables = schema.List(
         title="Lambda Function Variables",
-        value_type = schema.Object(ILambdaVariable),
+        value_type=schema.Object(ILambdaVariable),
         required=False,
     )
 
@@ -4628,7 +5084,7 @@ Lambda Environment
     segments = schema.List(
         title="VPC Segments to attach the function",
         description="",
-        value_type = PacoReference(
+        value_type=PacoReference(
             title="Segment",
             schema_constraint='ISegment',
         ),
@@ -4636,7 +5092,7 @@ Lambda Environment
     )
     security_groups = schema.List(
         title="List of VPC Security Group Ids",
-        value_type = PacoReference(
+        value_type=PacoReference(
             schema_constraint='ISecurityGroup'
         ),
         required=False
@@ -4729,7 +5185,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
 """
     code = schema.Object(
         title="The function deployment package.",
-        schema = ILambdaFunctionCode,
+        schema=ILambdaFunctionCode,
         required=True,
     )
     description=schema.TextLine(
@@ -4738,14 +5194,14 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     )
     environment = schema.Object(
         title="Lambda Function Environment",
-        schema = ILambdaEnvironment,
+        schema=ILambdaEnvironment,
         default=None,
         required=False,
     )
     iam_role = schema.Object(
         title="The IAM Role this Lambda will execute as.",
         required=True,
-        schema = IRole,
+        schema=IRole,
     )
     layers = schema.List(
         title="Layers",
@@ -4797,7 +5253,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     )
     sns_topics = schema.List(
         title="List of SNS Topic Paco references or SNS Topic ARNs to subscribe the Lambda to.",
-        value_type =  PacoReference(
+        value_type=PacoReference(
             str_ok=True,
             schema_constraint='ISNSTopic'
         ),
@@ -4806,7 +5262,7 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     vpc_config = schema.Object(
         title="Vpc Configuration",
         required=False,
-        schema = ILambdaVpcConfig
+        schema=ILambdaVpcConfig
     )
 
 # API Gateway
@@ -4832,7 +5288,7 @@ class IApiGatewayMethodMethodResponse(Interface):
         title="The resources used for the response's content type.",
         description="""Specify response models as key-value pairs (string-to-string maps),
 with a content type as the key and a Model Paco name as the value.""",
-        value_type = schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
+        value_type=schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
         required=False,
     )
 
@@ -4873,7 +5329,7 @@ to the integration request without modification.
 class IApiGatewayMethodIntegration(IParent):
     integration_responses = schema.List(
         title="Integration Responses",
-        value_type = schema.Object(IApiGatewayMethodIntegrationResponse),
+        value_type=schema.Object(IApiGatewayMethodIntegrationResponse),
         required=False,
     )
     request_parameters = schema.Dict(
@@ -4941,7 +5397,7 @@ class IApiGatewayMethod(IResource):
     method_responses = schema.List(
         title="Method Responses",
         description="List of ApiGatewayMethod MethodResponses",
-        value_type = schema.Object(IApiGatewayMethodMethodResponse),
+        value_type=schema.Object(IApiGatewayMethodMethodResponse),
         required=False,
     )
     request_parameters = schema.Dict(
@@ -5098,7 +5554,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         title="Binary Media Types. The list of binary media types that are supported by the RestApi resource, such as image/png or application/octet-stream. By default, RestApi supports only UTF-8-encoded text payloads.",
         description="Duplicates are not allowed. Slashes must be escaped with ~1. For example, image/png would be image~1png in the BinaryMediaTypes list.",
         constraint = isValidBinaryMediaTypes,
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="Binary Media Type"
         ),
         required=False,
@@ -5129,7 +5585,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     endpoint_configuration = schema.List(
         title="Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",
         description="List of strings, each must be one of 'EDGE', 'REGIONAL', 'PRIVATE'",
-        value_type = schema.TextLine(
+        value_type=schema.TextLine(
             title="Endpoint Type",
             constraint = isValidEndpointConfigurationType
         ),
@@ -5159,7 +5615,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     parameters = schema.Dict(
         title="Parameters. Custom header parameters for the request.",
         description="Dictionary of key/value pairs that are strings.",
-        value_type = schema.TextLine(title="Value"),
+        value_type=schema.TextLine(title="Value"),
         default={},
         required=False,
     )
@@ -5196,7 +5652,7 @@ Route53 Record Set
     resource_records = schema.List(
         title='Record Set Values',
         required=True,
-        value_type = schema.TextLine(title='Resource Record')
+        value_type=schema.TextLine(title='Resource Record')
     )
     ttl = schema.Int(
         title='Record TTL',
@@ -5220,7 +5676,7 @@ Existing Hosted Zone configuration
     )
     nameservers = schema.List(
         title='List of the Hosted Zones Nameservers',
-        value_type = schema.TextLine(title='Nameservers'),
+        value_type=schema.TextLine(title='Nameservers'),
         required=True
     )
 
@@ -5239,7 +5695,7 @@ Route53 Hosted Zone
     )
     record_sets = schema.List(
         title='List of Record Sets',
-        value_type = schema.Object(IRoute53RecordSet),
+        value_type=schema.Object(IRoute53RecordSet),
         required=True
     )
     parent_zone = schema.TextLine(
@@ -5275,7 +5731,7 @@ Provision Route 53 with:
     """
     hosted_zones = schema.Dict(
         title="Hosted Zones",
-        value_type = schema.Object(IRoute53HostedZone),
+        value_type=schema.Object(IRoute53HostedZone),
         default=None,
         required=False,
     )
@@ -5420,7 +5876,7 @@ CodeCommit Repository
     )
     users = schema.Dict(
         title="CodeCommit Users",
-        value_type = schema.Object(ICodeCommitUser),
+        value_type=schema.Object(ICodeCommitUser),
         default=None,
         required=False,
     )
@@ -5508,7 +5964,7 @@ Simple Notification Service (SNS) Topic resource.
     )
     subscriptions = schema.List(
         title="List of SNS Topic Subscriptions",
-        value_type = schema.Object(ISNSTopicSubscription),
+        value_type=schema.Object(ISNSTopicSubscription),
         required=False,
     )
     cross_account_access = schema.Bool(
@@ -5525,7 +5981,7 @@ CloudTrail resource
     accounts = schema.List(
         title="Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
         description="",
-        value_type = PacoReference(
+        value_type=PacoReference(
             title="Account Reference",
             schema_constraint='IAccount'
         ),
@@ -5604,7 +6060,7 @@ class ICloudFrontCookies(INamed):
     )
     whitelisted_names = schema.List(
         title="White Listed Names",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         required=False
     )
 
@@ -5621,7 +6077,7 @@ class ICloudFrontForwardedValues(INamed):
     )
     headers = schema.List(
         title="Forward Headers",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         default=['*'],
         required=False
     )
@@ -5629,13 +6085,13 @@ class ICloudFrontForwardedValues(INamed):
 class ICloudFrontDefaultCacheBehavior(INamed):
     allowed_methods = schema.List(
         title="List of Allowed HTTP Methods",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         default=[ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ],
         required=False
     )
     cached_methods = schema.List(
         title="List of HTTP Methods to cache",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         default=[ 'GET', 'HEAD', 'OPTIONS' ],
         required=False
     )
@@ -5733,7 +6189,7 @@ class ICloudFrontCustomOriginConfig(INamed):
     )
     ssl_protocols = schema.List(
         title="List of SSL Protocols",
-        value_type = schema.TextLine(),
+        value_type=schema.TextLine(),
         constraint = isValidCFSSLProtocol,
         required=True,
     )
@@ -5777,7 +6233,7 @@ class ICloudFrontFactory(INamed):
     """CloudFront Factory"""
     domain_aliases = schema.List(
         title="List of DNS for the Distribution",
-        value_type = schema.Object(IDNS),
+        value_type=schema.Object(IDNS),
         required=False,
     )
     viewer_certificate = schema.Object(
@@ -5792,7 +6248,7 @@ CloudFront CDN Configuration
     """
     domain_aliases = schema.List(
         title="List of DNS for the Distribution",
-        value_type = schema.Object(IDNS),
+        value_type=schema.Object(IDNS),
         required=False,
     )
     default_root_object = schema.TextLine(
@@ -5807,7 +6263,7 @@ CloudFront CDN Configuration
     )
     cache_behaviors = schema.List(
         title='List of Cache Behaviors',
-        value_type = schema.Object(ICloudFrontCacheBehavior),
+        value_type=schema.Object(ICloudFrontCacheBehavior),
         required=False
     )
     viewer_certificate = schema.Object(
@@ -5823,13 +6279,13 @@ CloudFront CDN Configuration
     )
     custom_error_responses = schema.List(
         title="List of Custom Error Responses",
-        value_type = schema.Object(ICloudFrontCustomErrorResponse),
+        value_type=schema.Object(ICloudFrontCustomErrorResponse),
         default=None,
         required=False,
     )
     origins = schema.Dict(
         title="Map of Origins",
-        value_type = schema.Object(ICloudFrontOrigin),
+        value_type=schema.Object(ICloudFrontOrigin),
         required=False,
     )
     webacl_id = schema.TextLine(
@@ -5838,7 +6294,7 @@ CloudFront CDN Configuration
     )
     factory = schema.Dict(
         title="CloudFront Factory",
-        value_type = schema.Object(ICloudFrontFactory),
+        value_type=schema.Object(ICloudFrontFactory),
         default=None,
         required=False,
     )
@@ -5878,7 +6334,7 @@ Option groups enable and configure features that are specific to a particular DB
     )
     option_settings = schema.List(
         title='List of option name value pairs.',
-        value_type = schema.Object(INameValuePair),
+        value_type=schema.Object(INameValuePair),
         required=False,
     )
     option_version = schema.TextLine(
@@ -6414,7 +6870,7 @@ CodeCommit IAM User Permission
     """
     repositories = schema.List(
         title='List of repository permissions',
-        value_type = schema.Object(IIAMUserPermissionCodeCommitRepository),
+        value_type=schema.Object(IIAMUserPermissionCodeCommitRepository),
         required=False,
     )
 
@@ -6443,7 +6899,7 @@ CodeBuild IAM User Permission
     """
     resources = schema.List(
         title='List of CodeBuild resources',
-        value_type = schema.Object(IIAMUserPermissionCodeBuildResource),
+        value_type=schema.Object(IIAMUserPermissionCodeBuildResource),
         required=False
     )
 
@@ -6587,7 +7043,7 @@ class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
     target_lambda = PacoReference(
         title='Lambda function',
         required=True,
-        schema_constraint='ILamba',
+        schema_constraint='ILambda',
     )
     user_parameters = schema.TextLine(
         title="User Parameters string that can be processed by the Lambda",

@@ -4,6 +4,10 @@ Changelog for paco.models
 8.0.0 (unreleased)
 ------------------
 
+### Added
+
+- IListener has an ``ssl_policy`` for setting the SslPolicy for a SSL Listener.
+
 ### Migration
 
 - ASG field's ``update_policy_max_batch_size`` and ``update_policy_min_instances_in_service`` are removed.

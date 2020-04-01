@@ -1490,7 +1490,7 @@ class IotAnalyticsPipeline(Resource):
         self.datasets = IoTDatasets('datasets', self)
 
     def resolve_ref(self, ref):
-        return self.stack.template.resolve_ref(ref)
+        return self.stack
 
 @implementer(schemas.IIoTTopicRuleIoTAnalyticsAction)
 class IoTTopicRuleIoTAnalyticsAction(Parent):

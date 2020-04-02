@@ -4576,7 +4576,7 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         required=True
     )
 
-# IoT
+# IoT Analytics
 
 # Different from ICloudWatchLogRetention.expire_events_after_days in that it is
 # not constrained to fixed periods - this can be any X number of days. If set
@@ -4965,6 +4965,8 @@ with an SQL Query to create subsets of a Datastore suitable for analysis with to
         schema=IIoTDatasets,
         required=True,
     )
+
+# IoT Core
 
 class IIoTTopicRuleLambdaAction(IParent):
     function = PacoReference(

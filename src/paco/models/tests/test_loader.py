@@ -378,10 +378,14 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.IIoTTopicRule.providedBy(iottopic)
         assert iottopic.sql == "SELECT * FROM 'iot/myTestTopic'"
 
+        iotpolicy = demo_env['applications']['app'].groups['iot'].resources['iotpolicy']
+        assert schemas.IIoTPolicy.providedBy(iotpolicy)
+        assert iotpolicy.variables['sensor_topic_arn'].startswith('paco.ref ')
+
     def test_iotanalyticspipeline(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         iotpipeline = demo_env['applications']['app'].groups['iot'].resources['raw_analysis']
-        assert schemas.IIotAnalyticsPipeline.providedBy(iotpipeline)
+        assert schemas.IIoTAnalyticsPipeline.providedBy(iotpipeline)
         assert iotpipeline.channel_storage.key_prefix == 'raw_input/'
         assert iotpipeline.datastore_storage.expire_events_after_days == 30
         assert iotpipeline.pipeline_activities['extra_bit'].attributes['key1'] == 'heyguy'

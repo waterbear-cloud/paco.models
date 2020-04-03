@@ -1,0 +1,9 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        { "Effect": "Allow",
+          "Action": [ "${connect_action}" ],
+          "Resource": [ "${sensor_topic_arn}" ]
+        }
+    ]
+}

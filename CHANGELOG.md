@@ -8,7 +8,7 @@ Changelog for paco.models
 
 - New ``managed_policies`` for IIAMUserPermissionCustomPolicy to allow easily adding AWS Managed Policies.
 
-- IIotAnalyticsPipeline and IIoTTopicRule schemas and implementation to support core IoT
+- IIoTAnalyticsPipeline, IIoTTopicRule and IIoTPolicy schemas and implementation to support core IoT
   ingestion and analysis.
 
 - IListener has an ``ssl_policy`` for setting the SslPolicy for a SSL Listener.

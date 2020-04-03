@@ -206,6 +206,14 @@ applications:
             rule_enabled: true
             sql: "SELECT * FROM 'iot/myTestTopic'"
 
+          iotpolicy:
+            type: IoTPolicy
+            order: 210
+            enabled: true
+            policy_json: ./iot/iot-policy.json
+            variables:
+              sensor_topic_arn: paco.ref netenv.anet.applications.iotapp.groups.app.resources.iottopic.arn
+
       cicd:
         type: Deployment
         title: Deployment

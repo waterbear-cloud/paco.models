@@ -4876,7 +4876,7 @@ class IIoTDatasets(INamed, IMapping):
     "Container for `IoTDataset`_ objects."
     taggedValue('contains', 'IIoTDataset')
 
-class IIotAnalyticsPipeline(IResource):
+class IIoTAnalyticsPipeline(IResource):
     """
 An IoTAnalyticsPipeline composes four closely related resources: IoT Analytics Channel, IoT Analytics Pipeline,
 IoT Analytics Datastore and IoT Analytics Dataset.
@@ -4968,6 +4968,52 @@ with an SQL Query to create subsets of a Datastore suitable for analysis with to
 
 # IoT Core
 
+class IIoTVariables(INamed, IMapping):
+    taggedValue('contains', 'mixed')
+
+class IIoTPolicy(IResource):
+    """An IoT Policy is a special IoT-specific Policy that grants IoT Things the
+ability to perform operations on IoT resources.
+
+The ``policy_json`` is a file containing a valid JSON IoT Policy document. The ``variables``
+field contains variables available for replacement in the document.
+
+.. code-block:: yaml
+    :caption: example IoTPolicy
+
+    type: IoTPolicy
+    enabled: true
+    order: 100
+    policy_json: ./iot-policy.json
+    variables:
+      connect_action: "iot:Connect"
+      sensor_topic_arn: paco.ref netenv.anet.applications.iotapp.groups.app.resources.iottopic.arn
+
+.. code-block:: yaml
+    :caption: Example ./iot-policy.json policy_json file
+
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            { "Effect": "Allow",
+              "Action": [ "${connect_action}" ],
+              "Resource": [ "${sensor_topic_arn}" ]
+            }
+        ]
+    }
+
+"""
+    policy_json = StringFileReference(
+        title="IoT Policy document.",
+        required=True,
+        constraint=isValidJSONOrNone
+    )
+    variables = schema.Dict(
+        title="IoT Policy replacement variables",
+        default={},
+        required=False
+    )
+
 class IIoTTopicRuleLambdaAction(IParent):
     function = PacoReference(
         title='Lambda function',
@@ -4979,7 +5025,7 @@ class IIoTTopicRuleIoTAnalyticsAction(IParent):
     pipeline = PacoReference(
         title='IoT Analytics pipeline',
         required=True,
-        schema_constraint='IIotAnalyticsPipeline'
+        schema_constraint='IIoTAnalyticsPipeline'
     )
 
 class IIoTTopicRuleAction(IParent):

@@ -36,11 +36,12 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
-    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
-    IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, IoTTopicRuleIoTAnalyticsAction, \
-    IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, IotAnalyticsStorage, Attributes, \
-    IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, DatasetContentDeliveryRule, \
-    DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, DatasetVariables, DatasetVariable
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
+from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
+    IoTTopicRuleIoTAnalyticsAction, IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
+    IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
+    DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
+    DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
@@ -142,6 +143,7 @@ RESOURCES_CLASS_MAP = {
     'CodeDeployApplication': CodeDeployApplication,
     'Dashboard': CloudWatchDashboard,
     'ElasticsearchDomain': ElasticsearchDomain,
+    'IoTPolicy': IoTPolicy,
     'IoTTopicRule': IoTTopicRule,
     'IoTAnalyticsPipeline': IotAnalyticsPipeline,
 }
@@ -171,6 +173,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     IoTPipelineActivity: {
         'attributes': ('dynamic_dict', Attributes)
+    },
+    IoTPolicy: {
+        'variables': ('dynamic_dict', IoTVariables),
     },
     IoTTopicRule: {
         'actions': ('obj_list', IoTTopicRuleAction),

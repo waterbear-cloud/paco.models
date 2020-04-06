@@ -4975,8 +4975,12 @@ class IIoTPolicy(IResource):
     """An IoT Policy is a special IoT-specific Policy that grants IoT Things the
 ability to perform operations on IoT resources.
 
-The ``policy_json`` is a file containing a valid JSON IoT Policy document. The ``variables``
-field contains variables available for replacement in the document.
+The ``policy_json`` is a file containing a valid JSON IoT Policy document.
+
+The ``variables`` field contains variables available for replacement in the document.
+The special variable names ``AWS::Region`` and ``AWS::AccountId`` will be replaced by the
+region name and account id where the resource belongs. Any variable name with a ``:`` character
+in it will not be replace, so that all IoT Policy Variables can be used.
 
 .. code-block:: yaml
     :caption: example IoTPolicy
@@ -4997,6 +5001,10 @@ field contains variables available for replacement in the document.
         "Statement": [
             { "Effect": "Allow",
               "Action": [ "${connect_action}" ],
+              "Resource": [  "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/${iot:Connection.Thing.ThingName}" ]
+            },
+            { "Effect": "Allow",
+              "Action": [ "iot:Publish" ],
               "Resource": [ "${sensor_topic_arn}" ]
             }
         ]

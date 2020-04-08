@@ -38,7 +38,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
-    IoTTopicRuleIoTAnalyticsAction, IotAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
+    IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
     DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
     DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
@@ -145,7 +145,7 @@ RESOURCES_CLASS_MAP = {
     'ElasticsearchDomain': ElasticsearchDomain,
     'IoTPolicy': IoTPolicy,
     'IoTTopicRule': IoTTopicRule,
-    'IoTAnalyticsPipeline': IotAnalyticsPipeline,
+    'IoTAnalyticsPipeline': IoTAnalyticsPipeline,
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -156,11 +156,12 @@ SUB_TYPES_CLASS_MAP = {
         'version_control': ('direct_obj', VersionControl),
         'shared_state': ('direct_obj', SharedState),
     },
-    IotAnalyticsPipeline: {
+    IoTAnalyticsPipeline: {
         'channel_storage': ('direct_obj', IotAnalyticsStorage),
         'datastore_storage': ('direct_obj', IotAnalyticsStorage),
         'pipeline_activities': ('container', (IoTPipelineActivities, IoTPipelineActivity)),
         'datasets': ('container', (IoTDatasets, IoTDataset)),
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     IoTDataset: {
         'container_action': ('direct_obj', DatasetContainerAction),
@@ -179,6 +180,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     IoTTopicRule: {
         'actions': ('obj_list', IoTTopicRuleAction),
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     IoTTopicRuleAction: {
         'awslambda': ('direct_obj', IoTTopicRuleLambdaAction),

@@ -4680,7 +4680,7 @@ There is an implicit Channel activity before all other activities and an an impl
 activity after all other activities.
 
 .. code-block: yaml
-    :caption: All example types for IotAnalyticsPipeline pipeline_activities
+    :caption: All example types for IoTAnalyticsPipeline pipeline_activities
 
     activity_type: lambda
     batch_size: 1
@@ -4932,7 +4932,7 @@ class IIoTDatasets(INamed, IMapping):
     "Container for `IoTDataset`_ objects."
     taggedValue('contains', 'IIoTDataset')
 
-class IIoTAnalyticsPipeline(IResource):
+class IIoTAnalyticsPipeline(IResource, IMonitorable):
     """
 An IoTAnalyticsPipeline composes four closely related resources: IoT Analytics Channel, IoT Analytics Pipeline,
 IoT Analytics Datastore and IoT Analytics Dataset.
@@ -5104,7 +5104,7 @@ class IIoTTopicRuleAction(IParent):
         schema=IIoTTopicRuleIoTAnalyticsAction,
     )
 
-class IIoTTopicRule(IResource):
+class IIoTTopicRule(IResource, IMonitorable):
     """
 IoTTopicRule allows you to create a list of actions that will be triggered from a
 MQTT message coming in to IoT Core.

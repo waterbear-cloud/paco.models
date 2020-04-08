@@ -54,7 +54,15 @@ cloudwatch = {
 	'RDSMysql': {
 		'dimension': 'DBInstanceIdentifier',
 		'namespace': 'AWS/RDS'
-	}
+	},
+    'IoTTopicRule': {
+        'dimension': 'RuleName',
+        'namespace': 'AWS/IoT',
+    },
+    'IoTAnalyticsPipeline': {
+        'dimension': '',
+        'namespace': 'AWS/IoTAnalytics',
+    },
 }
 
 cloudwatch_log_retention = {

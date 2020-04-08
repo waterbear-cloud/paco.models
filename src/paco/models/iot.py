@@ -4,6 +4,7 @@ All things IoT
 
 from paco.models import schemas
 from paco.models.base import Parent, Named, Resource, md5sum
+from paco.models.metrics import Monitorable
 from paco.models.locations import get_parent_by_interface
 from paco.models.formatter import smart_join
 from zope.interface import implementer
@@ -101,7 +102,7 @@ class IoTDatasets(Named, dict):
     pass
 
 @implementer(schemas.IIoTAnalyticsPipeline)
-class IotAnalyticsPipeline(Resource):
+class IoTAnalyticsPipeline(Resource, Monitorable):
     channel_storage = FieldProperty(schemas.IIoTAnalyticsPipeline['channel_storage'])
     datastore_name = FieldProperty(schemas.IIoTAnalyticsPipeline['datastore_name'])
     datastore_storage = FieldProperty(schemas.IIoTAnalyticsPipeline['datastore_storage'])
@@ -171,7 +172,7 @@ class IoTTopicRuleAction(Parent):
     iotanalytics = FieldProperty(schemas.IIoTTopicRuleAction['iotanalytics'])
 
 @implementer(schemas.IIoTTopicRule)
-class IoTTopicRule(Resource):
+class IoTTopicRule(Resource, Monitorable):
     actions = FieldProperty(schemas.IIoTTopicRule['actions'])
     aws_iot_sql_version = FieldProperty(schemas.IIoTTopicRule['aws_iot_sql_version'])
     rule_enabled = FieldProperty(schemas.IIoTTopicRule['rule_enabled'])

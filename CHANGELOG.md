@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.1.1 (unreleased)
+7.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Added ``IASG.launch_options.ssm_agent`` to indicate if SSM Agent should be installed.
 
 
 7.1.0 (2020-04-04)

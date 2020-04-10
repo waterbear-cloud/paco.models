@@ -4071,6 +4071,11 @@ EC2 Launch Options
         required=False,
         default=[]
     )
+    ssm_agent = schema.Bool(
+        title='Install SSM Agent',
+        required=False,
+        default=True
+    )
 
 class IBlockDevice(IParent):
     delete_on_termination = schema.Bool(
@@ -4189,6 +4194,13 @@ for that ASG.
     and download and run them. For example, if you specify in-host metrics for an ASG, it will have a LaunchBundle
     created with the necessary CloudWatch agent configuration and a BASH script to install and configure the agent.
 
+    ``launch_options``: Options to add actions to newly launched instances: ``ssm_agent``, ``update_packages`` and
+    ``cfn_init_config_sets``. The ``ssm_agent`` field will install the SSM Agent and is true by default.
+    Paco's **LaunchBundles** feature, requires the SSM Agent running to work. The ``update_packages`` field will
+    perform a operating system package update (``yum update`` or ``apt-get update``). This happens immediately after the
+    ``user_data_pre_script`` commands, but before the LaunchBundle commands and ``user_data_script`` commands.
+    The ``cfn_init_config_sets`` field is a list of CfnInitConfigurationSets that will be run at launch.
+
     ``cfn_init``: Contains CloudFormationInit (cfn-init) configuration. Paco allows reading cfn-init
     files from the filesystem, and also does additional validation checks on the configuration to ensure
     it is correct. The ``launch_options`` has a ``cfn_init_config_sets`` field to specify which
@@ -4267,6 +4279,8 @@ for that ASG.
       - Default
     scaling_policy_cpu_average: 60
     launch_options:
+        update_packages: true
+        ssm_agent: true
         cfn_init_config_sets:
         - "InstallApp"
     cfn_init:
@@ -4532,7 +4546,7 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
     launch_options = schema.Object(
         title='EC2 Launch Options',
         schema=IEC2LaunchOptions,
-        required=False
+        required=True,
     )
     lifecycle_hooks = schema.Object(
         title='Lifecycle Hooks',

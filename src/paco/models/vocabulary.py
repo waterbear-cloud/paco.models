@@ -1269,106 +1269,21 @@ rds_engine_versions = {
 	}
 }
 
-ami_types = [ 'amazon', 'centos', 'redhat', 'suse', 'ubuntu', 'microsoft' ]
-
-user_data_script = {
-	'update_system': {
-		'amazon': [],
-		'centos': [],
-		'ubuntu': [],
-	},
-	'essential_packages': {
-		'amazon': [],
-		'centos': [],
-		'ubuntu': [
-		],
-	},
-	'update_packages': {
-		'amazon': 'yum update -y',
-		'centos': 'yum update -y',
-		'ubuntu': 'apt-get update -y && apt-get upgrade -y'
-	},
-	'install_aws_cli': {
-		'amazon': '', # AWS is installed by default on Amazon linux
-		'ubuntu': """apt-get update
-apt-get -y install python-pip
-pip install awscli
-""",
-		'centos': 'ec2lm_pip install awscli'
-	},
-	'install_wget': {
-		'amazon': 'yum install wget -y',
-		'centos': 'yum install wget -y',
-		'ubuntu': 'apt-get install wget -y'
-	},
-	'install_efs_utils': {
-		'amazon': 'yum install -y amazon-efs-utils cachefilesd',
-		'centos': 'yum install -y amazon-efs-utils cachefilesd',
-		'ubuntu': 'apt-get install cachefilesd -y'
-	},
-	'install_cfn_init': {
-		'amazon': '',
-		'ubuntu': """
-mkdir -p /opt/paco/bin
-apt-get install -y python-setuptools
-wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-easy_install --script-dir /opt/paco/bin aws-cfn-bootstrap-latest.tar.gz
-""",
-		'centos': """
-yum install -y pystache python-daemon
-pip install aws-cfn-bootstrap
-rpm -Uvh https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.amzn1.noarch.rpm
-"""
-	},
-	'enable_efs_utils': {
-		'amazon': """
-/sbin/service cachefilesd start
-systemctl enable cachefilesd
-""",
-		'ubuntu': """
-sed -i 's/#RUN=yes/RUN=yes/g' /etc/default/cachefilesd
-/etc/init.d/cachefilesd start
-""",
-		'centos': """
-/sbin/service cachefilesd start
-systemctl enable cachefilesd
-""" },
-	'mount_efs': {
-		'amazon': 'mount -a -t efs',
-		'ubuntu': 'mount -a -t nfs',
-		'centos': 'mount -a -t nfs'
-	}
-
-}
-
-# Create the CloudWatch agent launch scripts and configuration
-cloudwatch_agent = {
-	"amazon": {
-		"path": "/amazon_linux/amd64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U", },
-	"centos": {
-		"path": "/centos/amd64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U" },
-	"suse": {
-		"path": "/suse/amd64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U" },
-	"debian": {
-		"path": "/debian/amd64/latest",
-		"object": "amazon-cloudwatch-agent.deb" ,
-		"install": "dpkg -i -E" },
-	"ubuntu": {
-		"path": "/ubuntu/amd64/latest",
-		"object": "amazon-cloudwatch-agent.deb",
-		"install": "dpkg -i -E" },
-	"microsoft": {
-		"path": "/windows/amd64/latest",
-		"object": "amazon-cloudwatch-agent.msi",
-		"install": "msiexec /i" },
-	"redhat": {
-		"path": "/redhat/arm64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U" },
-}
+ami_types = [
+    'amazon',
+    'centos',
+    'redhat',
+    'suse',
+    'suse_12',
+    'debian',
+    'debian_8',
+    'debian_9',
+    'ubuntu',
+    'ubuntu_14',
+    'ubuntu_16',
+    'ubuntu_16_386',
+    'ubuntu_16',
+    'ubuntu_16_snap', # Instances created from Ubuntu Server 16.04 AMIs identified with 20180627, SSM Agent is pre-installed using Snap packages
+    'ubuntu_18',
+    'microsoft'
+]

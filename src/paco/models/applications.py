@@ -421,6 +421,7 @@ class EBS(Resource):
 @implementer(schemas.IEC2LaunchOptions)
 class EC2LaunchOptions(Named):
     title = "EC2 Launch Options"
+    ssm_agent = FieldProperty(schemas.IEC2LaunchOptions['ssm_agent'])
     update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
     cfn_init_config_sets = FieldProperty(schemas.IEC2LaunchOptions['cfn_init_config_sets'])
 
@@ -518,6 +519,12 @@ class ASG(Resource, Monitorable):
         self.efs_mounts = []
         self.ebs_volume_mounts = []
         self.rolling_update_policy = ASGRollingUpdatePolicy('rolling_update_policy', self)
+        self.launch_options = EC2LaunchOptions('launch_options', self)
+
+    @property
+    def instance_ami_type_generic(self):
+        """AMI Type without version information. e.g. ubuntu_14 is ubuntu."""
+        return self.instance_ami_type.split('_')[0]
 
     def get_aws_name(self):
         "AutoScalingGroup Name for AWS"

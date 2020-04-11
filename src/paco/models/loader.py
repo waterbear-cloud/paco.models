@@ -21,6 +21,7 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
+    ApplicationS3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
@@ -128,7 +129,7 @@ RESOURCES_CLASS_MAP = {
     'EC2': EC2,
     'Lambda': Lambda,
     'ManagedPolicy': ManagedPolicy,
-    'S3Bucket': S3Bucket,
+    'S3Bucket': ApplicationS3Bucket,
     'SNSTopic': SNSTopic,
     'CloudFront': CloudFront,
     'RDSMysql': RDSMysql,
@@ -401,7 +402,12 @@ SUB_TYPES_CLASS_MAP = {
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy),
         'notifications': ('direct_obj', S3NotificationConfiguration),
-        'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting)
+        'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting),
+    },
+    ApplicationS3Bucket: {
+        'policy': ('obj_list', S3BucketPolicy),
+        'notifications': ('direct_obj', S3NotificationConfiguration),
+        'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting),
     },
     S3StaticWebsiteHosting: {
         'redirect_requests': ('direct_obj', S3StaticWebsiteHostingRedirectRequests)

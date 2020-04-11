@@ -940,8 +940,9 @@ class IType(Interface):
     )
 
 class IResource(IType, INamed, IDeployable, IDNSEnablable):
-    """
-AWS Resource to support an Application
+    """Configuration for a cloud resource.
+Resources may represent a single physical resource in the cloud,
+or several closely related resources.
     """
     order = schema.Int(
         title="The order in which the resource will be deployed",
@@ -955,6 +956,10 @@ AWS Resource to support an Application
         default=False,
         required=False,
     )
+
+class IApplicationResource(IResource):
+    """A resource which supports a specific application."""
+
 
 class IServices(INamed, IMapping):
     """
@@ -2184,6 +2189,9 @@ it is still possible to override this to use other accouns and regions if desire
         required=False,
         schema = IS3StaticWebsiteHosting
     )
+
+class IApplicationS3Bucket(IApplicationResource, IS3Bucket):
+    """An S3 Bucket specific to an application."""
 
 class IS3Buckets(INamed, IMapping):
     """Container for `S3Bucket`_ objects.

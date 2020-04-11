@@ -498,6 +498,34 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
         )
 
 
+@implementer(schemas.IApplicationResource)
+class ApplicationResource(Resource):
+
+    @property
+    def app_name(self):
+        if hasattr(self, '_app_name'):
+            return self._app_name
+        app = get_parent_by_interface(self, schemas.IApplication)
+        self._app_name = app.name
+        return self._app_name
+
+    @property
+    def group_name(self):
+        if hasattr(self, '_group_name'):
+            return self._group_name
+        group = get_parent_by_interface(self, schemas.IResourceGroup)
+        self._group_name = group.name
+        return self._group_name
+
+    @property
+    def env_name(self):
+        if hasattr(self, '_env_name'):
+            return self._env_name
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        self._env_name = env.name
+        return self._env_name
+
+
 @implementer(schemas.IAccountRef)
 class AccountRef():
     account = FieldProperty(schemas.IAccountRef['account'])
@@ -506,6 +534,7 @@ class AccountRef():
 @implementer(schemas.IAccountContainer)
 class AccountContainer(Named, Regionalized, dict):
     pass
+
 
 @implementer(schemas.IRegionContainer)
 class RegionContainer(Named, Regionalized, dict):

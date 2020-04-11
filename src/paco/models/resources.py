@@ -5,7 +5,7 @@ All things Resources.
 import json
 import troposphere.apigateway
 import troposphere.route53
-from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource
+from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource
 from paco.models.metrics import Monitorable
 from paco.models import references
 from paco.models import schemas
@@ -168,7 +168,7 @@ class ApiGatewayStage(Resource):
     }
 
 @implementer(schemas.IApiGatewayRestApi)
-class ApiGatewayRestApi(Resource):
+class ApiGatewayRestApi(ApplicationResource):
     title = "API Gateway REST API"
     type = "ApiGatewayRestApi"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])

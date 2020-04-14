@@ -6,6 +6,17 @@ https://docs.plone.org/develop/plone/forms/vocabularies.html
 
 from zope.schema.vocabulary import SimpleVocabulary
 
+ssm_document_types = SimpleVocabulary.fromValues([
+    'ApplicationConfigurationSchema'
+    'Automation',
+    'ChangeCalendar',
+    'Command',
+    'DeploymentStrategy',
+    'Package',
+    'Policy',
+    'Session',
+])
+
 subscription_protocols = [
 	'http',
 	'https',
@@ -391,6 +402,11 @@ aws_regions = {
 		]
 	},
 }
+
+aws_region_names = SimpleVocabulary.fromValues(
+    list(aws_regions.keys())
+)
+
 
 instance_size_info = {
 	'a1.medium': {

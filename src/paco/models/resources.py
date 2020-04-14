@@ -567,3 +567,24 @@ class IAMUsers(Named, dict):
 @implementer(schemas.IIAMResource)
 class IAMResource(Named):
     users = FieldProperty(schemas.IIAMResource['users'])
+
+
+@implementer(schemas.ISSMDocuments)
+class SSMDocuments(Named, dict):
+    pass
+
+@implementer(schemas.ISSMDocument)
+class SSMDocument(Resource):
+    locations = FieldProperty(schemas.ISSMDocument['locations'])
+    content = FieldProperty(schemas.ISSMDocument['content'])
+    document_type = FieldProperty(schemas.ISSMDocument['document_type'])
+
+@implementer(schemas.ISSMResource)
+class SSMResource(Named):
+    name = 'ssm'
+    title = 'SSM'
+    ssm_documents = FieldProperty(schemas.ISSMResource["ssm_documents"])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.ssm_documents = SSMDocuments('ssm_documents', self)

@@ -1,0 +1,33 @@
+ssm_documents:
+  my_ssm_doc:
+    locations:
+      - account: paco.ref accounts.master
+        regions:
+          - eu-central-1
+      - account: paco.ref accounts.dev
+        regions:
+          - eu-central-1
+          - us-west-2
+    enabled: true
+    content: |
+      {
+        "schemaVersion": "2.2",
+        "description": "Sample SSM Document",
+        "parameters": {
+            "Message": {
+            "type": "String",
+            "description": "Example",
+            "default": "BigTimeDawg!"
+            }
+        },
+        "mainSteps": [
+            {
+            "action": "aws:runShellScript",
+            "name": "updogShell",
+            "inputs": {
+                "runCommand": [ "echo '{{Message}}' >> /var/updog" ]
+            }
+            }
+        ]
+      }
+    document_type: 'Command'

@@ -44,7 +44,7 @@ from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambda
     DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
     DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
-    Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
+    Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, Route53HealthCheck, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
@@ -54,7 +54,7 @@ from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resour
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
-    Route53HealthCheck
+    SSMResource, SSMDocuments, SSMDocument
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
     CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitGroup, \
     CloudFormationInitUsers, CloudFormationInitUser, CloudFormationInitSources, CloudFormationInitFiles, \
@@ -65,7 +65,7 @@ from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceT
     BackupPlans, BackupVault, BackupVaults
 from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
-from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
+from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference, PacoReference, FileReference
 from paco.models.vocabulary import aws_regions
@@ -533,6 +533,12 @@ SUB_TYPES_CLASS_MAP = {
     },
     Route53Resource: {
         'hosted_zones': ('named_obj', Route53HostedZone)
+    },
+    SSMResource: {
+        'ssm_documents': ('container', (SSMDocuments, SSMDocument)),
+    },
+    SSMDocument: {
+        'locations': ('obj_list', AccountRegions),
     },
     SNSTopic: {
         'subscriptions': ('obj_list', SNSTopicSubscription)
@@ -1671,6 +1677,11 @@ Duplicate key \"{}\" found on line {} at column {}.
         ec2_obj = EC2Resource('ec2', self.project.resource)
         apply_attributes_from_config(ec2_obj, config, self.config_folder)
         return ec2_obj
+
+    def instantiate_ssm(self, config):
+        ssm = SSMResource('ssm', self.project.resource)
+        apply_attributes_from_config(ssm, config, self.config_folder)
+        return ssm
 
     def instantiate_s3(self, config):
         if config == None or 'buckets' not in config.keys():

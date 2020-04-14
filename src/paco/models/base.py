@@ -525,6 +525,22 @@ class ApplicationResource(Resource):
         self._env_name = env.name
         return self._env_name
 
+    @property
+    def env_obj(self):
+        if hasattr(self, '_env_obj'):
+            return self._env_obj
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        self._env_obj = env
+        return self._env_obj
+
+    @property
+    def netenv_name(self):
+        if hasattr(self, '_netenv_name'):
+            return self._netenv_name
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        self._netenv_name = netenv.name
+        return self._netenv_name
+
 
 @implementer(schemas.IAccountRef)
 class AccountRef():
@@ -539,3 +555,8 @@ class AccountContainer(Named, Regionalized, dict):
 @implementer(schemas.IRegionContainer)
 class RegionContainer(Named, Regionalized, dict):
     alarm_sets = FieldProperty(schemas.IRegionContainer['alarm_sets'])
+
+@implementer(schemas.IAccountRegions)
+class AccountRegions(Parent):
+    account = FieldProperty(schemas.IAccountRegions['account'])
+    regions = FieldProperty(schemas.IAccountRegions['regions'])

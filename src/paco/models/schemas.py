@@ -730,6 +730,7 @@ class INameValuePair(Interface):
         required=False,
     )
 
+
 class IAdminIAMUser(IDeployable):
     """An AWS Account Administerator IAM User"""
     username = schema.TextLine(
@@ -927,7 +928,6 @@ AWS Resource: Security Group
         required=False,
     )
 
-
 class IApplicationEngines(INamed, IMapping):
     "A container for Application Engines"
     taggedValue('contains', 'IApplicationEngine')
@@ -1023,6 +1023,7 @@ class IResourceGroup(INamed, IDeployable, IDNSEnablable):
 class IResourceGroups(INamed, IMapping):
     "A container of Application `ResourceGroup`_ objects."
     taggedValue('contains', 'IResourceGroup')
+
 
 # Alarm and notification schemas
 
@@ -1668,6 +1669,7 @@ class ICloudWatchLogAlarm(ICloudWatchAlarm):
         title="Log Group Name",
         required=True
     )
+
 
 class ISNSTopics(IAccountRef):
     "Container for SNS Topics"
@@ -2764,6 +2766,7 @@ class INetwork(INamed, IDeployable, IMapping):
         required=False,
     )
 
+
 # Secrets Manager schemas
 
 class IGenerateSecretString(IParent, IDeployable):
@@ -2839,7 +2842,20 @@ class ISecretsManager(INamed, IMapping):
     """Secrets Manager contains `SecretManagerApplication` objects."""
     taggedValue('contains', 'ISecretsManagerApplication')
 
-# Environment, Account and Region containers
+# AccountRegions, Environment, Account and Region containers
+
+class IAccountRegions(IParent):
+    """An Account and one or more Regions"""
+    account = PacoReference(
+        title="AWS Account",
+        required=True,
+        schema_constraint='IAccount'
+    )
+    regions = schema.List(
+        title="Regions",
+        required=True,
+    )
+
 
 class IAccountContainer(INamed, IMapping):
     """Container for `RegionContainer`_ objects."""
@@ -2891,6 +2907,37 @@ Environment
     """
     # contains 'default' EnvironmentDefault and 'us-west-2' EnvironmentRegion objects
     taggedValue('contains', 'mixed')
+
+
+# SSM
+
+class ISSMDocuments(INamed, IMapping):
+    "A container of EnvironmentRegion `SSMDocument`_ objects."
+    taggedValue('contains', 'ISSMDocument')
+
+class ISSMDocument(IResource):
+    locations = schema.List(
+        title="Locations",
+        value_type=schema.Object(IAccountRegions),
+        default=[],
+        required=True,
+    )
+    content = schema.Text(
+        title="JSON or YAML formatted SSM document",
+        required=True,
+    )
+    document_type = schema.Choice(
+        title="Document Type",
+        required=True,
+        vocabulary=vocabulary.ssm_document_types,
+    )
+
+class ISSMResource(INamed):
+    ssm_documents = schema.Object(
+        title="SSM Documents",
+        schema=ISSMDocuments,
+        required=True,
+    )
 
 # Networking
 
@@ -4204,7 +4251,7 @@ for that ASG.
 
     ``launch_options``: Options to add actions to newly launched instances: ``ssm_agent``, ``update_packages`` and
     ``cfn_init_config_sets``. The ``ssm_agent`` field will install the SSM Agent and is true by default.
-    Paco's **LaunchBundles** feature, requires the SSM Agent running to work. The ``update_packages`` field will
+    Paco's **LaunchBundles** feature requires the SSM Agent installed and running. The ``update_packages`` field will
     perform a operating system package update (``yum update`` or ``apt-get update``). This happens immediately after the
     ``user_data_pre_script`` commands, but before the LaunchBundle commands and ``user_data_script`` commands.
     The ``cfn_init_config_sets`` field is a list of CfnInitConfigurationSets that will be run at launch.

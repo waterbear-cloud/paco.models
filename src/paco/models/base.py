@@ -534,6 +534,14 @@ class ApplicationResource(Resource):
         return self._env_obj
 
     @property
+    def env_region_obj(self):
+        if hasattr(self, '_env_region_obj'):
+            return self._env_region_obj
+        env = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        self._env_region_obj = env
+        return self._env_region_obj
+
+    @property
     def netenv_name(self):
         if hasattr(self, '_netenv_name'):
             return self._netenv_name

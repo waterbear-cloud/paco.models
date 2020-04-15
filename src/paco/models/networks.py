@@ -86,8 +86,8 @@ class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
     def has_ec2lm_resources(self):
         "True if there are resources which depend upon EC2LM SSM Documents."
         for app in self['applications'].values():
-            for group in app['groups'].values():
-                for resource in group['resources'].values():
+            for group in app.groups.values():
+                for resource in group.resources.values():
                     if schemas.IASG.providedBy(resource) and resource.is_enabled():
                         if resource.launch_options.ssm_agent == True:
                             return True

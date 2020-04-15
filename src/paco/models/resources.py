@@ -5,7 +5,7 @@ All things Resources.
 import json
 import troposphere.apigateway
 import troposphere.route53
-from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource
+from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource, AccountRegions
 from paco.models.metrics import Monitorable
 from paco.models import references
 from paco.models import schemas
@@ -578,6 +578,22 @@ class SSMDocument(Resource):
     locations = FieldProperty(schemas.ISSMDocument['locations'])
     content = FieldProperty(schemas.ISSMDocument['content'])
     document_type = FieldProperty(schemas.ISSMDocument['document_type'])
+
+    def add_location(self, account_ref, region):
+        "Add an account and region to locations if it does not already exist"
+        for location in self.locations:
+            if location.account == account_ref:
+                for aws_region in location.regions:
+                    if region == aws_region:
+                        return
+                location.regions.append(region)
+                return
+        # not seen in existing accounts, add new location
+        location = AccountRegions(self)
+        location.account = account_ref
+        location.regions = [region]
+        self.locations.append(location)
+
 
 @implementer(schemas.ISSMResource)
 class SSMResource(Named):

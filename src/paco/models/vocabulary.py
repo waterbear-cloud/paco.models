@@ -1286,11 +1286,11 @@ user_data_script = {
 	'update_packages': {
 		'amazon': 'yum update -y',
 		'centos': 'yum update -y',
-		'ubuntu': 'apt-get update -y && apt-get upgrade -y'
+		'ubuntu': 'apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y'
 	},
 	'install_aws_cli': {
 		'amazon': '', # AWS is installed by default on Amazon linux
-		'ubuntu': """apt-get update
+		'ubuntu': """apt-get update -y
 apt-get -y install python-pip
 pip install awscli
 """,

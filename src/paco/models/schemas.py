@@ -4038,7 +4038,12 @@ If the volume is going to be used by an ASG, it should launch an instance in the
         title="Volume Size in GiB",
         description="",
         default=10,
-        required=True
+        required=False
+    )
+    snapshot_id = schema.TextLine(
+        title="Snapshot ID",
+        description="",
+        required=False
     )
     availability_zone = schema.Int(
         # Can be: 1 | 2 | 3 | 4 | ...

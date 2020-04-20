@@ -4131,6 +4131,13 @@ EC2 Launch Options
         required=False,
         default=True
     )
+    ssm_expire_events_after_days = schema.TextLine(
+        title="Retention period of SSM logs",
+        description="",
+        default="30",
+        constraint = isValidCloudWatchLogRetention,
+        required=False,
+    )
 
 class IBlockDevice(IParent):
     delete_on_termination = schema.Bool(

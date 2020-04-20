@@ -522,6 +522,18 @@ class ASG(ApplicationResource, Monitorable):
         self.launch_options = EC2LaunchOptions('launch_options', self)
 
     @property
+    def instance_ami_type_family(self):
+        """AMI Type family. Either redhat, debian or microsoft"""
+        if self.instance_ami_type_generic in ('ubuntu', 'debian'):
+            return 'debian'
+        elif self.instance_ami_type_generic in ('amazon','centos','redhat','suse'):
+            return 'redhat'
+        elif self.instance_ami_type_generic in ('microsoft'):
+            return 'microsoft'
+        # undectected type?
+        raise AttributeError(f'Can not determine instance_ami_type_family for {self.name} with type {self.instance_ami_type}')
+
+    @property
     def instance_ami_type_generic(self):
         """AMI Type without version information. e.g. ubuntu_14 is ubuntu."""
         return self.instance_ami_type.split('_')[0]

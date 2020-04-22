@@ -8,6 +8,8 @@ Changelog for paco.models
 
 - Added ``IASG.launch_options.ssm_agent`` to indicate if SSM Agent should be installed.
 
+- Added ``IRDSPostgresql`` with RDS for Postgresql support. Added complete list of RDS EngineVerions for
+  Mysql and Postgresql to vocabulary.
 
 7.1.0 (2020-04-04)
 ------------------

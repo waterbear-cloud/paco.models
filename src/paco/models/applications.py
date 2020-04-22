@@ -415,6 +415,7 @@ class EBSVolumeMount(Parent, Deployable):
 class EBS(ApplicationResource):
     title = "Elastic Block Store Volume"
     size_gib = FieldProperty(schemas.IEBS['size_gib'])
+    snapshot_id = FieldProperty(schemas.IEBS['snapshot_id'])
     availability_zone = FieldProperty(schemas.IEBS['availability_zone'])
     volume_type = FieldProperty(schemas.IEBS['volume_type'])
 

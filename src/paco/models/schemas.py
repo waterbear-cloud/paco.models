@@ -6715,17 +6715,19 @@ RDS Common Interface
     )
 
 
-class IRDSMysql(IRDS):
+class IRDSMultiAZ(IRDS):
     """
-The RDSMysql type extends the base RDS schema with a ``multi_az`` field. When you provision a Multi-AZ DB Instance,
-Amazon RDS automatically creates a primary DB Instance and synchronously replicates the data to a standby instance
-in a different Availability Zone (AZ).
+RDS with MultiAZ capabilities. When you provision a Multi-AZ DB Instance, Amazon RDS automatically creates a
+primary DB Instance and synchronously replicates the data to a standby instance in a different Availability Zone (AZ).
     """
     multi_az = schema.Bool(
         title="Multiple Availability Zone deployment",
         default=False,
         required=False,
     )
+
+class IRDSMysql(IRDSMultiAZ):
+    """RDS for MySQL"""
 
 class IRDSAurora(IResource, IRDS):
     """
@@ -6742,6 +6744,9 @@ RDS Aurora
         required=False,
         schema_constraint='IRoute53HostedZone'
     )
+
+class IRDSPostgresql(IRDSMultiAZ):
+    """RDS for Postgresql"""
 
 # Cache schemas
 

@@ -27,7 +27,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, \
+    RDSMysql, RDSPostgresql, ElastiCacheRedis, RDSOptionConfiguration, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
@@ -133,6 +133,7 @@ RESOURCES_CLASS_MAP = {
     'SNSTopic': SNSTopic,
     'CloudFront': CloudFront,
     'RDSMysql': RDSMysql,
+    'RDSPostgresql': RDSPostgresql,
     'ElastiCacheRedis': ElastiCacheRedis,
     'DeploymentPipeline': DeploymentPipeline,
     'EFS': EFS,
@@ -297,6 +298,12 @@ SUB_TYPES_CLASS_MAP = {
         'option_settings': ('obj_list', NameValuePair)
     },
     RDSMysql: {
+        'option_configurations': ('obj_list', RDSOptionConfiguration),
+        'security_groups': ('str_list', PacoReference),
+        'dns': ('obj_list', DNS),
+        'monitoring': ('direct_obj', MonitorConfig)
+    },
+    RDSPostgresql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
         'security_groups': ('str_list', PacoReference),
         'dns': ('obj_list', DNS),

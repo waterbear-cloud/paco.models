@@ -1289,16 +1289,289 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonKendraReadOnlyAccess',
 ])
 
+# Generated with the script
+# #!/usr/bin/env python
+# import boto3
+# import json
+#
+# client = boto3.client('rds', region_name='us-west-2')
+# paginator = client.get_paginator('describe_db_engine_versions')
+#
+# rds_engine_versions = {}
+# for engine in ['postgres','mysql']:
+#     rds_engine_versions[engine] = {}
+#     response_iterator = paginator.paginate(
+#         Engine=engine
+#     )
+#     for response in response_iterator:
+#         for version in response['DBEngineVersions']:
+#             rds_engine_versions[engine][version['EngineVersion']] = {}
+#             rds_engine_versions[engine][version['EngineVersion']]['param_group_family'] = version['DBParameterGroupFamily']
+#
+# print(json.dumps(rds_engine_versions, indent=2))
 rds_engine_versions = {
-	'mysql': {
-		'5.7': {
-			'param_group_family': 'mysql5.7'
-		},
-		'5.6': {
-			'param_group_family': 'mysql5.6'
-		}
-
-	}
+  "postgres": {
+    "9.4.7": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.9": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.11": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.12": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.14": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.15": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.17": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.18": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.19": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.20": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.21": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.23": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.24": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.25": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.5.2": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.4": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.6": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.7": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.9": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.10": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.12": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.13": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.14": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.15": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.16": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.18": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.19": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.20": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.6.1": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.2": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.3": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.5": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.6": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.8": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.9": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.10": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.11": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.12": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.14": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.15": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.16": {
+      "param_group_family": "postgres9.6"
+    },
+    "10.1": {
+      "param_group_family": "postgres10"
+    },
+    "10.3": {
+      "param_group_family": "postgres10"
+    },
+    "10.4": {
+      "param_group_family": "postgres10"
+    },
+    "10.5": {
+      "param_group_family": "postgres10"
+    },
+    "10.6": {
+      "param_group_family": "postgres10"
+    },
+    "10.7": {
+      "param_group_family": "postgres10"
+    },
+    "10.9": {
+      "param_group_family": "postgres10"
+    },
+    "10.10": {
+      "param_group_family": "postgres10"
+    },
+    "10.11": {
+      "param_group_family": "postgres10"
+    },
+    "11.1": {
+      "param_group_family": "postgres11"
+    },
+    "11.2": {
+      "param_group_family": "postgres11"
+    },
+    "11.4": {
+      "param_group_family": "postgres11"
+    },
+    "11.5": {
+      "param_group_family": "postgres11"
+    },
+    "11.6": {
+      "param_group_family": "postgres11"
+    },
+    "12.2": {
+      "param_group_family": "postgres12"
+    }
+  },
+  "mysql": {
+    "5.5.46": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.53": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.54": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.57": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.59": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.61": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.6.34": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.35": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.37": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.39": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.40": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.41": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.43": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.44": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.46": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.7.16": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.17": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.19": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.21": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.22": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.23": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.24": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.25": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.26": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.28": {
+      "param_group_family": "mysql5.7"
+    },
+    "8.0.11": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.13": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.15": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.16": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.17": {
+      "param_group_family": "mysql8.0"
+    }
+  }
 }
 
 ami_types = [

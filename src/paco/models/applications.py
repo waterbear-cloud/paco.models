@@ -998,7 +998,7 @@ class RDSPostgresql(RDSMultiAZ):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.engine = 'postgresql'
+        self.engine = 'postgres'
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDSMultiAZ):

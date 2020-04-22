@@ -179,6 +179,18 @@ aws_regions = {
     		"us-gov-west-1c"
     	]
     },
+    'af-south-1': {
+    	"name": "Cape Town",
+    	"full_name": "Africa (Cape Town)",
+		"short_name": "afs1",
+    	"code": "af-south-1",
+    	"public": True,
+    	"zones": [
+    		"af-south-1a",
+    		"af-south-1b",
+    		"af-south-1c",
+    	]
+    },
     'us-gov-east-1': {
     	"name": "GovCloud East",
     	"full_name": "AWS GovCloud (US-East)",

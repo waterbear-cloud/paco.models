@@ -988,17 +988,28 @@ class RDS(ApplicationResource, Monitorable):
             self.get_aws_name()
         )
 
+@implementer(schemas.IRDSMultiAZ)
+class RDSMultiAZ(RDS):
+    multi_az = FieldProperty(schemas.IRDSMultiAZ['multi_az'])
+
 @implementer(schemas.IRDSMysql)
-class RDSMysql(RDS, Resource):
+class RDSPostgresql(RDSMultiAZ):
+    title = "RDS Postgresql"
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.engine = 'postgresql'
+
+@implementer(schemas.IRDSMysql)
+class RDSMysql(RDSMultiAZ):
     title = "RDS Mysql"
-    multi_az = FieldProperty(schemas.IRDSMysql['multi_az'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.engine = 'mysql'
 
 @implementer(schemas.IRDSAurora)
-class RDSAurora(RDS, Resource):
+class RDSAurora(RDS):
     title = 'RDS Aurora'
     secondary_domain_name = FieldProperty(schemas.IRDSAurora['secondary_domain_name'])
     secondary_hosted_zone = FieldProperty(schemas.IRDSAurora['secondary_hosted_zone'])

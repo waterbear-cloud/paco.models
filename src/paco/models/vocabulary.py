@@ -66,6 +66,10 @@ cloudwatch = {
 		'dimension': 'DBInstanceIdentifier',
 		'namespace': 'AWS/RDS'
 	},
+	'RDSPostgresql': {
+		'dimension': 'DBInstanceIdentifier',
+		'namespace': 'AWS/RDS'
+	},
     'IoTTopicRule': {
         'dimension': 'RuleName',
         'namespace': 'AWS/IoT',

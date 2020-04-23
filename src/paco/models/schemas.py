@@ -7235,7 +7235,7 @@ class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
 class IDeploymentPipelineSourceGitHub(IDeploymentPipelineStageAction):
     """GitHub DeploymentPipeline Source Stage
 
-To configure a GitHub source, first create a Personal Access Token in your GitHub account with the scopes
+To configure a GitHub source, first create an OAuth Personal Access Token in your GitHub account with the scopes
 ``repo`` and ``admin:repoHook``. See the AWS documentation on how to `Configure Your Pipeline to Use a Personal Access Token`_.
 
 Create a secrets_manager resource in your network environment and set your GitHub personal access token there:
@@ -7243,14 +7243,33 @@ Create a secrets_manager resource in your network environment and set your GitHu
 secrets_manager:
   group:
     app:
-      github_access_token:
+      github_token:
         enabled: true
 
-paco set netenv.<name>.<env>.<region>.secrets_manager.<group>.<application>.github_access_token
+After you provision the secret, you must set your GitHub token. You can use `paco set` to do this, or apply
+the secret using the Secrets Manager AWS Console.
+
+.. code-block:: bash
+
+  paco set netenv.<netenv-name>.<env-name>.<region>.secrets_manager.<group-name>.<application-name>.github_token
 
 Assign the secert to the ``github_access_token`` GitHub action field by using the secrets_manager reference:
 
-github_access_token: paco.ref netenv.<name>.<env>.<region>.secrets_manager.<group>.<application>.github_access_token
+.. code-block:: yaml
+
+  pipeline:
+    type: DeploymentPipeline
+    stages:
+      source:
+        github:
+          type: GitHub.Source
+          enabled: true
+          deployment_branch_name: "staging"
+          github_access_token: paco.ref netenv.mynet.secrets_manager.group.app.github_token
+          github_owner: example
+          github_repository: example-app
+          poll_for_source_changes: true
+
 """
     taggedValue('contains', 'mixed')
     deployment_branch_name = schema.TextLine(
@@ -7271,6 +7290,11 @@ github_access_token: paco.ref netenv.<name>.<env>.<region>.secrets_manager.<grou
         title='Secrets Manager Secret with a GitHub access token',
         required=True,
         schema_constraint='ISecretsManagerSecret',
+    )
+    poll_for_source_changes = schema.Bool(
+        title='Poll for Source Changes',
+        required=False,
+        default=True,
     )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):

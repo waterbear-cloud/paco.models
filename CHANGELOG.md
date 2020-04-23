@@ -4,7 +4,9 @@ Changelog for paco.models
 7.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Added ``poll_for_source_changes`` to IDeploymentPipelineSourceGitHub.
 
 
 7.1.0 (2020-04-04)

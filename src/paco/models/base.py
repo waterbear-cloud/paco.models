@@ -522,7 +522,11 @@ class ApplicationResource(Resource):
         if hasattr(self, '_env_name'):
             return self._env_name
         env = get_parent_by_interface(self, schemas.IEnvironment)
-        self._env_name = env.name
+        if env == None:
+            account = get_parent_by_interface(self, schemas.IAccountContainer)
+            self._env_name = account.name
+        else:
+            self._env_name = env.name
         return self._env_name
 
     @property
@@ -530,15 +534,23 @@ class ApplicationResource(Resource):
         if hasattr(self, '_env_obj'):
             return self._env_obj
         env = get_parent_by_interface(self, schemas.IEnvironment)
-        self._env_obj = env
+        if env == None:
+            account = get_parent_by_interface(self, schemas.IAccountContainer)
+            self._env_obj = account
+        else:
+            self._env_obj = env
         return self._env_obj
 
     @property
     def env_region_obj(self):
         if hasattr(self, '_env_region_obj'):
             return self._env_region_obj
-        env = get_parent_by_interface(self, schemas.IEnvironmentRegion)
-        self._env_region_obj = env
+        env_region = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        if env_region == None:
+            region_cont = get_parent_by_interface(self, schemas.IRegionContainer)
+            self._env_region_obj = region_cont
+        else:
+            self._env_region_obj = env_region
         return self._env_region_obj
 
     @property
@@ -546,7 +558,11 @@ class ApplicationResource(Resource):
         if hasattr(self, '_netenv_name'):
             return self._netenv_name
         netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
-        self._netenv_name = netenv.name
+        if netenv == None:
+            service = get_parent_by_interface(self, schemas.IService)
+            self._netenv_name = service.name
+        else:
+            self._netenv_name = netenv.name
         return self._netenv_name
 
 

@@ -712,7 +712,14 @@ class IPacoReference(Interface):
     """A field containing a reference an paco model object or attribute"""
     pass
 
+class ILocalPath(Interface):
+    """Path to a directory or file on the local filesystem"""
+
+class LocalPath(schema.TextLine):
+    pass
+
 # work around circular imports for references
+classImplements(LocalPath, ILocalPath)
 classImplements(PacoReference, IPacoReference)
 classImplements(FileReference, IFileReference)
 classImplements(StringFileReference, IStringFileReference)
@@ -2431,6 +2438,11 @@ class IProject(INamed, IMapping):
         description="",
         schema=ISharedState,
         required=False
+    )
+    s3bucket_hash = schema.TextLine(
+        title="S3 Bucket hash suffix",
+        description="",
+        required=False,
     )
 
 class IInternetGateway(IDeployable):
@@ -5276,8 +5288,8 @@ class ILambdaFunctionCode(IParent):
         if obj.zipfile and len(obj.zipfile) > 4096:
             raise Invalid("Too bad, so sad. Limit of inline code of 4096 characters exceeded. File is {} chars long.".format(len(obj.zipfile)))
 
-    zipfile = StringFileReference(
-        title="The function as an external file.",
+    zipfile = LocalPath(
+        title="The function code as a local file or directory.",
         description="Maximum of 4096 characters.",
         required=False,
     )
@@ -5319,8 +5331,15 @@ class ILambda(IResource, ICloudWatchLogRetention, IMonitorable):
 Lambda Functions allow you to run code without provisioning servers and only
 pay for the compute time when the code is running.
 
-For the code that the Lambda function will run, use the ``code:`` block and specify
-``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
+The code for the Lambda function can be specified in one of three ways in the ``code:`` field:
+
+ * S3 Bucket artifact: Supply an``s3_bucket`` and ``s3_key`` where you have an existing code artifact file.
+
+ * Local file: Supply the ``zipfile`` as a path to a local file on disk. This will be inlined into
+   CloudFormation and has a size limitation of only 4 Kb.
+
+ * Local directory: Supply the ``zipfile`` as a path to a directory on disk. This directory will be packaged
+   into a zip file and Paco will create an S3 Bucket where it will upload and manage Lambda deployment artifacts.
 
 .. code-block:: yaml
     :caption: Lambda code from S3 Bucket or local disk
@@ -5332,6 +5351,8 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     code:
         zipfile: ./lambda-dir/my-lambda.py
 
+    code:
+        zipfile: ~/code/my-app/lambda_target/
 
 .. sidebar:: Prescribed Automation
 

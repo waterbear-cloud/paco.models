@@ -43,6 +43,7 @@ class Project(Named, dict):
     """Paco project"""
     paco_project_version = FieldProperty(schemas.IProject["paco_project_version"])
     legacy_flags = FieldProperty(schemas.IProject["legacy_flags"])
+    s3bucket_hash = FieldProperty(schemas.IProject["s3bucket_hash"])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)

@@ -26,4 +26,7 @@ class TroposphereConversionError(Exception):
     title = "Troposphere Conversion Error"
 
 class InvalidModelObject(Exception):
-    title = "Invalide Model Object"
+    title = "Invalid Model Object"
+
+class InvalidLocalPath(Exception):
+    title = "Local path location does not exist"

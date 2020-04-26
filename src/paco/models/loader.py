@@ -9,7 +9,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    TroposphereConversionError, InvalidPacoSchema
+    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
@@ -748,8 +748,11 @@ Verify that '{}' has the correct indentation in the config file.
             # Do not try to find their 'name' attr from the config.
             if name != 'name' or not schemas.INamed.providedBy(obj):
                 value = config.get(name, None)
-                # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
+
+                # value transformations
+                # read file references, expand local paths, parse comma-lists and make non-shared list objects
                 if schemas.IFileReference.providedBy(field) and value:
+                    # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
                     if read_file_path:
                         # set it to the containing directory of the file
                         path = Path(read_file_path)
@@ -762,13 +765,25 @@ Verify that '{}' has the correct indentation in the config file.
                         base_path=base_path,
                         is_yaml=schemas.IYAMLFileReference.providedBy(field)
                     )
-
-                # CommaList: Parse comma separated list into python list()
+                elif schemas.ILocalPath.providedBy(field) and value:
+                    # expand local path if it's a relative path
+                    orig_value = value
+                    if not value.startswith(os.sep):
+                        # set it to the containing directory of the file
+                        path = Path(read_file_path)
+                        base_path = os.sep.join(path.parts[:-1])[1:]
+                        value = base_path + os.sep + value
+                    local_path = Path(value)
+                    if not local_path.is_dir() and not local_path.is_file():
+                        # ToDo: this error gets trapped and re-thrown as an AttributeError?
+                        raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
                 elif type(field) == type(schemas.CommaList()):
+                    # CommaList: Parse comma separated list into python list()
                     value = []
                     for list_value in config[name].split(','):
                         value.append(list_value.strip())
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
+                    # create a new list object so there isn't one list shared between all objects
                     if value == None:
                         if field.default != None:
                             value = deepcopy_except_parent(field.default)

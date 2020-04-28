@@ -323,6 +323,18 @@ aws_regions = {
     		"eu-west-2c"
     	]
     },
+    'eu-south-1': {
+    	"name": "Milan",
+    	"full_name": "EU (Milan)",
+		"short_name": "eus1",
+    	"code": "eu-south-1",
+    	"public": True,
+    	"zones": [
+    		"eu-south-1a",
+    		"eu-south-1b",
+    		"eu-south-1c"
+    	]
+    },
     'eu-west-3': {
     	"name": "Paris",
     	"full_name": "EU (Paris)",

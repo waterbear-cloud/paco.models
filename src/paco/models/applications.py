@@ -1119,7 +1119,7 @@ class ElasticsearchCluster(CFNExport):
     }
 
 @implementer(schemas.IElasticsearchDomain)
-class ElasticsearchDomain(Resource):
+class ElasticsearchDomain(Resource, Monitorable):
     title = "Elasticsearch Domain"
     type = "ElasticsearchDomain"
     access_policies_json = FieldProperty(schemas.IElasticsearchDomain['access_policies_json'])

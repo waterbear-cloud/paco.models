@@ -190,6 +190,7 @@ SUB_TYPES_CLASS_MAP = {
         'cluster': ('direct_obj', ElasticsearchCluster),
         'ebs_volumes': ('direct_obj', EBSOptions),
         'advanced_options': ('dynamic_dict', ESAdvancedOptions),
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     EC2Resource: {
         'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),

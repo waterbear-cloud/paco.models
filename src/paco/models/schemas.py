@@ -6839,7 +6839,7 @@ class IElasticsearchCluster(Interface):
         required=False
     )
 
-class IElasticsearchDomain(IResource):
+class IElasticsearchDomain(IResource, IMonitorable):
     """
 Amazon Elasticsearch Service (Amazon ES) is a managed service for Elasticsearch clusters.
 An Amazon ES domain is synonymous with an Elasticsearch cluster. Domains are clusters with the

@@ -27,42 +27,47 @@ cloudwatch = {
 		'dimension': '',
 		'namespace': ''
 	},
-	'Route53HealthCheck': {
-		'dimension': 'HealthCheckId',
-		'namespace': 'AWS/Route53',
-	},
+
 	'ASG': {
 		'dimension': 'AutoScalingGroupName',
 		'namespace': 'AWS/AutoScaling'
-	},
-	'LBApplication': {
-		'dimension': 'LoadBalancer',
-		'namespace': 'AWS/ApplicationELB'
-	},
-	'Lambda': {
-		'dimension': 'FunctionName',
-		'namespace': 'AWS/Lambda'
-	},
-	'ElastiCacheRedis': {
-		'dimension': 'CacheClusterId',
-		'namespace': 'AWS/ElastiCache'
 	},
 	'CloudFront': {
 		'dimension': 'DistributionId',
 		'namespace': 'AWS/CloudFront'
 	},
+	'ElastiCacheRedis': {
+		'dimension': 'CacheClusterId',
+		'namespace': 'AWS/ElastiCache'
+	},
+  'ElasticsearchDomain': {
+    'dimension': 'DomainName',
+    'namespace': 'AWS/ES',
+  },
+  'IoTTopicRule': {
+      'dimension': 'RuleName',
+      'namespace': 'AWS/IoT',
+  },
+  'IoTAnalyticsPipeline': {
+      'dimension': '',
+      'namespace': 'AWS/IoTAnalytics',
+  },
+	'Lambda': {
+		'dimension': 'FunctionName',
+		'namespace': 'AWS/Lambda'
+	},
+	'LBApplication': {
+		'dimension': 'LoadBalancer',
+		'namespace': 'AWS/ApplicationELB'
+	},
 	'RDSMysql': {
 		'dimension': 'DBInstanceIdentifier',
 		'namespace': 'AWS/RDS'
 	},
-    'IoTTopicRule': {
-        'dimension': 'RuleName',
-        'namespace': 'AWS/IoT',
-    },
-    'IoTAnalyticsPipeline': {
-        'dimension': '',
-        'namespace': 'AWS/IoTAnalytics',
-    },
+	'Route53HealthCheck': {
+		'dimension': 'HealthCheckId',
+		'namespace': 'AWS/Route53',
+	},
 }
 
 cloudwatch_log_retention = {

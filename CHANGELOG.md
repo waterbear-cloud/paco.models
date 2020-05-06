@@ -12,6 +12,7 @@ Changelog for paco.models
   Mysql and Postgresql to vocabulary.
 
 ### Changed
+- Added ``poll_for_source_changes`` to IDeploymentPipelineSourceGitHub.
 
 - ``Lambda:code:zipfile`` can now be a path to a local directory.
 

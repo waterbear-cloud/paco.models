@@ -1150,7 +1150,7 @@ class ElasticsearchCluster(CFNExport):
     }
 
 @implementer(schemas.IElasticsearchDomain)
-class ElasticsearchDomain(ApplicationResource):
+class ElasticsearchDomain(ApplicationResource, Monitorable):
     title = "Elasticsearch Domain"
     type = "ElasticsearchDomain"
     access_policies_json = FieldProperty(schemas.IElasticsearchDomain['access_policies_json'])
@@ -1236,6 +1236,8 @@ class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
     github_owner = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_owner'])
     github_repository = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_repository'])
     github_access_token = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_access_token'])
+    poll_for_source_changes = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['poll_for_source_changes'])
+
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):

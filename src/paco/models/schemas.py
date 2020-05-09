@@ -712,7 +712,14 @@ class IPacoReference(Interface):
     """A field containing a reference an paco model object or attribute"""
     pass
 
+class ILocalPath(Interface):
+    """Path to a directory or file on the local filesystem"""
+
+class LocalPath(schema.TextLine):
+    pass
+
 # work around circular imports for references
+classImplements(LocalPath, ILocalPath)
 classImplements(PacoReference, IPacoReference)
 classImplements(FileReference, IFileReference)
 classImplements(StringFileReference, IStringFileReference)
@@ -729,6 +736,7 @@ class INameValuePair(Interface):
         title="Value",
         required=False,
     )
+
 
 class IAdminIAMUser(IDeployable):
     """An AWS Account Administerator IAM User"""
@@ -927,7 +935,6 @@ AWS Resource: Security Group
         required=False,
     )
 
-
 class IApplicationEngines(INamed, IMapping):
     "A container for Application Engines"
     taggedValue('contains', 'IApplicationEngine')
@@ -940,8 +947,9 @@ class IType(Interface):
     )
 
 class IResource(IType, INamed, IDeployable, IDNSEnablable):
-    """
-AWS Resource to support an Application
+    """Configuration for a cloud resource.
+Resources may represent a single physical resource in the cloud,
+or several closely related resources.
     """
     order = schema.Int(
         title="The order in which the resource will be deployed",
@@ -955,6 +963,10 @@ AWS Resource to support an Application
         default=False,
         required=False,
     )
+
+class IApplicationResource(IResource):
+    """A resource which supports a specific application."""
+
 
 class IServices(INamed, IMapping):
     """
@@ -1018,6 +1030,7 @@ class IResourceGroup(INamed, IDeployable, IDNSEnablable):
 class IResourceGroups(INamed, IMapping):
     "A container of Application `ResourceGroup`_ objects."
     taggedValue('contains', 'IResourceGroup')
+
 
 # Alarm and notification schemas
 
@@ -1664,6 +1677,7 @@ class ICloudWatchLogAlarm(ICloudWatchAlarm):
         required=True
     )
 
+
 class ISNSTopics(IAccountRef):
     "Container for SNS Topics"
     regions = schema.List(
@@ -2185,6 +2199,9 @@ it is still possible to override this to use other accouns and regions if desire
         schema = IS3StaticWebsiteHosting
     )
 
+class IApplicationS3Bucket(IApplicationResource, IS3Bucket):
+    """An S3 Bucket specific to an application."""
+
 class IS3Buckets(INamed, IMapping):
     """Container for `S3Bucket`_ objects.
 """
@@ -2421,6 +2438,11 @@ class IProject(INamed, IMapping):
         description="",
         schema=ISharedState,
         required=False
+    )
+    s3bucket_hash = schema.TextLine(
+        title="S3 Bucket hash suffix",
+        description="",
+        required=False,
     )
 
 class IInternetGateway(IDeployable):
@@ -2756,6 +2778,7 @@ class INetwork(INamed, IDeployable, IMapping):
         required=False,
     )
 
+
 # Secrets Manager schemas
 
 class IGenerateSecretString(IParent, IDeployable):
@@ -2831,7 +2854,20 @@ class ISecretsManager(INamed, IMapping):
     """Secrets Manager contains `SecretManagerApplication` objects."""
     taggedValue('contains', 'ISecretsManagerApplication')
 
-# Environment, Account and Region containers
+# AccountRegions, Environment, Account and Region containers
+
+class IAccountRegions(IParent):
+    """An Account and one or more Regions"""
+    account = PacoReference(
+        title="AWS Account",
+        required=True,
+        schema_constraint='IAccount'
+    )
+    regions = schema.List(
+        title="Regions",
+        required=True,
+    )
+
 
 class IAccountContainer(INamed, IMapping):
     """Container for `RegionContainer`_ objects."""
@@ -2883,6 +2919,37 @@ Environment
     """
     # contains 'default' EnvironmentDefault and 'us-west-2' EnvironmentRegion objects
     taggedValue('contains', 'mixed')
+
+
+# SSM
+
+class ISSMDocuments(INamed, IMapping):
+    "A container of EnvironmentRegion `SSMDocument`_ objects."
+    taggedValue('contains', 'ISSMDocument')
+
+class ISSMDocument(IResource):
+    locations = schema.List(
+        title="Locations",
+        value_type=schema.Object(IAccountRegions),
+        default=[],
+        required=True,
+    )
+    content = schema.Text(
+        title="JSON or YAML formatted SSM document",
+        required=True,
+    )
+    document_type = schema.Choice(
+        title="Document Type",
+        required=True,
+        vocabulary=vocabulary.ssm_document_types,
+    )
+
+class ISSMResource(INamed):
+    ssm_documents = schema.Object(
+        title="SSM Documents",
+        schema=ISSMDocuments,
+        required=True,
+    )
 
 # Networking
 
@@ -4076,6 +4143,18 @@ EC2 Launch Options
         required=False,
         default=[]
     )
+    ssm_agent = schema.Bool(
+        title='Install SSM Agent',
+        required=False,
+        default=True
+    )
+    ssm_expire_events_after_days = schema.TextLine(
+        title="Retention period of SSM logs",
+        description="",
+        default="30",
+        constraint = isValidCloudWatchLogRetention,
+        required=False,
+    )
 
 class IBlockDevice(IParent):
     delete_on_termination = schema.Bool(
@@ -4194,6 +4273,13 @@ for that ASG.
     and download and run them. For example, if you specify in-host metrics for an ASG, it will have a LaunchBundle
     created with the necessary CloudWatch agent configuration and a BASH script to install and configure the agent.
 
+    ``launch_options``: Options to add actions to newly launched instances: ``ssm_agent``, ``update_packages`` and
+    ``cfn_init_config_sets``. The ``ssm_agent`` field will install the SSM Agent and is true by default.
+    Paco's **LaunchBundles** feature requires the SSM Agent installed and running. The ``update_packages`` field will
+    perform a operating system package update (``yum update`` or ``apt-get update``). This happens immediately after the
+    ``user_data_pre_script`` commands, but before the LaunchBundle commands and ``user_data_script`` commands.
+    The ``cfn_init_config_sets`` field is a list of CfnInitConfigurationSets that will be run at launch.
+
     ``cfn_init``: Contains CloudFormationInit (cfn-init) configuration. Paco allows reading cfn-init
     files from the filesystem, and also does additional validation checks on the configuration to ensure
     it is correct. The ``launch_options`` has a ``cfn_init_config_sets`` field to specify which
@@ -4272,6 +4358,8 @@ for that ASG.
       - Default
     scaling_policy_cpu_average: 60
     launch_options:
+        update_packages: true
+        ssm_agent: true
         cfn_init_config_sets:
         - "InstallApp"
     cfn_init:
@@ -4537,7 +4625,7 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
     launch_options = schema.Object(
         title='EC2 Launch Options',
         schema=IEC2LaunchOptions,
-        required=False
+        required=True,
     )
     lifecycle_hooks = schema.Object(
         title='Lifecycle Hooks',
@@ -5200,8 +5288,8 @@ class ILambdaFunctionCode(IParent):
         if obj.zipfile and len(obj.zipfile) > 4096:
             raise Invalid("Too bad, so sad. Limit of inline code of 4096 characters exceeded. File is {} chars long.".format(len(obj.zipfile)))
 
-    zipfile = StringFileReference(
-        title="The function as an external file.",
+    zipfile = LocalPath(
+        title="The function code as a local file or directory.",
         description="Maximum of 4096 characters.",
         required=False,
     )
@@ -5243,8 +5331,15 @@ class ILambda(IResource, ICloudWatchLogRetention, IMonitorable):
 Lambda Functions allow you to run code without provisioning servers and only
 pay for the compute time when the code is running.
 
-For the code that the Lambda function will run, use the ``code:`` block and specify
-``s3_bucket`` and ``s3_key`` to deploy the code from an S3 Bucket or use ``zipfile`` to read a local file from disk.
+The code for the Lambda function can be specified in one of three ways in the ``code:`` field:
+
+ * S3 Bucket artifact: Supply an``s3_bucket`` and ``s3_key`` where you have an existing code artifact file.
+
+ * Local file: Supply the ``zipfile`` as a path to a local file on disk. This will be inlined into
+   CloudFormation and has a size limitation of only 4 Kb.
+
+ * Local directory: Supply the ``zipfile`` as a path to a directory on disk. This directory will be packaged
+   into a zip file and Paco will create an S3 Bucket where it will upload and manage Lambda deployment artifacts.
 
 .. code-block:: yaml
     :caption: Lambda code from S3 Bucket or local disk
@@ -5256,6 +5351,8 @@ For the code that the Lambda function will run, use the ``code:`` block and spec
     code:
         zipfile: ./lambda-dir/my-lambda.py
 
+    code:
+        zipfile: ~/code/my-app/lambda_target/
 
 .. sidebar:: Prescribed Automation
 
@@ -6639,17 +6736,19 @@ RDS Common Interface
     )
 
 
-class IRDSMysql(IRDS):
+class IRDSMultiAZ(IRDS):
     """
-The RDSMysql type extends the base RDS schema with a ``multi_az`` field. When you provision a Multi-AZ DB Instance,
-Amazon RDS automatically creates a primary DB Instance and synchronously replicates the data to a standby instance
-in a different Availability Zone (AZ).
+RDS with MultiAZ capabilities. When you provision a Multi-AZ DB Instance, Amazon RDS automatically creates a
+primary DB Instance and synchronously replicates the data to a standby instance in a different Availability Zone (AZ).
     """
     multi_az = schema.Bool(
         title="Multiple Availability Zone deployment",
         default=False,
         required=False,
     )
+
+class IRDSMysql(IRDSMultiAZ):
+    """RDS for MySQL"""
 
 class IRDSAurora(IResource, IRDS):
     """
@@ -6666,6 +6765,9 @@ RDS Aurora
         required=False,
         schema_constraint='IRoute53HostedZone'
     )
+
+class IRDSPostgresql(IRDSMultiAZ):
+    """RDS for Postgresql"""
 
 # Cache schemas
 

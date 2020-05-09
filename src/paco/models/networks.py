@@ -11,6 +11,8 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from paco.models import loader
 from paco.models import references
+from paco.models.resources import SSMDocuments
+
 
 @implementer(schemas.INetworkEnvironments)
 class NetworkEnvironments(Named, dict):
@@ -80,6 +82,16 @@ class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
     @property
     def region_full_name(self):
         return vocabulary.aws_regions[self.__name__]['full_name']
+
+    def has_ec2lm_resources(self):
+        "True if there are resources which depend upon EC2LM SSM Documents."
+        for app in self['applications'].values():
+            for group in app.groups.values():
+                for resource in group.resources.values():
+                    if schemas.IASG.providedBy(resource) and resource.is_enabled():
+                        if resource.launch_options.ssm_agent == True:
+                            return True
+        return False
 
 
 @implementer(schemas.INetwork)

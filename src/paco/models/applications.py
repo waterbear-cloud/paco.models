@@ -4,7 +4,7 @@ All things Application Engine.
 
 from paco.models import loader
 from paco.models import schemas
-from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, AccountRef, \
+from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, ApplicationResource, AccountRef, \
     DNSEnablable, CFNExport, md5sum
 from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject
 from paco.models.formatter import get_formatted_model_context, smart_join
@@ -355,9 +355,9 @@ class S3Bucket(Resource, Deployable):
         'VersioningConfiguration': 'versioning_cfn',
     }
 
-#@implementer(schemas.IService)
-#class Service(Named, dict):
-#    pass
+@implementer(schemas.IApplicationS3Bucket)
+class ApplicationS3Bucket(ApplicationResource, S3Bucket):
+    "S3 Bucket to support an application"
 
 @implementer(schemas.IASGLifecycleHooks)
 class ASGLifecycleHooks(Named, dict):
@@ -392,7 +392,7 @@ class ASGScalingPolicy(Named, Deployable):
         self.alarms = []
 
 @implementer(schemas.IEIP)
-class EIP(Resource):
+class EIP(ApplicationResource):
     title = "Elastic IP"
     dns = FieldProperty(schemas.IEIP['dns'])
 
@@ -412,7 +412,7 @@ class EBSVolumeMount(Parent, Deployable):
     filesystem = FieldProperty(schemas.IEBSVolumeMount['filesystem'])
 
 @implementer(schemas.IEBS)
-class EBS(Resource):
+class EBS(ApplicationResource):
     title = "Elastic Block Store Volume"
     size_gib = FieldProperty(schemas.IEBS['size_gib'])
     snapshot_id = FieldProperty(schemas.IEBS['snapshot_id'])
@@ -422,6 +422,8 @@ class EBS(Resource):
 @implementer(schemas.IEC2LaunchOptions)
 class EC2LaunchOptions(Named):
     title = "EC2 Launch Options"
+    ssm_agent = FieldProperty(schemas.IEC2LaunchOptions['ssm_agent'])
+    ssm_expire_events_after_days = FieldProperty(schemas.IEC2LaunchOptions['ssm_expire_events_after_days'])
     update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
     cfn_init_config_sets = FieldProperty(schemas.IEC2LaunchOptions['cfn_init_config_sets'])
 
@@ -472,7 +474,7 @@ class ASGRollingUpdatePolicy(Named):
     wait_on_resource_signals = FieldProperty(schemas.IASGRollingUpdatePolicy['wait_on_resource_signals'])
 
 @implementer(schemas.IASG)
-class ASG(Resource, Monitorable):
+class ASG(ApplicationResource, Monitorable):
     title = "AutoScalingGroup"
     cfn_init =  FieldProperty(schemas.IASG['cfn_init'])
     desired_capacity =  FieldProperty(schemas.IASG['desired_capacity'])
@@ -519,6 +521,24 @@ class ASG(Resource, Monitorable):
         self.efs_mounts = []
         self.ebs_volume_mounts = []
         self.rolling_update_policy = ASGRollingUpdatePolicy('rolling_update_policy', self)
+        self.launch_options = EC2LaunchOptions('launch_options', self)
+
+    @property
+    def instance_ami_type_family(self):
+        """AMI Type family. Either redhat, debian or microsoft"""
+        if self.instance_ami_type_generic in ('ubuntu', 'debian'):
+            return 'debian'
+        elif self.instance_ami_type_generic in ('amazon','centos','redhat','suse'):
+            return 'redhat'
+        elif self.instance_ami_type_generic in ('microsoft'):
+            return 'microsoft'
+        # undectected type?
+        raise AttributeError(f'Can not determine instance_ami_type_family for {self.name} with type {self.instance_ami_type}')
+
+    @property
+    def instance_ami_type_generic(self):
+        """AMI Type without version information. e.g. ubuntu_14 is ubuntu."""
+        return self.instance_ami_type.split('_')[0]
 
     def get_aws_name(self):
         "AutoScalingGroup Name for AWS"
@@ -571,7 +591,7 @@ class ASG(Resource, Monitorable):
 
 
 @implementer(schemas.IEC2)
-class EC2(Resource):
+class EC2(ApplicationResource):
     "EC2"
     title = "EC2"
 
@@ -645,7 +665,7 @@ class DNS(Parent):
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ILBApplication)
-class LBApplication(Resource):
+class LBApplication(ApplicationResource):
     title = "Application ELB"
     target_groups = FieldProperty(schemas.ILBApplication['target_groups'])
     listeners = FieldProperty(schemas.ILBApplication['listeners'])
@@ -662,7 +682,7 @@ class LBApplication(Resource):
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IAWSCertificateManager)
-class AWSCertificateManager(Resource):
+class AWSCertificateManager(ApplicationResource):
     title = 'Certificate Manager'
     domain_name = FieldProperty(schemas.IAWSCertificateManager['domain_name'])
     subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
@@ -711,7 +731,7 @@ class LambdaVpcConfig(Named):
     security_groups = FieldProperty(schemas.ILambdaVpcConfig['security_groups'])
 
 @implementer(schemas.ILambda)
-class Lambda(Resource, Monitorable):
+class Lambda(ApplicationResource, Monitorable):
     """
     Lambda Function resource
     """
@@ -850,7 +870,7 @@ class CloudFrontFactory(Named):
         return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.ICloudFront)
-class CloudFront(Resource, Deployable, Monitorable):
+class CloudFront(ApplicationResource, Deployable, Monitorable):
     title = "CloudFront"
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
     default_root_object = FieldProperty(schemas.ICloudFront['default_root_object'])
@@ -880,7 +900,7 @@ class DBParameters(dict):
     pass
 
 @implementer(schemas.IDBParameterGroup)
-class DBParameterGroup(Resource):
+class DBParameterGroup(ApplicationResource):
     title = "RDS DB Parameter Group"
     description = FieldProperty(schemas.IDBParameterGroup['description'])
     family = FieldProperty(schemas.IDBParameterGroup['family'])
@@ -900,7 +920,7 @@ class RDSOptionConfiguration():
     port = FieldProperty(schemas.IRDSOptionConfiguration['port'])
 
 @implementer(schemas.IRDS)
-class RDS(Resource, Monitorable):
+class RDS(ApplicationResource, Monitorable):
     title = "RDS"
     engine = FieldProperty(schemas.IRDS['engine'])
     engine_version = FieldProperty(schemas.IRDS['engine_version'])
@@ -968,17 +988,28 @@ class RDS(Resource, Monitorable):
             self.get_aws_name()
         )
 
+@implementer(schemas.IRDSMultiAZ)
+class RDSMultiAZ(RDS):
+    multi_az = FieldProperty(schemas.IRDSMultiAZ['multi_az'])
+
 @implementer(schemas.IRDSMysql)
-class RDSMysql(RDS, Resource):
+class RDSPostgresql(RDSMultiAZ):
+    title = "RDS Postgresql"
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.engine = 'postgres'
+
+@implementer(schemas.IRDSMysql)
+class RDSMysql(RDSMultiAZ):
     title = "RDS Mysql"
-    multi_az = FieldProperty(schemas.IRDSMysql['multi_az'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.engine = 'mysql'
 
 @implementer(schemas.IRDSAurora)
-class RDSAurora(RDS, Resource):
+class RDSAurora(RDS):
     title = 'RDS Aurora'
     secondary_domain_name = FieldProperty(schemas.IRDSAurora['secondary_domain_name'])
     secondary_hosted_zone = FieldProperty(schemas.IRDSAurora['secondary_hosted_zone'])
@@ -1007,7 +1038,7 @@ class ElastiCache():
     cache_clusters = FieldProperty(schemas.IElastiCache['cache_clusters'])
 
 @implementer(schemas.IElastiCacheRedis)
-class ElastiCacheRedis(Resource, ElastiCache, Monitorable):
+class ElastiCacheRedis(ApplicationResource, ElastiCache, Monitorable):
     title = "ElastiCache Redis"
     cache_parameter_group_family = FieldProperty(schemas.IElastiCacheRedis['cache_parameter_group_family'])
     snapshot_retention_limit_days = FieldProperty(schemas.IElastiCacheRedis['snapshot_retention_limit_days'])
@@ -1119,7 +1150,7 @@ class ElasticsearchCluster(CFNExport):
     }
 
 @implementer(schemas.IElasticsearchDomain)
-class ElasticsearchDomain(Resource, Monitorable):
+class ElasticsearchDomain(ApplicationResource, Monitorable):
     title = "Elasticsearch Domain"
     type = "ElasticsearchDomain"
     access_policies_json = FieldProperty(schemas.IElasticsearchDomain['access_policies_json'])
@@ -1284,7 +1315,7 @@ class CodePipelineStages(Named, dict):
     pass
 
 @implementer(schemas.IDeploymentPipeline)
-class DeploymentPipeline(Resource):
+class DeploymentPipeline(ApplicationResource):
     title = "DeploymentPipeline"
     configuration = FieldProperty(schemas.IDeploymentPipeline['configuration'])
     source = FieldProperty(schemas.IDeploymentPipeline['source'])
@@ -1304,7 +1335,7 @@ class EFSMount(Resource):
     target = FieldProperty(schemas.IEFSMount['target'])
 
 @implementer(schemas.IEFS)
-class EFS(Resource):
+class EFS(ApplicationResource):
     title = 'EFS'
     encrypted = FieldProperty(schemas.IEFS['encrypted'])
     security_groups = FieldProperty(schemas.IEFS['security_groups'])
@@ -1384,6 +1415,6 @@ class CodeDeployDeploymentGroup(Named, Deployable):
     role_policies = FieldProperty(schemas.ICodeDeployDeploymentGroup['role_policies'])
 
 @implementer(schemas.ICodeDeployApplication)
-class CodeDeployApplication(Resource):
+class CodeDeployApplication(ApplicationResource):
     compute_platform = FieldProperty(schemas.ICodeDeployApplication['compute_platform'])
     deployment_groups = FieldProperty(schemas.ICodeDeployApplication['deployment_groups'])

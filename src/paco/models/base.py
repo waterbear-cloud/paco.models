@@ -498,6 +498,74 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
         )
 
 
+@implementer(schemas.IApplicationResource)
+class ApplicationResource(Resource):
+
+    @property
+    def app_name(self):
+        if hasattr(self, '_app_name'):
+            return self._app_name
+        app = get_parent_by_interface(self, schemas.IApplication)
+        self._app_name = app.name
+        return self._app_name
+
+    @property
+    def group_name(self):
+        if hasattr(self, '_group_name'):
+            return self._group_name
+        group = get_parent_by_interface(self, schemas.IResourceGroup)
+        self._group_name = group.name
+        return self._group_name
+
+    @property
+    def env_name(self):
+        if hasattr(self, '_env_name'):
+            return self._env_name
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        if env == None:
+            account = get_parent_by_interface(self, schemas.IAccountContainer)
+            self._env_name = account.name
+        else:
+            self._env_name = env.name
+        return self._env_name
+
+    @property
+    def env_obj(self):
+        if hasattr(self, '_env_obj'):
+            return self._env_obj
+        env = get_parent_by_interface(self, schemas.IEnvironment)
+        if env == None:
+            account = get_parent_by_interface(self, schemas.IAccountContainer)
+            self._env_obj = account
+        else:
+            self._env_obj = env
+        return self._env_obj
+
+    @property
+    def env_region_obj(self):
+        if hasattr(self, '_env_region_obj'):
+            return self._env_region_obj
+        env_region = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        if env_region == None:
+            region_cont = get_parent_by_interface(self, schemas.IRegionContainer)
+            self._env_region_obj = region_cont
+        else:
+            self._env_region_obj = env_region
+        return self._env_region_obj
+
+    @property
+    def netenv_name(self):
+        if hasattr(self, '_netenv_name'):
+            return self._netenv_name
+        netenv = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        if netenv == None:
+            service = get_parent_by_interface(self, schemas.IService)
+            self._netenv_name = service.name
+        else:
+            self._netenv_name = netenv.name
+        return self._netenv_name
+
+
 @implementer(schemas.IAccountRef)
 class AccountRef():
     account = FieldProperty(schemas.IAccountRef['account'])
@@ -507,6 +575,12 @@ class AccountRef():
 class AccountContainer(Named, Regionalized, dict):
     pass
 
+
 @implementer(schemas.IRegionContainer)
 class RegionContainer(Named, Regionalized, dict):
     alarm_sets = FieldProperty(schemas.IRegionContainer['alarm_sets'])
+
+@implementer(schemas.IAccountRegions)
+class AccountRegions(Parent):
+    account = FieldProperty(schemas.IAccountRegions['account'])
+    regions = FieldProperty(schemas.IAccountRegions['regions'])

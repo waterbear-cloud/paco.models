@@ -1,13 +1,23 @@
 Changelog for paco.models
 =========================
 
-7.1.1 (unreleased)
+7.2.0 (unreleased)
 ------------------
 
 ### Added
 
+- Added ``IASG.launch_options.ssm_agent`` to indicate if SSM Agent should be installed.
+
+- Added ``IRDSPostgresql`` with RDS for Postgresql support. Added complete list of RDS EngineVerions for
+  Mysql and Postgresql to vocabulary.
+
+### Changed
+
+- Vocabulary for instance_ami_type expanded to include OS major release or other significant attributes.
+
 - Added ``poll_for_source_changes`` to IDeploymentPipelineSourceGitHub.
 
+- ``Lambda:code:zipfile`` can now be a path to a local directory.
 
 7.1.0 (2020-04-04)
 ------------------

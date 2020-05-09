@@ -6,6 +6,17 @@ https://docs.plone.org/develop/plone/forms/vocabularies.html
 
 from zope.schema.vocabulary import SimpleVocabulary
 
+ssm_document_types = SimpleVocabulary.fromValues([
+    'ApplicationConfigurationSchema'
+    'Automation',
+    'ChangeCalendar',
+    'Command',
+    'DeploymentStrategy',
+    'Package',
+    'Policy',
+    'Session',
+])
+
 subscription_protocols = [
 	'http',
 	'https',
@@ -64,6 +75,18 @@ cloudwatch = {
 		'dimension': 'DBInstanceIdentifier',
 		'namespace': 'AWS/RDS'
 	},
+	'RDSPostgresql': {
+		'dimension': 'DBInstanceIdentifier',
+		'namespace': 'AWS/RDS'
+	},
+    'IoTTopicRule': {
+        'dimension': 'RuleName',
+        'namespace': 'AWS/IoT',
+    },
+    'IoTAnalyticsPipeline': {
+        'dimension': '',
+        'namespace': 'AWS/IoTAnalytics',
+    },
 	'Route53HealthCheck': {
 		'dimension': 'HealthCheckId',
 		'namespace': 'AWS/Route53',
@@ -313,6 +336,18 @@ aws_regions = {
     		"eu-west-2c"
     	]
     },
+    'eu-south-1': {
+    	"name": "Milan",
+    	"full_name": "EU (Milan)",
+		"short_name": "eus1",
+    	"code": "eu-south-1",
+    	"public": True,
+    	"zones": [
+    		"eu-south-1a",
+    		"eu-south-1b",
+    		"eu-south-1c"
+    	]
+    },
     'eu-west-3': {
     	"name": "Paris",
     	"full_name": "EU (Paris)",
@@ -408,6 +443,11 @@ aws_regions = {
 		]
 	},
 }
+
+aws_region_names = SimpleVocabulary.fromValues(
+    list(aws_regions.keys())
+)
+
 
 instance_size_info = {
 	'a1.medium': {
@@ -1274,118 +1314,309 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonKendraReadOnlyAccess',
 ])
 
+# Generated with the script
+# #!/usr/bin/env python
+# import boto3
+# import json
+#
+# client = boto3.client('rds', region_name='us-west-2')
+# paginator = client.get_paginator('describe_db_engine_versions')
+#
+# rds_engine_versions = {}
+# for engine in ['postgres','mysql']:
+#     rds_engine_versions[engine] = {}
+#     response_iterator = paginator.paginate(
+#         Engine=engine
+#     )
+#     for response in response_iterator:
+#         for version in response['DBEngineVersions']:
+#             rds_engine_versions[engine][version['EngineVersion']] = {}
+#             rds_engine_versions[engine][version['EngineVersion']]['param_group_family'] = version['DBParameterGroupFamily']
+#
+# print(json.dumps(rds_engine_versions, indent=2))
 rds_engine_versions = {
-	'mysql': {
-		'5.7': {
-			'param_group_family': 'mysql5.7'
-		},
-		'5.6': {
-			'param_group_family': 'mysql5.6'
-		}
-
-	}
+  "postgres": {
+    "9.4.7": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.9": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.11": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.12": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.14": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.15": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.17": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.18": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.19": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.20": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.21": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.23": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.24": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.4.25": {
+      "param_group_family": "postgres9.4"
+    },
+    "9.5.2": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.4": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.6": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.7": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.9": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.10": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.12": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.13": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.14": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.15": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.16": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.18": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.19": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.5.20": {
+      "param_group_family": "postgres9.5"
+    },
+    "9.6.1": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.2": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.3": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.5": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.6": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.8": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.9": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.10": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.11": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.12": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.14": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.15": {
+      "param_group_family": "postgres9.6"
+    },
+    "9.6.16": {
+      "param_group_family": "postgres9.6"
+    },
+    "10.1": {
+      "param_group_family": "postgres10"
+    },
+    "10.3": {
+      "param_group_family": "postgres10"
+    },
+    "10.4": {
+      "param_group_family": "postgres10"
+    },
+    "10.5": {
+      "param_group_family": "postgres10"
+    },
+    "10.6": {
+      "param_group_family": "postgres10"
+    },
+    "10.7": {
+      "param_group_family": "postgres10"
+    },
+    "10.9": {
+      "param_group_family": "postgres10"
+    },
+    "10.10": {
+      "param_group_family": "postgres10"
+    },
+    "10.11": {
+      "param_group_family": "postgres10"
+    },
+    "11.1": {
+      "param_group_family": "postgres11"
+    },
+    "11.2": {
+      "param_group_family": "postgres11"
+    },
+    "11.4": {
+      "param_group_family": "postgres11"
+    },
+    "11.5": {
+      "param_group_family": "postgres11"
+    },
+    "11.6": {
+      "param_group_family": "postgres11"
+    },
+    "12.2": {
+      "param_group_family": "postgres12"
+    }
+  },
+  "mysql": {
+    "5.5.46": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.53": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.54": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.57": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.59": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.5.61": {
+      "param_group_family": "mysql5.5"
+    },
+    "5.6.34": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.35": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.37": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.39": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.40": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.41": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.43": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.44": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.6.46": {
+      "param_group_family": "mysql5.6"
+    },
+    "5.7.16": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.17": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.19": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.21": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.22": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.23": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.24": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.25": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.26": {
+      "param_group_family": "mysql5.7"
+    },
+    "5.7.28": {
+      "param_group_family": "mysql5.7"
+    },
+    "8.0.11": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.13": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.15": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.16": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.17": {
+      "param_group_family": "mysql8.0"
+    }
+  }
 }
 
-ami_types = [ 'amazon', 'centos', 'redhat', 'suse', 'ubuntu', 'microsoft' ]
-
-user_data_script = {
-	'update_system': {
-		'amazon': [],
-		'centos': [],
-		'ubuntu': [],
-	},
-	'essential_packages': {
-		'amazon': [],
-		'centos': [],
-		'ubuntu': [
-		],
-	},
-	'update_packages': {
-		'amazon': 'yum update -y',
-		'centos': 'yum update -y',
-		'ubuntu': 'apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y'
-	},
-	'install_aws_cli': {
-		'amazon': '', # AWS is installed by default on Amazon linux
-		'ubuntu': """apt-get update -y
-apt-get -y install python-pip
-pip install awscli
-""",
-		'centos': 'ec2lm_pip install awscli'
-	},
-	'install_wget': {
-		'amazon': 'yum install wget -y',
-		'centos': 'yum install wget -y',
-		'ubuntu': 'apt-get install wget -y'
-	},
-	'install_efs_utils': {
-		'amazon': 'yum install -y amazon-efs-utils cachefilesd',
-		'centos': 'yum install -y amazon-efs-utils cachefilesd',
-		'ubuntu': 'apt-get install cachefilesd -y'
-	},
-	'install_cfn_init': {
-		'amazon': '',
-		'ubuntu': """
-mkdir -p /opt/paco/bin
-apt-get install -y python-setuptools
-wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-easy_install --script-dir /opt/paco/bin aws-cfn-bootstrap-latest.tar.gz
-""",
-		'centos': """
-yum install -y pystache python-daemon
-pip install aws-cfn-bootstrap
-rpm -Uvh https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.amzn1.noarch.rpm
-"""
-	},
-	'enable_efs_utils': {
-		'amazon': """
-/sbin/service cachefilesd start
-systemctl enable cachefilesd
-""",
-		'ubuntu': """
-sed -i 's/#RUN=yes/RUN=yes/g' /etc/default/cachefilesd
-/etc/init.d/cachefilesd start
-""",
-		'centos': """
-/sbin/service cachefilesd start
-systemctl enable cachefilesd
-""" },
-	'mount_efs': {
-		'amazon': 'mount -a -t efs',
-		'ubuntu': 'mount -a -t nfs',
-		'centos': 'mount -a -t nfs'
-	}
-
-}
-
-# Create the CloudWatch agent launch scripts and configuration
-cloudwatch_agent = {
-	"amazon": {
-		"path": "/amazon_linux/amd64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U", },
-	"centos": {
-		"path": "/centos/amd64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U" },
-	"suse": {
-		"path": "/suse/amd64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U" },
-	"debian": {
-		"path": "/debian/amd64/latest",
-		"object": "amazon-cloudwatch-agent.deb" ,
-		"install": "dpkg -i -E" },
-	"ubuntu": {
-		"path": "/ubuntu/amd64/latest",
-		"object": "amazon-cloudwatch-agent.deb",
-		"install": "dpkg -i -E" },
-	"microsoft": {
-		"path": "/windows/amd64/latest",
-		"object": "amazon-cloudwatch-agent.msi",
-		"install": "msiexec /i" },
-	"redhat": {
-		"path": "/redhat/arm64/latest",
-		"object": "amazon-cloudwatch-agent.rpm",
-		"install": "rpm -U" },
-}
+ami_types = [
+    'amazon',
+    'centos',
+    'redhat',
+    'suse',
+    'suse_12',
+    'debian',
+    'debian_8',
+    'debian_9',
+    'ubuntu',
+    'ubuntu_14',
+    'ubuntu_16',
+    'ubuntu_16_386',
+    'ubuntu_16',
+    'ubuntu_16_snap', # Instances created from Ubuntu Server 16.04 AMIs identified with 20180627, SSM Agent is pre-installed using Snap packages
+    'ubuntu_17',
+    'ubuntu_18',
+    'ubuntu_19',
+    'ubuntu_20',
+    'microsoft'
+]

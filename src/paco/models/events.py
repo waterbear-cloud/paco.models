@@ -1,5 +1,5 @@
 from paco.models import schemas
-from paco.models.base import Resource, Named
+from paco.models.base import Resource, ApplicationResource, Named
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -9,7 +9,7 @@ class EventTarget(Named):
     input_json = FieldProperty(schemas.IEventTarget['input_json'])
 
 @implementer(schemas.IEventsRule)
-class EventsRule(Resource):
+class EventsRule(ApplicationResource):
     title = "CloudWatch Event Rule"
     description = FieldProperty(schemas.IEventsRule['description'])
     schedule_expression = FieldProperty(schemas.IEventsRule['schedule_expression'])

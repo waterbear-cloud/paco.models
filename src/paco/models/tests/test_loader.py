@@ -396,3 +396,8 @@ class Testpacodemo(BaseTestModelLoader):
         assert sample.content_delivery_rules['s3dump'].s3_destination.key == "/DataSet/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv"
         assert sample.version_history == 2
         assert sample.expire_events_after_days == 3
+
+    def test_ssm_documents(self):
+        ssm_documents = self.project['resource']['ssm'].ssm_documents
+        assert ssm_documents['my_ssm_doc'].locations[0].regions[0] == 'eu-central-1'
+        assert ssm_documents['my_ssm_doc'].document_type == 'Command'

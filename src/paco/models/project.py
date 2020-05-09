@@ -43,6 +43,7 @@ class Project(Named, dict):
     """Paco project"""
     paco_project_version = FieldProperty(schemas.IProject["paco_project_version"])
     legacy_flags = FieldProperty(schemas.IProject["legacy_flags"])
+    s3bucket_hash = FieldProperty(schemas.IProject["s3bucket_hash"])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
@@ -86,6 +87,9 @@ class Project(Named, dict):
         self.resource['iam'] = paco.models.resources.IAMResource('iam', self.resource)
         self.resource['iam'].title = 'IAM Resource'
 
+        # SSM
+        self.resource['ssm'] = paco.models.resources.SSMResource('ssm', self.resource)
+        self.resource['ssm'].title = 'SSM Resource'
 
     def find_object_from_cli(self, controller_type, component_name=None, config_name=None):
         found = None

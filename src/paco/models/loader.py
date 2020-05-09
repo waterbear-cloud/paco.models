@@ -9,7 +9,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    TroposphereConversionError, InvalidPacoSchema
+    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
@@ -21,12 +21,13 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, ASG, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
+    ApplicationS3Bucket, \
     S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
     S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, ElastiCacheRedis, RDSOptionConfiguration, \
+    RDSMysql, RDSPostgresql, ElastiCacheRedis, RDSOptionConfiguration, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
@@ -43,7 +44,7 @@ from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambda
     DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
     DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
-    Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, \
+    Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, Route53HealthCheck, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
@@ -53,7 +54,7 @@ from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resour
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
-    Route53HealthCheck
+    SSMResource, SSMDocuments, SSMDocument
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
     CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitGroup, \
     CloudFormationInitUsers, CloudFormationInitUser, CloudFormationInitSources, CloudFormationInitFiles, \
@@ -64,7 +65,7 @@ from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceT
     BackupPlans, BackupVault, BackupVaults
 from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
-from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer
+from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference, PacoReference, FileReference
 from paco.models.vocabulary import aws_regions
@@ -128,10 +129,11 @@ RESOURCES_CLASS_MAP = {
     'EC2': EC2,
     'Lambda': Lambda,
     'ManagedPolicy': ManagedPolicy,
-    'S3Bucket': S3Bucket,
+    'S3Bucket': ApplicationS3Bucket,
     'SNSTopic': SNSTopic,
     'CloudFront': CloudFront,
     'RDSMysql': RDSMysql,
+    'RDSPostgresql': RDSPostgresql,
     'ElastiCacheRedis': ElastiCacheRedis,
     'DeploymentPipeline': DeploymentPipeline,
     'EFS': EFS,
@@ -302,6 +304,12 @@ SUB_TYPES_CLASS_MAP = {
         'dns': ('obj_list', DNS),
         'monitoring': ('direct_obj', MonitorConfig)
     },
+    RDSPostgresql: {
+        'option_configurations': ('obj_list', RDSOptionConfiguration),
+        'security_groups': ('str_list', PacoReference),
+        'dns': ('obj_list', DNS),
+        'monitoring': ('direct_obj', MonitorConfig)
+    },
     ElastiCacheRedis: {
         'security_groups': ('str_list', PacoReference),
         'monitoring': ('direct_obj', MonitorConfig)
@@ -402,7 +410,12 @@ SUB_TYPES_CLASS_MAP = {
     S3Bucket: {
         'policy': ('obj_list', S3BucketPolicy),
         'notifications': ('direct_obj', S3NotificationConfiguration),
-        'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting)
+        'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting),
+    },
+    ApplicationS3Bucket: {
+        'policy': ('obj_list', S3BucketPolicy),
+        'notifications': ('direct_obj', S3NotificationConfiguration),
+        'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting),
     },
     S3StaticWebsiteHosting: {
         'redirect_requests': ('direct_obj', S3StaticWebsiteHostingRedirectRequests)
@@ -528,6 +541,12 @@ SUB_TYPES_CLASS_MAP = {
     },
     Route53Resource: {
         'hosted_zones': ('named_obj', Route53HostedZone)
+    },
+    SSMResource: {
+        'ssm_documents': ('container', (SSMDocuments, SSMDocument)),
+    },
+    SSMDocument: {
+        'locations': ('obj_list', AccountRegions),
     },
     SNSTopic: {
         'subscriptions': ('obj_list', SNSTopicSubscription)
@@ -730,8 +749,11 @@ Verify that '{}' has the correct indentation in the config file.
             # Do not try to find their 'name' attr from the config.
             if name != 'name' or not schemas.INamed.providedBy(obj):
                 value = config.get(name, None)
-                # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
+
+                # value transformations
+                # read file references, expand local paths, parse comma-lists and make non-shared list objects
                 if schemas.IFileReference.providedBy(field) and value:
+                    # FileReferences load the string from file - the original path value is lost ¯\_(ツ)_/¯
                     if read_file_path:
                         # set it to the containing directory of the file
                         path = Path(read_file_path)
@@ -744,13 +766,25 @@ Verify that '{}' has the correct indentation in the config file.
                         base_path=base_path,
                         is_yaml=schemas.IYAMLFileReference.providedBy(field)
                     )
-
-                # CommaList: Parse comma separated list into python list()
+                elif schemas.ILocalPath.providedBy(field) and value:
+                    # expand local path if it's a relative path
+                    orig_value = value
+                    if not value.startswith(os.sep):
+                        # set it to the containing directory of the file
+                        path = Path(read_file_path)
+                        base_path = os.sep.join(path.parts[:-1])[1:]
+                        value = base_path + os.sep + value
+                    local_path = Path(value)
+                    if not local_path.is_dir() and not local_path.is_file():
+                        # ToDo: this error gets trapped and re-thrown as an AttributeError?
+                        raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
                 elif type(field) == type(schemas.CommaList()):
+                    # CommaList: Parse comma separated list into python list()
                     value = []
                     for list_value in config[name].split(','):
                         value.append(list_value.strip())
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
+                    # create a new list object so there isn't one list shared between all objects
                     if value == None:
                         if field.default != None:
                             value = deepcopy_except_parent(field.default)
@@ -1666,6 +1700,11 @@ Duplicate key \"{}\" found on line {} at column {}.
         ec2_obj = EC2Resource('ec2', self.project.resource)
         apply_attributes_from_config(ec2_obj, config, self.config_folder)
         return ec2_obj
+
+    def instantiate_ssm(self, config):
+        ssm = SSMResource('ssm', self.project.resource)
+        apply_attributes_from_config(ssm, config, self.config_folder)
+        return ssm
 
     def instantiate_s3(self, config):
         if config == None or 'buckets' not in config.keys():

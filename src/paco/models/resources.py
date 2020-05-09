@@ -5,7 +5,7 @@ All things Resources.
 import json
 import troposphere.apigateway
 import troposphere.route53
-from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource
+from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource, AccountRegions
 from paco.models.metrics import Monitorable
 from paco.models import references
 from paco.models import schemas
@@ -168,7 +168,7 @@ class ApiGatewayStage(Resource):
     }
 
 @implementer(schemas.IApiGatewayRestApi)
-class ApiGatewayRestApi(Resource):
+class ApiGatewayRestApi(ApplicationResource):
     title = "API Gateway REST API"
     type = "ApiGatewayRestApi"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
@@ -567,3 +567,40 @@ class IAMUsers(Named, dict):
 @implementer(schemas.IIAMResource)
 class IAMResource(Named):
     users = FieldProperty(schemas.IIAMResource['users'])
+
+
+@implementer(schemas.ISSMDocuments)
+class SSMDocuments(Named, dict):
+    pass
+
+@implementer(schemas.ISSMDocument)
+class SSMDocument(Resource):
+    locations = FieldProperty(schemas.ISSMDocument['locations'])
+    content = FieldProperty(schemas.ISSMDocument['content'])
+    document_type = FieldProperty(schemas.ISSMDocument['document_type'])
+
+    def add_location(self, account_ref, region):
+        "Add an account and region to locations if it does not already exist"
+        for location in self.locations:
+            if location.account == account_ref:
+                for aws_region in location.regions:
+                    if region == aws_region:
+                        return
+                location.regions.append(region)
+                return
+        # not seen in existing accounts, add new location
+        location = AccountRegions(self)
+        location.account = account_ref
+        location.regions = [region]
+        self.locations.append(location)
+
+
+@implementer(schemas.ISSMResource)
+class SSMResource(Named):
+    name = 'ssm'
+    title = 'SSM'
+    ssm_documents = FieldProperty(schemas.ISSMResource["ssm_documents"])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.ssm_documents = SSMDocuments('ssm_documents', self)

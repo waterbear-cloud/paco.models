@@ -4,7 +4,7 @@ import json
 import troposphere
 import troposphere.cloudwatch
 from paco.models import schemas, vocabulary
-from paco.models.base import Deployable, Parent, Named, Name, Resource, AccountRef, Regionalized
+from paco.models.base import Deployable, Parent, Named, Name, Resource, ApplicationResource, AccountRef, Regionalized
 from paco.models.formatter import get_formatted_model_context
 from paco.models.logging import CloudWatchLogSets
 from paco.models.locations import get_parent_by_interface
@@ -371,5 +371,5 @@ class DashboardVariables(Named, dict):
     pass
 
 @implementer(schemas.ICloudWatchDashboard)
-class CloudWatchDashboard(Resource):
+class CloudWatchDashboard(ApplicationResource):
     dashboard_file = FieldProperty(schemas.ICloudWatchDashboard["dashboard_file"])

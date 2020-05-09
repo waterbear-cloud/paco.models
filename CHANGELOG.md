@@ -12,6 +12,9 @@ Changelog for paco.models
   Mysql and Postgresql to vocabulary.
 
 ### Changed
+
+- Vocabulary for instance_ami_type expanded to include OS major release or other significant attributes.
+
 - Added ``poll_for_source_changes`` to IDeploymentPipelineSourceGitHub.
 
 - ``Lambda:code:zipfile`` can now be a path to a local directory.

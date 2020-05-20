@@ -495,9 +495,8 @@ class CloudTrailResource(Named):
         self.trails = CloudTrails('trails', self)
 
     def resolve_ref(self, ref):
-        # Needed to satisfy paco.models.resolve_ref when it walks
-        # to an S3 Bucket within a CloudTrail
-        return None
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 
 @implementer(schemas.IIAMUserProgrammaticAccess)
 class IAMUserProgrammaticAccess(Deployable):

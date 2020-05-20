@@ -6211,8 +6211,39 @@ Simple Notification Service (SNS) Topic resource.
 
 class ICloudTrail(IResource):
     """
-CloudTrail resource
-    """
+CloudTrail logs AWS API activity. Monitor and react to changes in your AWS accounts with CloudTrail.
+The ``resource/clodutrail.yaml`` file can be used to set-up a multi-account CloudTrail that sends logs
+from every account into a single S3 Bucket.
+
+.. sidebar:: Prescribed Automation
+
+    ``enable_kms_encryption``: Encrypt the CloudTrai logs with a Customer Managed Key (CMK). Paco will create
+    a CMK for the CloudTrail in the same account as the ``s3_bucket_account``.
+
+    ``kms_users``: A list of either IAM User names or paco references to ``resource/iam.yaml`` users. These
+    users will have access to the CMK to decrypt and read the CloudTrail logs.
+
+.. code-block:: yaml
+    :caption: example resource/cloudtrail.yaml configuration
+
+    trails:
+      mycloudtrail:
+        enabled: true
+        region: 'us-west-2'
+        cloudwatchlogs_log_group:
+          expire_events_after_days: '14'
+          log_group_name: CloudTrail
+        enable_log_file_validation: true
+        include_global_service_events: true
+        is_multi_region_trail: true
+        enable_kms_encryption: true
+        kms_users:
+          - bob@example.com
+          - paco.ref resource.iam.users.sallysmith
+        s3_bucket_account: paco.ref accounts.security
+        s3_key_prefix: cloudtrails
+
+"""
     accounts = schema.List(
         title="Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
         description="",
@@ -6231,6 +6262,14 @@ CloudTrail resource
     enable_kms_encryption = schema.Bool(
         title="Enable KMS Key encryption",
         default=False,
+    )
+    kms_users = schema.List(
+        title="IAM Users with access to CloudTrail bucket",
+        value_type=PacoReference(
+            title="KMS User",
+            str_ok=True,
+            schema_constraint='IIAMUser'
+        )
     )
     enable_log_file_validation = schema.Bool(
         title="Enable log file validation",

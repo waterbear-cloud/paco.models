@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.2.1 (unreleased)
+7.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- ICloudTrail now has a ``kms_users`` field which is a list of IAM Users granted access to encrypted CloudTrail logs.
 
 
 7.2.0 (2020-05-09)

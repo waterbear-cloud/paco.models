@@ -768,9 +768,9 @@ child accounts.
     account_id: '123456789012'
     region: us-west-2
     organization_account_ids:
-    - prod
-    - tools
-    - dev
+      - prod
+      - tools
+      - dev
     root_email: master@example.com
 
 .. code-block:: yaml
@@ -6211,9 +6211,14 @@ Simple Notification Service (SNS) Topic resource.
 
 class ICloudTrail(IResource):
     """
-CloudTrail logs AWS API activity. Monitor and react to changes in your AWS accounts with CloudTrail.
-The ``resource/clodutrail.yaml`` file can be used to set-up a multi-account CloudTrail that sends logs
-from every account into a single S3 Bucket.
+The ``resource/cloudtrail.yaml`` file specifies CloudTrail resources.
+
+AWS CloudTrail logs all AWS API activity. Monitor and react to changes in your AWS accounts with CloudTrail.
+A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs from every account into a single S3 Bucket.
+
+.. code-block:: bash
+
+    paco provision resource.cloudtrail
 
 .. sidebar:: Prescribed Automation
 

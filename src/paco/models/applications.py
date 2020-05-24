@@ -181,6 +181,7 @@ class S3BucketPolicy(Parent):
     effect = FieldProperty(schemas.IS3BucketPolicy['effect'])
     principal = FieldProperty(schemas.IS3BucketPolicy['principal'])
     resource_suffix = FieldProperty(schemas.IS3BucketPolicy['resource_suffix'])
+    sid = FieldProperty(schemas.IS3BucketPolicy['sid'])
 
     def __init__(self, __parent__=None):
         super().__init__(__parent__)

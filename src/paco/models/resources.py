@@ -457,6 +457,35 @@ class CodeCommit(Named, dict):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IConfig)
+class Config(Resource):
+    delivery_frequency = FieldProperty(schemas.IConfig["delivery_frequency"])
+    global_resources_region = FieldProperty(schemas.IConfig["global_resources_region"])
+    locations = FieldProperty(schemas.IConfig["locations"])
+    s3_bucket_logs_account = FieldProperty(schemas.IConfig["s3_bucket_logs_account"])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.locations = []
+
+    def get_accounts(self):
+        """
+        Resolve the locations field for all accounts.
+        If locations is empty, then all accounts are returned.
+        """
+        if self.locations == []:
+            return project['accounts'].values()
+        accounts = []
+        project = get_parent_by_interface(self, schemas.IProject)
+        for location in self.locations:
+            account = references.get_model_obj_from_ref(location.account, project)
+            accounts.append(account)
+        return accounts
+
+@implementer(schemas.IConfigResource)
+class ConfigResource(Named):
+    config = FieldProperty(schemas.IConfigResource["config"])
+
 @implementer(schemas.ICloudTrail)
 class CloudTrail(Resource):
     type = 'CloudTrail'

@@ -328,6 +328,11 @@ class Testpacodemo(BaseTestModelLoader):
         assert trail.cloudwatchlogs_log_group.log_group_name, 'CloudTrail'
         assert trail.cloudwatchlogs_log_group.expire_events_after_days, '14'
 
+    def test_config(self):
+        config = self.project['resource']['config'].config
+        assert config.global_resources_region == 'us-west-2'
+        assert config.delivery_frequency == 'Six_Hours'
+
     def test_api_gateway_rest_api(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']

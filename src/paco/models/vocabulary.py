@@ -6,6 +6,10 @@ https://docs.plone.org/develop/plone/forms/vocabularies.html
 
 from zope.schema.vocabulary import SimpleVocabulary
 
+aws_config_delivery_frequencies = SimpleVocabulary.fromValues([
+ 'One_Hour', 'Six_Hours', 'Three_Hours', 'Twelve_Hours','TwentyFour_Hours',
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

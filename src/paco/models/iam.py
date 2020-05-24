@@ -85,14 +85,16 @@ class AssumeRolePolicy(Parent):
 
 @implementer(schemas.IStatement)
 class Statement(Named):
-    effect = FieldProperty(schemas.IStatement["effect"])
     action = FieldProperty(schemas.IStatement["action"])
+    condition = FieldProperty(schemas.IStatement["condition"])
+    effect = FieldProperty(schemas.IStatement["effect"])
     resource = FieldProperty(schemas.IStatement["resource"])
 
     def __init__(self, __name__, __parent__):
         super().__init__(__name__, __parent__)
         self.action = []
         self.resource = []
+        self.condition = {}
 
 
 @implementer(schemas.IManagedPolicy)

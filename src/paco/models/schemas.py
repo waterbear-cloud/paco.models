@@ -2041,6 +2041,10 @@ S3 Bucket Policy
         ),
         required=True,
     )
+    sid = schema.TextLine(
+        title="Statement Id",
+        required=False,
+    )
     @invariant
     def aws_or_principal(obj):
         if obj.aws == [] and obj.principal == {}:
@@ -3231,17 +3235,24 @@ to a target group, use the ``target_groups`` field on an ASG resource.
     )
 
 class IStatement(INamed):
+    action = schema.List(
+        title="Action(s)",
+        value_type=schema.TextLine(),
+        required=False,
+    )
+    condition = schema.Dict(
+        title="Condition",
+        description='Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
+        default={},
+        required=False,
+        # ToDo: Use awacs to add a constraint to check for valid conditions
+    )
     effect = schema.TextLine(
         title="Effect",
         description="Must be one of: 'Allow', 'Deny'",
         required=False,
         # ToDo: check constraint
         # constraint = vocabulary.iam_policy_effect
-    )
-    action = schema.List(
-        title="Action(s)",
-        value_type=schema.TextLine(),
-        required=False,
     )
     resource =schema.List(
         title="Resrource(s)",
@@ -6209,6 +6220,48 @@ Simple Notification Service (SNS) Topic resource.
         default=False,
     )
 
+
+class IConfig(IResource):
+    """
+AWS Config
+"""
+    delivery_frequency = schema.Choice(
+        title="Delivery Frequency",
+        required=False,
+        default='One_Hour',
+        vocabulary=vocabulary.aws_config_delivery_frequencies,
+    )
+    global_resources_region = schema.TextLine(
+        title="Region to record Global resource changes",
+        description='Must be a valid AWS Region name',
+        constraint = isValidAWSRegionName,
+        required=True,
+    )
+    locations = schema.List(
+        title="Locations",
+        value_type=schema.Object(IAccountRegions),
+        default=[],
+        required=False,
+    )
+    s3_bucket_logs_account = PacoReference(
+        title="Account to contain the S3 Bucket that AWS Config records to",
+        description='Must be an paco.ref to an account',
+        required=True,
+        schema_constraint='IAccount'
+    )
+
+class IConfigResource(INamed):
+    """
+Global AWS Config configuration
+    """
+    config = schema.Object(
+        title="AWS Config",
+        schema=IConfig,
+        default=None,
+        required=True,
+    )
+
+
 class ICloudTrail(IResource):
     """
 The ``resource/cloudtrail.yaml`` file specifies CloudTrail resources.
@@ -6302,7 +6355,7 @@ A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs fr
         title="Account which will contain the S3 Bucket that the CloudTrails will be stored in",
         description='Must be an paco.ref to an account',
         required=True,
-        schema_constraint='IS3Bucket'
+        schema_constraint='IAccount'
     )
     s3_key_prefix = schema.TextLine(
         title="S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",

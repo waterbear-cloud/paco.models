@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- AWS Config support added in ``resource/config.yaml``.
+
 - ICloudTrail now has a ``kms_users`` field which is a list of IAM Users granted access to encrypted CloudTrail logs.
 
 

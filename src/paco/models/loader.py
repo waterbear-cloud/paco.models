@@ -54,7 +54,8 @@ from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resour
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
-    SSMResource, SSMDocuments, SSMDocument
+    SSMResource, SSMDocuments, SSMDocument, \
+    ConfigResource, Config
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
     CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitGroup, \
     CloudFormationInitUsers, CloudFormationInitUser, CloudFormationInitSources, CloudFormationInitFiles, \
@@ -428,6 +429,12 @@ SUB_TYPES_CLASS_MAP = {
     },
     CloudTrail: {
         'cloudwatchlogs_log_group': ('direct_obj', CloudWatchLogGroup),
+    },
+    ConfigResource: {
+        'config': ('direct_obj',  Config),
+    },
+    Config: {
+        'locations': ('obj_list', AccountRegions),
     },
 
     # monitoring and logging
@@ -1670,6 +1677,12 @@ Duplicate key \"{}\" found on line {} at column {}.
 
     def instantiate_cloudtrail(self, config):
         obj = CloudTrailResource('cloudtrail', self.project.resource)
+        if config != None:
+            apply_attributes_from_config(obj, config, self.config_folder)
+        return obj
+
+    def instantiate_config(self, config):
+        obj = ConfigResource('config', self.project.resource)
         if config != None:
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj

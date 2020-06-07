@@ -11,6 +11,7 @@ from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
 from paco.models.metrics import Monitorable, AlarmNotifications
 from paco.models.vocabulary import application_group_types, aws_regions
+from paco.models.iam import Role
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 import troposphere
@@ -523,6 +524,7 @@ class ASG(ApplicationResource, Monitorable):
         self.ebs_volume_mounts = []
         self.rolling_update_policy = ASGRollingUpdatePolicy('rolling_update_policy', self)
         self.launch_options = EC2LaunchOptions('launch_options', self)
+        self.instance_iam_role = Role('role', self)
 
     @property
     def instance_ami_type_family(self):

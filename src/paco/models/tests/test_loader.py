@@ -132,6 +132,12 @@ class Testpacodemo(BaseTestModelLoader):
         assert cfn_init.parameters['TestString'] == 'catdog'
         assert cfn_init.parameters['TestNumber'] == 10
 
+        # Test IAM Role
+        assert asg.instance_iam_role.enabled == True
+        assert asg.instance_iam_role.name == 'instance_iam_role'
+
+        norole_asg = demo_env.applications['app'].groups['site'].resources['norole']
+        assert norole_asg.instance_iam_role.enabled == False
 
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

@@ -400,6 +400,22 @@ applications:
             primary_domain_name: database.pacodemo.internal
             primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
             parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.dbparams
+          norole:
+            type: ASG
+            order: 20
+            enabled: true
+            associate_public_ip_address: false
+            cooldown_secs: 300
+            ebs_optimized: false
+            health_check_grace_period_secs: 300
+            health_check_type: ELB
+            instance_ami: ami-01bbe152bf19d0289
+            instance_key_pair: paco.ref resource.ec2.keypairs.pacodemo_prod
+            instance_monitoring: false
+            instance_type: t2.micro
+            max_instances: 3
+            min_instances: 1
+            desired_capacity: 1
           webapp:
             type: ASG
             order: 3

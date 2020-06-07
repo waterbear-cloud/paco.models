@@ -1238,7 +1238,7 @@ class ModelLoader():
 
     def __init__(self, config_folder, config_processor=None, warn=None):
         self.warn = warn
-        self.config_folder = config_folder
+        self.config_folder = pathlib.Path(config_folder)
         self.config_subdirs = {
             "monitor": self.instantiate_monitor_config,
             "accounts": self.instantiate_accounts,
@@ -1246,7 +1246,7 @@ class ModelLoader():
             "resource": self.instantiate_resources,
         }
         # Legacy directory names
-        if os.path.isdir(self.config_folder + os.sep + 'NetworkEnvironments'):
+        if os.path.isdir(self.config_folder / 'NetworkEnvironments'):
             self.config_subdirs = {
                 "MonitorConfig": self.instantiate_monitor_config,
                 "Accounts": self.instantiate_accounts,
@@ -1272,9 +1272,9 @@ Duplicate key \"{}\" found on line {} at column {}.
         """Read a YAML file"""
         # default is to load root project.yaml
         if sub_dir == '':
-            path = self.config_folder + os.sep + fname
+            path = self.config_folder / fname
         else:
-            path = self.config_folder + os.sep + sub_dir + os.sep + fname
+            path = self.config_folder / sub_dir / fname
         logger.debug("Loading YAML: %s" % (path))
 
         # Credential files must be secured. This seems hacky, is there a better way?
@@ -1310,24 +1310,26 @@ Duplicate key \"{}\" found on line {} at column {}.
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
         self.project.paco_project_version = '{}.{}'.format(paco_project_version[0], paco_project_version[1])
 
-        if os.path.isfile(self.config_folder + os.sep + '.credentials.yaml'):
+        if os.path.isfile(self.config_folder / '.credentials.yaml'):
             self.instantiate_project('.credentials', self.read_yaml('', '.credentials.yaml'))
         for subdir, instantiate_method in self.config_subdirs.items():
-            for fname in os.listdir(self.config_folder + os.sep + subdir):
-                if fname.endswith('.yml') or fname.endswith('.yaml'):
-                    if fname.endswith('.yml'):
-                        name = fname[:-4]
-                    elif fname.endswith('.yaml'):
-                        name = fname[:-5]
-                    config = self.read_yaml(subdir, fname)
-                    instantiate_method(name, config, os.path.join(subdir, fname))
+            subpath = self.config_folder / subdir
+            if subpath.exists():
+                for fname in os.listdir(subpath):
+                    if fname.endswith('.yml') or fname.endswith('.yaml'):
+                        if fname.endswith('.yml'):
+                            name = fname[:-4]
+                        elif fname.endswith('.yaml'):
+                            name = fname[:-5]
+                        config = self.read_yaml(subdir, fname)
+                        instantiate_method(name, config, os.path.join(subdir, fname))
         self.instantiate_services()
         self.load_core_monitoring()
         self.yaml.restore_existing_constructors()
 
     def read_paco_project_version(self):
         "Reads <project>/paco-project-version.txt and returns a tuple (major,medium) version"
-        version_file = self.config_folder + os.sep + 'paco-project-version.txt'
+        version_file = self.config_folder / 'paco-project-version.txt'
         if not os.path.isfile(version_file):
             raise InvalidPacoProjectFile(
                 'You need a <project>/paco-project-version.txt file that declares your Paco project file format version.'
@@ -1598,13 +1600,13 @@ Duplicate key \"{}\" found on line {} at column {}.
         service_plugins = paco.models.services.list_service_plugins()
         services_dir_name = 'service'
         # Legacy directory name
-        if os.path.isdir(self.config_folder + os.sep + 'Services'):
+        if os.path.isdir(self.config_folder /'Services'):
             services_dir_name = 'Services'
-        services_dir = self.config_folder + os.sep + services_dir_name + os.sep
+        services_dir = self.config_folder / services_dir_name
         for plugin_name, plugin_module in service_plugins.items():
-            if os.path.isfile(services_dir + plugin_name + '.yml'):
+            if (services_dir / (plugin_name + '.yml')).is_file():
                 fname = plugin_name + '.yml'
-            elif os.path.isfile(services_dir + plugin_name + '.yaml'):
+            elif (services_dir / (plugin_name + '.yaml')).is_file():
                 fname = plugin_name + '.yaml'
             else:
                 continue
@@ -1613,7 +1615,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                 config,
                 self.project,
                 self.monitor_config,
-                read_file_path=services_dir + fname
+                read_file_path=services_dir / fname
             )
             self.project['service'][plugin_name.lower()] = service
 

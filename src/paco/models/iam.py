@@ -36,6 +36,7 @@ class Role(Named, Deployable):
     def __init__(self, __name__, __parent__):
         super().__init__(__name__, __parent__)
         self.policies = []
+        self.managed_policy_arns = []
 
     def apply_config(self, config_dict):
         loader.apply_attributes_from_config(self, config_dict)

@@ -10,6 +10,12 @@ Changelog for paco.models
 
 - ICloudTrail now has a ``kms_users`` field which is a list of IAM Users granted access to encrypted CloudTrail logs.
 
+### Changed
+
+- The IASG `instance_iam_role` field is no longer a required field.
+
+- The home / config_folder is now a pathlib.Path object.
+
 
 7.2.0 (2020-05-09)
 ------------------

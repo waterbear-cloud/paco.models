@@ -4594,7 +4594,10 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         constraint = isValidHealthCheckType,
         required=False,
     )
-    instance_iam_role = schema.Object(IRole)
+    instance_iam_role = schema.Object(
+        IRole,
+        required=False
+    )
     instance_ami = PacoReference(
         title="Instance AMI",
         description="",

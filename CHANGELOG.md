@@ -6,11 +6,16 @@ Changelog for paco.models
 
 ### Added
 
+- New `resource/sns.yaml` fiel with SNS global resource to allow SNS Topics and Subscriptions to be provisioned
+  across any combination of accounts/regions.
+
 - AWS Config support added in ``resource/config.yaml``.
 
 - ICloudTrail now has a ``kms_users`` field which is a list of IAM Users granted access to encrypted CloudTrail logs.
 
 ### Changed
+
+- ISNSTopics has a locations field. This only applies for `resource/sns.yaml`
 
 - The IASG `instance_iam_role` field is no longer a required field.
 

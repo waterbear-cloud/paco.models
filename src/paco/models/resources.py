@@ -20,6 +20,25 @@ from paco.models import references
 class GlobalResources(Named, dict):
     "Global Resources"
 
+@implementer(schemas.ITopics)
+class Topics(Named, dict):
+    pass
+
+class Computed(Named, dict):
+    pass
+
+@implementer(schemas.ISNS)
+class SNS(Named, dict):
+    default_locations = FieldProperty(schemas.ISNS['default_locations'])
+    topics = FieldProperty(schemas.ISNS['topics'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.computed = Computed('computed', self)
+
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IApiGatewayMethods)
 class ApiGatewayMethods(Named, dict):
     pass

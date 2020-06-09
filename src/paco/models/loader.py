@@ -54,8 +54,8 @@ from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resour
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
-    SSMResource, SSMDocuments, SSMDocument, \
-    ConfigResource, Config
+    SSMResource, SSMDocuments, SSMDocument, ConfigResource, Config, \
+    SNS, Topics
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
     CloudFormationInitPathOrUrlPackageSet, CloudFormationInitPackages, CloudFormationInitGroups, CloudFormationInitGroup, \
     CloudFormationInitUsers, CloudFormationInitUser, CloudFormationInitSources, CloudFormationInitFiles, \
@@ -351,7 +351,8 @@ SUB_TYPES_CLASS_MAP = {
         'viewer_certificate': ('direct_obj', CloudFrontViewerCertificate),
     },
     SNSTopic: {
-        'subscription': ('obj_list', SNSTopicSubscription),
+        'locations': ('obj_list', AccountRegions),
+        'subscriptions': ('obj_list', SNSTopicSubscription)
     },
     # Resource sub-objects
     CloudWatchAlarm: {
@@ -423,6 +424,10 @@ SUB_TYPES_CLASS_MAP = {
     },
     S3NotificationConfiguration: {
         'lambdas': ('obj_list', S3LambdaConfiguration)
+    },
+    SNS: {
+        'default_locations': ('obj_list', AccountRegions),
+        'topics': ('container', (Topics, SNSTopic)),
     },
     CloudTrailResource: {
         'trails': ('container', (CloudTrails, CloudTrail)),
@@ -554,9 +559,6 @@ SUB_TYPES_CLASS_MAP = {
     },
     SSMDocument: {
         'locations': ('obj_list', AccountRegions),
-    },
-    SNSTopic: {
-        'subscriptions': ('obj_list', SNSTopicSubscription)
     },
     CodeCommit: {
     },
@@ -1660,6 +1662,12 @@ Duplicate key \"{}\" found on line {} at column {}.
             raise InvalidPacoProjectFile("resource/snstopics.yaml does not have a top-level `groups:`.")
 
         return snstopics
+
+    def instantiate_sns(self, config):
+        obj = SNS('sns', self.project.resource)
+        if config != None:
+            apply_attributes_from_config(obj, config, self.config_folder)
+        return obj
 
     def instantiate_cloudwatch_log_groups(self, config):
         cw_log_groups = CWLogGroups()

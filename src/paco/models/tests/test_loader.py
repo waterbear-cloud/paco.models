@@ -307,6 +307,11 @@ class Testpacodemo(BaseTestModelLoader):
         assert bob.subscriptions[6].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
         assert bob.subscriptions[7].endpoint, 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
 
+    def test_sns(self):
+        sns = self.project['resource']['sns']
+        assert len(sns.default_locations), 1
+        assert len(sns.topics), 2
+
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         lmbda = demo_env['applications']['notification'].groups['lambda'].resources['function']

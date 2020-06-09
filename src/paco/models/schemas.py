@@ -1000,6 +1000,18 @@ class IGlobalResources(INamed, IMapping):
     "A container for global Resources"
     taggedValue('contains', 'mixed')
 
+class IAccountRegions(IParent):
+    """An Account and one or more Regions"""
+    account = PacoReference(
+        title="AWS Account",
+        required=True,
+        schema_constraint='IAccount'
+    )
+    regions = schema.List(
+        title="Regions",
+        required=True,
+    )
+
 class IResources(INamed, IMapping):
     "A container of Resources to support an `Application`_."
     taggedValue('contains', 'mixed')
@@ -1677,6 +1689,126 @@ class ICloudWatchLogAlarm(ICloudWatchAlarm):
         required=True
     )
 
+# New-style sns.yaml support
+
+class ISNSTopicSubscription(Interface):
+
+    @invariant
+    def is_valid_endpoint_for_protocol(obj):
+        "Validate enpoint"
+        # ToDo: this relies on other validation functions, maybe catch an re-raise
+        # with more helpful error message context.
+        # also check the other protocols ...
+        if obj.protocol == 'http':
+            isValidHttpUrl(obj.endpoint)
+        elif obj.protocol == 'https':
+            isValidHttpsUrl(obj.endpoint)
+        elif obj.protocol in ['email','email-json']:
+            isValidEmail(obj.endpoint)
+
+    protocol = schema.TextLine(
+        title="Notification protocol",
+        default="email",
+        description="Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
+        constraint = isValidSNSSubscriptionProtocol,
+        required=False,
+    )
+    endpoint = PacoReference(
+        title="SNS Topic ARN or Paco Reference",
+        str_ok=True,
+        required=False,
+        schema_constraint='ISNSTopic'
+    )
+    filter_policy = schema.TextLine(
+        title="Filter Policy",
+        description="Must be valid JSON",
+        constraint=isValidJSONOrNone,
+        required=False,
+    )
+
+class ISNSTopic(IResource):
+    """
+Simple Notification Service (SNS) Topic resource.
+
+.. sidebar:: Prescribed Automation
+
+    ``cross_account_access``: Creates an SNS Topic Policy which will grant all of the AWS Accounts in this
+    Paco Project access to the ``sns.Publish`` permission for this SNS Topic.
+
+.. code-block:: yaml
+    :caption: Example SNSTopic resource YAML
+
+    type: SNSTopic
+    order: 1
+    enabled: true
+    display_name: "Waterbear Cloud AWS"
+    cross_account_access: true
+    subscriptions:
+      - endpoint: http://example.com/yes
+        protocol: http
+      - endpoint: https://example.com/orno
+        protocol: https
+      - endpoint: bob@example.com
+        protocol: email
+      - endpoint: bob@example.com
+        protocol: email-json
+        filter_policy: '{"State": [ { "anything-but": "COMPLETED" } ] }'
+      - endpoint: '555-555-5555'
+        protocol: sms
+      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
+        protocol: sqs
+      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
+        protocol: application
+      - endpoint: arn:aws:lambda:us-east-1:123456789012:function:my-function
+        protocol: lambda
+
+"""
+    display_name = schema.TextLine(
+        title="Display name for SMS Messages",
+        required=False,
+    )
+    locations = schema.List(
+        title="Locations",
+        description="Only applies to a global SNS Topic",
+        value_type=schema.Object(IAccountRegions),
+        default=[],
+        required=False,
+    )
+    subscriptions = schema.List(
+        title="List of SNS Topic Subscriptions",
+        value_type=schema.Object(ISNSTopicSubscription),
+        required=False,
+    )
+    cross_account_access = schema.Bool(
+        title="Cross-account access from all other accounts in this project.",
+        description="",
+        required=False,
+        default=False,
+    )
+
+class ITopics(INamed, IMapping):
+    """
+Container for `SNSTopic`_ objects.
+    """
+    taggedValue('contains', 'ISNSTopic')
+
+class ISNS(INamed, IMapping):
+    """
+AWS Simple Notification Systems (SNS)
+    """
+    default_locations = schema.List(
+        title="Locations",
+        value_type=schema.Object(IAccountRegions),
+        default=[],
+        required=False,
+    )
+    topics = schema.Object(
+        title="SNS Topics",
+        schema=ITopics,
+        required=False,
+    )
+
+# Legacy snstopics.yaml support
 
 class ISNSTopics(IAccountRef):
     "Container for SNS Topics"
@@ -2858,20 +2990,7 @@ class ISecretsManager(INamed, IMapping):
     """Secrets Manager contains `SecretManagerApplication` objects."""
     taggedValue('contains', 'ISecretsManagerApplication')
 
-# AccountRegions, Environment, Account and Region containers
-
-class IAccountRegions(IParent):
-    """An Account and one or more Regions"""
-    account = PacoReference(
-        title="AWS Account",
-        required=True,
-        schema_constraint='IAccount'
-    )
-    regions = schema.List(
-        title="Regions",
-        required=True,
-    )
-
+# Environment, Account and Region containers
 
 class IAccountContainer(INamed, IMapping):
     """Container for `RegionContainer`_ objects."""
@@ -6141,87 +6260,6 @@ class ICodeCommit(INamed, IMapping):
 Container for `CodeCommitRepositoryGroup`_ objects.
     """
     taggedValue('contains', 'ICodeCommitRepositoryGroup')
-
-class ISNSTopicSubscription(Interface):
-
-    @invariant
-    def is_valid_endpoint_for_protocol(obj):
-        "Validate enpoint"
-        # ToDo: this relies on other validation functions, maybe catch an re-raise
-        # with more helpful error message context.
-        # also check the other protocols ...
-        if obj.protocol == 'http':
-            isValidHttpUrl(obj.endpoint)
-        elif obj.protocol == 'https':
-            isValidHttpsUrl(obj.endpoint)
-        elif obj.protocol in ['email','email-json']:
-            isValidEmail(obj.endpoint)
-
-    protocol = schema.TextLine(
-        title="Notification protocol",
-        default="email",
-        description="Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
-        constraint = isValidSNSSubscriptionProtocol,
-        required=False,
-    )
-    endpoint = PacoReference(
-        title="SNS Topic ARN or Paco Reference",
-        str_ok=True,
-        required=False,
-        schema_constraint='ISNSTopic'
-    )
-
-class ISNSTopic(IResource):
-    """
-Simple Notification Service (SNS) Topic resource.
-
-.. sidebar:: Prescribed Automation
-
-    ``cross_account_access``: Creates an SNS Topic Policy which will grant all of the AWS Accounts in this
-    Paco Project access to the ``sns.Publish`` permission for this SNS Topic.
-
-.. code-block:: yaml
-    :caption: Example SNSTopic resource YAML
-
-    type: SNSTopic
-    order: 1
-    enabled: true
-    display_name: "Waterbear Cloud AWS"
-    cross_account_access: true
-    subscriptions:
-      - endpoint: http://example.com/yes
-        protocol: http
-      - endpoint: https://example.com/orno
-        protocol: https
-      - endpoint: bob@example.com
-        protocol: email
-      - endpoint: bob@example.com
-        protocol: email-json
-      - endpoint: '555-555-5555'
-        protocol: sms
-      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
-        protocol: sqs
-      - endpoint: arn:aws:sqs:us-east-2:444455556666:queue1
-        protocol: application
-      - endpoint: arn:aws:lambda:us-east-1:123456789012:function:my-function
-        protocol: lambda
-
-"""
-    display_name = schema.TextLine(
-        title="Display name for SMS Messages",
-        required=False,
-    )
-    subscriptions = schema.List(
-        title="List of SNS Topic Subscriptions",
-        value_type=schema.Object(ISNSTopicSubscription),
-        required=False,
-    )
-    cross_account_access = schema.Bool(
-        title="Cross-account access from all other accounts in this project.",
-        description="",
-        required=False,
-        default=False,
-    )
 
 
 class IConfig(IResource):

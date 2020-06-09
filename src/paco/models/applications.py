@@ -775,6 +775,7 @@ class Lambda(ApplicationResource, Monitorable):
 class SNSTopicSubscription(Parent):
     protocol = FieldProperty(schemas.ISNSTopicSubscription['protocol'])
     endpoint = FieldProperty(schemas.ISNSTopicSubscription['endpoint'])
+    filter_policy = FieldProperty(schemas.ISNSTopicSubscription['filter_policy'])
 
 @implementer(schemas.ISNSTopic)
 class SNSTopic(Resource):
@@ -783,6 +784,11 @@ class SNSTopic(Resource):
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
     cross_account_access = FieldProperty(schemas.ISNSTopic['cross_account_access'])
+    locations = FieldProperty(schemas.ISNSTopic["locations"])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.locations = []
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

@@ -21,6 +21,7 @@ import troposphere.elasticloadbalancingv2
 import troposphere.elasticsearch
 import troposphere.s3
 import troposphere.secretsmanager
+import troposphere.ecs
 
 
 @implementer(schemas.IApplicationEngines)
@@ -450,9 +451,9 @@ class BlockDevice(Parent):
 
 @implementer(schemas.IBlockDeviceMapping)
 class BlockDeviceMapping(Parent):
-    device_name =  FieldProperty(schemas.IBlockDeviceMapping['device_name'])
-    ebs =  FieldProperty(schemas.IBlockDeviceMapping['ebs'])
-    virtual_name =  FieldProperty(schemas.IBlockDeviceMapping['virtual_name'])
+    device_name = FieldProperty(schemas.IBlockDeviceMapping['device_name'])
+    ebs = FieldProperty(schemas.IBlockDeviceMapping['ebs'])
+    virtual_name = FieldProperty(schemas.IBlockDeviceMapping['virtual_name'])
 
     @property
     def ebs_cfn(self):
@@ -475,34 +476,39 @@ class ASGRollingUpdatePolicy(Named):
     pause_time = FieldProperty(schemas.IASGRollingUpdatePolicy['pause_time'])
     wait_on_resource_signals = FieldProperty(schemas.IASGRollingUpdatePolicy['wait_on_resource_signals'])
 
+@implementer(schemas.IECSASGConfiguration)
+class ECSASGConfiguration(Named):
+    cluster = FieldProperty(schemas.IECSASGConfiguration['cluster'])
+
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):
     title = "AutoScalingGroup"
-    cfn_init =  FieldProperty(schemas.IASG['cfn_init'])
-    desired_capacity =  FieldProperty(schemas.IASG['desired_capacity'])
-    desired_capacity_ignore_changes =  FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
-    min_instances =  FieldProperty(schemas.IASG['min_instances'])
-    max_instances =  FieldProperty(schemas.IASG['max_instances'])
-    associate_public_ip_address =  FieldProperty(schemas.IASG['associate_public_ip_address'])
-    cooldown_secs =  FieldProperty(schemas.IASG['cooldown_secs'])
-    ebs_optimized =  FieldProperty(schemas.IASG['ebs_optimized'])
-    health_check_type =  FieldProperty(schemas.IASG['health_check_type'])
-    health_check_grace_period_secs =  FieldProperty(schemas.IASG['health_check_grace_period_secs'])
-    eip =  FieldProperty(schemas.IASG['eip'])
-    instance_iam_role =  FieldProperty(schemas.IASG['instance_iam_role'])
-    instance_ami =  FieldProperty(schemas.IASG['instance_ami'])
-    instance_ami_ignore_changes =  FieldProperty(schemas.IASG['instance_ami_ignore_changes'])
-    instance_ami_type =  FieldProperty(schemas.IASG['instance_ami_type'])
-    instance_key_pair =  FieldProperty(schemas.IASG['instance_key_pair'])
-    instance_type =  FieldProperty(schemas.IASG['instance_type'])
-    segment =  FieldProperty(schemas.IASG['segment'])
-    termination_policies =  FieldProperty(schemas.IASG['termination_policies'])
-    security_groups =  FieldProperty(schemas.IASG['security_groups'])
+    cfn_init = FieldProperty(schemas.IASG['cfn_init'])
+    desired_capacity = FieldProperty(schemas.IASG['desired_capacity'])
+    desired_capacity_ignore_changes = FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
+    min_instances = FieldProperty(schemas.IASG['min_instances'])
+    max_instances = FieldProperty(schemas.IASG['max_instances'])
+    associate_public_ip_address = FieldProperty(schemas.IASG['associate_public_ip_address'])
+    cooldown_secs = FieldProperty(schemas.IASG['cooldown_secs'])
+    ebs_optimized = FieldProperty(schemas.IASG['ebs_optimized'])
+    health_check_type = FieldProperty(schemas.IASG['health_check_type'])
+    health_check_grace_period_secs = FieldProperty(schemas.IASG['health_check_grace_period_secs'])
+    eip = FieldProperty(schemas.IASG['eip'])
+    ecs = FieldProperty(schemas.IASG['ecs'])
+    instance_iam_role = FieldProperty(schemas.IASG['instance_iam_role'])
+    instance_ami = FieldProperty(schemas.IASG['instance_ami'])
+    instance_ami_ignore_changes = FieldProperty(schemas.IASG['instance_ami_ignore_changes'])
+    instance_ami_type = FieldProperty(schemas.IASG['instance_ami_type'])
+    instance_key_pair = FieldProperty(schemas.IASG['instance_key_pair'])
+    instance_type = FieldProperty(schemas.IASG['instance_type'])
+    segment = FieldProperty(schemas.IASG['segment'])
+    termination_policies = FieldProperty(schemas.IASG['termination_policies'])
+    security_groups = FieldProperty(schemas.IASG['security_groups'])
     target_groups = FieldProperty(schemas.IASG['target_groups'])
     load_balancers = FieldProperty(schemas.IASG['load_balancers'])
-    termination_policies =  FieldProperty(schemas.IASG['termination_policies'])
-    user_data_script =  FieldProperty(schemas.IASG['user_data_script'])
-    user_data_pre_script =  FieldProperty(schemas.IASG['user_data_pre_script'])
+    termination_policies = FieldProperty(schemas.IASG['termination_policies'])
+    user_data_script = FieldProperty(schemas.IASG['user_data_script'])
+    user_data_pre_script = FieldProperty(schemas.IASG['user_data_pre_script'])
     instance_monitoring = FieldProperty(schemas.IASG['instance_monitoring'])
     scaling_policy_cpu_average = FieldProperty(schemas.IASG['scaling_policy_cpu_average'])
     efs_mounts = FieldProperty(schemas.IASG['efs_mounts'])
@@ -592,6 +598,261 @@ class ASG(ApplicationResource, Monitorable):
             return self.resource_name
         return None
 
+# ECS
+
+@implementer(schemas.IPortMapping)
+class PortMapping(Parent):
+    container_port = FieldProperty(schemas.IPortMapping['container_port'])
+    host_port = FieldProperty(schemas.IPortMapping['host_port'])
+    protocol = FieldProperty(schemas.IPortMapping['protocol'])
+
+    troposphere_props = troposphere.ecs.PortMapping.props
+    cfn_mapping = {
+        'ContainerPort': 'container_port',
+        'HostPort': 'host_port',
+        'Protocol': 'protocol',
+    }
+
+@implementer(schemas.IECSMountPoint)
+class ECSMountPoint(Parent):
+    "ECS TaskDefinition Mount Point"
+    container_path = FieldProperty(schemas.IECSMountPoint['container_path'])
+    read_only = FieldProperty(schemas.IECSMountPoint['read_only'])
+    source_volume = FieldProperty(schemas.IECSMountPoint['source_volume'])
+
+    troposphere_props = troposphere.ecs.MountPoint.props
+    cfn_mapping = {
+        'ContainerPath': 'container_path',
+        'SourceVolume': 'source_volume',
+        'ReadOnly': 'read_only',
+    }
+
+@implementer(schemas.IECSVolumesFrom)
+class ECSVolumesFrom(Parent):
+    "ECS VolumesFrom"
+    read_only = FieldProperty(schemas.IECSVolumesFrom['read_only'])
+    source_container = FieldProperty(schemas.IECSVolumesFrom['source_container'])
+
+    troposphere_props = troposphere.ecs.VolumesFrom.props
+    cfn_mapping = {
+        'SourceContainer': 'source_container',
+        'ReadOnly': 'read_only',
+    }
+
+@implementer(schemas.IECSContainerDefinition)
+class ECSContainerDefinition(Named):
+    cpu = FieldProperty(schemas.IECSContainerDefinition['cpu'])
+    command = FieldProperty(schemas.IECSContainerDefinition['command'])
+    entry_point = FieldProperty(schemas.IECSContainerDefinition['entry_point'])
+    essential = FieldProperty(schemas.IECSContainerDefinition['essential'])
+    image = FieldProperty(schemas.IECSContainerDefinition['image'])
+    memory = FieldProperty(schemas.IECSContainerDefinition['memory'])
+    mount_points = FieldProperty(schemas.IECSContainerDefinition['mount_points'])
+    port_mappings = FieldProperty(schemas.IECSContainerDefinition['port_mappings'])
+    volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.port_mappings = []
+        self.volumes_from = []
+        self.mount_points = []
+
+    @property
+    def port_mappings_cfn(self):
+        return [
+            pm.cfn_export_dict for pm in self.port_mappings
+        ]
+
+    @property
+    def mount_points_cfn(self):
+        return [
+            mp.cfn_export_dict for mp in self.mount_points
+        ]
+
+    @property
+    def volumes_from_cfn(self):
+        return [
+            vf.cfn_export_dict for vf in self.volumes_from
+        ]
+
+    troposphere_props = troposphere.ecs.ContainerDefinition.props
+    cfn_mapping = {
+        'Command': 'command',
+        'Cpu': 'cpu',
+        # 'DependsOn': ([ContainerDependency], False),
+        # 'DisableNetworking': (boolean, False),
+        # 'DnsSearchDomains': ([basestring], False),
+        # 'DnsServers': ([basestring], False),
+        # 'DockerLabels': (dict, False),
+        # 'DockerSecurityOptions': ([basestring], False),
+        'EntryPoint': 'entry_point',
+        # 'Environment': ([Environment], False),
+        'Essential': 'essential',
+        # 'ExtraHosts': ([HostEntry], False),
+        # 'FirelensConfiguration': (FirelensConfiguration, False),
+        # 'HealthCheck': (HealthCheck, False),
+        # 'Hostname': (basestring, False),
+        'Image': 'image',
+        # 'Interactive': (boolean, False),
+        # 'Links': ([basestring], False),
+        # 'LinuxParameters': (LinuxParameters, False),
+        # 'LogConfiguration': (LogConfiguration, False),
+        'Memory': 'memory',
+        # 'MemoryReservation': (integer, False),
+        'MountPoints': 'mount_points_cfn',
+        'Name': 'name',
+        'PortMappings': 'port_mappings_cfn',
+        # 'Privileged': (boolean, False),
+        # 'PseudoTerminal': (boolean, False),
+        # 'ReadonlyRootFilesystem': (boolean, False),
+        # 'RepositoryCredentials': (RepositoryCredentials, False),
+        # 'ResourceRequirements': ([ResourceRequirement], False),
+        # 'Secrets': ([Secret], False),
+        # 'StartTimeout': (integer, False),
+        # 'StopTimeout': (integer, False),
+        # 'SystemControls': ([SystemControl], False),
+        # 'Ulimits': ([Ulimit], False),
+        # 'User': (basestring, False),
+        'VolumesFrom': 'volumes_from_cfn',
+        # 'WorkingDirectory': (basestring, False),
+    }
+
+@implementer(schemas.IECSContainerDefinitions)
+class ECSContainerDefinitions(Named, dict):
+    pass
+
+@implementer(schemas.IECSTaskDefinitions)
+class ECSTaskDefinitions(Named, dict):
+    pass
+
+@implementer(schemas.IECSVolume)
+class ECSVolume(Parent):
+    "ECS Volume"
+    name = FieldProperty(schemas.IECSVolume['name'])
+
+    troposphere_props = troposphere.ecs.Volume.props
+    cfn_mapping = {
+        # 'DockerVolumeConfiguration': (DockerVolumeConfiguration, False),
+        'Name': 'name',
+        # 'Host': (Host, False),
+    }
+
+@implementer(schemas.IECSTaskDefinition)
+class ECSTaskDefinition(Named):
+    container_definitions = FieldProperty(schemas.IECSTaskDefinition['container_definitions'])
+    volumes = FieldProperty(schemas.IECSTaskDefinition['volumes'])
+
+    @property
+    def container_definitions_cfn(self):
+        return [
+            cd.cfn_export_dict for cd in self.container_definitions.values()
+        ]
+
+    @property
+    def volumes_cfn(self):
+        return [
+            v.cfn_export_dict for v in self.volumes
+        ]
+
+    troposphere_props = troposphere.ecs.TaskDefinition.props
+    cfn_mapping = {
+        'ContainerDefinitions': 'container_definitions_cfn',
+        # 'Cpu': (basestring, False),
+        # 'ExecutionRoleArn': (basestring, False),
+        # 'Family': (basestring, False),
+        # 'InferenceAccelerators': ([InferenceAccelerator], False),
+        # 'IpcMode': (basestring, False),
+        # 'Memory': (basestring, False),
+        # 'NetworkMode': (basestring, False),
+        # 'PidMode': (basestring, False),
+        # 'PlacementConstraints': ([PlacementConstraint], False),
+        # 'ProxyConfiguration': (ProxyConfiguration, False),
+        # 'RequiresCompatibilities': ([basestring], False),
+        # 'Tags': (Tags, False),
+        # 'TaskRoleArn': (basestring, False),
+        'Volumes': 'volumes_cfn',
+    }
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.volumes = []
+        self.container_definitions = ECSContainerDefinitions('container_definitions', self)
+
+@implementer(schemas.IECSLoadBalancer)
+class ECSLoadBalancer(Named):
+    container_name = FieldProperty(schemas.IECSLoadBalancer['container_name'])
+    container_port = FieldProperty(schemas.IECSLoadBalancer['container_port'])
+    target_group = FieldProperty(schemas.IECSLoadBalancer['target_group'])
+
+    troposphere_props = troposphere.ecs.LoadBalancer.props
+    cfn_mapping = {
+        'ContainerName': 'container_name',
+        'ContainerPort': 'container_port',
+        # 'LoadBalancerName': (basestring, False),
+        'TargetGroupArn': 'target_group',
+    }
+
+@implementer(schemas.IECSServices)
+class ECSServices(Named, dict):
+    pass
+
+@implementer(schemas.IECSService)
+class ECSService(Named):
+    desired_count = FieldProperty(schemas.IECSService['desired_count'])
+    task_definition = FieldProperty(schemas.IECSService['task_definition'])
+    load_balancers = FieldProperty(schemas.IECSService['load_balancers'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.load_balancers = []
+
+    @property
+    def load_balancers_cfn(self):
+        return [
+            lb.cfn_export_dict for lb in self.load_balancers
+        ]
+
+    troposphere_props = troposphere.ecs.Service.props
+    cfn_mapping = {
+        # 'Cluster': set in template
+        # 'DeploymentConfiguration': (DeploymentConfiguration, False),
+        # 'DeploymentController': (DeploymentController, False),
+        'DesiredCount': 'desired_count',
+        # 'EnableECSManagedTags': (boolean, False),
+        # 'HealthCheckGracePeriodSeconds': (positive_integer, False),
+        # 'LaunchType': (launch_type_validator, False),
+        'LoadBalancers': 'load_balancers_cfn',
+        # 'NetworkConfiguration': (NetworkConfiguration, False),
+        # 'Role': (basestring, False),
+        # 'PlacementConstraints': ([PlacementConstraint], False),
+        # 'PlacementStrategies': ([PlacementStrategy], False),
+        # 'PlatformVersion': (basestring, False),
+        # 'PropagateTags': (basestring, False),
+        # 'SchedulingStrategy': (basestring, False),
+        # 'ServiceName': (basestring, False),
+        # 'ServiceRegistries': ([ServiceRegistry], False),
+        # 'Tags': (Tags, False),
+        'TaskDefinition': 'task_definition',
+    }
+
+@implementer(schemas.IECSServiceConfig)
+class ECSServiceConfig(Resource):
+    cluster = FieldProperty(schemas.IECSServiceConfig['cluster'])
+    services = FieldProperty(schemas.IECSServiceConfig['services'])
+    task_definitions = FieldProperty(schemas.IECSServiceConfig['task_definitions'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.task_definitions = ECSTaskDefinitions('task_definitions', self)
+        self.services = ECSServices('services', self)
+
+@implementer(schemas.IECSCluster)
+class ECSCluster(Resource):
+
+    def resolve_ref(self, ref):
+        return self.stack
+
+# EC2
 
 @implementer(schemas.IEC2)
 class EC2(ApplicationResource):

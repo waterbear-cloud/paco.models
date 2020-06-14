@@ -19,11 +19,12 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
     VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
-from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, ASG, \
-    Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, S3Bucket, \
-    ApplicationS3Bucket, \
-    S3NotificationConfiguration, S3LambdaConfiguration, S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, \
-    S3BucketPolicy, AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
+from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, \
+    ASG, ECSASGConfiguration, \
+    Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
+    S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
+    S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
+    AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
@@ -37,7 +38,10 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
-    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions
+    ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
+    ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
+    ECSLoadBalancer, ECSServices, ECSService, ECSCluster, ECSServiceConfig, PortMapping, ECSMountPoint, \
+    ECSVolumesFrom, ECSVolume
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -121,34 +125,36 @@ IAM_USER_PERMISSIONS_CLASS_MAP = {
 }
 
 RESOURCES_CLASS_MAP = {
+    'ACM': AWSCertificateManager,
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
-    'ACM': AWSCertificateManager,
-    'RDS': RDS,
     'DBParameterGroup': DBParameterGroup,
-    'LBApplication': LBApplication,
-    'EC2': EC2,
-    'Lambda': Lambda,
-    'ManagedPolicy': ManagedPolicy,
-    'S3Bucket': ApplicationS3Bucket,
-    'SNSTopic': SNSTopic,
-    'CloudFront': CloudFront,
-    'RDSMysql': RDSMysql,
-    'RDSPostgresql': RDSPostgresql,
-    'ElastiCacheRedis': ElastiCacheRedis,
     'DeploymentPipeline': DeploymentPipeline,
-    'EFS': EFS,
-    'EIP': EIP,
-    'Route53HealthCheck': Route53HealthCheck,
-    'EventsRule': EventsRule,
-    'EBS': EBS,
-    'EBSVolumeMount': EBSVolumeMount,
+    'EC2': EC2,
+    'CloudFront': CloudFront,
     'CodeDeployApplication': CodeDeployApplication,
     'Dashboard': CloudWatchDashboard,
+    'EBS': EBS,
+    'EBSVolumeMount': EBSVolumeMount,
+    'ECSCluster': ECSCluster,
+    'ECSServiceConfig': ECSServiceConfig,
+    'EIP': EIP,
+    'EFS': EFS,
+    'ElastiCacheRedis': ElastiCacheRedis,
     'ElasticsearchDomain': ElasticsearchDomain,
+    'EventsRule': EventsRule,
     'IoTPolicy': IoTPolicy,
     'IoTTopicRule': IoTTopicRule,
     'IoTAnalyticsPipeline': IoTAnalyticsPipeline,
+    'Lambda': Lambda,
+    'LBApplication': LBApplication,
+    'ManagedPolicy': ManagedPolicy,
+    'RDS': RDS,
+    'RDSMysql': RDSMysql,
+    'RDSPostgresql': RDSPostgresql,
+    'Route53HealthCheck': Route53HealthCheck,
+    'S3Bucket': ApplicationS3Bucket,
+    'SNSTopic': SNSTopic,
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -158,6 +164,22 @@ SUB_TYPES_CLASS_MAP = {
     Project: {
         'version_control': ('direct_obj', VersionControl),
         'shared_state': ('direct_obj', SharedState),
+    },
+    ECSServiceConfig: {
+        'task_definitions': ('container', (ECSTaskDefinitions, ECSTaskDefinition)),
+        'services': ('container', (ECSServices, ECSService)),
+    },
+    ECSService: {
+        'load_balancers': ('obj_list', ECSLoadBalancer),
+    },
+    ECSTaskDefinition: {
+        'container_definitions': ('container', (ECSContainerDefinitions, ECSContainerDefinition)),
+        'volumes': ('obj_list', ECSVolume),
+    },
+    ECSContainerDefinition: {
+        'mount_points': ('obj_list', ECSMountPoint),
+        'port_mappings': ('obj_list', PortMapping),
+        'volumes_from': ('obj_list', ECSVolumesFrom),
     },
     IoTAnalyticsPipeline: {
         'channel_storage': ('direct_obj', IotAnalyticsStorage),
@@ -391,7 +413,8 @@ SUB_TYPES_CLASS_MAP = {
         'launch_options': ('direct_obj', EC2LaunchOptions),
         'cfn_init': ('obj_raw_config', CloudFormationInit),
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
-        'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy)
+        'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy),
+        'ecs': ('direct_obj', ECSASGConfiguration),
     },
     EC2LaunchOptions: {
         'cfn_init_config_sets': ('str_list', zope.schema.TextLine)

@@ -4386,6 +4386,14 @@ AutoScalingRollingUpdate Policy
         default=False
     )
 
+class IECSASGConfiguration(INamed):
+    cluster = PacoReference(
+        title='Cluster',
+        required=True,
+        str_ok=False,
+        schema_constraint='IECSCluster'
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -4689,6 +4697,11 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         value_type= schema.Object(IEBSVolumeMount),
         required=False,
     )
+    ecs = schema.Object(
+        title="ECS Configuration",
+        schema=IECSASGConfiguration,
+        required=False,
+    )
     efs_mounts = schema.List(
         title='Elastic Filesystem Configuration',
         value_type=schema.Object(IEFSMount),
@@ -4856,6 +4869,219 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         description="",
         schema=IASGRollingUpdatePolicy,
         required=True
+    )
+
+# Containers
+
+# ECS
+
+class IPortMapping(IParent):
+    "Port Mapping"
+    container_port = schema.Int(
+        title="Container Port",
+        min=0,
+        max=65535,
+        required=False,
+    )
+    host_port = schema.Int(
+        title="Host Port",
+        min=0,
+        max=65535,
+        required=False,
+    )
+    protocol = schema.Choice(
+        title="Protocol",
+        description="Must be either 'tcp' or 'udp'",
+        vocabulary=vocabulary.network_protocols,
+        default='tcp',
+    )
+
+class IECSMountPoint(IParent):
+    "ECS TaskDefinition Mount Point"
+    container_path = schema.TextLine(
+        title="The path on the container to mount the host volume at.",
+        required=False,
+    )
+    read_only = schema.Bool(
+        title="Read Only",
+        required=False,
+        default=False,
+    )
+    source_volume = schema.TextLine(
+        title="The name of the volume to mount.",
+        description="Must be a volume name referenced in the name parameter of task definition volume.",
+        required=False,
+    )
+
+class IECSVolumesFrom(IParent):
+    "VoumesFrom"
+    read_only = schema.Bool(
+        title="Read Only",
+        required=False,
+        default=False,
+    )
+    source_container = schema.TextLine(
+        title="The name of another container within the same task definition from which to mount volumes.",
+        required=True,
+    )
+
+class IECSContainerDefinition(INamed):
+    "ECS Container Definition"
+    command = schema.List(
+        title="Command (Docker CMD)",
+        description="List of strings",
+        value_type=schema.Text(),
+        required=False,
+    )
+    cpu = schema.Int(
+        title="Cpu units",
+        required=False,
+    )
+    entry_point = schema.List(
+        title="Entry Pont (Docker ENTRYPOINT)",
+        description="List of strings",
+        value_type=schema.Text(),
+        required=False,
+    )
+    essential = schema.Bool(
+        title="Essential",
+        required=False,
+        default=False,
+        # ToDo: constraint all tasks must have at least one essential
+    )
+    image = schema.TextLine(
+        title="Image",
+        required=True,
+        min_length=3,
+        max_length=255,
+    )
+    memory = schema.Int(
+        title="Memory in MiB",
+        min=4,
+        required=False,
+        # ToDo: constraints - required if no task-level memory, must be greater than memory_reservation
+    )
+    mount_points = schema.List(
+        title="The mount points for data volumes in your container.",
+        value_type=schema.Object(IECSMountPoint),
+        required=False,
+    )
+    port_mappings = schema.List(
+        title="Port Mappings",
+        value_type=schema.Object(IPortMapping),
+        default=[],
+        required=False,
+    )
+    volumes_from = schema.List(
+        title="Volumes to mount from another container (Docker VolumesFrom).",
+        value_type=schema.Object(IECSVolumesFrom),
+        default=[],
+        required=False,
+    )
+
+class IECSContainerDefinitions(INamed, IMapping):
+    "Container for `ECSContainerDefinition`_ objects."
+    taggedValue('contains', 'IECSContainerDefinition')
+
+class IECSTaskDefinitions(INamed, IMapping):
+    "Container for `ECSTaskDefinition`_ objects."
+    taggedValue('contains', 'IECSTaskDefinition')
+
+class IECSVolume(IParent):
+    "ECS Volume"
+    # docker_volume_configuration
+    # host
+    name = schema.TextLine(
+        title="Name",
+        min_length=1,
+        max_length=255,
+        required=True,
+        # ToDo: constraint: only letters (uppercase and lowercase), numbers, and hyphens are allowed
+    )
+
+class IECSTaskDefinition(INamed):
+    "ECS Task Definition"
+    container_definitions = schema.Object(
+        title="Container Definitions",
+        schema=IECSContainerDefinitions,
+        required=True,
+    )
+    volumes = schema.List(
+        title="Volume definitions for the task",
+        value_type=schema.Object(IECSVolume),
+        default=[],
+        required=False,
+    )
+
+class IECSLoadBalancer(INamed):
+    "ECS Load Balancer"
+    container_name = schema.TextLine(
+        title="Container Name",
+        # ToDO: constraint for valid task def container definition name
+    )
+    container_port = schema.Int(
+        title="Container Port",
+        min=0,
+        max=65535,
+        required=True,
+    )
+    target_group = PacoReference(
+        title="Target Group",
+        required=True,
+        schema_constraint="ITargetGroup"
+    )
+
+class IECSServices(IMapping):
+    "Container for `ECSService`_ objects."
+    taggedValue('contains', 'IECSService')
+
+class IECSService(INamed):
+    "ECS Service"
+    desired_count = schema.Int(
+        title="Desried Count",
+        min=1,
+        required=False,
+        # ToDo: constraint require if schedulingStrategy=REPLICA
+    )
+    task_definition = schema.TextLine(
+        title="Task Definition",
+        required=False,
+        # ToDo: constraint for valid task def name
+        # ToDo: constraint if using ECS deployment controller
+    )
+    load_balancers = schema.List(
+        title="Load Balancers",
+        value_type=schema.Object(IECSLoadBalancer),
+        required=False,
+        default=[],
+    )
+
+class IECSCluster(IResource):
+    """
+ECS Cluster
+    """
+
+class IECSServiceConfig(IResource):
+    """
+ECS TaskDefinitions and Services
+    """
+    cluster = PacoReference(
+        title='Cluster',
+        required=True,
+        str_ok=False,
+        schema_constraint='IECSCluster'
+    )
+    task_definitions = schema.Object(
+        title="Task Definitions",
+        description="",
+        schema=IECSTaskDefinitions,
+        required=True,
+    )
+    services = schema.Object(
+        title="Service",
+        description="",
+        schema=IECSServices,
+        required=True,
     )
 
 # IoT Analytics

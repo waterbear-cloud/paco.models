@@ -139,6 +139,10 @@ class Testpacodemo(BaseTestModelLoader):
         norole_asg = demo_env.applications['app'].groups['site'].resources['norole']
         assert norole_asg.instance_iam_role.enabled == False
 
+        # ECS
+        asg = demo_env.applications['app'].groups['container'].resources['ecs_asg']
+        assert asg.ecs.cluster, 'paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.container.resources.ecs_cluster'
+
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
 
@@ -311,6 +315,15 @@ class Testpacodemo(BaseTestModelLoader):
         sns = self.project['resource']['sns']
         assert len(sns.default_locations), 1
         assert len(sns.topics), 2
+
+    def test_ecs(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        cluster = demo_env['applications']['app'].groups['container'].resources['ecs_cluster']
+        assert schemas.IECSCluster.providedBy(cluster)
+        ecs_service_config = demo_env['applications']['app'].groups['container'].resources['ecs_services']
+        assert ecs_service_config.services['simple_app'].desired_count, 2
+        assert ecs_service_config.services['simple_app'].load_balancers[0].container_name, 'hello'
+        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].cpu, 10
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

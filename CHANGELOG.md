@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- ECS Cluster with initial EC2 AutoScalingGroup support.
+
 - New `resource/sns.yaml` fiel with SNS global resource to allow SNS Topics and Subscriptions to be provisioned
   across any combination of accounts/regions.
 

@@ -10,6 +10,22 @@ aws_config_delivery_frequencies = SimpleVocabulary.fromValues([
  'One_Hour', 'Six_Hours', 'Three_Hours', 'Twelve_Hours','TwentyFour_Hours',
 ])
 
+network_protocols = SimpleVocabulary.fromValues([
+  'tcp',
+  'udp',
+])
+
+ecs_log_drivers = SimpleVocabulary.fromValues([
+    'awsfirelens',
+    'awslogs',
+    'fluentd',
+    'gelf',
+    'journald',
+    'json-file',
+    'splunk',
+    'syslog'
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',
@@ -1605,6 +1621,7 @@ rds_engine_versions = {
 
 ami_types = [
     'amazon',
+    'amazon_ecs',
     'centos',
     'redhat',
     'suse',

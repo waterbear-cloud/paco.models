@@ -799,7 +799,7 @@ child accounts.
     admin_delegate_role_name = schema.TextLine(
         title="Administrator delegate IAM Role name for the account",
         description="",
-        default="",
+        default="Paco-Organization-Account-Delegate-Role",
         required=False,
     )
     is_master = schema.Bool(

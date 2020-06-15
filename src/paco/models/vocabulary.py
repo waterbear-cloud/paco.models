@@ -15,6 +15,17 @@ network_protocols = SimpleVocabulary.fromValues([
   'udp',
 ])
 
+ecs_log_drivers = SimpleVocabulary.fromValues([
+    'awsfirelens',
+    'awslogs',
+    'fluentd',
+    'gelf',
+    'journald',
+    'json-file',
+    'splunk',
+    'syslog'
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

@@ -4925,6 +4925,15 @@ class IECSVolumesFrom(IParent):
         required=True,
     )
 
+class IECSLogging(INamed, ICloudWatchLogRetention):
+    "ECS Logging Configuration"
+    driver = schema.Choice(
+        title="Log Driver",
+        description="One of awsfirelens, awslogs, fluentd, gelf, journald, json-file, splunk, syslog",
+        vocabulary=vocabulary.ecs_log_drivers,
+        required=True,
+    )
+
 class IECSContainerDefinition(INamed):
     "ECS Container Definition"
     command = schema.List(
@@ -4954,6 +4963,11 @@ class IECSContainerDefinition(INamed):
         required=True,
         min_length=3,
         max_length=255,
+    )
+    logging = schema.Object(
+        title="Logging Configuration",
+        schema=IECSLogging,
+        required=False,
     )
     memory = schema.Int(
         title="Memory in MiB",

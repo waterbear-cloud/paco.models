@@ -11,6 +11,7 @@ from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
 from paco.models.metrics import Monitorable, AlarmNotifications
 from paco.models.vocabulary import application_group_types, aws_regions
+from paco.models.logging import CloudWatchLogRetention
 from paco.models.iam import Role
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -639,6 +640,10 @@ class ECSVolumesFrom(Parent):
         'ReadOnly': 'read_only',
     }
 
+@implementer(schemas.IECSLogging)
+class ECSLogging(Named, CloudWatchLogRetention):
+    driver = FieldProperty(schemas.IECSLogging['driver'])
+
 @implementer(schemas.IECSContainerDefinition)
 class ECSContainerDefinition(Named):
     cpu = FieldProperty(schemas.IECSContainerDefinition['cpu'])
@@ -650,6 +655,7 @@ class ECSContainerDefinition(Named):
     mount_points = FieldProperty(schemas.IECSContainerDefinition['mount_points'])
     port_mappings = FieldProperty(schemas.IECSContainerDefinition['port_mappings'])
     volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
+    logging = FieldProperty(schemas.IECSContainerDefinition['logging'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

@@ -4,6 +4,7 @@ from zope.interface.common.sequence import ISequence
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from paco.models import vocabulary
+from paco.models import gen_vocabulary
 from paco.models.references import PacoReference, FileReference, StringFileReference, YAMLFileReference
 import json
 import re
@@ -7533,7 +7534,7 @@ Custom IAM User Permission
         title="AWS Managed Policies",
         value_type=schema.Choice(
             title="Managed policies",
-            vocabulary=vocabulary.iam_managed_policies,
+            vocabulary=gen_vocabulary.iam_managed_policies,
         ),
         required=False,
         default=[],

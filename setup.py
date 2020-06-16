@@ -18,6 +18,7 @@ setup(
     install_requires=['Setuptools', 'ruamel.yaml', 'zope.schema', 'troposphere'],
     packages=[
         'paco.models',
+        'paco.aws',
     ],
     keywords=['AWS','Cloud','Infrastructure as Code'],
     classifiers=[
@@ -31,4 +32,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     package_dir={'': 'src'},
+    entry_points={
+        'console_scripts': [
+            'paco_update_gen_vocabulary = paco.codegen:update_gen_vocabulary',
+        ]
+    },
 )

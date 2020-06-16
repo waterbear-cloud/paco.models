@@ -376,9 +376,17 @@ def function_ec2_ami_latest(ref, project, account_ctx):
 def import_and_call_function(ref, project, account_ctx):
     "Import a module and call a function in it with the Reference, Project and AccountContext"
     module_name = '.'.join(ref.parts[1:-1])
-    function_name = ref.parts[-1:][0]
-    module = importlib.import_module(module_name)
-    return getattr(module, function_name)(ref, project, account_ctx)
+    if module_name.find(':') != -1:
+        module_name = module_name.split(':')[0]
+        function_name = module_name.split('.')[-1:][0]
+        module_name = '.'.join(module_name.split('.')[:-1])
+        module = importlib.import_module(module_name)
+        extra_context = ref.raw.split(':')[1]
+        return getattr(module, function_name)(ref, extra_context, project, account_ctx)
+    else:
+        function_name = ref.parts[-1:][0]
+        module = importlib.import_module(module_name)
+        return getattr(module, function_name)(ref, project, account_ctx)
 
 def resolve_function_ref(ref, project, account_ctx):
     if account_ctx == None:

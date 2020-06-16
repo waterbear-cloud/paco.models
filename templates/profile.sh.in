@@ -1,0 +1,4 @@
+export PS1="(paco.models) \h \W$ "
+export PATH=${buildout:bin-directory}:$PATH
+export AWS_PROFILE=pacomodels
+

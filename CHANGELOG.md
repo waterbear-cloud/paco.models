@@ -6,6 +6,13 @@ Changelog for paco.models
 
 ### Added
 
+- New `paco.models.gen_vocabulary` of vocabularies dynamically generated from AWS API calls. Added vocabulary for
+  AWS AMI Ids.
+
+- `paco.ref function` now supports a `:` synatx to pass extra context to a function
+
+- New `paco.aws` package with `paco.ref function` calls. First call is `paco.aws.ami_id:latest.amazon-linux-2-ecs`
+
 - ECS Cluster with initial EC2 AutoScalingGroup support.
 
 - New `resource/sns.yaml` fiel with SNS global resource to allow SNS Topics and Subscriptions to be provisioned

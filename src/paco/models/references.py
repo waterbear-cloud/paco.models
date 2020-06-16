@@ -318,6 +318,9 @@ def function_ec2_ami_latest(ref, project, account_ctx):
     elif ref.last_part == 'amazon-linux-nat':
         ami_description = "Amazon Linux AMI*"
         ami_name = 'amzn-ami-vpc-nat-hvm-*'
+    elif ref.last_part == 'amazon-linux-2-ecs':
+        ami_description = "Amazon Linux AMI*"
+        ami_name = "amzn2-ami-ecs-hvm-*"
     else:
         raise ValueError("Unsupported AMI Name: {}".format(ref.last_part))
 
@@ -340,7 +343,7 @@ def function_ec2_ami_latest(ref, project, account_ctx):
         'Values': ['amazon']
     },{
         'Name': 'owner-id',
-        'Values': ['137112412989']
+        'Values': ['*']
     },{
         'Name': 'state',
         'Values': ['available']

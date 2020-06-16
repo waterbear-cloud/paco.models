@@ -798,8 +798,8 @@ class ECSLoadBalancer(Named):
         'TargetGroupArn': 'target_group',
     }
 
-@implementer(schemas.IECSServices)
-class ECSServices(Named, dict):
+@implementer(schemas.IECSServicesContainer)
+class ECSServicesContainer(Named, dict):
     pass
 
 @implementer(schemas.IECSService)
@@ -841,16 +841,16 @@ class ECSService(Named):
         'TaskDefinition': 'task_definition',
     }
 
-@implementer(schemas.IECSServiceConfig)
-class ECSServiceConfig(Resource):
-    cluster = FieldProperty(schemas.IECSServiceConfig['cluster'])
-    services = FieldProperty(schemas.IECSServiceConfig['services'])
-    task_definitions = FieldProperty(schemas.IECSServiceConfig['task_definitions'])
+@implementer(schemas.IECSServices)
+class ECSServices(Resource):
+    cluster = FieldProperty(schemas.IECSServices['cluster'])
+    services = FieldProperty(schemas.IECSServices['services'])
+    task_definitions = FieldProperty(schemas.IECSServices['task_definitions'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.task_definitions = ECSTaskDefinitions('task_definitions', self)
-        self.services = ECSServices('services', self)
+        self.services = ECSServicesContainer('services', self)
 
 @implementer(schemas.IECSCluster)
 class ECSCluster(Resource):

@@ -40,7 +40,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
-    ECSLoadBalancer, ECSServices, ECSService, ECSCluster, ECSServiceConfig, PortMapping, ECSMountPoint, \
+    ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
     ECSVolumesFrom, ECSVolume, ECSLogging
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
@@ -137,7 +137,7 @@ RESOURCES_CLASS_MAP = {
     'EBS': EBS,
     'EBSVolumeMount': EBSVolumeMount,
     'ECSCluster': ECSCluster,
-    'ECSServiceConfig': ECSServiceConfig,
+    'ECSServices': ECSServices,
     'EIP': EIP,
     'EFS': EFS,
     'ElastiCacheRedis': ElastiCacheRedis,
@@ -165,9 +165,9 @@ SUB_TYPES_CLASS_MAP = {
         'version_control': ('direct_obj', VersionControl),
         'shared_state': ('direct_obj', SharedState),
     },
-    ECSServiceConfig: {
+    ECSServices: {
         'task_definitions': ('container', (ECSTaskDefinitions, ECSTaskDefinition)),
-        'services': ('container', (ECSServices, ECSService)),
+        'services': ('container', (ECSServicesContainer, ECSService)),
     },
     ECSService: {
         'load_balancers': ('obj_list', ECSLoadBalancer),

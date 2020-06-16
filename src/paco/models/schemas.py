@@ -5046,7 +5046,7 @@ class IECSLoadBalancer(INamed):
         schema_constraint="ITargetGroup"
     )
 
-class IECSServices(IMapping):
+class IECSServicesContainer(IMapping):
     "Container for `ECSService`_ objects."
     taggedValue('contains', 'IECSService')
 
@@ -5076,9 +5076,9 @@ class IECSCluster(IResource):
 ECS Cluster
     """
 
-class IECSServiceConfig(IResource):
+class IECSServices(IResource):
     """
-ECS TaskDefinitions and Services
+ECS Services and TaskDefinitions
     """
     cluster = PacoReference(
         title='Cluster',
@@ -5095,7 +5095,7 @@ ECS TaskDefinitions and Services
     services = schema.Object(
         title="Service",
         description="",
-        schema=IECSServices,
+        schema=IECSServicesContainer,
         required=True,
     )
 

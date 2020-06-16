@@ -182,7 +182,7 @@ applications:
             ecs:
               cluster: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_cluster
           ecs_services:
-            type: ECSServiceConfig
+            type: ECSServices
             enabled: true
             order: 40
             cluster: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_cluster

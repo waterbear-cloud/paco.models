@@ -5052,6 +5052,13 @@ class IECSServicesContainer(IMapping):
 
 class IECSService(INamed):
     "ECS Service"
+    deployment_controller = schema.Choice(
+        title="Deployment Controller",
+        vocabulary=vocabulary.ecs_deployment_types,
+        description="One of ecs, code_deploy or external",
+        default='ecs',
+        required=False,
+    )
     desired_count = schema.Int(
         title="Desried Count",
         min=1,

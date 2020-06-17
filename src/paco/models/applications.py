@@ -764,7 +764,7 @@ class ECSTaskDefinition(Named):
     cfn_mapping = {
         'ContainerDefinitions': 'container_definitions_cfn',
         # 'Cpu': (basestring, False),
-        # 'ExecutionRoleArn': (basestring, False),
+        # 'ExecutionRoleArn': created in the reseng
         # 'Family': (basestring, False),
         # 'InferenceAccelerators': ([InferenceAccelerator], False),
         # 'IpcMode': (basestring, False),
@@ -822,11 +822,15 @@ class ECSService(Named):
             lb.cfn_export_dict for lb in self.load_balancers
         ]
 
+    @property
+    def deployment_controller_cfn(self):
+        return {"Type": self.deployment_controller.upper()}
+
     troposphere_props = troposphere.ecs.Service.props
     cfn_mapping = {
         # 'Cluster': set in template
         # 'DeploymentConfiguration': (DeploymentConfiguration, False),
-        # 'DeploymentController': (DeploymentController, False),
+        'DeploymentController': 'deployment_controller_cfn',
         'DesiredCount': 'desired_count',
         # 'EnableECSManagedTags': (boolean, False),
         # 'HealthCheckGracePeriodSeconds': (positive_integer, False),

@@ -15,6 +15,12 @@ network_protocols = SimpleVocabulary.fromValues([
   'udp',
 ])
 
+ecs_deployment_types = SimpleVocabulary.fromValues([
+	'ecs',
+	'code_deploy',
+	'external'
+])
+
 ecs_log_drivers = SimpleVocabulary.fromValues([
     'awsfirelens',
     'awslogs',

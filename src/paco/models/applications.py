@@ -812,6 +812,10 @@ class ECSService(Named):
         super().__init__(name, parent)
         self.load_balancers = []
 
+    def resolve_ref(self, ref):
+        services = get_parent_by_interface(self, schemas.IECSServices)
+        return services.stack
+
     @property
     def load_balancers_cfn(self):
         return [
@@ -1523,6 +1527,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
     role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
+    privileged_mode = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['privileged_mode'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -1560,7 +1565,7 @@ class CodeDeployMinimumHealthyHosts(Named):
 
 @implementer(schemas.IDeploymentPipelineDeployCodeDeploy)
 class DeploymentPipelineDeployCodeDeploy(DeploymentPipelineStageAction):
-    title = 'CodeDeploy.Source'
+    title = 'CodeDeploy.Deploy'
     auto_scaling_group = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['auto_scaling_group'])
     auto_rollback_enabled = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['auto_rollback_enabled'])
     minimum_healthy_hosts = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['minimum_healthy_hosts'])
@@ -1569,6 +1574,12 @@ class DeploymentPipelineDeployCodeDeploy(DeploymentPipelineStageAction):
     elb_name = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['elb_name'])
     alb_target_group = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['alb_target_group'])
 
+
+@implementer(schemas.IDeploymentPipelineDeployECS)
+class DeploymentPipelineDeployECS(DeploymentPipelineStageAction):
+    title = 'ECS.Deploy'
+    cluster = FieldProperty(schemas.IDeploymentPipelineDeployECS['cluster'])
+    service = FieldProperty(schemas.IDeploymentPipelineDeployECS['service'])
 
 @implementer(schemas.IDeploymentPipelineSourceStage)
 class DeploymentPipelineSourceStage(Named, dict):

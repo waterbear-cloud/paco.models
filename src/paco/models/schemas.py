@@ -7810,6 +7810,11 @@ CodeBuild DeploymentPipeline Build Stage
         value_type=schema.Object(IPolicy),
         required=False,
     )
+    privileged_mode = schema.Bool(
+        title='Privileged Mode',
+        default=False,
+        required=False
+    )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
     """
@@ -7933,6 +7938,23 @@ CodeDeploy DeploymentPipeline Deploy Stage
         title="ALB Target Group Reference",
         required=False,
         schema_constraint='ITargetGroup'
+    )
+
+class IDeploymentPipelineDeployECS(IDeploymentPipelineStageAction):
+    """
+ECS DeploymentPipeline Deploy Stage
+    """
+    cluster = PacoReference(
+        title="ECS Cluster",
+        required=True,
+        str_ok=False,
+        schema_constraint='IASG'
+    )
+    service = PacoReference(
+        title='ECS Service',
+        required=True,
+        str_ok=False,
+        schema_constraint='IECSService'
     )
 
 class IDeploymentPipelineSourceStage(INamed, IMapping):

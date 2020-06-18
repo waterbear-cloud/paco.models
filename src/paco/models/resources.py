@@ -419,8 +419,12 @@ class Route53HealthCheck(Resource):
         else:
             return self.health_check_type
 
+@implementer(schemas.ICodeCommitUsers)
+class CodeCommitUsers(Named, dict):
+    pass
+
 @implementer(schemas.ICodeCommitUser)
-class CodeCommitUser():
+class CodeCommitUser(Named):
     username = FieldProperty(schemas.ICodeCommitUser["username"])
     public_ssh_key = FieldProperty(schemas.ICodeCommitUser["public_ssh_key"])
     permissions = FieldProperty(schemas.ICodeCommitUser["permissions"])
@@ -433,6 +437,10 @@ class CodeCommitRepository(Named, Deployable):
     description = FieldProperty(schemas.ICodeCommitRepository["description"])
     users = FieldProperty(schemas.ICodeCommitRepository["users"])
     external_resource = FieldProperty(schemas.ICodeCommitRepository["external_resource"])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.user = CodeCommitUsers('users', self)
 
 @implementer(schemas.ICodeCommitRepositoryGroup)
 class CodeCommitRepositoryGroup(Named, dict):

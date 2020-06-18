@@ -6,6 +6,10 @@ Changelog for paco.models
 
 ### Added
 
+- ICodeCommitUser has a permissions field that can be ReadWrite or ReadOnly.
+
+- IDeploymentPipelineBuildCodeBuild has a `buildspec` field.
+
 - New `paco.models.gen_vocabulary` of vocabularies dynamically generated from AWS API calls. Added vocabulary for
   AWS AMI Ids.
 

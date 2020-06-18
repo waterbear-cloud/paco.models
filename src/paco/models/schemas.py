@@ -6498,7 +6498,13 @@ class IRoute53HealthCheck(IResource):
 
 # CodeCommit
 
-class ICodeCommitUser(Interface):
+class ICodeCommitUsers(INamed):
+    """
+Container for `CodeCommitUser`_ objects.
+    """
+    taggedValue('contains', 'ICodeCommitUser')
+
+class ICodeCommitUser(INamed):
     """
 CodeCommit User
     """
@@ -7851,6 +7857,10 @@ CodeBuild DeploymentPipeline Build Stage
         default="",
         required=False,
     )
+    buildspec = schema.TextLine(
+        title="buildspec.yml filename",
+        required=False,
+    )
     codebuild_image = schema.TextLine(
         title='CodeBuild Docker Image',
         required=False,
@@ -7859,6 +7869,14 @@ CodeBuild DeploymentPipeline Build Stage
         title='CodeBuild Compute Type',
         constraint = isValidCodeBuildComputeType,
         required=False,
+    )
+    codecommit_repo_users = schema.List(
+        title="CodeCommit Users",
+        required=False,
+        value_type=PacoReference(
+            title="CodeCommit User",
+            schema_constraint='ICodeCommitUser'
+        )
     )
     timeout_mins = schema.Int(
         title='Timeout in Minutes',

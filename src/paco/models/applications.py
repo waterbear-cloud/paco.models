@@ -1539,16 +1539,19 @@ class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     title = 'CodeBuild.Build'
-    deployment_environment = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['deployment_environment'])
+    buildspec = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['buildspec'])
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
-    timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
-    role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
+    codecommit_repo_users = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codecommit_repo_users'])
+    deployment_environment = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['deployment_environment'])
     privileged_mode = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['privileged_mode'])
+    role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
+    timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.role_policies = []
+        self.codecommit_repo_users = []
 
 @implementer(schemas.IDeploymentPipelineDeployS3)
 class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):

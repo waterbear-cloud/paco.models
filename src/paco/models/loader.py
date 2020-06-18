@@ -49,7 +49,7 @@ from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambda
     DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
 from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, Route53HealthCheck, \
-    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, \
+    CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, CodeCommitUsers, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
     ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
@@ -296,7 +296,8 @@ SUB_TYPES_CLASS_MAP = {
         'parameters': ('dynamic_dict', DBParameters)
     },
     DeploymentPipelineBuildCodeBuild: {
-        'role_policies': ('obj_list', Policy)
+        'role_policies': ('obj_list', Policy),
+        'codecommit_repo_users': ('str_list', PacoReference),
     },
     DeploymentPipelineDeployCodeDeploy: {
         'minimum_healthy_hosts': ('direct_obj', CodeDeployMinimumHealthyHosts)
@@ -597,7 +598,7 @@ SUB_TYPES_CLASS_MAP = {
     CodeCommit: {
     },
     CodeCommitRepository: {
-        'users': ('named_obj', CodeCommitUser)
+        'users': ('container', (CodeCommitUsers, CodeCommitUser))
     },
     IAMResource: {
         'users': ('container', (IAMUsers, IAMUser))

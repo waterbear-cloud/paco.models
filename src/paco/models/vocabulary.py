@@ -10,6 +10,11 @@ aws_config_delivery_frequencies = SimpleVocabulary.fromValues([
  'One_Hour', 'Six_Hours', 'Three_Hours', 'Twelve_Hours','TwentyFour_Hours',
 ])
 
+codecommit_permissions = SimpleVocabulary.fromValues([
+  'ReadWrite',
+  'ReadOnly',
+])
+
 network_protocols = SimpleVocabulary.fromValues([
   'tcp',
   'udp',

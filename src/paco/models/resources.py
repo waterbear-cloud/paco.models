@@ -423,6 +423,7 @@ class Route53HealthCheck(Resource):
 class CodeCommitUser():
     username = FieldProperty(schemas.ICodeCommitUser["username"])
     public_ssh_key = FieldProperty(schemas.ICodeCommitUser["public_ssh_key"])
+    permissions = FieldProperty(schemas.ICodeCommitUser["permissions"])
 
 @implementer(schemas.ICodeCommitRepository)
 class CodeCommitRepository(Named, Deployable):

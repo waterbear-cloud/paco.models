@@ -6511,6 +6511,13 @@ CodeCommit User
         default=None,
         required=False,
     )
+    permissions = schema.Choice(
+        title='Permissions',
+        description="Must be one of ReadWrite or ReadOnly",
+        required=False,
+        vocabulary=vocabulary.codecommit_permissions,
+        default='ReadWrite',
+    )
 
 class ICodeCommitRepository(INamed, IDeployable):
     """

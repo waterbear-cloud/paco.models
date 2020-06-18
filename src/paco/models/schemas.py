@@ -2139,10 +2139,10 @@ S3 Bucket Policy
         required=True,
     )
     aws = schema.List(
-        title="List of AWS Principles.",
+        title="List of AWS Principals.",
         description="Either this field or the principal field must be set.",
         value_type=schema.TextLine(
-            title="AWS Principle"
+            title="AWS Principal"
         ),
         required=False,
     )
@@ -3354,6 +3354,26 @@ to a target group, use the ``target_groups`` field on an ASG resource.
         required=False
     )
 
+class IPrincipal(INamed):
+    aws = schema.List(
+        title="List of AWS Principals",
+        value_type=schema.TextLine(
+            title="AWS Principal",
+            default="",
+            required=False
+        ),
+        required=False
+    )
+    service = schema.List(
+        title="List of AWS Service Principals",
+        value_type=schema.TextLine(
+            title="AWS Service Principal",
+            default="",
+            required=False
+        ),
+        required=False
+    )
+
 class IStatement(INamed):
     action = schema.List(
         title="Action(s)",
@@ -3374,11 +3394,17 @@ class IStatement(INamed):
         # ToDo: check constraint
         # constraint = vocabulary.iam_policy_effect
     )
-    resource =schema.List(
+    resource = schema.List(
         title="Resrource(s)",
         value_type=schema.TextLine(),
         required=False,
     )
+    principal = schema.Object(
+        title="Principal",
+        schema=IPrincipal,
+        required=False
+    )
+
 
 class IPolicy(IParent):
     name = schema.TextLine(
@@ -3403,9 +3429,9 @@ class IAssumeRolePolicy(IParent):
         # constraint = vocabulary.iam_policy_effect
     )
     aws = schema.List(
-        title="List of AWS Principles",
+        title="List of AWS Principals",
         value_type=schema.TextLine(
-            title="AWS Principle",
+            title="AWS Principal",
             default="",
             required=False
         ),
@@ -5061,7 +5087,7 @@ class IECSService(INamed):
     )
     desired_count = schema.Int(
         title="Desried Count",
-        min=1,
+        min=0,
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
     )
@@ -5106,6 +5132,28 @@ ECS Services and TaskDefinitions
         required=True,
     )
 
+# ECR: Elastic Container Repository
+class IECRRepository(IResource):
+    """
+ECR: Elastic Container Registry Repository
+    """
+    repository_name = schema.TextLine(
+        title="Repository Name",
+        required=False
+    )
+    lifecycle_policy_text = schema.TextLine(
+        title="Lifecycle Policy",
+        required=False
+    )
+    lifecycle_policy_registry_id = schema.TextLine(
+        title="Lifecycle Policy Registray Id",
+        required=False
+    )
+    repository_policy = schema.Object(
+        title="Repository Policy",
+        schema=IPolicy,
+        required=False
+    )
 # IoT Analytics
 
 # Different from ICloudWatchLogRetention.expire_events_after_days in that it is

@@ -41,7 +41,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
-    ECSVolumesFrom, ECSVolume, ECSLogging
+    ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -69,7 +69,7 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
     BackupPlans, BackupVault, BackupVaults
 from paco.models.events import EventsRule, EventTarget
-from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement
+from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference, PacoReference, FileReference
@@ -139,6 +139,7 @@ RESOURCES_CLASS_MAP = {
     'EBSVolumeMount': EBSVolumeMount,
     'ECSCluster': ECSCluster,
     'ECSServices': ECSServices,
+    'ECRRepository': ECRRepository,
     'EIP': EIP,
     'EFS': EFS,
     'ElastiCacheRedis': ElastiCacheRedis,
@@ -182,6 +183,9 @@ SUB_TYPES_CLASS_MAP = {
         'port_mappings': ('obj_list', PortMapping),
         'volumes_from': ('obj_list', ECSVolumesFrom),
         'logging': ('direct_obj', ECSLogging),
+    },
+    ECRRepository: {
+        'repository_policy': ('direct_obj', Policy)
     },
     IoTAnalyticsPipeline: {
         'channel_storage': ('direct_obj', IotAnalyticsStorage),
@@ -541,11 +545,16 @@ SUB_TYPES_CLASS_MAP = {
         'assume_role_policy': ('direct_obj', AssumeRolePolicy)
     },
     Policy: {
-        'statement': ('obj_list', Statement)
+        'statement': ('obj_list', Statement),
+    },
+    Principal: {
+        'aws': ('str_list', zope.schema.TextLine),
+        'service': ('str_list', zope.schema.TextLine)
     },
     Statement: {
         'action': ('str_list', zope.schema.TextLine),
-        'resource': ('str_list', zope.schema.TextLine)
+        'resource': ('str_list', zope.schema.TextLine),
+        'principal': ('direct_obj', Principal)
     },
     Lambda: {
         'environment': ('direct_obj', LambdaEnvironment),

@@ -83,6 +83,11 @@ class AssumeRolePolicy(Parent):
     aws = FieldProperty(schemas.IAssumeRolePolicy["aws"])
     service = FieldProperty(schemas.IAssumeRolePolicy["service"])
 
+@implementer(schemas.IPrincipal)
+class Principal(Named):
+    aws = FieldProperty(schemas.IPrincipal["aws"])
+    service = FieldProperty(schemas.IPrincipal["service"])
+
 
 @implementer(schemas.IStatement)
 class Statement(Named):
@@ -90,6 +95,7 @@ class Statement(Named):
     condition = FieldProperty(schemas.IStatement["condition"])
     effect = FieldProperty(schemas.IStatement["effect"])
     resource = FieldProperty(schemas.IStatement["resource"])
+    principal = FieldProperty(schemas.IStatement["principal"])
 
     def __init__(self, __name__, __parent__):
         super().__init__(__name__, __parent__)

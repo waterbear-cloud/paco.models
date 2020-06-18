@@ -866,6 +866,19 @@ class ECSCluster(Resource):
     def resolve_ref(self, ref):
         return self.stack
 
+# ECR: Elastic Container Repository
+@implementer(schemas.IECRRepository)
+class ECRRepository(Resource):
+    repository_name = FieldProperty(schemas.IECRRepository['repository_name'])
+    lifecycle_policy_text = FieldProperty(schemas.IECRRepository['lifecycle_policy_text'])
+    lifecycle_policy_registry_id = FieldProperty(schemas.IECRRepository['lifecycle_policy_registry_id'])
+    repository_policy = FieldProperty(schemas.IECRRepository['repository_policy'])
+
+    def resolve_ref(self, ref):
+        if ref.last_part == 'name':
+            return self.repository_name
+        return self.stack
+
 # EC2
 
 @implementer(schemas.IEC2)

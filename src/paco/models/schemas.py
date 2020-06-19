@@ -5019,6 +5019,11 @@ class IECSContainerDefinition(INamed):
         default=[],
         required=False,
     )
+    environment = schema.List(
+        title='List of environment name value pairs.',
+        value_type=schema.Object(INameValuePair),
+        required=False
+    )
 
 class IECSContainerDefinitions(INamed, IMapping):
     "Container for `ECSContainerDefinition`_ objects."
@@ -5102,6 +5107,10 @@ class IECSService(INamed):
         value_type=schema.Object(IECSLoadBalancer),
         required=False,
         default=[],
+    )
+    hostname = schema.TextLine(
+        title="Container hostname",
+        required=False
     )
 
 class IECSCluster(IResource):

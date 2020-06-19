@@ -183,6 +183,7 @@ SUB_TYPES_CLASS_MAP = {
         'port_mappings': ('obj_list', PortMapping),
         'volumes_from': ('obj_list', ECSVolumesFrom),
         'logging': ('direct_obj', ECSLogging),
+        'environment': ('obj_list', NameValuePair)
     },
     ECRRepository: {
         'repository_policy': ('direct_obj', Policy)

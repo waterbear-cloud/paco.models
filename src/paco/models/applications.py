@@ -656,12 +656,20 @@ class ECSContainerDefinition(Named):
     port_mappings = FieldProperty(schemas.IECSContainerDefinition['port_mappings'])
     volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
     logging = FieldProperty(schemas.IECSContainerDefinition['logging'])
+    environment = FieldProperty(schemas.IECSContainerDefinition['environment'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.port_mappings = []
         self.volumes_from = []
         self.mount_points = []
+        self.environment = []
+
+    @property
+    def environment_cfn(self):
+        return [
+            ev.cfn_export_dict for ev in self.environment
+        ]
 
     @property
     def port_mappings_cfn(self):
@@ -692,7 +700,7 @@ class ECSContainerDefinition(Named):
         # 'DockerLabels': (dict, False),
         # 'DockerSecurityOptions': ([basestring], False),
         'EntryPoint': 'entry_point',
-        # 'Environment': ([Environment], False),
+        'Environment': 'environment_cfn', #([Environment], False),
         'Essential': 'essential',
         # 'ExtraHosts': ([HostEntry], False),
         # 'FirelensConfiguration': (FirelensConfiguration, False),
@@ -713,6 +721,7 @@ class ECSContainerDefinition(Named):
         # 'ReadonlyRootFilesystem': (boolean, False),
         # 'RepositoryCredentials': (RepositoryCredentials, False),
         # 'ResourceRequirements': ([ResourceRequirement], False),
+        # 'ServiceRegistries': ([ServiceRegistry], False)
         # 'Secrets': ([Secret], False),
         # 'StartTimeout': (integer, False),
         # 'StopTimeout': (integer, False),
@@ -804,9 +813,11 @@ class ECSServicesContainer(Named, dict):
 
 @implementer(schemas.IECSService)
 class ECSService(Named):
+    deployment_controller = FieldProperty(schemas.IECSService['deployment_controller'])
     desired_count = FieldProperty(schemas.IECSService['desired_count'])
     task_definition = FieldProperty(schemas.IECSService['task_definition'])
     load_balancers = FieldProperty(schemas.IECSService['load_balancers'])
+    hostname = FieldProperty(schemas.IECSService['hostname'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

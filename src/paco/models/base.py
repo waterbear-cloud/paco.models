@@ -9,6 +9,7 @@ from paco.models.references import Reference, get_model_obj_from_ref
 import json
 import hashlib
 import troposphere
+import troposphere.ecs
 import zope.schema
 import zope.schema.interfaces
 
@@ -238,9 +239,14 @@ class Deployable():
         return True
 
 @implementer(schemas.INameValuePair)
-class NameValuePair():
+class NameValuePair(CFNExport):
     name = FieldProperty(schemas.INameValuePair['name'])
     value = FieldProperty(schemas.INameValuePair['value'])
+    troposphere_props = troposphere.ecs.Environment.props
+    cfn_mapping = {
+        'Name': 'name',
+        'Value': 'value'
+    }
 
 class Regionalized():
     "Mix-in to allow objects to identify which account and region they are deployed in"

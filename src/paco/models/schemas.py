@@ -5058,6 +5058,13 @@ class IECSTaskDefinition(INamed):
         default=[],
         required=False,
     )
+    network_mode = schema.Choice(
+        title="Network Mode",
+        vocabulary=vocabulary.ecs_network_modes,
+        description="Must be one of awsvpc, bridge, host or none",
+        required=False,
+        default='bridge',
+    )
 
 class IECSLoadBalancer(INamed):
     "ECS Load Balancer"
@@ -5139,6 +5146,12 @@ ECS Services and TaskDefinitions
         description="",
         schema=IECSServicesContainer,
         required=True,
+    )
+    service_discovery_namespace_name = schema.TextLine(
+        title="Service Discovery Namespace",
+        description="",
+        required=False,
+        default='',
     )
 
 # ECR: Elastic Container Repository

@@ -20,6 +20,13 @@ network_protocols = SimpleVocabulary.fromValues([
   'udp',
 ])
 
+ecs_network_modes = SimpleVocabulary.fromValues([
+	'awsvpc',
+	'bridge',
+	'host',
+	'none',
+])
+
 ecs_deployment_types = SimpleVocabulary.fromValues([
 	'ecs',
 	'code_deploy',

@@ -756,6 +756,7 @@ class ECSVolume(Parent):
 class ECSTaskDefinition(Named):
     container_definitions = FieldProperty(schemas.IECSTaskDefinition['container_definitions'])
     volumes = FieldProperty(schemas.IECSTaskDefinition['volumes'])
+    network_mode = FieldProperty(schemas.IECSTaskDefinition['network_mode'])
 
     @property
     def container_definitions_cfn(self):
@@ -865,6 +866,7 @@ class ECSServices(Resource):
     cluster = FieldProperty(schemas.IECSServices['cluster'])
     services = FieldProperty(schemas.IECSServices['services'])
     task_definitions = FieldProperty(schemas.IECSServices['task_definitions'])
+    service_discovery_namespace_name = FieldProperty(schemas.IECSServices['service_discovery_namespace_name'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

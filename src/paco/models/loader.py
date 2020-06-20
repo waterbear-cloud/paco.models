@@ -41,7 +41,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
-    ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository
+    ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -183,7 +183,8 @@ SUB_TYPES_CLASS_MAP = {
         'port_mappings': ('obj_list', PortMapping),
         'volumes_from': ('obj_list', ECSVolumesFrom),
         'logging': ('direct_obj', ECSLogging),
-        'environment': ('obj_list', NameValuePair)
+        'environment': ('obj_list', NameValuePair),
+        'secrets': ('obj_list', ECSTaskDefinitionSecret)
     },
     ECRRepository: {
         'repository_policy': ('direct_obj', Policy)

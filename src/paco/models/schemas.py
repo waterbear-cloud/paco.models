@@ -4961,6 +4961,18 @@ class IECSLogging(INamed, ICloudWatchLogRetention):
         required=True,
     )
 
+class IECSTaskDefinitionSecret(IParent):
+    """A Name/ValueFrom pair of Paco references to Secrets Manager secrets"""
+    name = schema.TextLine(
+        title="Name",
+        required=True,
+    )
+    value_from = PacoReference(
+        title="Paco reference to Secrets manager",
+        required=True,
+        str_ok=True
+    )
+
 class IECSContainerDefinition(INamed):
     "ECS Container Definition"
     command = schema.List(
@@ -5022,6 +5034,11 @@ class IECSContainerDefinition(INamed):
     environment = schema.List(
         title='List of environment name value pairs.',
         value_type=schema.Object(INameValuePair),
+        required=False
+    )
+    secrets = schema.List(
+        title='List of name, value_from pairs to secret manager Paco references.',
+        value_type=schema.Object(IECSTaskDefinitionSecret),
         required=False
     )
 
@@ -5152,6 +5169,15 @@ ECS Services and TaskDefinitions
         description="",
         required=False,
         default='',
+    )
+    secrets_manager_access = schema.List(
+        title="List Secrets Manager secret Paco references",
+        description="",
+        value_type=PacoReference(
+            title="SecretsManagerSecret",
+            schema_constraint='ISecretsManagerSecret',
+        ),
+        required=False
     )
 
 # ECR: Elastic Container Repository

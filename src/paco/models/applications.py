@@ -644,6 +644,17 @@ class ECSVolumesFrom(Parent):
 class ECSLogging(Named, CloudWatchLogRetention):
     driver = FieldProperty(schemas.IECSLogging['driver'])
 
+@implementer(schemas.IECSTaskDefinitionSecret)
+class ECSTaskDefinitionSecret(Parent, CFNExport):
+    name = FieldProperty(schemas.IECSTaskDefinitionSecret['name'])
+    value_from = FieldProperty(schemas.IECSTaskDefinitionSecret['value_from'])
+
+    troposphere_props = troposphere.ecs.Secret.props
+    cfn_mapping = {
+        'Name': 'name',
+        'ValueFrom': 'value_from'
+    }
+
 @implementer(schemas.IECSContainerDefinition)
 class ECSContainerDefinition(Named):
     cpu = FieldProperty(schemas.IECSContainerDefinition['cpu'])
@@ -657,6 +668,7 @@ class ECSContainerDefinition(Named):
     volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
     logging = FieldProperty(schemas.IECSContainerDefinition['logging'])
     environment = FieldProperty(schemas.IECSContainerDefinition['environment'])
+    secrets = FieldProperty(schemas.IECSContainerDefinition['secrets'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -664,6 +676,14 @@ class ECSContainerDefinition(Named):
         self.volumes_from = []
         self.mount_points = []
         self.environment = []
+        self.secrets = []
+
+
+    @property
+    def secrets_mappings_cfn(self):
+        return [
+            sm.cfn_export_dict for sm in self.secrets
+        ]
 
     @property
     def environment_cfn(self):
@@ -722,7 +742,7 @@ class ECSContainerDefinition(Named):
         # 'RepositoryCredentials': (RepositoryCredentials, False),
         # 'ResourceRequirements': ([ResourceRequirement], False),
         # 'ServiceRegistries': ([ServiceRegistry], False)
-        # 'Secrets': ([Secret], False),
+        'Secrets': 'secrets_mappings_cfn',
         # 'StartTimeout': (integer, False),
         # 'StopTimeout': (integer, False),
         # 'SystemControls': ([SystemControl], False),
@@ -867,6 +887,7 @@ class ECSServices(Resource):
     services = FieldProperty(schemas.IECSServices['services'])
     task_definitions = FieldProperty(schemas.IECSServices['task_definitions'])
     service_discovery_namespace_name = FieldProperty(schemas.IECSServices['service_discovery_namespace_name'])
+    secrets_manager_access = FieldProperty(schemas.IECSServices['secrets_manager_access'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

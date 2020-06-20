@@ -239,9 +239,10 @@ class Deployable():
         return True
 
 @implementer(schemas.INameValuePair)
-class NameValuePair(CFNExport):
+class NameValuePair(Parent):
     name = FieldProperty(schemas.INameValuePair['name'])
     value = FieldProperty(schemas.INameValuePair['value'])
+
     troposphere_props = troposphere.ecs.Environment.props
     cfn_mapping = {
         'Name': 'name',

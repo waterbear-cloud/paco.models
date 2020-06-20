@@ -686,12 +686,6 @@ class ECSContainerDefinition(Named):
         ]
 
     @property
-    def environment_cfn(self):
-        return [
-            ev.cfn_export_dict for ev in self.environment
-        ]
-
-    @property
     def port_mappings_cfn(self):
         return [
             pm.cfn_export_dict for pm in self.port_mappings
@@ -720,7 +714,7 @@ class ECSContainerDefinition(Named):
         # 'DockerLabels': (dict, False),
         # 'DockerSecurityOptions': ([basestring], False),
         'EntryPoint': 'entry_point',
-        'Environment': 'environment_cfn', #([Environment], False),
+        # 'Environment':  computed in template
         'Essential': 'essential',
         # 'ExtraHosts': ([HostEntry], False),
         # 'FirelensConfiguration': (FirelensConfiguration, False),
@@ -903,10 +897,15 @@ class ECSCluster(Resource):
 # ECR: Elastic Container Repository
 @implementer(schemas.IECRRepository)
 class ECRRepository(Resource):
-    repository_name = FieldProperty(schemas.IECRRepository['repository_name'])
-    lifecycle_policy_text = FieldProperty(schemas.IECRRepository['lifecycle_policy_text'])
+    cross_account_access = FieldProperty(schemas.IECRRepository['cross_account_access'])
     lifecycle_policy_registry_id = FieldProperty(schemas.IECRRepository['lifecycle_policy_registry_id'])
+    lifecycle_policy_text = FieldProperty(schemas.IECRRepository['lifecycle_policy_text'])
+    repository_name = FieldProperty(schemas.IECRRepository['repository_name'])
     repository_policy = FieldProperty(schemas.IECRRepository['repository_policy'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.cross_account_access = []
 
     def resolve_ref(self, ref):
         if ref.last_part == 'name':

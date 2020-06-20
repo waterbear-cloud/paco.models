@@ -727,17 +727,18 @@ classImplements(StringFileReference, IStringFileReference)
 classImplements(YAMLFileReference, IYAMLFileReference)
 
 
-class INameValuePair(Interface):
+class INameValuePair(IParent):
     """A Name/Value pair to use for RDS Option Group configuration"""
     name = schema.TextLine(
         title="Name",
-        required=False,
+        required=True,
     )
-    value = schema.TextLine(
+    value = PacoReference(
         title="Value",
-        required=False,
+        required=True,
+        str_ok=True,
+        schema_constraint='Interface'
     )
-
 
 class IAdminIAMUser(IDeployable):
     """An AWS Account Administerator IAM User"""
@@ -5185,6 +5186,15 @@ class IECRRepository(IResource):
     """
 ECR: Elastic Container Registry Repository
     """
+    cross_account_access = schema.List(
+        title="Accounts to grant access to this ECR.",
+        description="",
+        value_type=PacoReference(
+            title="Account Reference",
+            schema_constraint='IAccount'
+        ),
+        required=False,
+    )
     repository_name = schema.TextLine(
         title="Repository Name",
         required=False
@@ -5202,6 +5212,7 @@ ECR: Elastic Container Registry Repository
         schema=IPolicy,
         required=False
     )
+
 # IoT Analytics
 
 # Different from ICloudWatchLogRetention.expire_events_after_days in that it is

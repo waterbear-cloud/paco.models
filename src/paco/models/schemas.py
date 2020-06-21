@@ -4974,6 +4974,89 @@ class IECSTaskDefinitionSecret(IParent):
         str_ok=True
     )
 
+class IECSContainerDependency(IParent):
+    "ECS Container Dependency"
+    container_name = schema.TextLine(
+        title="Container Name",
+        description="Must be an existing container name.",
+        required=True,
+    )
+    condition = schema.Choice(
+        title="Condition",
+        description="Must be one of COMPLETE, HEALTHY, START or SUCCESS",
+        required=True,
+        vocabulary=vocabulary.ecs_container_conditions,
+    )
+
+class IDockerLabels(INamed, IMapping):
+    taggedValue('contains', 'mixed')
+
+class IECSHostEntry(IParent):
+    "ECS Host Entry"
+    hostname = schema.TextLine(
+        title="Hostname",
+        required=True,
+    )
+    ip_address = schema.TextLine(
+        title="IP Address",
+        required=True,
+    )
+
+class IECSHealthCheck(INamed):
+    "ECS Health Check"
+    command = schema.List(
+        title="A string array representing the command that the container runs to determine if it is healthy. The string array must start with CMD to execute the command arguments directly, or CMD-SHELL to run the command with the container's default shell.",
+        required=True,
+        value_type=schema.TextLine(
+            title="Command Part",
+        )
+    )
+    retries = schema.Int(
+        title="Retries",
+        min=1,
+        max=10,
+        default=3,
+        required=False,
+    )
+    timeout = schema.Int(
+        title="The time period in seconds to wait for a health check to succeed before it is considered a failure.",
+        min=2,
+        max=60,
+        default=5,
+        required=False,
+    )
+    interval = schema.Int(
+        title="The time period in seconds between each health check execution.",
+        min=5,
+        max=300,
+        default=30,
+        required=False,
+    )
+    start_period = schema.Int(
+        title="The optional grace period within which to provide containers time to bootstrap before failed health checks count towards the maximum number of retries.",
+        min=0,
+        max=300,
+        required=False,
+    )
+
+class IECSUlimit(IParent):
+    "ECS Ulimit"
+    name = schema.Choice(
+        title="The type of the ulimit",
+        vocabulary=vocabulary.ecs_ulimit,
+        required=True,
+    )
+    hard_limit = schema.Int(
+        title="The hard limit for the ulimit type.",
+        required=True,
+        min=1,
+    )
+    soft_limit = schema.Int(
+        title="The soft limit for the ulimit type.",
+        required=True,
+        min=1,
+    )
+
 class IECSContainerDefinition(INamed):
     "ECS Container Definition"
     command = schema.List(
@@ -4981,6 +5064,43 @@ class IECSContainerDefinition(INamed):
         description="List of strings",
         value_type=schema.Text(),
         required=False,
+    )
+    depends_on = schema.List(
+        title="Depends On",
+        description="List of ECS Container Dependencies",
+        value_type=schema.Object(IECSContainerDependency),
+        required=False,
+        default=[],
+    )
+    disable_networking = schema.Bool(
+        title="Disable Networking",
+        description="",
+        required=False,
+        default=False,
+    )
+    dns_search_domains = schema.List(
+        title="List of DNS search domains. Maps to 'DnsSearch' in Docker.",
+        required=False,
+        default=[],
+    )
+    dns_servers = schema.List(
+        title="List of DNS servers. Maps to 'Dns' in Docker.",
+        required=False,
+        default=[],
+    )
+    docker_labels = schema.Object(
+        title="A key/value map of labels. Maps to 'Labels' in Docker.",
+        required=False,
+        schema=IDockerLabels,
+    )
+    docker_security_options = schema.List(
+        title="List of custom labels for SELinux and AppArmor multi-level security systems.",
+        description="Must be a list of no-new-privileges, apparmor:PROFILE, label:value, or credentialspec:CredentialSpecFilePath",
+        value_type=schema.Choice(
+            vocabulary=vocabulary.ecs_docker_security_options,
+        ),
+        required=False,
+        default=[],
     )
     cpu = schema.Int(
         title="Cpu units",
@@ -4992,17 +5112,47 @@ class IECSContainerDefinition(INamed):
         value_type=schema.Text(),
         required=False,
     )
+    environment = schema.List(
+        title='List of environment name value pairs.',
+        value_type=schema.Object(INameValuePair),
+        required=False
+    )
     essential = schema.Bool(
         title="Essential",
         required=False,
         default=False,
         # ToDo: constraint all tasks must have at least one essential
     )
-    image = schema.TextLine(
-        title="Image",
+    extra_hosts = schema.List(
+        title="List of hostnames and IP address mappings to append to the /etc/hosts file on the container.",
+        required=False,
+        default=[],
+        value_type=schema.Object(IECSHostEntry),
+    )
+    health_check = schema.Object(
+        title="The container health check command and associated configuration parameters for the container. This parameter maps to 'HealthCheck' in Docker.",
+        required=False,
+        schema=IECSHealthCheck,
+    )
+    hostname = schema.TextLine(
+        title="Hostname to use for your container. This parameter maps to 'Hostname' in Docker.",
+        required=False,
+    )
+    image = PacoReference(
+        title="The image used to start a container. This string is passed directly to the Docker daemon.",
+        description="If a paco.ref is used to ECR, then the image_tag field will provide that tag used.",
         required=True,
-        min_length=3,
-        max_length=255,
+        str_ok=True,
+        schema_constraint='IECRRepository',
+    )
+    image_tag = schema.TextLine(
+        title="Tag used for the ECR Repository Image",
+        required=False,
+        default="latest",
+    )
+    interactive = schema.Bool(
+        title="When this parameter is true, this allows you to deploy containerized applications that require stdin or a tty to be allocated. This parameter maps to 'OpenStdin' in Docker.",
+        required=False,
     )
     logging = schema.Object(
         title="Logging Configuration",
@@ -5010,10 +5160,15 @@ class IECSContainerDefinition(INamed):
         required=False,
     )
     memory = schema.Int(
-        title="Memory in MiB",
+        title="The amount (in MiB) of memory to present to the container. If your container attempts to exceed the memory specified here, the container is killed.",
         min=4,
         required=False,
         # ToDo: constraints - required if no task-level memory, must be greater than memory_reservation
+    )
+    memory_reservation = schema.Int(
+        title="The soft limit (in MiB) of memory to reserve for the container. When system memory is under heavy contention, Docker attempts to keep the container memory to this soft limit.",
+        required=False,
+        min=4,
     )
     mount_points = schema.List(
         title="The mount points for data volumes in your container.",
@@ -5026,21 +5181,56 @@ class IECSContainerDefinition(INamed):
         default=[],
         required=False,
     )
+    privileged = schema.Bool(
+        title="Give the container elevated privileges on the host container instance (similar to the root user).",
+        required=False,
+        default=False,
+    )
+    pseudo_terminal = schema.Bool(
+        title="Allocate a TTY. This parameter maps to 'Tty' in Docker.",
+        required=False,
+    )
+    readonly_root_filesystem = schema.Bool(
+        title="Read-only access to its root file system. This parameter maps to 'ReadonlyRootfs' in Docker.",
+        required=False,
+    )
+    start_timeout = schema.Int(
+        title="Time duration (in seconds) to wait before giving up on resolving dependencies for a container.",
+        min=1,
+        default=300,
+        required=False,
+    )
+    stop_timeout = schema.Int(
+        title="Time duration (in seconds) to wait before the container is forcefully killed if it doesn't exit normally on its own.",
+        min=1,
+        max=120,
+        default=30,
+        required=False,
+    )
+    secrets = schema.List(
+        title='List of name, value_from pairs to secret manager Paco references.',
+        value_type=schema.Object(IECSTaskDefinitionSecret),
+        required=False
+    )
+    ulimits =schema.List(
+        title="List of ulimits to set in the container. This parameter maps to 'Ulimits' in Docker",
+        value_type=schema.Object(IECSUlimit),
+        required=False,
+        default=[],
+    )
+    user = schema.TextLine(
+        title="The user name to use inside the container. This parameter maps to 'User' in Docker.",
+        required=False,
+    )
     volumes_from = schema.List(
         title="Volumes to mount from another container (Docker VolumesFrom).",
         value_type=schema.Object(IECSVolumesFrom),
         default=[],
         required=False,
     )
-    environment = schema.List(
-        title='List of environment name value pairs.',
-        value_type=schema.Object(INameValuePair),
-        required=False
-    )
-    secrets = schema.List(
-        title='List of name, value_from pairs to secret manager Paco references.',
-        value_type=schema.Object(IECSTaskDefinitionSecret),
-        required=False
+    working_directory = schema.TextLine(
+        title="The working directory in which to run commands inside the container. This parameter maps to 'WorkingDir' in Docker.",
+        required=False,
     )
 
 class IECSContainerDefinitions(INamed, IMapping):

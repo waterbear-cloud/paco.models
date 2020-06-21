@@ -41,7 +41,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
-    ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret
+    ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
+    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -179,12 +180,17 @@ SUB_TYPES_CLASS_MAP = {
         'volumes': ('obj_list', ECSVolume),
     },
     ECSContainerDefinition: {
+        'depends_on': ('obj_list', ECSContainerDependency),
+        'docker_labels': ('dynamic_dict', DockerLabels),
+        'environment': ('obj_list', NameValuePair),
+        'extra_hosts': ('obj_list', ECSHostEntry),
+        'health_check': ('direct_obj', ECSHealthCheck),
         'mount_points': ('obj_list', ECSMountPoint),
         'port_mappings': ('obj_list', PortMapping),
         'volumes_from': ('obj_list', ECSVolumesFrom),
         'logging': ('direct_obj', ECSLogging),
-        'environment': ('obj_list', NameValuePair),
-        'secrets': ('obj_list', ECSTaskDefinitionSecret)
+        'secrets': ('obj_list', ECSTaskDefinitionSecret),
+        'ulimits': ('obj_list', ECSUlimit),
     },
     ECRRepository: {
         'repository_policy': ('direct_obj', Policy)

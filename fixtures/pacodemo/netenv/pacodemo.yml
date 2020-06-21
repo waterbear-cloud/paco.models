@@ -189,11 +189,51 @@ applications:
             task_definitions:
               hello_web:
                 container_definitions:
-                  hello:
+                  base:
                     cpu: 10
                     essential: true
                     image: repository-url/image:tag
                     memory: 200 # in MiB
+                  hello:
+                    cpu: 10
+                    depends_on:
+                      - container_name: base
+                        condition: START
+                    dns_search_domains:
+                      - 'abc.example.com'
+                    dns_servers:
+                      - 'ns.example.com'
+                    docker_labels:
+                      LABEL1: howdy
+                      LABELTWO: captain
+                    docker_security_options:
+                      - apparmor:PROFILE
+                    essential: true
+                    extra_hosts:
+                      - hostname: bob.example.com
+                        ip_address: 200.255.100.255
+                    health_check:
+                      command: [ "CMD-SHELL", "curl -f http://localhost:8080/ || exit 1" ]
+                      retries: 5
+                      timeout: 5
+                      interval: 30
+                      start_period: 10
+                    hostname: 'jimbob.example.com'
+                    image: repository-url/image:tag
+                    interactive: false
+                    memory: 200
+                    memory_reservation: 150
+                    privileged: false
+                    pseudo_terminal: false
+                    readonly_root_filesystem: false
+                    start_timeout: 400
+                    stop_timeout: 40
+                    ulimits:
+                      - hard_limit: 1000
+                        soft_limit: 500
+                        name: cpu
+                    user: www-data
+                    working_directory: /var/www
             services:
               simple_app:
                 desired_count: 2

@@ -655,20 +655,83 @@ class ECSTaskDefinitionSecret(Parent, CFNExport):
         'ValueFrom': 'value_from'
     }
 
+@implementer(schemas.IECSContainerDependency)
+class ECSContainerDependency(Parent):
+    container_name = FieldProperty(schemas.IECSContainerDependency['container_name'])
+    condition = FieldProperty(schemas.IECSContainerDependency['condition'])
+
+    troposphere_props = troposphere.ecs.ContainerDependency.props
+    cfn_mapping = {
+        'ContainerName': 'container_name',
+        'Condition': 'condition',
+    }
+
+@implementer(schemas.IDockerLabels)
+class DockerLabels(Named, dict):
+    pass
+
+@implementer(schemas.IECSHostEntry)
+class ECSHostEntry(Parent):
+    hostname = FieldProperty(schemas.IECSHostEntry['hostname'])
+    ip_address = FieldProperty(schemas.IECSHostEntry['ip_address'])
+
+@implementer(schemas.IECSHealthCheck)
+class ECSHealthCheck(Named):
+    command = FieldProperty(schemas.IECSHealthCheck['command'])
+    retries = FieldProperty(schemas.IECSHealthCheck['retries'])
+    timeout = FieldProperty(schemas.IECSHealthCheck['timeout'])
+    interval = FieldProperty(schemas.IECSHealthCheck['interval'])
+    start_period = FieldProperty(schemas.IECSHealthCheck['start_period'])
+
+    troposphere_props = troposphere.ecs.HealthCheck.props
+    cfn_mapping = {
+        'Command': 'command',
+        'Interval': 'interval',
+        'Retries': 'retries',
+        'StartPeriod': 'start_period',
+        'Timeout': 'timeout',
+    }
+
+@implementer(schemas.IECSUlimit)
+class ECSUlimit(Parent):
+    name = FieldProperty(schemas.IECSUlimit['name'])
+    hard_limit = FieldProperty(schemas.IECSUlimit['hard_limit'])
+    soft_limit = FieldProperty(schemas.IECSUlimit['soft_limit'])
+
 @implementer(schemas.IECSContainerDefinition)
 class ECSContainerDefinition(Named):
     cpu = FieldProperty(schemas.IECSContainerDefinition['cpu'])
     command = FieldProperty(schemas.IECSContainerDefinition['command'])
+    depends_on = FieldProperty(schemas.IECSContainerDefinition['depends_on'])
+    disable_networking = FieldProperty(schemas.IECSContainerDefinition['disable_networking'])
+    dns_search_domains = FieldProperty(schemas.IECSContainerDefinition['dns_search_domains'])
+    dns_servers = FieldProperty(schemas.IECSContainerDefinition['dns_servers'])
+    docker_labels = FieldProperty(schemas.IECSContainerDefinition['docker_labels'])
+    docker_security_options = FieldProperty(schemas.IECSContainerDefinition['docker_security_options'])
     entry_point = FieldProperty(schemas.IECSContainerDefinition['entry_point'])
+    environment = FieldProperty(schemas.IECSContainerDefinition['environment'])
     essential = FieldProperty(schemas.IECSContainerDefinition['essential'])
+    extra_hosts = FieldProperty(schemas.IECSContainerDefinition['extra_hosts'])
+    health_check = FieldProperty(schemas.IECSContainerDefinition['health_check'])
+    hostname = FieldProperty(schemas.IECSContainerDefinition['hostname'])
     image = FieldProperty(schemas.IECSContainerDefinition['image'])
+    image_tag = FieldProperty(schemas.IECSContainerDefinition['image_tag'])
+    interactive = FieldProperty(schemas.IECSContainerDefinition['interactive'])
+    logging = FieldProperty(schemas.IECSContainerDefinition['logging'])
     memory = FieldProperty(schemas.IECSContainerDefinition['memory'])
+    memory_reservation = FieldProperty(schemas.IECSContainerDefinition['memory_reservation'])
     mount_points = FieldProperty(schemas.IECSContainerDefinition['mount_points'])
     port_mappings = FieldProperty(schemas.IECSContainerDefinition['port_mappings'])
-    volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
-    logging = FieldProperty(schemas.IECSContainerDefinition['logging'])
-    environment = FieldProperty(schemas.IECSContainerDefinition['environment'])
+    privileged = FieldProperty(schemas.IECSContainerDefinition['privileged'])
+    pseudo_terminal = FieldProperty(schemas.IECSContainerDefinition['pseudo_terminal'])
+    readonly_root_filesystem = FieldProperty(schemas.IECSContainerDefinition['readonly_root_filesystem'])
+    start_timeout = FieldProperty(schemas.IECSContainerDefinition['start_timeout'])
+    stop_timeout = FieldProperty(schemas.IECSContainerDefinition['stop_timeout'])
     secrets = FieldProperty(schemas.IECSContainerDefinition['secrets'])
+    ulimits = FieldProperty(schemas.IECSContainerDefinition['ulimits'])
+    user = FieldProperty(schemas.IECSContainerDefinition['user'])
+    volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
+    working_directory = FieldProperty(schemas.IECSContainerDefinition['working_directory'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -677,7 +740,11 @@ class ECSContainerDefinition(Named):
         self.mount_points = []
         self.environment = []
         self.secrets = []
-
+        self.depends_on = []
+        self.dns_search_domains = []
+        self.dns_servers = []
+        self.DockerLabels = DockerLabels('docker_labels', self)
+        self.ulimits = []
 
     @property
     def secrets_mappings_cfn(self):
@@ -703,47 +770,69 @@ class ECSContainerDefinition(Named):
             vf.cfn_export_dict for vf in self.volumes_from
         ]
 
+    @property
+    def depends_on_cfn(self):
+        return [
+            dep.cfn_export_dict for dep in self.depends_on
+        ]
+
+    @property
+    def ulimits_cfn(self):
+        return [
+            ulimit.cfn_export_dict for ulimit in self.ulimits
+        ]
+
+    @property
+    def health_check_cfn(self):
+        if self.health_check != None:
+            return self.health_check.cfn_export_dict
+
+    @property
+    def ebsoptions_cfn(self):
+        if self.ebs_volumes != None:
+            return self.ebs_volumes.cfn_export_dict
+
     troposphere_props = troposphere.ecs.ContainerDefinition.props
     cfn_mapping = {
         'Command': 'command',
         'Cpu': 'cpu',
-        # 'DependsOn': ([ContainerDependency], False),
-        # 'DisableNetworking': (boolean, False),
-        # 'DnsSearchDomains': ([basestring], False),
-        # 'DnsServers': ([basestring], False),
-        # 'DockerLabels': (dict, False),
-        # 'DockerSecurityOptions': ([basestring], False),
+        'DependsOn': 'depends_on_cfn',
+        'DisableNetworking': 'disable_networking',
+        'DnsSearchDomains': 'dns_search_domains',
+        'DnsServers': 'dns_servers',
+        'DockerLabels': 'docker_labels',
+        'DockerSecurityOptions': 'docker_security_options',
         'EntryPoint': 'entry_point',
         # 'Environment':  computed in template
         'Essential': 'essential',
-        # 'ExtraHosts': ([HostEntry], False),
+        'ExtraHosts': 'extra_hosts',
         # 'FirelensConfiguration': (FirelensConfiguration, False),
-        # 'HealthCheck': (HealthCheck, False),
-        # 'Hostname': (basestring, False),
-        'Image': 'image',
-        # 'Interactive': (boolean, False),
+        'HealthCheck': 'health_check_cfn',
+        'Hostname': 'hostname',
+        # 'Image': computed in the template
+        'Interactive': 'interactive',
         # 'Links': ([basestring], False),
         # 'LinuxParameters': (LinuxParameters, False),
-        # 'LogConfiguration': (LogConfiguration, False),
+        # 'LogConfiguration': computed in template
         'Memory': 'memory',
-        # 'MemoryReservation': (integer, False),
+        'MemoryReservation': 'memory_reservation',
         'MountPoints': 'mount_points_cfn',
         'Name': 'name',
         'PortMappings': 'port_mappings_cfn',
-        # 'Privileged': (boolean, False),
-        # 'PseudoTerminal': (boolean, False),
-        # 'ReadonlyRootFilesystem': (boolean, False),
+        'Privileged': 'privileged',
+        'PseudoTerminal': 'pseudo_terminal',
+        'ReadonlyRootFilesystem': 'readonly_root_filesystem',
         # 'RepositoryCredentials': (RepositoryCredentials, False),
         # 'ResourceRequirements': ([ResourceRequirement], False),
         # 'ServiceRegistries': ([ServiceRegistry], False)
         'Secrets': 'secrets_mappings_cfn',
-        # 'StartTimeout': (integer, False),
-        # 'StopTimeout': (integer, False),
+        'StartTimeout': 'start_timeout',
+        'StopTimeout': 'stop_timeout',
         # 'SystemControls': ([SystemControl], False),
-        # 'Ulimits': ([Ulimit], False),
-        # 'User': (basestring, False),
+        'Ulimits': 'ulimits_cfn',
+        'User': 'user',
         'VolumesFrom': 'volumes_from_cfn',
-        # 'WorkingDirectory': (basestring, False),
+        'WorkingDirectory': 'working_directory',
     }
 
 @implementer(schemas.IECSContainerDefinitions)

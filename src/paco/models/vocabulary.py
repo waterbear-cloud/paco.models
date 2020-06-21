@@ -44,6 +44,38 @@ ecs_log_drivers = SimpleVocabulary.fromValues([
     'syslog'
 ])
 
+ecs_container_conditions = SimpleVocabulary.fromValues([
+	'COMPLETE',
+	'HEALTHY',
+	'START',
+	'SUCCESS',
+])
+
+ecs_docker_security_options = SimpleVocabulary.fromValues([
+	"no-new-privileges",
+	"apparmor:PROFILE",
+	"label:value",
+	"credentialspec:CredentialSpecFilePath"
+])
+
+ecs_ulimit = SimpleVocabulary.fromValues([
+	'core',
+	'cpu',
+	'data',
+	'fsize',
+	'locks',
+	'memlock',
+	'msgqueue',
+	'nice',
+	'nofile',
+	'nproc',
+	'rss',
+	'rtprio',
+	'rttime',
+	'sigpending',
+	'stack',
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

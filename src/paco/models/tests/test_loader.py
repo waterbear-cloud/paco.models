@@ -324,6 +324,10 @@ class Testpacodemo(BaseTestModelLoader):
         assert ecs_service_config.services['simple_app'].desired_count, 2
         assert ecs_service_config.services['simple_app'].load_balancers[0].container_name, 'hello'
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].cpu, 10
+        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].depends_on[0].condition, 'START'
+        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].health_check.retries, 5
+        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].ulimits[0].hard_limit, 1000
+        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].user, 'www-data'
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

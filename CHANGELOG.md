@@ -1,7 +1,7 @@
 Changelog for paco.models
 =========================
 
-7.3.0 (unreleased)
+7.3.0 (2020-06-22)
 ------------------
 
 ### Added

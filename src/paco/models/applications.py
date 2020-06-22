@@ -480,6 +480,7 @@ class ASGRollingUpdatePolicy(Named):
 @implementer(schemas.IECSASGConfiguration)
 class ECSASGConfiguration(Named):
     cluster = FieldProperty(schemas.IECSASGConfiguration['cluster'])
+    log_level = FieldProperty(schemas.IECSASGConfiguration['log_level'])
 
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):

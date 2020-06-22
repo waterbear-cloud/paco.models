@@ -4421,6 +4421,12 @@ class IECSASGConfiguration(INamed):
         str_ok=False,
         schema_constraint='IECSCluster'
     )
+    log_level = schema.Choice(
+        title="Log Level",
+        vocabulary=vocabulary.log_levels,
+        default='error',
+        required=False,
+    )
 
 class IASG(IResource, IMonitorable):
     """

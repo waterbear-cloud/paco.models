@@ -20,6 +20,14 @@ network_protocols = SimpleVocabulary.fromValues([
   'udp',
 ])
 
+log_levels = SimpleVocabulary.fromValues([
+	'crit',
+	'error',
+	'warn',
+	'info',
+	'debug',
+])
+
 ecs_network_modes = SimpleVocabulary.fromValues([
 	'awsvpc',
 	'bridge',

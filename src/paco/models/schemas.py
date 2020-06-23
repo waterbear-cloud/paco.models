@@ -2641,7 +2641,7 @@ class INATGateway(INamed, IDeployable):
 class IVPNGateway(INamed, IDeployable):
     """VPN Gateway"""
 
-class IPrivateHostedZone(IDeployable):
+class IPrivateHostedZone(IParent, IDeployable):
     """Private Hosted Zone"""
     name = schema.TextLine(
         title="Hosted zone name",
@@ -3186,6 +3186,14 @@ Container for `Listener`_ objects.
     taggedValue('contains', 'IListener')
 
 class IListener(IParent, IPortProtocol):
+    @invariant
+    def redirect_or_target_group(obj):
+        "Must set one of redirect or target_group but not both"
+        if obj.redirect == None and obj.target_group == '':
+            raise Invalid("Either a redirect or a target_group must be set for a listener.")
+        if obj.redirect != None and obj.target_group != '':
+            raise Invalid("Can not set both a redirect and a target_group for a listener.")
+
     redirect = schema.Object(
         title="Redirect",
         schema=IPortProtocol,

@@ -189,17 +189,25 @@ class VPNGateway(Named, Deployable):
     """VPN Gateway"""
 
 @implementer(schemas.IPrivateHostedZone)
-class PrivateHostedZone(Deployable):
+class PrivateHostedZone(Parent, Deployable):
     name = FieldProperty(schemas.IPrivateHostedZone["name"])
     vpc_associations = FieldProperty(schemas.IPrivateHostedZone["vpc_associations"])
 
-    def __init__(self):
+    def __init__(self,  __parent__):
+        super().__init__(__parent__)
         self.vpc_associations = []
 
     def resolve_ref(self, ref):
         if ref.last_part == 'private_hosted_zone':
             return self
         return self.resolve_ref_obj.resolve_ref(ref)
+
+    @property
+    def account(self):
+        "The account ref this PrivateHostedZone belongs to"
+        # get account from INetwork
+        return self.__parent__.__parent__.aws_account
+
 #@implementer(schemas.ISecurityGroups)
 #class SecurityGroups(dict):
 #    pass

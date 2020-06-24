@@ -5319,11 +5319,31 @@ class IECSService(INamed):
         default='ecs',
         required=False,
     )
+    deployment_minimum_healthy_percent = schema.Int(
+        title="Deployment Minimum Healthy Percent",
+        min=1,
+        max=100,
+        required=False,
+        default=100,
+    )
+    deployment_maximum_percent = schema.Int(
+        title="Deployment Maximum Percent",
+        min=1,
+        required=False,
+        default=200,
+    )
     desired_count = schema.Int(
         title="Desried Count",
         min=0,
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
+    )
+    health_check_grace_period_seconds = schema.Int(
+        title="Health Check Grace Period (seconds)",
+        min=0,
+        max=2147483647,
+        required=False,
+        default=0,
     )
     task_definition = schema.TextLine(
         title="Task Definition",
@@ -5415,6 +5435,11 @@ ECR: Elastic Container Registry Repository
         title="Repository Policy",
         schema=IPolicy,
         required=False
+    )
+    account = PacoReference(
+        title="Account the ECR Repository belongs to",
+        required=False,
+        schema_constraint='IAccount'
     )
 
 # IoT Analytics

@@ -4,8 +4,10 @@ Changelog for paco.models
 7.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- ECSSerivce additional fields for deployment_maximum_percent, deployment_minimum_healthy_percent and
+  health_check_grace_period_seconds.
 
 7.3.0 (2020-06-22)
 ------------------

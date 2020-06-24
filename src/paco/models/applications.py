@@ -919,7 +919,10 @@ class ECSServicesContainer(Named, dict):
 @implementer(schemas.IECSService)
 class ECSService(Named):
     deployment_controller = FieldProperty(schemas.IECSService['deployment_controller'])
+    deployment_minimum_healthy_percent = FieldProperty(schemas.IECSService['deployment_minimum_healthy_percent'])
+    deployment_maximum_percent = FieldProperty(schemas.IECSService['deployment_maximum_percent'])
     desired_count = FieldProperty(schemas.IECSService['desired_count'])
+    health_check_grace_period_seconds = FieldProperty(schemas.IECSService['health_check_grace_period_seconds'])
     task_definition = FieldProperty(schemas.IECSService['task_definition'])
     load_balancers = FieldProperty(schemas.IECSService['load_balancers'])
     hostname = FieldProperty(schemas.IECSService['hostname'])
@@ -939,27 +942,34 @@ class ECSService(Named):
         ]
 
     @property
+    def deployment_configuration_cfn(self):
+        return {
+            "MaximumPercent": self.deployment_maximum_percent,
+            "MinimumHealthyPercent": self.deployment_minimum_healthy_percent
+        }
+
+    @property
     def deployment_controller_cfn(self):
         return {"Type": self.deployment_controller.upper()}
 
     troposphere_props = troposphere.ecs.Service.props
     cfn_mapping = {
         # 'Cluster': set in template
-        # 'DeploymentConfiguration': (DeploymentConfiguration, False),
+        'DeploymentConfiguration': 'deployment_configuration_cfn',
         'DeploymentController': 'deployment_controller_cfn',
         'DesiredCount': 'desired_count',
         # 'EnableECSManagedTags': (boolean, False),
-        # 'HealthCheckGracePeriodSeconds': (positive_integer, False),
+        'HealthCheckGracePeriodSeconds': 'health_check_grace_period_seconds',
         # 'LaunchType': (launch_type_validator, False),
         'LoadBalancers': 'load_balancers_cfn',
         # 'NetworkConfiguration': (NetworkConfiguration, False),
         # 'Role': (basestring, False),
         # 'PlacementConstraints': ([PlacementConstraint], False),
         # 'PlacementStrategies': ([PlacementStrategy], False),
-        # 'PlatformVersion': (basestring, False),
+        # 'PlatformVersion': (basestring, False), # only for Fargate
         # 'PropagateTags': (basestring, False),
         # 'SchedulingStrategy': (basestring, False),
-        # 'ServiceName': (basestring, False),
+        # 'ServiceName': provided by CloudFormation
         # 'ServiceRegistries': ([ServiceRegistry], False),
         # 'Tags': (Tags, False),
         'TaskDefinition': 'task_definition',

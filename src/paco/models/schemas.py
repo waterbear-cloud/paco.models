@@ -8155,6 +8155,7 @@ Assign the secert to the ``github_access_token`` GitHub action field by using th
         title='Secrets Manager Secret with a GitHub access token',
         required=True,
         schema_constraint='ISecretsManagerSecret',
+        str_ok=True
     )
     poll_for_source_changes = schema.Bool(
         title='Poll for Source Changes',

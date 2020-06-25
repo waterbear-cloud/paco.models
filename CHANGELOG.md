@@ -9,6 +9,9 @@ Changelog for paco.models
 - ECSSerivce additional fields for deployment_maximum_percent, deployment_minimum_healthy_percent and
   health_check_grace_period_seconds.
 
+- ISecretManagerSecret now has an `account` field to specify it belongs to a specific account.
+
+
 7.3.0 (2020-06-22)
 ------------------
 

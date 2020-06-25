@@ -2973,6 +2973,11 @@ class IGenerateSecretString(IParent, IDeployable):
 
 class ISecretsManagerSecret(INamed, IDeployable):
     """Secret for the Secrets Manager."""
+    account = PacoReference(
+        title="Account to provision the Secret in",
+        required=False,
+        schema_constraint='IAccount'
+    )
     generate_secret_string = schema.Object(
         title="Generate SecretString object",
         required=False,

@@ -1826,6 +1826,7 @@ class GenerateSecretString(Parent, Deployable, CFNExport):
 @implementer(schemas.ISecretsManagerSecret)
 class SecretsManagerSecret(Named, Deployable):
     """Secrets Manager Application Name"""
+    account = FieldProperty(schemas.ISecretsManagerSecret['account'])
     generate_secret_string = FieldProperty(schemas.ISecretsManagerSecret['generate_secret_string'])
 
     def __init__(self, name, __parent__):

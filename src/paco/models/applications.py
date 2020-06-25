@@ -477,10 +477,21 @@ class ASGRollingUpdatePolicy(Named):
     pause_time = FieldProperty(schemas.IASGRollingUpdatePolicy['pause_time'])
     wait_on_resource_signals = FieldProperty(schemas.IASGRollingUpdatePolicy['wait_on_resource_signals'])
 
+@implementer(schemas.IECSCapacityProvider)
+class ECSCapacityProvider(Named, Deployable):
+    target_capacity = FieldProperty(schemas.IECSCapacityProvider['target_capacity'])
+    minimum_scaling_step_size = FieldProperty(schemas.IECSCapacityProvider['minimum_scaling_step_size'])
+    maximum_scaling_step_size = FieldProperty(schemas.IECSCapacityProvider['maximum_scaling_step_size'])
+
 @implementer(schemas.IECSASGConfiguration)
 class ECSASGConfiguration(Named):
     cluster = FieldProperty(schemas.IECSASGConfiguration['cluster'])
     log_level = FieldProperty(schemas.IECSASGConfiguration['log_level'])
+    capacity_provider = FieldProperty(schemas.IECSASGConfiguration['capacity_provider'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.capacity_provider = ECSCapacityProvider('capacity_provider', self)
 
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):

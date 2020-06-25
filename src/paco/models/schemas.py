@@ -4422,6 +4422,29 @@ AutoScalingRollingUpdate Policy
         default=False
     )
 
+class IECSCapacityProvider(INamed, IDeployable):
+    target_capacity = schema.Int(
+        title="Target Capacity",
+        min=1,
+        max=100,
+        required=False,
+        default=100,
+    )
+    minimum_scaling_step_size = schema.Int(
+        title="Minimum Scaling Step Size",
+        min=1,
+        max=10000,
+        required=False,
+        default=1,
+    )
+    maximum_scaling_step_size = schema.Int(
+        title="Maximum Scaling Step Size",
+        min=1,
+        max=10000,
+        required=False,
+        default=10000,
+    )
+
 class IECSASGConfiguration(INamed):
     cluster = PacoReference(
         title='Cluster',
@@ -4434,6 +4457,11 @@ class IECSASGConfiguration(INamed):
         vocabulary=vocabulary.log_levels,
         default='error',
         required=False,
+    )
+    capacity_provider = schema.Object(
+        title="Capacity Provider",
+        required=False,
+        schema=IECSCapacityProvider,
     )
 
 class IASG(IResource, IMonitorable):

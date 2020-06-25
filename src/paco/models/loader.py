@@ -42,7 +42,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
-    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit
+    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -430,6 +430,9 @@ SUB_TYPES_CLASS_MAP = {
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
         'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy),
         'ecs': ('direct_obj', ECSASGConfiguration),
+    },
+    ECSASGConfiguration: {
+        'capacity_provider': ('direct_obj', ECSCapacityProvider),
     },
     EC2LaunchOptions: {
         'cfn_init_config_sets': ('str_list', zope.schema.TextLine)

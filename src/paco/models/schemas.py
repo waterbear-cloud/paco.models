@@ -3103,6 +3103,12 @@ class IAWSCertificateManager(IResource):
         default=False,
         required=False,
     )
+    private_ca = schema.TextLine(
+        title="Private Certificate Authority ARN",
+        description="",
+        default=None,
+        required=False,
+    )
 
 class IPortProtocol(Interface):
     """Port and Protocol"""
@@ -6692,6 +6698,17 @@ Route53 Hosted Zone
         schema = IRoute53HostedZoneExternalResource,
         required=False
     )
+    private_hosted_zone = schema.Bool(
+        title='Make this hosted zone private.',
+        required=False,
+        default=False
+    )
+    vpc_associations = PacoReference(
+        title="The VPC the private hosted zone will be provisioned in.",
+        required=False,
+        schema_constraint='IVPC'
+    )
+
 
 
 class IRoute53Resource(INamed):

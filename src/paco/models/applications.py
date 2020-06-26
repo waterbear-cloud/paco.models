@@ -1122,6 +1122,7 @@ class AWSCertificateManager(ApplicationResource):
     domain_name = FieldProperty(schemas.IAWSCertificateManager['domain_name'])
     subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
     external_resource = FieldProperty(schemas.IAWSCertificateManager['external_resource'])
+    private_ca = FieldProperty(schemas.IAWSCertificateManager['private_ca'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'domain_name':

@@ -309,6 +309,8 @@ class Route53HostedZone(Named, Deployable):
     record_sets = FieldProperty(schemas.IRoute53HostedZone["record_sets"])
     parent_zone = FieldProperty(schemas.IRoute53HostedZone["parent_zone"])
     external_resource = FieldProperty(schemas.IRoute53HostedZone["external_resource"])
+    private_hosted_zone = FieldProperty(schemas.IRoute53HostedZone["private_hosted_zone"])
+    vpc_associations = FieldProperty(schemas.IRoute53HostedZone["vpc_associations"])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

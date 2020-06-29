@@ -306,6 +306,7 @@ SUB_TYPES_CLASS_MAP = {
     DeploymentPipelineBuildCodeBuild: {
         'role_policies': ('obj_list', Policy),
         'codecommit_repo_users': ('str_list', PacoReference),
+        'secrets': ('str_list', PacoReference),
     },
     DeploymentPipelineDeployCodeDeploy: {
         'minimum_healthy_hosts': ('direct_obj', CodeDeployMinimumHealthyHosts)

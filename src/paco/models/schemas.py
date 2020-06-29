@@ -8234,6 +8234,13 @@ CodeBuild DeploymentPipeline Build Stage
         default=False,
         required=False
     )
+    secrets = schema.List(
+        title='List of PacoReferences to Secrets Manager secrets',
+        required=False,
+        value_type=PacoReference(
+            title="Secret Manager Secret"
+        )
+    )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):
     """

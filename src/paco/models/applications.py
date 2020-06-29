@@ -1692,6 +1692,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     privileged_mode = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['privileged_mode'])
     role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
+    secrets = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['secrets'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

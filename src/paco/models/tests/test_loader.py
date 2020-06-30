@@ -325,7 +325,7 @@ class Testpacodemo(BaseTestModelLoader):
         ec2 = self.project['resource']['ec2']
         assert ec2.keypairs['pacodemo_dev'].region, 'us-west-2'
         assert ec2.users['bdobbs'].full_name, 'Bob Dobbs'
-        assert ec2.groups['dev'].members, ['Bob Dobbs']
+        assert ec2.groups['developers'].members, ['Bob Dobbs']
 
     def test_ecs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
@@ -444,5 +444,4 @@ class Testpacodemo(BaseTestModelLoader):
     def test_ssm_documents(self):
         ssm_documents = self.project['resource']['ssm'].ssm_documents
         assert ssm_documents['my_ssm_doc'].locations[0].regions[0] == 'eu-central-1'
-        assert asg.ssh_access.users, ['bdobbs']
         assert ssm_documents['my_ssm_doc'].document_type == 'Command'

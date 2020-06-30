@@ -21,6 +21,6 @@ groups:
     members:
       - bdobbs
       - sally
-  dev:
+  developers:
     members:
       - bdobbs

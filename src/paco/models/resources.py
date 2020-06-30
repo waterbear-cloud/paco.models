@@ -254,6 +254,24 @@ class EC2KeyPair(Named):
     account = FieldProperty(schemas.IEC2KeyPair['account'])
     keypair_name = FieldProperty(schemas.IEC2KeyPair['keypair_name'])
 
+@implementer(schemas.IEC2Users)
+class EC2Users(Named, dict):
+    pass
+
+@implementer(schemas.IEC2User)
+class EC2User(Named):
+    full_name = FieldProperty(schemas.IEC2User['full_name'])
+    email = FieldProperty(schemas.IEC2User['email'])
+    public_ssh_key = FieldProperty(schemas.IEC2User['public_ssh_key'])
+
+@implementer(schemas.IEC2Groups)
+class EC2Groups(Named, dict):
+    pass
+
+@implementer(schemas.IEC2Group)
+class EC2Group(Named):
+    members = FieldProperty(schemas.IEC2Group['members'])
+
 @implementer(schemas.IEC2Resource)
 class EC2Resource(Named):
     keypairs = FieldProperty(schemas.IEC2Resource['keypairs'])

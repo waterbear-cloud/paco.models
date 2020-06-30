@@ -2401,6 +2401,41 @@ Container for `EC2KeyPair`_ objects.
     """
     taggedValue('contains', 'IEC2KeyPair')
 
+class IEC2User(INamed):
+    full_name = schema.TextLine(
+        title="Full Name",
+        required=False,
+    )
+    email = schema.TextLine(
+        title="Email",
+        required=False,
+        constraint=isValidEmail,
+    )
+    public_ssh_key = schema.TextLine(
+        title="Public SSH Key",
+        required=True,
+    )
+
+class IEC2Users(INamed, IMapping):
+    """
+Container for `EC2User`_ objects.
+    """
+    taggedValue('contains', 'IEC2User')
+
+class IEC2Group(INamed):
+    members = schema.List(
+        title="List of Users",
+        default=[],
+        required=True,
+    )
+
+class IEC2Groups(INamed, IMapping):
+    """
+Container for `EC2Group`_ objects.
+    """
+    taggedValue('contains', 'IEC2Group')
+
+
 class IEC2Resource(INamed):
     """
 EC2 Resource Configuration
@@ -2409,6 +2444,16 @@ EC2 Resource Configuration
         title="Group of EC2 Key Pairs",
         schema=IEC2KeyPairs,
         required=False,
+    )
+    users = schema.Object(
+        title="SSH Users",
+        schema=IEC2Users,
+        required=False
+    )
+    groups = schema.Object(
+        title="SSH Users",
+        schema=IEC2Groups,
+        required=False
     )
 
 class IService(IResource):
@@ -2582,6 +2627,24 @@ class IProject(INamed, IMapping):
         description="",
         required=False,
     )
+
+
+# duplicate function as in paco.models.locations to avoid circular imports
+def get_parent_by_interface(context, interface=IProject):
+    """
+    Walk up the tree until an object provides the requested Interface
+    """
+    max = 999
+    while context is not None:
+        if interface.providedBy(context):
+            return context
+        if IProject.providedBy(context):
+            return None
+        else:
+            context = context.__parent__
+        max -= 1
+        if max < 1:
+            raise TypeError("Maximum location depth exceeded. Model is borked!")
 
 class IInternetGateway(IDeployable):
     """
@@ -4475,6 +4538,40 @@ class IECSASGConfiguration(INamed):
         schema=IECSCapacityProvider,
     )
 
+class ISSHAccess(INamed):
+    @invariant
+    def valid_users_groups(obj):
+        "Ensure users and groups exist in ec2.yaml"
+        if len(obj.users) != 0 or len(obj.groups) != 0:
+            project = get_parent_by_interface(obj, IProject)
+            if 'ec2' not in project.resource:
+                raise Invalid("Must create a resrouce/ec2.yaml file to specify users and groups for SSH.")
+            ec2_users = project.resource['ec2'].users
+            ec2_groups = project.resource['ec2'].groups
+            for user in obj.users:
+                if user not in ec2_users:
+                    raise Invalid(f"User with name '{user}' not found in resource/ec2.yaml users.")
+            for group in obj.groups:
+                if group not in ec2_groups:
+                    raise Invalid(f"Group with name '{group}' not found in resource/ec2.yaml groups.")
+
+        return True
+
+    users = schema.List(
+        title="User",
+        description="Must match a user declared in resource/ec2.yaml",
+        value_type=schema.TextLine(title="User"),
+        required=False,
+        default=[],
+    )
+    groups = schema.List(
+        title="Groups",
+        description="Must match a group declared in resource/ec2.yaml",
+        value_type=schema.TextLine(title="Group"),
+        required=False,
+        default=[],
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -4522,6 +4619,8 @@ for that ASG.
     that will install a CloudWatch Agent and configure it to collect all specified metrics and log sources.
 
     ``secrets``: Adds a policy to the Instance Role which allows instances to access the specified secrets.
+
+    ``ssh_access``:  Grants users and groups SSH access to the instances.
 
 .. code-block:: yaml
     :caption: example ASG configuration
@@ -4576,6 +4675,11 @@ for that ASG.
     termination_policies:
       - Default
     scaling_policy_cpu_average: 60
+    ssh_access:
+      users:
+        - bdobbs
+      groups:
+        - developers
     launch_options:
         update_packages: true
         ssm_agent: true
@@ -4913,6 +5017,12 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
     segment = schema.TextLine(
         title="Segment",
         description="",
+        required=False,
+    )
+    ssh_access = schema.Object(
+        title="SSH Access",
+        description="",
+        schema=ISSHAccess,
         required=False,
     )
     target_groups = schema.List(

@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- Added users and groups to `resource/ec2.yaml` and `ssh_access` to IASG.
+
 - ECSSerivce additional fields for deployment_maximum_percent, deployment_minimum_healthy_percent and
   health_check_grace_period_seconds.
 

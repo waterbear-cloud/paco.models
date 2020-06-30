@@ -139,9 +139,14 @@ class Testpacodemo(BaseTestModelLoader):
         norole_asg = demo_env.applications['app'].groups['site'].resources['norole']
         assert norole_asg.instance_iam_role.enabled == False
 
+        # SSH Access
+        assert asg.ssh_access.users, ['bdobbs']
+        assert asg.ssh_access.groups, ['developers']
+
         # ECS
-        asg = demo_env.applications['app'].groups['container'].resources['ecs_asg']
-        assert asg.ecs.cluster, 'paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.container.resources.ecs_cluster'
+        ecs_asg = demo_env.applications['app'].groups['container'].resources['ecs_asg']
+        assert ecs_asg.ecs.cluster, 'paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.container.resources.ecs_cluster'
+
 
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
@@ -316,6 +321,12 @@ class Testpacodemo(BaseTestModelLoader):
         assert len(sns.default_locations), 1
         assert len(sns.topics), 2
 
+    def test_ec2(self):
+        ec2 = self.project['resource']['ec2']
+        assert ec2.keypairs['pacodemo_dev'].region, 'us-west-2'
+        assert ec2.users['bdobbs'].full_name, 'Bob Dobbs'
+        assert ec2.groups['dev'].members, ['Bob Dobbs']
+
     def test_ecs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         cluster = demo_env['applications']['app'].groups['container'].resources['ecs_cluster']
@@ -433,4 +444,5 @@ class Testpacodemo(BaseTestModelLoader):
     def test_ssm_documents(self):
         ssm_documents = self.project['resource']['ssm'].ssm_documents
         assert ssm_documents['my_ssm_doc'].locations[0].regions[0] == 'eu-central-1'
+        assert asg.ssh_access.users, ['bdobbs']
         assert ssm_documents['my_ssm_doc'].document_type == 'Command'

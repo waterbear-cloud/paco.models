@@ -20,7 +20,7 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, \
-    ASG, ECSASGConfiguration, \
+    ASG, ECSASGConfiguration, SSHAccess, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
@@ -48,7 +48,8 @@ from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambda
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
     DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
     DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
-from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
+from paco.models.resources import S3Resource, S3Buckets, \
+    EC2Resource, EC2KeyPairs, EC2KeyPair, EC2Users, EC2User, EC2Group, EC2Groups, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, Route53HealthCheck, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, CodeCommitUsers, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -233,8 +234,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     EC2Resource: {
         'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),
+        'users': ('container', (EC2Users, EC2User)),
+        'groups': ('container', (EC2Groups, EC2Group)),
     },
-
     CloudWatchDashboard: {
         'variables': ('dynamic_dict', DashboardVariables),
     },
@@ -431,6 +433,7 @@ SUB_TYPES_CLASS_MAP = {
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
         'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy),
         'ecs': ('direct_obj', ECSASGConfiguration),
+        'ssh_access': ('direct_obj', SSHAccess),
     },
     ECSASGConfiguration: {
         'capacity_provider': ('direct_obj', ECSCapacityProvider),
@@ -1291,8 +1294,8 @@ class ModelLoader():
         self.config_subdirs = {
             "monitor": self.instantiate_monitor_config,
             "accounts": self.instantiate_accounts,
-            "netenv": self.instantiate_network_environments,
             "resource": self.instantiate_resources,
+            "netenv": self.instantiate_network_environments,
         }
         # Legacy directory names
         if os.path.isdir(self.config_folder / 'NetworkEnvironments'):

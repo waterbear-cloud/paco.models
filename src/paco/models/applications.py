@@ -493,6 +493,16 @@ class ECSASGConfiguration(Named):
         super().__init__(name, parent)
         self.capacity_provider = ECSCapacityProvider('capacity_provider', self)
 
+@implementer(schemas.ISSHAccess)
+class SSHAccess(Named):
+    users = FieldProperty(schemas.ISSHAccess['users'])
+    groups = FieldProperty(schemas.ISSHAccess['groups'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.users = []
+        self.groups = []
+
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):
     title = "AutoScalingGroup"
@@ -544,6 +554,7 @@ class ASG(ApplicationResource, Monitorable):
         self.rolling_update_policy = ASGRollingUpdatePolicy('rolling_update_policy', self)
         self.launch_options = EC2LaunchOptions('launch_options', self)
         self.instance_iam_role = Role('role', self)
+        self.ssh_access = SSHAccess('ssh_access', self)
 
     @property
     def instance_ami_type_family(self):

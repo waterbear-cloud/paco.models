@@ -542,6 +542,11 @@ applications:
             max_instances: 3
             min_instances: 1
             desired_capacity: 1
+            ssh_access:
+              users:
+                - bdobbs
+              groups:
+                - developers
             rolling_update_policy:
               enabled: true
               max_batch_size: 1

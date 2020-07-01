@@ -340,6 +340,11 @@ class Testpacodemo(BaseTestModelLoader):
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].ulimits[0].hard_limit, 1000
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].user, 'www-data'
 
+    def test_rds(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        pg_aurora = demo_env['applications']['app'].groups['site'].resources['pg_aurora']
+        assert pg_aurora.db_instance_type, 'db.t3.micro'
+
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         lmbda = demo_env['applications']['notification'].groups['lambda'].resources['function']

@@ -111,6 +111,19 @@ application_group_types = [
     'Deployment',
 ]
 
+rds_cluster_engine_mode = SimpleVocabulary.fromValues([
+	'provisioned',
+	'serverless',
+	'parallelquery',
+	'global',
+	'multimaster'
+])
+
+rds_restore_types = SimpleVocabulary.fromValues([
+	'full-copy',
+	'copy-on-write',
+])
+
 cloudwatch = {
 	'App': {
 		'dimension': '',

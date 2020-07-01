@@ -17,12 +17,13 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 import troposphere
 import troposphere.autoscaling
+import troposphere.ecs
 import troposphere.elasticache
 import troposphere.elasticloadbalancingv2
 import troposphere.elasticsearch
+import troposphere.rds
 import troposphere.s3
 import troposphere.secretsmanager
-import troposphere.ecs
 
 
 @implementer(schemas.IApplicationEngines)
@@ -1365,6 +1366,10 @@ class DBParameterGroup(ApplicationResource):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IDBClusterParameterGroup)
+class DBClusterParameterGroup(DBParameterGroup):
+    title = "RDS DB Cluster Parameter Group"
+
 @implementer(schemas.IRDSOptionConfiguration)
 class RDSOptionConfiguration():
     option_name = FieldProperty(schemas.IRDSOptionConfiguration['option_name'])
@@ -1375,37 +1380,25 @@ class RDSOptionConfiguration():
 @implementer(schemas.IRDS)
 class RDS(ApplicationResource, Monitorable):
     title = "RDS"
-    engine = FieldProperty(schemas.IRDS['engine'])
-    engine_version = FieldProperty(schemas.IRDS['engine_version'])
-    db_instance_type = FieldProperty(schemas.IRDS['db_instance_type'])
-    segment = FieldProperty(schemas.IRDS['segment'])
-    port = FieldProperty(schemas.IRDS['port'])
-    storage_type = FieldProperty(schemas.IRDS['storage_type'])
-    storage_size_gb = FieldProperty(schemas.IRDS['storage_size_gb'])
-    storage_encrypted = FieldProperty(schemas.IRDS['storage_encrypted'])
-    kms_key_id = FieldProperty(schemas.IRDS['kms_key_id'])
-    allow_major_version_upgrade = FieldProperty(schemas.IRDS['allow_major_version_upgrade'])
-    auto_minor_version_upgrade = FieldProperty(schemas.IRDS['auto_minor_version_upgrade'])
-    publically_accessible = FieldProperty(schemas.IRDS['publically_accessible'])
-    master_username = FieldProperty(schemas.IRDS['master_username'])
-    master_user_password = FieldProperty(schemas.IRDS['master_user_password'])
     backup_preferred_window = FieldProperty(schemas.IRDS['backup_preferred_window'])
     backup_retention_period = FieldProperty(schemas.IRDS['backup_retention_period'])
-    maintenance_preferred_window = FieldProperty(schemas.IRDS['maintenance_preferred_window'])
-    security_groups = FieldProperty(schemas.IRDS['security_groups'])
-    dns = FieldProperty(schemas.IRDS['dns'])
-    db_snapshot_identifier = FieldProperty(schemas.IRDS['db_snapshot_identifier'])
-    option_configurations = FieldProperty(schemas.IRDS['option_configurations'])
-    license_model = FieldProperty(schemas.IRDS['license_model'])
     cloudwatch_logs_export = FieldProperty(schemas.IRDS['cloudwatch_logs_exports'])
+    db_snapshot_identifier = FieldProperty(schemas.IRDS['db_snapshot_identifier'])
     deletion_protection = FieldProperty(schemas.IRDS['deletion_protection'])
-    parameter_group = FieldProperty(schemas.IRDS['parameter_group'])
+    dns = FieldProperty(schemas.IRDS['dns'])
+    engine_version = FieldProperty(schemas.IRDS['engine_version'])
+    kms_key_id = FieldProperty(schemas.IRDS['kms_key_id'])
+    maintenance_preferred_window = FieldProperty(schemas.IRDS['maintenance_preferred_window'])
+    master_username = FieldProperty(schemas.IRDS['master_username'])
+    master_user_password = FieldProperty(schemas.IRDS['master_user_password'])
+    port = FieldProperty(schemas.IRDS['port'])
     secrets_password = FieldProperty(schemas.IRDS['secrets_password'])
+    security_groups = FieldProperty(schemas.IRDS['security_groups'])
+    segment = FieldProperty(schemas.IRDS['segment'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.dns = []
-        self.option_configurations = []
         self.cloudwatch_logs_exports = []
         self.backup_vault_plans = []
 
@@ -1441,8 +1434,25 @@ class RDS(ApplicationResource, Monitorable):
             self.get_aws_name()
         )
 
+@implementer(schemas.IRDSInstance)
+class RDSInstance(RDS):
+    allow_major_version_upgrade = FieldProperty(schemas.IRDSInstance['allow_major_version_upgrade'])
+    auto_minor_version_upgrade = FieldProperty(schemas.IRDSInstance['auto_minor_version_upgrade'])
+    db_instance_type = FieldProperty(schemas.IRDSInstance['db_instance_type'])
+    license_model = FieldProperty(schemas.IRDSInstance['license_model'])
+    option_configurations = FieldProperty(schemas.IRDSInstance['option_configurations'])
+    parameter_group = FieldProperty(schemas.IRDSInstance['parameter_group'])
+    publically_accessible = FieldProperty(schemas.IRDSInstance['publically_accessible'])
+    storage_encrypted = FieldProperty(schemas.IRDSInstance['storage_encrypted'])
+    storage_size_gb = FieldProperty(schemas.IRDSInstance['storage_size_gb'])
+    storage_type = FieldProperty(schemas.IRDSInstance['storage_type'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.option_configurations = []
+
 @implementer(schemas.IRDSMultiAZ)
-class RDSMultiAZ(RDS):
+class RDSMultiAZ(RDSInstance):
     multi_az = FieldProperty(schemas.IRDSMultiAZ['multi_az'])
 
 @implementer(schemas.IRDSMysql)
@@ -1461,15 +1471,85 @@ class RDSMysql(RDSMultiAZ):
         super().__init__(name, parent)
         self.engine = 'mysql'
 
+@implementer(schemas.IRDSClusterInstance)
+class RDSClusterInstance(Parent):
+    availability_zone = FieldProperty(schemas.IRDSClusterInstance['availability_zone'])
+    db_instance_type = FieldProperty(schemas.IRDSClusterInstance['db_instance_type'])
+    publicly_accessible = FieldProperty(schemas.IRDSClusterInstance['publicly_accessible'])
+
 @implementer(schemas.IRDSAurora)
 class RDSAurora(RDS):
     title = 'RDS Aurora'
-    secondary_domain_name = FieldProperty(schemas.IRDSAurora['secondary_domain_name'])
-    secondary_hosted_zone = FieldProperty(schemas.IRDSAurora['secondary_hosted_zone'])
+    availability_zones = FieldProperty(schemas.IRDSAurora['availability_zones'])
+    backtrack_window_in_seconds = FieldProperty(schemas.IRDSAurora['backtrack_window_in_seconds'])
+    cluster_parameter_group = FieldProperty(schemas.IRDSAurora['cluster_parameter_group'])
+    db_instances = FieldProperty(schemas.IRDSAurora['db_instances'])
+    enable_http_endpoint = FieldProperty(schemas.IRDSAurora['enable_http_endpoint'])
+    engine_mode = FieldProperty(schemas.IRDSAurora['engine_mode'])
+    restore_type = FieldProperty(schemas.IRDSAurora['restore_type'])
+    use_latest_restorable_time = FieldProperty(schemas.IRDSAurora['use_latest_restorable_time'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.engine = 'aurora'
+        self.db_instances = []
+
+    @property
+    def engine(self):
+        "Engine: either aurora (MySQL 5.6), aurora-mysql(MySQL 5.7) or aurora-postgresql (PostgreSQL)"
+        if hasattr(self, '_engine'):
+            return self._engine
+        if self.engine_version.startswith('5.6'):
+            return 'aurora'
+        else:
+            return 'aurora-mysql'
+
+    troposphere_props = troposphere.rds.DBCluster.props
+    cfn_mapping = {
+        # 'AssociatedRoles': not yet implmented
+        # 'AvailabilityZones': computed in template
+        'BacktrackWindow': 'backtrack_window_in_seconds',
+        'BackupRetentionPeriod': 'backup_retention_period',
+        'DatabaseName': 'database_name',
+        # 'DBClusterIdentifier': computed in template
+        # 'DBClusterParameterGroupName': computed in template
+        # 'DBSubnetGroupName': computed in template
+        'DeletionProtection': 'deletion_protection',
+        # 'EnableCloudwatchLogsExports': computed in template
+        'EnableHttpEndpoint': 'enable_http_endpoint',
+        # 'EnableIAMDatabaseAuthentication': not yet implemented
+        'Engine': 'engine',
+        'EngineMode': 'engine_mode',
+        'EngineVersion': 'engine_version',
+        # 'KmsKeyId': not yet implemented
+        # 'MasterUsername': computed in template
+        # 'MasterUserPassword': computed in template
+        'Port': 'port',
+        'PreferredBackupWindow': 'backup_preferred_window',
+        'PreferredMaintenanceWindow': 'maintenance_preferred_window',
+        # 'ReplicationSourceIdentifier': not yet implemented
+        'RestoreType': 'restore_type',
+        # 'ScalingConfiguration': not yet implemented (only for Serverless)
+        # 'SnapshotIdentifier': computed in template
+        # 'SourceDBClusterIdentifier': not yet implemented
+        # 'SourceRegion': not yet implemented
+        # 'StorageEncrypted': not yet implemented
+        # 'Tags': not yet implemented
+        'UseLatestRestorableTime': 'use_latest_restorable_time',
+        # 'VpcSecurityGroupIds': computed in template
+    }
+
+@implementer(schemas.IRDSMysqlAurora)
+class RDSMysqlAurora(RDSAurora):
+    database_name = FieldProperty(schemas.IRDSMysqlAurora['database_name'])
+
+@implementer(schemas.IRDSPostgresqlAurora)
+class RDSPostgresqlAurora(RDSAurora):
+    database_name = FieldProperty(schemas.IRDSPostgresqlAurora['database_name'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self._engine = 'aurora-postgresql'
+
 
 @implementer(schemas.IElastiCache)
 class ElastiCache():

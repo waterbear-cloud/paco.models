@@ -28,7 +28,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, RDSPostgresql, ElastiCacheRedis, RDSOptionConfiguration, \
+    RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, ElastiCacheRedis, RDSOptionConfiguration, RDSClusterInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
@@ -36,7 +36,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
-    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
+    GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
+    DBParameterGroup, DBClusterParameterGroup, DBParameters, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
@@ -132,6 +133,7 @@ RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
     'DBParameterGroup': DBParameterGroup,
+    'DBClusterParameterGroup': DBClusterParameterGroup,
     'DeploymentPipeline': DeploymentPipeline,
     'EC2': EC2,
     'CloudFront': CloudFront,
@@ -155,7 +157,9 @@ RESOURCES_CLASS_MAP = {
     'ManagedPolicy': ManagedPolicy,
     'RDS': RDS,
     'RDSMysql': RDSMysql,
+    'RDSMysqlAurora': RDSMysqlAurora,
     'RDSPostgresql': RDSPostgresql,
+    'RDSPostgresqlAurora': RDSPostgresqlAurora,
     'Route53HealthCheck': Route53HealthCheck,
     'S3Bucket': ApplicationS3Bucket,
     'SNSTopic': SNSTopic,
@@ -305,6 +309,9 @@ SUB_TYPES_CLASS_MAP = {
     DBParameterGroup: {
         'parameters': ('dynamic_dict', DBParameters)
     },
+    DBClusterParameterGroup: {
+        'parameters': ('dynamic_dict', DBParameters)
+    },
     DeploymentPipelineBuildCodeBuild: {
         'role_policies': ('obj_list', Policy),
         'codecommit_repo_users': ('str_list', PacoReference),
@@ -337,7 +344,13 @@ SUB_TYPES_CLASS_MAP = {
         'response_models': ('obj_list', ApiGatewayMethodMethodResponseModel)
     },
     RDSOptionConfiguration: {
-        'option_settings': ('obj_list', NameValuePair)
+        'option_settings': ('obj_list', NameValuePair),
+    },
+    RDSMysqlAurora: {
+        'db_instances': ('obj_list', RDSClusterInstance),
+    },
+    RDSPostgresqlAurora: {
+        'db_instances': ('obj_list', RDSClusterInstance),
     },
     RDSMysql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),

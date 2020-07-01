@@ -508,6 +508,42 @@ applications:
             primary_domain_name: database.pacodemo.internal
             primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
             parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.dbparams
+          clusterparams:
+            type: DBClusterParameterGroup
+            order: 100
+            enabled: true
+            description: "Params for an Aurora Cluster"
+            family: mysql5.7
+            parameters:
+              time_zone: America/Denver
+          pg_aurora:
+            type: RDSPostgresqlAurora
+            order: 300
+            enabled: true
+            engine_version: 11.7
+            availability_zones: all
+            port: 3306
+            master_username: root
+            master_user_password: "secret"
+            backup_preferred_window: 08:00-08:30
+            backup_retention_period: 7
+            maintenance_preferred_window: 'sat:10:00-sat:10:30'
+            cloudwatch_logs_exports:
+              - error
+              - slowquery
+            security_groups:
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.rds
+            segment: paco.ref netenv.pacodemo.network.vpc.segments.database
+            primary_domain_name: database.pacodemo.internal
+            primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
+            cluster_parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.clusterparams
+            db_instances:
+              - availability_zone: 1
+                db_instance_type: db.t3.micro
+                publicly_accessible: false
+              - availability_zone: 2
+                db_instance_type: db.t3.micro
+                publicly_accessible: false
           norole:
             type: ASG
             order: 20

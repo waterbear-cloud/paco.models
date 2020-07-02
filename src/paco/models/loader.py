@@ -19,8 +19,8 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
     VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
-from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, \
-    ASG, ECSASGConfiguration, \
+from paco.models.applications import Application, ResourceGroups, ResourceGroup, \
+    ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
@@ -28,7 +28,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, RDSPostgresql, ElastiCacheRedis, RDSOptionConfiguration, \
+    RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, \
+    RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
@@ -36,7 +37,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
-    GenerateSecretString, EC2LaunchOptions, DBParameterGroup, DBParameters, BlockDeviceMapping, BlockDevice, \
+    GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
+    DBParameterGroup, DBClusterParameterGroup, DBParameters, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
@@ -48,7 +50,8 @@ from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambda
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
     DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
     DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
-from paco.models.resources import EC2Resource, EC2KeyPairs, EC2KeyPair, S3Resource, S3Buckets, \
+from paco.models.resources import S3Resource, S3Buckets, \
+    EC2Resource, EC2KeyPairs, EC2KeyPair, EC2Users, EC2User, EC2Group, EC2Groups, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, Route53HealthCheck, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, CodeCommitUsers, \
     CloudTrailResource, CloudTrails, CloudTrail, \
@@ -131,6 +134,7 @@ RESOURCES_CLASS_MAP = {
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
     'DBParameterGroup': DBParameterGroup,
+    'DBClusterParameterGroup': DBClusterParameterGroup,
     'DeploymentPipeline': DeploymentPipeline,
     'EC2': EC2,
     'CloudFront': CloudFront,
@@ -154,7 +158,9 @@ RESOURCES_CLASS_MAP = {
     'ManagedPolicy': ManagedPolicy,
     'RDS': RDS,
     'RDSMysql': RDSMysql,
+    'RDSMysqlAurora': RDSMysqlAurora,
     'RDSPostgresql': RDSPostgresql,
+    'RDSPostgresqlAurora': RDSPostgresqlAurora,
     'Route53HealthCheck': Route53HealthCheck,
     'S3Bucket': ApplicationS3Bucket,
     'SNSTopic': SNSTopic,
@@ -233,8 +239,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     EC2Resource: {
         'keypairs': ('container', (EC2KeyPairs, EC2KeyPair)),
+        'users': ('container', (EC2Users, EC2User)),
+        'groups': ('container', (EC2Groups, EC2Group)),
     },
-
     CloudWatchDashboard: {
         'variables': ('dynamic_dict', DashboardVariables),
     },
@@ -303,6 +310,9 @@ SUB_TYPES_CLASS_MAP = {
     DBParameterGroup: {
         'parameters': ('dynamic_dict', DBParameters)
     },
+    DBClusterParameterGroup: {
+        'parameters': ('dynamic_dict', DBParameters)
+    },
     DeploymentPipelineBuildCodeBuild: {
         'role_policies': ('obj_list', Policy),
         'codecommit_repo_users': ('str_list', PacoReference),
@@ -335,7 +345,23 @@ SUB_TYPES_CLASS_MAP = {
         'response_models': ('obj_list', ApiGatewayMethodMethodResponseModel)
     },
     RDSOptionConfiguration: {
-        'option_settings': ('obj_list', NameValuePair)
+        'option_settings': ('obj_list', NameValuePair),
+    },
+    RDSMysqlAurora: {
+        'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
+        'default_instance': ('direct_obj', RDSClusterInstance),
+        'dns': ('obj_list', DNS),
+    },
+    RDSPostgresqlAurora: {
+        'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
+        'default_instance': ('direct_obj', RDSClusterDefaultInstance),
+        'dns': ('obj_list', DNS),
+    },
+    RDSClusterInstance: {
+        'monitoring': ('direct_obj', MonitorConfig)
+    },
+    RDSClusterDefaultInstance: {
+        'monitoring': ('direct_obj', MonitorConfig)
     },
     RDSMysql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
@@ -431,6 +457,7 @@ SUB_TYPES_CLASS_MAP = {
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
         'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy),
         'ecs': ('direct_obj', ECSASGConfiguration),
+        'ssh_access': ('direct_obj', SSHAccess),
     },
     ECSASGConfiguration: {
         'capacity_provider': ('direct_obj', ECSCapacityProvider),
@@ -1291,8 +1318,8 @@ class ModelLoader():
         self.config_subdirs = {
             "monitor": self.instantiate_monitor_config,
             "accounts": self.instantiate_accounts,
-            "netenv": self.instantiate_network_environments,
             "resource": self.instantiate_resources,
+            "netenv": self.instantiate_network_environments,
         }
         # Legacy directory names
         if os.path.isdir(self.config_folder / 'NetworkEnvironments'):

@@ -508,6 +508,71 @@ applications:
             primary_domain_name: database.pacodemo.internal
             primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
             parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.dbparams
+          clusterparams:
+            type: DBClusterParameterGroup
+            order: 100
+            enabled: true
+            description: "Params for an Aurora Cluster"
+            family: mysql5.7
+            parameters:
+              time_zone: America/Denver
+          basicparams:
+            type: DBParameterGroup
+            order: 101
+            enabled: true
+            description: "Basic recommended PostgreSQL parameters"
+            family: aurora-postgresql11
+            parameters:
+              # See explaination of these recommendations here:
+              # https://aws.amazon.com/blogs/database/deploy-an-amazon-aurora-postgresql-db-cluster-with-recommended-best-practices-using-aws-cloudformation/
+              shared_preload_libraries: auto_explain,pg_stat_statements,pg_hint_plan,pgaudit
+              log_statement: "ddl"
+              log_connections: 1
+              log_disconnections: 1
+              log_lock_waits: 1
+              log_min_duration_statement: 5000
+              auto_explain.log_min_duration: 5000
+              auto_explain.log_verbose: 1
+              log_rotation_age: 1440
+              log_rotation_size: 102400
+              rds.log_retention_period: 10080
+              random_page_cost: 1
+              track_activity_query_size: 16384
+              idle_in_transaction_session_timeout: 7200000
+              statement_timeout: 7200000
+              search_path: '"$user",public'
+          pg_aurora:
+            type: RDSPostgresqlAurora
+            order: 300
+            enabled: true
+            engine_version: 11.7
+            availability_zones: all
+            port: 3306
+            master_username: root
+            master_user_password: "secret"
+            backup_preferred_window: 08:00-08:30
+            backup_retention_period: 7
+            maintenance_preferred_window: 'sat:10:00-sat:10:30'
+            enable_kms_encryption: true
+            cloudwatch_logs_exports:
+              - error
+              - slowquery
+            security_groups:
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.rds
+            segment: paco.ref netenv.pacodemo.network.vpc.segments.database
+            primary_domain_name: database.pacodemo.internal
+            primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
+            cluster_parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.clusterparams
+            default_instance:
+              parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.basicparams
+              db_instance_type: db.t3.medium
+            db_instances:
+              first:
+                availability_zone: 1
+                db_instance_type: db.t3.small
+              second:
+                availability_zone: 2
+                publicly_accessible: false
           norole:
             type: ASG
             order: 20
@@ -542,6 +607,11 @@ applications:
             max_instances: 3
             min_instances: 1
             desired_capacity: 1
+            ssh_access:
+              users:
+                - bdobbs
+              groups:
+                - developers
             rolling_update_policy:
               enabled: true
               max_batch_size: 1

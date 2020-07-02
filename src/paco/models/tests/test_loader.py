@@ -29,10 +29,11 @@ def cwd_to_fixtures():
 class BaseTestModelLoader(unittest.TestCase):
     project_name = 'config_me'
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         # set the fixtures dir
-        self.path = fixtures_path()
-        self.project = load_project_from_yaml(self.path + os.sep + self.project_name)
+        cls.path = fixtures_path()
+        cls.project = load_project_from_yaml(cls.path + os.sep + cls.project_name)
 
 class Testpacodemo(BaseTestModelLoader):
 
@@ -139,9 +140,14 @@ class Testpacodemo(BaseTestModelLoader):
         norole_asg = demo_env.applications['app'].groups['site'].resources['norole']
         assert norole_asg.instance_iam_role.enabled == False
 
+        # SSH Access
+        assert asg.ssh_access.users, ['bdobbs']
+        assert asg.ssh_access.groups, ['developers']
+
         # ECS
-        asg = demo_env.applications['app'].groups['container'].resources['ecs_asg']
-        assert asg.ecs.cluster, 'paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.container.resources.ecs_cluster'
+        ecs_asg = demo_env.applications['app'].groups['container'].resources['ecs_asg']
+        assert ecs_asg.ecs.cluster, 'paco.ref netenv.pacodemo.demo.us-west-2.applications.app.groups.container.resources.ecs_cluster'
+
 
     def test_netenv_refs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
@@ -316,6 +322,12 @@ class Testpacodemo(BaseTestModelLoader):
         assert len(sns.default_locations), 1
         assert len(sns.topics), 2
 
+    def test_ec2(self):
+        ec2 = self.project['resource']['ec2']
+        assert ec2.keypairs['pacodemo_dev'].region, 'us-west-2'
+        assert ec2.users['bdobbs'].full_name, 'Bob Dobbs'
+        assert ec2.groups['developers'].members, ['Bob Dobbs']
+
     def test_ecs(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         cluster = demo_env['applications']['app'].groups['container'].resources['ecs_cluster']
@@ -328,6 +340,13 @@ class Testpacodemo(BaseTestModelLoader):
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].health_check.retries, 5
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].ulimits[0].hard_limit, 1000
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].user, 'www-data'
+
+    def test_rds(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        pg_aurora = demo_env['applications']['app'].groups['site'].resources['pg_aurora']
+        assert pg_aurora.db_instances['first'].db_instance_type, 'db.t3.small'
+        assert pg_aurora.default_instance.db_instance_type, 'db.t3.medium'
+        assert pg_aurora.enable_kms_encryption, True
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

@@ -561,6 +561,7 @@ def IsValidASGAvailabilityZone(value):
         raise InvalidASGAvailabilityZone
     return True
 
+
 # Lambda Environment variables
 class InvalidLambdaEnvironmentVariable(schema.ValidationError):
     __doc__ = 'Can not be a reserved Environment Variable name and must be alphanumeric or _ character only.'
@@ -671,6 +672,18 @@ can break configuration.
     name = schema.TextLine(
         title="Name",
         default="",
+        required=False,
+    )
+
+# IEnablable is the same as IDeployable except it defaults to True
+class IEnablable(Interface):
+    """
+Indicate if this configuration should be enabled.
+    """
+    enabled = schema.Bool(
+        title="Enabled",
+        description="",
+        default=True,
         required=False,
     )
 
@@ -2401,6 +2414,41 @@ Container for `EC2KeyPair`_ objects.
     """
     taggedValue('contains', 'IEC2KeyPair')
 
+class IEC2User(INamed):
+    full_name = schema.TextLine(
+        title="Full Name",
+        required=False,
+    )
+    email = schema.TextLine(
+        title="Email",
+        required=False,
+        constraint=isValidEmail,
+    )
+    public_ssh_key = schema.TextLine(
+        title="Public SSH Key",
+        required=True,
+    )
+
+class IEC2Users(INamed, IMapping):
+    """
+Container for `EC2User`_ objects.
+    """
+    taggedValue('contains', 'IEC2User')
+
+class IEC2Group(INamed):
+    members = schema.List(
+        title="List of Users",
+        default=[],
+        required=True,
+    )
+
+class IEC2Groups(INamed, IMapping):
+    """
+Container for `EC2Group`_ objects.
+    """
+    taggedValue('contains', 'IEC2Group')
+
+
 class IEC2Resource(INamed):
     """
 EC2 Resource Configuration
@@ -2409,6 +2457,16 @@ EC2 Resource Configuration
         title="Group of EC2 Key Pairs",
         schema=IEC2KeyPairs,
         required=False,
+    )
+    users = schema.Object(
+        title="SSH Users",
+        schema=IEC2Users,
+        required=False
+    )
+    groups = schema.Object(
+        title="SSH Users",
+        schema=IEC2Groups,
+        required=False
     )
 
 class IService(IResource):
@@ -2582,6 +2640,24 @@ class IProject(INamed, IMapping):
         description="",
         required=False,
     )
+
+
+# duplicate function as in paco.models.locations to avoid circular imports
+def get_parent_by_interface(context, interface=IProject):
+    """
+    Walk up the tree until an object provides the requested Interface
+    """
+    max = 999
+    while context is not None:
+        if interface.providedBy(context):
+            return context
+        if IProject.providedBy(context):
+            return None
+        else:
+            context = context.__parent__
+        max -= 1
+        if max < 1:
+            raise TypeError("Maximum location depth exceeded. Model is borked!")
 
 class IInternetGateway(IDeployable):
     """
@@ -4475,6 +4551,40 @@ class IECSASGConfiguration(INamed):
         schema=IECSCapacityProvider,
     )
 
+class ISSHAccess(INamed):
+    @invariant
+    def valid_users_groups(obj):
+        "Ensure users and groups exist in ec2.yaml"
+        if len(obj.users) != 0 or len(obj.groups) != 0:
+            project = get_parent_by_interface(obj, IProject)
+            if 'ec2' not in project.resource:
+                raise Invalid("Must create a resrouce/ec2.yaml file to specify users and groups for SSH.")
+            ec2_users = project.resource['ec2'].users
+            ec2_groups = project.resource['ec2'].groups
+            for user in obj.users:
+                if user not in ec2_users:
+                    raise Invalid(f"User with name '{user}' not found in resource/ec2.yaml users.")
+            for group in obj.groups:
+                if group not in ec2_groups:
+                    raise Invalid(f"Group with name '{group}' not found in resource/ec2.yaml groups.")
+
+        return True
+
+    users = schema.List(
+        title="User",
+        description="Must match a user declared in resource/ec2.yaml",
+        value_type=schema.TextLine(title="User"),
+        required=False,
+        default=[],
+    )
+    groups = schema.List(
+        title="Groups",
+        description="Must match a group declared in resource/ec2.yaml",
+        value_type=schema.TextLine(title="Group"),
+        required=False,
+        default=[],
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -4522,6 +4632,8 @@ for that ASG.
     that will install a CloudWatch Agent and configure it to collect all specified metrics and log sources.
 
     ``secrets``: Adds a policy to the Instance Role which allows instances to access the specified secrets.
+
+    ``ssh_access``:  Grants users and groups SSH access to the instances.
 
 .. code-block:: yaml
     :caption: example ASG configuration
@@ -4576,6 +4688,11 @@ for that ASG.
     termination_policies:
       - Default
     scaling_policy_cpu_average: 60
+    ssh_access:
+      users:
+        - bdobbs
+      groups:
+        - developers
     launch_options:
         update_packages: true
         ssm_agent: true
@@ -4913,6 +5030,12 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
     segment = schema.TextLine(
         title="Segment",
         description="",
+        required=False,
+    )
+    ssh_access = schema.Object(
+        title="SSH Access",
+        description="",
+        schema=ISSHAccess,
         required=False,
     )
     target_groups = schema.List(
@@ -7344,6 +7467,12 @@ DBParameterGroup
         required=True
     )
 
+class IDBClusterParameterGroup(IDBParameterGroup):
+    """
+DBCluster Parameter Group
+    """
+    pass
+
 class IRDSOptionConfiguration(Interface):
     """
 Option groups enable and configure features that are specific to a particular DB engine.
@@ -7373,7 +7502,7 @@ Option groups enable and configure features that are specific to a particular DB
 
 class IRDS(IResource, IMonitorable):
     """
-RDS Common Interface
+RDS common fields shared by both DBInstance and DBCluster
     """
     @invariant
     def password_or_snapshot_or_secret(obj):
@@ -7390,14 +7519,13 @@ RDS Common Interface
             raise Invalid("Must set one of db_snapshot_identifier, master_user_password or secrets_password for RDS.")
         return True
 
-    allow_major_version_upgrade = schema.Bool(
-        title="Allow major version upgrades",
-        required=False,
-    )
-    auto_minor_version_upgrade = schema.Bool(
-        title="Automatic minor version upgrades",
-        required=False,
-    )
+    @invariant
+    def valid_engine_version(obj):
+        "Validate engine version is supported for the engine type"
+        if obj.engine_version not in gen_vocabulary.rds_engine_versions[obj.engine]:
+            raise Invalid("Engine Version is not support by AWS RDS")
+        return True
+
     backup_preferred_window = schema.TextLine(
         title="Backup Preferred Window",
         required=False,
@@ -7412,11 +7540,7 @@ RDS Common Interface
             title="CloudWatch Log Export",
         ),
         required=False,
-        # ToDo: Constraint that depends upon the database type, not applicable for Aurora
-    )
-    db_instance_type = schema.TextLine(
-        title="RDS Instance Type",
-        required=False,
+        # ToDo: Constraint that depends upon the database type
     )
     db_snapshot_identifier = schema.TextLine(
         title="DB Snapshot Identifier to restore from",
@@ -7432,10 +7556,6 @@ RDS Common Interface
         value_type=schema.Object(IDNS),
         required=False
     )
-    engine = schema.TextLine(
-        title="RDS Engine",
-        required=False,
-    )
     engine_version = schema.TextLine(
         title="RDS Engine Version",
         required=False,
@@ -7444,10 +7564,6 @@ RDS Common Interface
         title="Enable Storage Encryption",
         required=False,
         schema_constraint='Interface'
-    )
-    license_model = schema.TextLine(
-        title="License Model",
-        required=False,
     )
     maintenance_preferred_window = schema.TextLine(
         title="Maintenance Preferred Window",
@@ -7460,16 +7576,6 @@ RDS Common Interface
     master_user_password = schema.TextLine(
         title="Master User Password",
         required=False,
-    )
-    option_configurations = schema.List(
-        title="Option Configurations",
-        value_type=schema.Object(IRDSOptionConfiguration),
-        required=False,
-    )
-    parameter_group = PacoReference(
-        title="RDS Parameter Group",
-        required=False,
-        schema_constraint='IDBParameterGroup'
     )
     primary_domain_name = PacoReference(
         title="Primary Domain Name",
@@ -7484,10 +7590,6 @@ RDS Common Interface
     )
     port = schema.Int(
         title="DB Port",
-        required=False,
-    )
-    publically_accessible = schema.Bool(
-        title="Assign a Public IP address",
         required=False,
     )
     secrets_password = PacoReference(
@@ -7507,6 +7609,41 @@ RDS Common Interface
         required=False,
         schema_constraint='ISegment'
     )
+
+class IRDSInstance(IRDS):
+    """
+RDS DB Instance
+    """
+    allow_major_version_upgrade = schema.Bool(
+        title="Allow major version upgrades",
+        required=False,
+    )
+    auto_minor_version_upgrade = schema.Bool(
+        title="Automatic minor version upgrades",
+        required=False,
+    )
+    db_instance_type = schema.TextLine(
+        title="RDS Instance Type",
+        required=False,
+    )
+    license_model = schema.TextLine(
+        title="License Model",
+        required=False,
+    )
+    option_configurations = schema.List(
+        title="Option Configurations",
+        value_type=schema.Object(IRDSOptionConfiguration),
+        required=False,
+    )
+    parameter_group = PacoReference(
+        title="RDS Parameter Group",
+        required=False,
+        schema_constraint='IDBParameterGroup'
+    )
+    publically_accessible = schema.Bool(
+        title="Assign a Public IP address",
+        required=False,
+    )
     storage_encrypted = schema.Bool(
         title="Enable Storage Encryption",
         required=False,
@@ -7520,8 +7657,7 @@ RDS Common Interface
         required=False,
     )
 
-
-class IRDSMultiAZ(IRDS):
+class IRDSMultiAZ(IRDSInstance):
     """
 RDS with MultiAZ capabilities. When you provision a Multi-AZ DB Instance, Amazon RDS automatically creates a
 primary DB Instance and synchronously replicates the data to a standby instance in a different Availability Zone (AZ).
@@ -7535,20 +7671,182 @@ primary DB Instance and synchronously replicates the data to a standby instance 
 class IRDSMysql(IRDSMultiAZ):
     """RDS for MySQL"""
 
+class IRDSClusterDefaultInstance(INamed, IMonitorable):
+    """
+Default configuration for a DB Instance that belongs to a DB Cluster.
+    """
+    # Note: IRDSClusterDefaultInstance is the same as IRDSClusterInstance except it provides default values for fields.
+    # (otherwise the instance-level field defaults would shadow cluster-level specific settings)
+
+    allow_major_version_upgrade = schema.Bool(
+        title="Allow major version upgrades",
+        required=False,
+    )
+    auto_minor_version_upgrade = schema.Bool(
+        title="Automatic minor version upgrades",
+        required=False,
+    )
+    # ToDo: Add an invariant to check that az is within the number in the segment
+    availability_zone = schema.Int(
+        title='Availability Zone where the instance will be provisioned.',
+        description="Must be one of 1, 2, 3 ...",
+        required=False,
+        min=0,
+        max=10,
+    )
+    # ToDO: invariant - this is required at either default or instance-level
+    db_instance_type = schema.TextLine(
+        title="DB Instance Type",
+        required=False,
+    )
+    enable_performance_insights = schema.Bool(
+        title="Enable Performance Insights",
+        required=False,
+        default=False,
+    )
+    parameter_group = PacoReference(
+        title="DB Parameter Group",
+        required=False,
+        schema_constraint='IDBParameterGroup'
+    )
+    publicly_accessible = schema.Bool(
+        title="Assign a Public IP address",
+        required=False,
+        default=False,
+    )
+
+class IRDSClusterInstance(INamed, IMonitorable):
+    """
+DB Instance that belongs to a DB Cluster.
+    """
+    allow_major_version_upgrade = schema.Bool(
+        title="Allow major version upgrades",
+        required=False,
+    )
+    auto_minor_version_upgrade = schema.Bool(
+        title="Automatic minor version upgrades",
+        required=False,
+    )
+    # ToDo: Add an invariant to check that az is within the number in the segment
+    availability_zone = schema.Int(
+        title='Availability Zone where the instance will be provisioned.',
+        description="Must be one of 1, 2, 3 ...",
+        required=False,
+        min=0,
+        max=10,
+    )
+    # ToDO: invariant - this is required at either default or instance-level
+    db_instance_type = schema.TextLine(
+        title="DB Instance Type",
+        required=False,
+    )
+    enable_performance_insights = schema.Bool(
+        title="Enable Performance Insights",
+        required=False,
+    )
+    parameter_group = PacoReference(
+        title="DB Parameter Group",
+        required=False,
+        schema_constraint='IDBParameterGroup'
+    )
+    publicly_accessible = schema.Bool(
+        title="Assign a Public IP address",
+        required=False,
+    )
+
+class IRDSClusterInstances(INamed, IMapping):
+    """
+Container for `RDSClusterInstance`_ objects.
+    """
+    taggedValue('contains', 'IRDSClusterInstances')
+
+
 class IRDSAurora(IResource, IRDS):
     """
 RDS Aurora
     """
-    secondary_domain_name = PacoReference(
-        title="Secondary Domain Name",
-        str_ok=True,
+    availability_zones = schema.TextLine(
+        title='Availability Zones to launch instances in.',
+        description="Must be one of all, 1, 2, 3 ...",
+        default='all',
         required=False,
-        schema_constraint='IRoute53HostedZone'
+        constraint=IsValidASGAvailabilityZone
     )
-    secondary_hosted_zone = PacoReference(
-        title="Secondary Hosted Zone",
+    backtrack_window_in_seconds = schema.Int(
+        title="Backtrack Window in seconds. Disabled when set to 0.",
+        description="Maximum is 72 hours (259,200 seconds).",
+        min=0,
+        max=259200,
+        default=0,
         required=False,
-        schema_constraint='IRoute53HostedZone'
+    )
+    cluster_parameter_group = PacoReference(
+        title="DB Cluster Parameter Group",
+        required=False,
+        schema_constraint='IDBClusterParameterGroup'
+    )
+    db_instances = schema.Object(
+        title="DB Instances",
+        required=True,
+        schema=IRDSClusterInstances,
+    )
+    default_instance = schema.Object(
+        title="Default DB Instance configuration",
+        required=False,
+        schema=IRDSClusterDefaultInstance,
+    )
+    enable_http_endpoint = schema.Bool(
+        title="Enable an HTTP endpoint to provide a connectionless web service API for running SQL queries",
+        default=False,
+        required=False,
+    )
+    enable_kms_encryption = schema.Bool(
+        title="Enable KMS Key encryption. Will create one KMS-CMK key dedicated to each DBCluster.",
+        default=False,
+    )
+    engine_mode = schema.Choice(
+        title="Engine Mode",
+        description="Must be one of provisioned, serverless, parallelquery, global, or multimaster.",
+        vocabulary=vocabulary.rds_cluster_engine_mode,
+        required=False,
+    )
+    restore_type = schema.Choice(
+        title="Restore Type",
+        description="Must be one of full-copy or copy-on-write",
+        default='full-copy',
+        vocabulary=vocabulary.rds_restore_types,
+        required=False,
+    )
+    use_latest_restorable_time = schema.Bool(
+        title="Restore the DB cluster to the latest restorable backup time",
+        required=False,
+        default=False,
+    )
+
+class IRDSMysqlAurora(IRDSAurora):
+    """
+RDS MySQL Aurora Cluster
+    """
+    # ToDo: constraint
+    database_name = schema.TextLine(
+        title="Database Name to create in the cluster",
+        description="Must be a valid database name for the DB Engine. Must contain 1 to 64 letters or numbers. Can't be MySQL reserved word.",
+        required=False,
+        min_length=1,
+        max_length=64,
+    )
+
+class IRDSPostgresqlAurora(IRDSAurora):
+    """
+RDS PostgreSQL Aurora Cluster
+    """
+    # ToDo: constraint
+    database_name = schema.TextLine(
+        title="Database Name to create in the cluster",
+        description="Must be a valid database name for the DB Engine. Must contain 1 to 63 letters, numbers or underscores. Must begin with a letter or an underscore. Can't be PostgreSQL reserved word.",
+        required=False,
+        min_length=1,
+        max_length=63,
     )
 
 class IRDSPostgresql(IRDSMultiAZ):

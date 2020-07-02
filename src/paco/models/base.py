@@ -210,6 +210,34 @@ class Named(Parent):
 class Name():
     name = FieldProperty(schemas.IName["name"])
 
+@implementer(schemas.IEnablable)
+class Enablable():
+    """
+    Configuration that can be enabled/disabled
+    """
+    enabled = FieldProperty(schemas.IEnablable["enabled"])
+
+    def is_enabled(self):
+        """
+        Returns True in a deployed state, otherwise False.
+        Will walk up the tree, and if anything is set to "enabled: false"
+        this will return False.
+        """
+        state = self.enabled
+        # if current resource is already "enabled: false" simlpy return that
+        if not state: return False
+
+        context = self
+        while context is not None:
+            override = getattr(context, 'enabled', True)
+            # once we encounter something higher in the tree with "enabled: false"
+            # the lower resource is always False and we return that
+            if not override: return False
+            context = getattr(context, '__parent__', None)
+
+        # walked right to the top and enabled is still true
+        return True
+
 @implementer(schemas.IDeployable)
 class Deployable():
     """

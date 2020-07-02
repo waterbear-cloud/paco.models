@@ -7,6 +7,10 @@ ami_ids = {
   "us-east-2": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0466acdbae3d9cc42",
+        "CreationDate": "2020-06-23T05:09:32.000Z"
+      },
+      {
         "ImageId": "ami-0b29e28ad09b4e536",
         "CreationDate": "2020-06-04T00:11:37.000Z"
       },
@@ -418,6 +422,10 @@ ami_ids = {
   },
   "us-east-1": {
     "amazon-linux-2-ecs": [
+      {
+        "ImageId": "ami-00c7c1cf5bdc913ed",
+        "CreationDate": "2020-06-23T05:02:32.000Z"
+      },
       {
         "ImageId": "ami-0b22c910bce7178b6",
         "CreationDate": "2020-06-04T00:03:42.000Z"
@@ -871,6 +879,10 @@ ami_ids = {
   "us-west-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0cd16f68edb958c92",
+        "CreationDate": "2020-06-23T05:14:08.000Z"
+      },
+      {
         "ImageId": "ami-0560993025898e8e8",
         "CreationDate": "2020-06-04T00:15:53.000Z"
       },
@@ -1322,6 +1334,10 @@ ami_ids = {
   },
   "us-west-2": {
     "amazon-linux-2-ecs": [
+      {
+        "ImageId": "ami-0dffcb5ca115099f3",
+        "CreationDate": "2020-06-23T05:13:50.000Z"
+      },
       {
         "ImageId": "ami-0633e2a3c7135c18a",
         "CreationDate": "2020-06-04T00:15:36.000Z"
@@ -1775,6 +1791,10 @@ ami_ids = {
   "ca-central-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-02e1c36d5a022e870",
+        "CreationDate": "2020-06-23T05:15:04.000Z"
+      },
+      {
         "ImageId": "ami-01a7c134a00678ad6",
         "CreationDate": "2020-06-04T00:16:49.000Z"
       },
@@ -2186,6 +2206,10 @@ ami_ids = {
   },
   "eu-central-1": {
     "amazon-linux-2-ecs": [
+      {
+        "ImageId": "ami-0b34f371a12d673de",
+        "CreationDate": "2020-06-23T05:11:03.000Z"
+      },
       {
         "ImageId": "ami-08c4be469fbdca0fa",
         "CreationDate": "2020-06-04T00:12:52.000Z"
@@ -2634,6 +2658,10 @@ ami_ids = {
   },
   "eu-west-1": {
     "amazon-linux-2-ecs": [
+      {
+        "ImageId": "ami-060fdc00b63abc251",
+        "CreationDate": "2020-06-23T05:10:44.000Z"
+      },
       {
         "ImageId": "ami-0cf112c4c967e0437",
         "CreationDate": "2020-06-04T00:12:34.000Z"
@@ -3087,6 +3115,10 @@ ami_ids = {
   "eu-west-2": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-04fca4396558d03bf",
+        "CreationDate": "2020-06-23T05:12:37.000Z"
+      },
+      {
         "ImageId": "ami-038863f4c20d2d63d",
         "CreationDate": "2020-06-04T00:14:25.000Z"
       },
@@ -3499,6 +3531,10 @@ ami_ids = {
   "eu-west-3": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-023bf90632e1c95cc",
+        "CreationDate": "2020-06-23T05:09:14.000Z"
+      },
+      {
         "ImageId": "ami-00a12748018f55f56",
         "CreationDate": "2020-06-04T00:11:20.000Z"
       },
@@ -3862,6 +3898,10 @@ ami_ids = {
   },
   "ap-southeast-1": {
     "amazon-linux-2-ecs": [
+      {
+        "ImageId": "ami-0562e27aac95dcf60",
+        "CreationDate": "2020-06-23T05:14:27.000Z"
+      },
       {
         "ImageId": "ami-00100469ca2a34fa3",
         "CreationDate": "2020-06-04T00:16:13.000Z"
@@ -4314,6 +4354,10 @@ ami_ids = {
   },
   "ap-southeast-2": {
     "amazon-linux-2-ecs": [
+      {
+        "ImageId": "ami-0abf1b04f846837ea",
+        "CreationDate": "2020-06-23T05:14:46.000Z"
+      },
       {
         "ImageId": "ami-02446908683d78c79",
         "CreationDate": "2020-06-04T00:16:32.000Z"
@@ -5289,14 +5333,18 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'ElementalAppliancesSoftwareReadOnlyAccess',
     'AWSCodeDeployRoleForCloudFormation',
     'AWSIoTSiteWiseMonitorServiceRolePolicy',
+    'AmazonHoneycodeReadOnlyAccess',
     'AWSCloudFormationFullAccess',
     'ElementalAppliancesSoftwareFullAccess',
+    'AmazonMachineLearningRoleforRedshiftDataSourceV3',
     'AmazonAugmentedAIHumanLoopFullAccess',
     'AWSDataExchangeReadOnly',
     'AWSMarketplaceSellerProductsFullAccess',
     'AWSIQContractServiceRolePolicy',
     'AmazonLaunchWizardFullaccess',
+    'AWSBackupOrganizationAdminAccess',
     'AWSIoTSiteWiseMonitorPortalAccess',
+    'AmazonHoneycodeFullAccess',
     'AmazonWorkDocsReadOnlyAccess',
     'AWSGlobalAcceleratorSLRPolicy',
     'EC2InstanceProfileForImageBuilder',
@@ -5322,12 +5370,15 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonCodeGuruProfilerFullAccess',
     'AmazonElasticFileSystemServiceRolePolicy',
     'AWSResourceAccessManagerFullAccess',
+    'CertificateManagerServiceRolePolicy',
     'AWSIoTDeviceDefenderEnableIoTLoggingMitigationAction',
     'AWSElasticBeanstalkRoleCWL',
     'DynamoDBCloudWatchContributorInsightsServiceRolePolicy',
     'AWSElasticBeanstalkRoleRDS',
+    'AWSServiceRoleForCodeGuru-Profiler',
     'AmazonChimeVoiceConnectorServiceLinkedRolePolicy',
     'AmazonWorkDocsFullAccess',
+    'AmazonHoneycodeWorkbookReadOnlyAccess',
     'IAMAccessAnalyzerReadOnlyAccess',
     'AmazonEventBridgeSchemasServiceRolePolicy',
     'AWSIoTDeviceDefenderPublishFindingsToSNSMitigationAction',
@@ -5350,7 +5401,6 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSAppMeshFullAccess',
     'AWSCloud9SSMInstanceProfile',
     'AmazonDetectiveFullAccess',
-    'AWSServiceRoleForGammaInternalAmazonEKSNodegroup',
     'ServiceQuotasReadOnlyAccess',
     'EC2FleetTimeShiftableServiceRolePolicy',
     'MigrationHubDMSAccessServiceRolePolicy',
@@ -5364,6 +5414,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSMarketplaceSellerFullAccess',
     'CloudWatchAutomaticDashboardsAccess',
     'AmazonWorkMailEventsServiceRolePolicy',
+    'AmazonHoneycodeTeamAssociationFullAccess',
     'AmazonEventBridgeSchemasReadOnlyAccess',
     'AWSThinkboxDeadlineSpotEventPluginWorkerPolicy',
     'GameLiftGameServerGroupPolicy',
@@ -5377,14 +5428,15 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSServiceRoleForAmazonEKSNodegroup',
     'AWSBackupOperatorAccess',
     'AWSApplicationAutoscalingLambdaConcurrencyPolicy',
-    'AmazonMachineLearningRoleforRedshiftDataSourceV2',
     'AWSIoTDeviceDefenderUpdateCACertMitigationAction',
     'AWSBackupServiceLinkedRolePolicyForBackupTest',
     'AWSPurchaseOrdersServiceRolePolicy',
+    'AmazonHoneycodeTeamAssociationReadOnlyAccess',
     'AmazonWorkSpacesServiceAccess',
     'AmazonEKSServiceRolePolicy',
     'AWSConfigMultiAccountSetupPolicy',
     'AmazonElasticFileSystemClientReadOnlyAccess',
+    'AmazonCognitoIdpServiceRolePolicy',
     'AmazonKeyspacesReadOnlyAccess',
     'CloudFormationStackSetsOrgMemberServiceRolePolicy',
     'AWSResourceAccessManagerResourceShareParticipantAccess',
@@ -5395,6 +5447,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'CloudWatchSyntheticsFullAccess',
     'AWSDataExchangeSubscriberFullAccess',
     'IAMAccessAnalyzerFullAccess',
+    'AWSCodeArtifactAdminAccess',
     'AWSServiceCatalogAdminReadOnlyAccess',
     'AWSQuickSightSageMakerPolicy',
     'AmazonWorkSpacesSelfServiceAccess',
@@ -5423,6 +5476,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSBackupServiceLinkedRolePolicyForBackup',
     'AmazonManagedBlockchainConsoleFullAccess',
     'AWSSavingsPlansReadOnlyAccess',
+    'AmazonHoneycodeWorkbookFullAccess',
     'AWSIoTDeviceTesterForGreengrassFullAccess',
     'AWSElasticBeanstalkRoleECS',
     'AWSServiceRoleForSMS',
@@ -5438,55 +5492,11 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSThinkboxAWSPortalWorkerPolicy',
     'AWSAppMeshEnvoyAccess',
     'AmazonKendraReadOnlyAccess',
+    'AWSCodeArtifactReadOnlyAccess',
 ])
 
 rds_engine_versions = {
   "postgres": {
-    "9.4.7": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.9": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.11": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.12": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.14": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.15": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.17": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.18": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.19": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.20": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.21": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.23": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.24": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.25": {
-      "param_group_family": "postgres9.4"
-    },
-    "9.4.26": {
-      "param_group_family": "postgres9.4"
-    },
     "9.5.2": {
       "param_group_family": "postgres9.5"
     },
@@ -5687,6 +5697,9 @@ rds_engine_versions = {
     "5.6.46": {
       "param_group_family": "mysql5.6"
     },
+    "5.6.48": {
+      "param_group_family": "mysql5.6"
+    },
     "5.7.16": {
       "param_group_family": "mysql5.7"
     },
@@ -5717,6 +5730,9 @@ rds_engine_versions = {
     "5.7.28": {
       "param_group_family": "mysql5.7"
     },
+    "5.7.30": {
+      "param_group_family": "mysql5.7"
+    },
     "8.0.11": {
       "param_group_family": "mysql8.0"
     },
@@ -5734,6 +5750,165 @@ rds_engine_versions = {
     },
     "8.0.19": {
       "param_group_family": "mysql8.0"
+    }
+  },
+  "aurora": {
+    "5.6.10a": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.17.9": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.19.0": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.19.1": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.19.2": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.19.5": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.19.6": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.20.0": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.20.1": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.21.0": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.22.0": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.22.1": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.22.1.3": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.22.2": {
+      "param_group_family": "aurora5.6"
+    }
+  },
+  "aurora-mysql": {
+    "5.7.12": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.03.2": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.03.3": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.03.4": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.0": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.1": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.2": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.3": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.4": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.5": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.6": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.7": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.04.8": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.05.0": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.06.0": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.07.0": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.07.1": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.07.2": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.08.0": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.08.1": {
+      "param_group_family": "aurora-mysql5.7"
+    }
+  },
+  "aurora-postgresql": {
+    "9.6.3": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.6": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.8": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.9": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.11": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.12": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.16": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "9.6.17": {
+      "param_group_family": "aurora-postgresql9.6"
+    },
+    "10.4": {
+      "param_group_family": "aurora-postgresql10"
+    },
+    "10.5": {
+      "param_group_family": "aurora-postgresql10"
+    },
+    "10.6": {
+      "param_group_family": "aurora-postgresql10"
+    },
+    "10.7": {
+      "param_group_family": "aurora-postgresql10"
+    },
+    "10.11": {
+      "param_group_family": "aurora-postgresql10"
+    },
+    "10.12": {
+      "param_group_family": "aurora-postgresql10"
+    },
+    "11.4": {
+      "param_group_family": "aurora-postgresql11"
+    },
+    "11.6": {
+      "param_group_family": "aurora-postgresql11"
+    },
+    "11.7": {
+      "param_group_family": "aurora-postgresql11"
     }
   }
 }

@@ -29,10 +29,11 @@ def cwd_to_fixtures():
 class BaseTestModelLoader(unittest.TestCase):
     project_name = 'config_me'
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         # set the fixtures dir
-        self.path = fixtures_path()
-        self.project = load_project_from_yaml(self.path + os.sep + self.project_name)
+        cls.path = fixtures_path()
+        cls.project = load_project_from_yaml(cls.path + os.sep + cls.project_name)
 
 class Testpacodemo(BaseTestModelLoader):
 
@@ -343,7 +344,7 @@ class Testpacodemo(BaseTestModelLoader):
     def test_rds(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         pg_aurora = demo_env['applications']['app'].groups['site'].resources['pg_aurora']
-        assert pg_aurora.db_instance_type, 'db.t3.micro'
+        assert pg_aurora.db_instances[0].db_instance_type, 'db.t3.small'
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

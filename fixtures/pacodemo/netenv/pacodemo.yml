@@ -539,10 +539,10 @@ applications:
             cluster_parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.clusterparams
             db_instances:
               - availability_zone: 1
-                db_instance_type: db.t3.micro
+                db_instance_type: db.t3.small
                 publicly_accessible: false
               - availability_zone: 2
-                db_instance_type: db.t3.micro
+                db_instance_type: db.t3.small
                 publicly_accessible: false
           norole:
             type: ASG

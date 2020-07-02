@@ -553,6 +553,7 @@ applications:
             backup_preferred_window: 08:00-08:30
             backup_retention_period: 7
             maintenance_preferred_window: 'sat:10:00-sat:10:30'
+            enable_kms_encryption: true
             cloudwatch_logs_exports:
               - error
               - slowquery

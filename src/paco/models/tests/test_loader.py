@@ -346,6 +346,7 @@ class Testpacodemo(BaseTestModelLoader):
         pg_aurora = demo_env['applications']['app'].groups['site'].resources['pg_aurora']
         assert pg_aurora.db_instances['first'].db_instance_type, 'db.t3.small'
         assert pg_aurora.default_instance.db_instance_type, 'db.t3.medium'
+        assert pg_aurora.enable_kms_encryption, True
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

@@ -1529,6 +1529,7 @@ class RDSAurora(RDS):
     db_instances = FieldProperty(schemas.IRDSAurora['db_instances'])
     default_instance = FieldProperty(schemas.IRDSAurora['default_instance'])
     enable_http_endpoint = FieldProperty(schemas.IRDSAurora['enable_http_endpoint'])
+    enable_kms_encryption = FieldProperty(schemas.IRDSAurora['enable_kms_encryption'])
     engine_mode = FieldProperty(schemas.IRDSAurora['engine_mode'])
     restore_type = FieldProperty(schemas.IRDSAurora['restore_type'])
     use_latest_restorable_time = FieldProperty(schemas.IRDSAurora['use_latest_restorable_time'])

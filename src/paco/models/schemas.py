@@ -7800,6 +7800,10 @@ RDS Aurora
         default=False,
         required=False,
     )
+    enable_kms_encryption = schema.Bool(
+        title="Enable KMS Key encryption. Will create one KMS-CMK key dedicated to each DBCluster.",
+        default=False,
+    )
     engine_mode = schema.Choice(
         title="Engine Mode",
         description="Must be one of provisioned, serverless, parallelquery, global, or multimaster.",

@@ -19,8 +19,8 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
     VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
-from paco.models.applications import Application, ResourceGroups, ResourceGroup, RDS, \
-    ASG, ECSASGConfiguration, SSHAccess, \
+from paco.models.applications import Application, ResourceGroups, ResourceGroup, \
+    ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
@@ -28,7 +28,8 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, ElastiCacheRedis, RDSOptionConfiguration, RDSClusterInstance, \
+    RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, \
+    RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
@@ -347,10 +348,20 @@ SUB_TYPES_CLASS_MAP = {
         'option_settings': ('obj_list', NameValuePair),
     },
     RDSMysqlAurora: {
-        'db_instances': ('obj_list', RDSClusterInstance),
+        'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
+        'default_instance': ('direct_obj', RDSClusterInstance),
+        'dns': ('obj_list', DNS),
     },
     RDSPostgresqlAurora: {
-        'db_instances': ('obj_list', RDSClusterInstance),
+        'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
+        'default_instance': ('direct_obj', RDSClusterDefaultInstance),
+        'dns': ('obj_list', DNS),
+    },
+    RDSClusterInstance: {
+        'monitoring': ('direct_obj', MonitorConfig)
+    },
+    RDSClusterDefaultInstance: {
+        'monitoring': ('direct_obj', MonitorConfig)
     },
     RDSMysql: {
         'option_configurations': ('obj_list', RDSOptionConfiguration),

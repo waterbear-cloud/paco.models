@@ -516,6 +516,31 @@ applications:
             family: mysql5.7
             parameters:
               time_zone: America/Denver
+          basicparams:
+            type: DBParameterGroup
+            order: 101
+            enabled: true
+            description: "Basic recommended PostgreSQL parameters"
+            family: aurora-postgresql11
+            parameters:
+              # See explaination of these recommendations here:
+              # https://aws.amazon.com/blogs/database/deploy-an-amazon-aurora-postgresql-db-cluster-with-recommended-best-practices-using-aws-cloudformation/
+              shared_preload_libraries: auto_explain,pg_stat_statements,pg_hint_plan,pgaudit
+              log_statement: "ddl"
+              log_connections: 1
+              log_disconnections: 1
+              log_lock_waits: 1
+              log_min_duration_statement: 5000
+              auto_explain.log_min_duration: 5000
+              auto_explain.log_verbose: 1
+              log_rotation_age: 1440
+              log_rotation_size: 102400
+              rds.log_retention_period: 10080
+              random_page_cost: 1
+              track_activity_query_size: 16384
+              idle_in_transaction_session_timeout: 7200000
+              statement_timeout: 7200000
+              search_path: '"$user",public'
           pg_aurora:
             type: RDSPostgresqlAurora
             order: 300
@@ -537,12 +562,15 @@ applications:
             primary_domain_name: database.pacodemo.internal
             primary_hosted_zone: paco.ref netenv.pacodemo.network.vpc.private_hosted_zone
             cluster_parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.clusterparams
+            default_instance:
+              parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.basicparams
+              db_instance_type: db.t3.medium
             db_instances:
-              - availability_zone: 1
+              first:
+                availability_zone: 1
                 db_instance_type: db.t3.small
-                publicly_accessible: false
-              - availability_zone: 2
-                db_instance_type: db.t3.small
+              second:
+                availability_zone: 2
                 publicly_accessible: false
           norole:
             type: ASG

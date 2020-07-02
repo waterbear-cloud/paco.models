@@ -4,8 +4,8 @@ All things Application Engine.
 
 from paco.models import loader
 from paco.models import schemas
-from paco.models.base import Parent, Named, Deployable, Regionalized, Resource, ApplicationResource, AccountRef, \
-    DNSEnablable, CFNExport, md5sum
+from paco.models.base import Parent, Named, Deployable, Enablable, Regionalized, Resource, ApplicationResource, \
+    AccountRef, DNSEnablable, CFNExport, md5sum
 from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
@@ -1471,11 +1471,54 @@ class RDSMysql(RDSMultiAZ):
         super().__init__(name, parent)
         self.engine = 'mysql'
 
+class BaseRDSClusterInstance(Named, Enablable, Monitorable):
+
+    @property
+    def type(self):
+        return self.dbcluster.type
+
+@implementer(schemas.IRDSClusterDefaultInstance)
+class RDSClusterDefaultInstance(BaseRDSClusterInstance):
+    allow_major_version_upgrade = FieldProperty(schemas.IRDSClusterDefaultInstance['allow_major_version_upgrade'])
+    auto_minor_version_upgrade = FieldProperty(schemas.IRDSClusterDefaultInstance['auto_minor_version_upgrade'])
+    availability_zone = FieldProperty(schemas.IRDSClusterDefaultInstance['availability_zone'])
+    db_instance_type = FieldProperty(schemas.IRDSClusterDefaultInstance['db_instance_type'])
+    enable_performance_insights = FieldProperty(schemas.IRDSClusterDefaultInstance['enable_performance_insights'])
+    parameter_group = FieldProperty(schemas.IRDSClusterDefaultInstance['parameter_group'])
+    publicly_accessible = FieldProperty(schemas.IRDSClusterDefaultInstance['publicly_accessible'])
+
+    @property
+    def dbcluster(self):
+        return self.__parent__
+
 @implementer(schemas.IRDSClusterInstance)
-class RDSClusterInstance(Parent):
+class RDSClusterInstance(BaseRDSClusterInstance):
+    allow_major_version_upgrade = FieldProperty(schemas.IRDSClusterInstance['allow_major_version_upgrade'])
+    auto_minor_version_upgrade = FieldProperty(schemas.IRDSClusterInstance['auto_minor_version_upgrade'])
     availability_zone = FieldProperty(schemas.IRDSClusterInstance['availability_zone'])
     db_instance_type = FieldProperty(schemas.IRDSClusterInstance['db_instance_type'])
+    enable_performance_insights = FieldProperty(schemas.IRDSClusterInstance['enable_performance_insights'])
+    parameter_group = FieldProperty(schemas.IRDSClusterInstance['parameter_group'])
     publicly_accessible = FieldProperty(schemas.IRDSClusterInstance['publicly_accessible'])
+
+    @property
+    def dbcluster(self):
+        return self.__parent__.__parent__
+
+    def resolve_ref(self, ref):
+        return self.dbcluster.resolve_ref_obj.resolve_ref(ref)
+
+    def get_value_or_default(self, fieldname):
+        "Return a field value or if does not exist fall-back to default_instance value if it exists"
+        value = getattr(self, fieldname, None)
+        if value == None:
+            default_instance = self.dbcluster.default_instance
+            return getattr(default_instance, fieldname, None)
+        return value
+
+@implementer(schemas.IRDSClusterInstances)
+class RDSClusterInstances(Named, dict):
+    pass
 
 @implementer(schemas.IRDSAurora)
 class RDSAurora(RDS):
@@ -1484,6 +1527,7 @@ class RDSAurora(RDS):
     backtrack_window_in_seconds = FieldProperty(schemas.IRDSAurora['backtrack_window_in_seconds'])
     cluster_parameter_group = FieldProperty(schemas.IRDSAurora['cluster_parameter_group'])
     db_instances = FieldProperty(schemas.IRDSAurora['db_instances'])
+    default_instance = FieldProperty(schemas.IRDSAurora['default_instance'])
     enable_http_endpoint = FieldProperty(schemas.IRDSAurora['enable_http_endpoint'])
     engine_mode = FieldProperty(schemas.IRDSAurora['engine_mode'])
     restore_type = FieldProperty(schemas.IRDSAurora['restore_type'])
@@ -1491,7 +1535,7 @@ class RDSAurora(RDS):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.db_instances = []
+        self.db_instances = RDSClusterInstances('db_instances', self)
 
     @property
     def engine(self):
@@ -1503,11 +1547,18 @@ class RDSAurora(RDS):
         else:
             return 'aurora-mysql'
 
+    @property
+    def backtrack_cfn(self):
+        # only include BacktrackWindow for aurora mysql
+        if self.engine in ('aurora', 'aurora-mysql'):
+            return self.backtrack_window_in_seconds
+        return None
+
     troposphere_props = troposphere.rds.DBCluster.props
     cfn_mapping = {
         # 'AssociatedRoles': not yet implmented
         # 'AvailabilityZones': computed in template
-        'BacktrackWindow': 'backtrack_window_in_seconds',
+        'BacktrackWindow': 'backtrack_cfn',
         'BackupRetentionPeriod': 'backup_retention_period',
         'DatabaseName': 'database_name',
         # 'DBClusterIdentifier': computed in template
@@ -1540,10 +1591,12 @@ class RDSAurora(RDS):
 
 @implementer(schemas.IRDSMysqlAurora)
 class RDSMysqlAurora(RDSAurora):
+    type = 'RDSMysqlAurora'
     database_name = FieldProperty(schemas.IRDSMysqlAurora['database_name'])
 
 @implementer(schemas.IRDSPostgresqlAurora)
 class RDSPostgresqlAurora(RDSAurora):
+    type = 'RDSPostgresqlAurora'
     database_name = FieldProperty(schemas.IRDSPostgresqlAurora['database_name'])
 
     def __init__(self, name, parent):

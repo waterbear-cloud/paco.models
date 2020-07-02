@@ -675,6 +675,18 @@ can break configuration.
         required=False,
     )
 
+# IEnablable is the same as IDeployable except it defaults to True
+class IEnablable(Interface):
+    """
+Indicate if this configuration should be enabled.
+    """
+    enabled = schema.Bool(
+        title="Enabled",
+        description="",
+        default=True,
+        required=False,
+    )
+
 class IDeployable(Interface):
     """
 Indicates if this configuration tree should be enabled or not.
@@ -7659,10 +7671,21 @@ primary DB Instance and synchronously replicates the data to a standby instance 
 class IRDSMysql(IRDSMultiAZ):
     """RDS for MySQL"""
 
-class IRDSClusterInstance(IParent):
+class IRDSClusterDefaultInstance(INamed, IMonitorable):
     """
-DB Instance that belongs to a DB Cluster.
+Default configuration for a DB Instance that belongs to a DB Cluster.
     """
+    # Note: IRDSClusterDefaultInstance is the same as IRDSClusterInstance except it provides default values for fields.
+    # (otherwise the instance-level field defaults would shadow cluster-level specific settings)
+
+    allow_major_version_upgrade = schema.Bool(
+        title="Allow major version upgrades",
+        required=False,
+    )
+    auto_minor_version_upgrade = schema.Bool(
+        title="Automatic minor version upgrades",
+        required=False,
+    )
     # ToDo: Add an invariant to check that az is within the number in the segment
     availability_zone = schema.Int(
         title='Availability Zone where the instance will be provisioned.',
@@ -7671,15 +7694,72 @@ DB Instance that belongs to a DB Cluster.
         min=0,
         max=10,
     )
+    # ToDO: invariant - this is required at either default or instance-level
     db_instance_type = schema.TextLine(
         title="DB Instance Type",
-        required=True,
+        required=False,
+    )
+    enable_performance_insights = schema.Bool(
+        title="Enable Performance Insights",
+        required=False,
+        default=False,
+    )
+    parameter_group = PacoReference(
+        title="DB Parameter Group",
+        required=False,
+        schema_constraint='IDBParameterGroup'
     )
     publicly_accessible = schema.Bool(
         title="Assign a Public IP address",
         required=False,
         default=False,
     )
+
+class IRDSClusterInstance(INamed, IMonitorable):
+    """
+DB Instance that belongs to a DB Cluster.
+    """
+    allow_major_version_upgrade = schema.Bool(
+        title="Allow major version upgrades",
+        required=False,
+    )
+    auto_minor_version_upgrade = schema.Bool(
+        title="Automatic minor version upgrades",
+        required=False,
+    )
+    # ToDo: Add an invariant to check that az is within the number in the segment
+    availability_zone = schema.Int(
+        title='Availability Zone where the instance will be provisioned.',
+        description="Must be one of 1, 2, 3 ...",
+        required=False,
+        min=0,
+        max=10,
+    )
+    # ToDO: invariant - this is required at either default or instance-level
+    db_instance_type = schema.TextLine(
+        title="DB Instance Type",
+        required=False,
+    )
+    enable_performance_insights = schema.Bool(
+        title="Enable Performance Insights",
+        required=False,
+    )
+    parameter_group = PacoReference(
+        title="DB Parameter Group",
+        required=False,
+        schema_constraint='IDBParameterGroup'
+    )
+    publicly_accessible = schema.Bool(
+        title="Assign a Public IP address",
+        required=False,
+    )
+
+class IRDSClusterInstances(INamed, IMapping):
+    """
+Container for `RDSClusterInstance`_ objects.
+    """
+    taggedValue('contains', 'IRDSClusterInstances')
+
 
 class IRDSAurora(IResource, IRDS):
     """
@@ -7705,11 +7785,15 @@ RDS Aurora
         required=False,
         schema_constraint='IDBClusterParameterGroup'
     )
-    db_instances = schema.List(
+    db_instances = schema.Object(
         title="DB Instances",
+        required=True,
+        schema=IRDSClusterInstances,
+    )
+    default_instance = schema.Object(
+        title="Default DB Instance configuration",
         required=False,
-        value_type=schema.Object(IRDSClusterInstance),
-        default=[],
+        schema=IRDSClusterDefaultInstance,
     )
     enable_http_endpoint = schema.Bool(
         title="Enable an HTTP endpoint to provide a connectionless web service API for running SQL queries",

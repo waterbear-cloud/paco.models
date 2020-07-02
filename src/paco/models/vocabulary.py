@@ -142,18 +142,18 @@ cloudwatch = {
 		'dimension': 'CacheClusterId',
 		'namespace': 'AWS/ElastiCache'
 	},
-  'ElasticsearchDomain': {
-    'dimension': 'DomainName',
-    'namespace': 'AWS/ES',
-  },
-  'IoTTopicRule': {
-      'dimension': 'RuleName',
-      'namespace': 'AWS/IoT',
-  },
-  'IoTAnalyticsPipeline': {
-      'dimension': '',
-      'namespace': 'AWS/IoTAnalytics',
-  },
+	'ElasticsearchDomain': {
+		'dimension': 'DomainName',
+		'namespace': 'AWS/ES',
+	},
+	'IoTTopicRule': {
+		'dimension': 'RuleName',
+		'namespace': 'AWS/IoT',
+	},
+	'IoTAnalyticsPipeline': {
+		'dimension': '',
+		'namespace': 'AWS/IoTAnalytics',
+	},
 	'Lambda': {
 		'dimension': 'FunctionName',
 		'namespace': 'AWS/Lambda'
@@ -166,7 +166,15 @@ cloudwatch = {
 		'dimension': 'DBInstanceIdentifier',
 		'namespace': 'AWS/RDS'
 	},
+	'RDSMysqlAurora': {
+		'dimension': 'DBInstanceIdentifier',
+		'namespace': 'AWS/RDS'
+	},
 	'RDSPostgresql': {
+		'dimension': 'DBInstanceIdentifier',
+		'namespace': 'AWS/RDS'
+	},
+	'RDSPostgresqlAurora': {
 		'dimension': 'DBInstanceIdentifier',
 		'namespace': 'AWS/RDS'
 	},

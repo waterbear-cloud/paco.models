@@ -344,7 +344,8 @@ class Testpacodemo(BaseTestModelLoader):
     def test_rds(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         pg_aurora = demo_env['applications']['app'].groups['site'].resources['pg_aurora']
-        assert pg_aurora.db_instances[0].db_instance_type, 'db.t3.small'
+        assert pg_aurora.db_instances['first'].db_instance_type, 'db.t3.small'
+        assert pg_aurora.default_instance.db_instance_type, 'db.t3.medium'
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

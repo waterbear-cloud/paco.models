@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- Added `IEnablable` that is the same as `IDeployable` except it defaults to true.
+
 - Added `IRDSMysqlAurora` and `IRDSPostgresqlAurora` for Aurora support.
 
 - Added users and groups to `resource/ec2.yaml` and `ssh_access` to IASG.

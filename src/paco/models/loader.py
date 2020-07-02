@@ -9,7 +9,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath
+    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath, InvalidPacoSub
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
@@ -1485,11 +1485,11 @@ Duplicate key \"{}\" found on line {} at column {}.
             end_idx = len(paco_ref)
         str_idx = paco_ref.find("'", sub_idx, end_idx)
         if str_idx == -1:
-            raise StackException(PacoErrorCode.Unknown)
+            raise InvalidPacoSub(f"Invalid paco.sub: {paco_ref}\nCould not find single quote after paco.sub.")
         str_idx += 1
         end_str_idx = paco_ref.find("'", str_idx, end_idx)
         if end_str_idx == -1:
-            raise StackException(PacoErrorCode.Unknown)
+            raise InvalidPacoSub(f"Invalid paco.sub: {paco_ref}")
 
         # Isolate any ${} replacements
         first_pass = True
@@ -1497,7 +1497,7 @@ Duplicate key \"{}\" found on line {} at column {}.
             dollar_idx = paco_ref.find("${", str_idx, end_str_idx)
             if dollar_idx == -1:
                 if first_pass == True:
-                    raise StackException(PacoErrorCode.Unknown)
+                    raise InvalidPacoSub(f"Invalid paco.sub: {paco_ref}")
                 else:
                     break
             rep_1_idx = dollar_idx
@@ -1505,6 +1505,7 @@ Duplicate key \"{}\" found on line {} at column {}.
             netenv_ref_idx = paco_ref.find(
                 "paco.ref netenv.", rep_1_idx, rep_2_idx)
             if netenv_ref_idx != -1:
+
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = paco_ref[sub_ref_idx:sub_ref_end_idx]
@@ -1553,6 +1554,11 @@ Duplicate key \"{}\" found on line {} at column {}.
                 elif application.name.startswith(app_name) and application.name != app_name:
 
                     ref.parts[3] = application.name
+
+        # Ignore if the environment and region are already specified
+        if ref.parts[2] in self.project['netenv'][ref.parts[1]].keys():
+            if ref.parts[3] in self.project['netenv'][ref.parts[1]][ref.parts[2]].keys():
+                return paco_ref
 
         ref.parts.insert(2, env_id)
         ref.parts.insert(3, region)

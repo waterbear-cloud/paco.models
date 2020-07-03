@@ -554,6 +554,13 @@ applications:
             backup_retention_period: 7
             maintenance_preferred_window: 'sat:10:00-sat:10:30'
             enable_kms_encryption: true
+            cluster_event_notifications:
+              groups:
+                - bob
+              event_categories:
+                - failover
+                - failure
+                - notification
             cloudwatch_logs_exports:
               - error
               - slowquery
@@ -566,10 +573,27 @@ applications:
             default_instance:
               parameter_group: paco.ref netenv.pacodemo.applications.app.groups.site.resources.basicparams
               db_instance_type: db.t3.medium
+              event_notifications:
+                groups:
+                  - bob
+                event_categories:
+                  - availability
+                  - configuration change
+                  - deletion
+                  - failover
+                  - failure
+                  - maintenance
+                  - notification
+                  - recovery
             db_instances:
               first:
                 availability_zone: 1
                 db_instance_type: db.t3.small
+                event_notifications:
+                  groups:
+                    - santa
+                  event_categories:
+                    - failure
               second:
                 availability_zone: 2
                 publicly_accessible: false

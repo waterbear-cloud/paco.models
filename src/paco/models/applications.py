@@ -1223,7 +1223,7 @@ class SNSTopicSubscription(Parent):
     filter_policy = FieldProperty(schemas.ISNSTopicSubscription['filter_policy'])
 
 @implementer(schemas.ISNSTopic)
-class SNSTopic(Resource):
+class SNSTopic(Enablable, Resource):
     title = "SNSTopic"
     type = "SNSTopic"
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
@@ -1370,6 +1370,16 @@ class DBParameterGroup(ApplicationResource):
 class DBClusterParameterGroup(DBParameterGroup):
     title = "RDS DB Cluster Parameter Group"
 
+@implementer(schemas.IRDSDBClusterEventNotifications)
+class RDSDBClusterEventNotifications(Named):
+    groups = FieldProperty(schemas.IRDSDBClusterEventNotifications['groups'])
+    event_categories = FieldProperty(schemas.IRDSDBClusterEventNotifications['event_categories'])
+
+@implementer(schemas.IRDSDBInstanceEventNotifications)
+class RDSDBInstanceEventNotifications(Named):
+    groups = FieldProperty(schemas.IRDSDBInstanceEventNotifications['groups'])
+    event_categories = FieldProperty(schemas.IRDSDBInstanceEventNotifications['event_categories'])
+
 @implementer(schemas.IRDSOptionConfiguration)
 class RDSOptionConfiguration():
     option_name = FieldProperty(schemas.IRDSOptionConfiguration['option_name'])
@@ -1484,6 +1494,7 @@ class RDSClusterDefaultInstance(BaseRDSClusterInstance):
     availability_zone = FieldProperty(schemas.IRDSClusterDefaultInstance['availability_zone'])
     db_instance_type = FieldProperty(schemas.IRDSClusterDefaultInstance['db_instance_type'])
     enable_performance_insights = FieldProperty(schemas.IRDSClusterDefaultInstance['enable_performance_insights'])
+    enhanced_monitoring_interval_in_seconds = FieldProperty(schemas.IRDSClusterDefaultInstance['enhanced_monitoring_interval_in_seconds'])
     parameter_group = FieldProperty(schemas.IRDSClusterDefaultInstance['parameter_group'])
     publicly_accessible = FieldProperty(schemas.IRDSClusterDefaultInstance['publicly_accessible'])
 
@@ -1498,6 +1509,7 @@ class RDSClusterInstance(BaseRDSClusterInstance):
     availability_zone = FieldProperty(schemas.IRDSClusterInstance['availability_zone'])
     db_instance_type = FieldProperty(schemas.IRDSClusterInstance['db_instance_type'])
     enable_performance_insights = FieldProperty(schemas.IRDSClusterInstance['enable_performance_insights'])
+    enhanced_monitoring_interval_in_seconds = FieldProperty(schemas.IRDSClusterInstance['enhanced_monitoring_interval_in_seconds'])
     parameter_group = FieldProperty(schemas.IRDSClusterInstance['parameter_group'])
     publicly_accessible = FieldProperty(schemas.IRDSClusterInstance['publicly_accessible'])
 

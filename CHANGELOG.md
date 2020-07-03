@@ -17,6 +17,9 @@ Changelog for paco.models
 
 - ISecretManagerSecret now has an `account` field to specify it belongs to a specific account.
 
+### Changed
+
+- `ISNSTopic` uses IEnablable so that topics are enabled by default.
 
 7.3.0 (2020-06-22)
 ------------------

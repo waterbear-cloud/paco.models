@@ -47,6 +47,14 @@ def isValidBackupNotification(value):
             raise InvalidBackupNotification
     return True
 
+class InvalidEnhancedMonitoringInterval(schema.ValidationError):
+    __doc__ = 'Enhanced Monitoring Interval must be one of 0, 1, 5, 10, 15, 30, 60'
+
+def isValidEnhancedMonitoringInterval(value):
+    if value not in [None, 0, 1, 5, 10, 15, 30, 60]:
+        raise InvalidEnhancedMonitoringInterval
+    return True
+
 class InvalidCodeDeployComputePlatform(schema.ValidationError):
     __doc__ = 'compute_platform must be one of ECS, Lambda or Server.'
 
@@ -1741,7 +1749,7 @@ class ISNSTopicSubscription(Interface):
         required=False,
     )
 
-class ISNSTopic(IResource):
+class ISNSTopic(IEnablable, IResource):
     """
 Simple Notification Service (SNS) Topic resource.
 
@@ -7671,6 +7679,24 @@ primary DB Instance and synchronously replicates the data to a standby instance 
 class IRDSMysql(IRDSMultiAZ):
     """RDS for MySQL"""
 
+class IRDSDBInstanceEventNotifications(INamed):
+    """
+DB Instance Event Notifications
+    """
+    groups = schema.List(
+        title="Groups",
+        value_type=schema.TextLine(title="Group"),
+        required=True,
+    )
+    event_categories = schema.List(
+        title="Event Categories",
+        value_type=schema.Choice(
+            title="Event Category",
+            vocabulary=vocabulary.rds_instance_event_categories,
+        ),
+        required=True,
+    )
+
 class IRDSClusterDefaultInstance(INamed, IMonitorable):
     """
 Default configuration for a DB Instance that belongs to a DB Cluster.
@@ -7703,6 +7729,18 @@ Default configuration for a DB Instance that belongs to a DB Cluster.
         title="Enable Performance Insights",
         required=False,
         default=False,
+    )
+    enhanced_monitoring_interval_in_seconds = schema.Int(
+        title="Enhanced Monitoring interval in seconds. This will enable enhanced monitoring unless set to 0.",
+        description="Must be one of 0, 1, 5, 10, 15, 30, 60.",
+        default=0,
+        required=False,
+        constraint=isValidEnhancedMonitoringInterval,
+    )
+    event_notifications = schema.Object(
+        title="DB Instance Event Notifications",
+        required=False,
+        schema=IRDSDBInstanceEventNotifications,
     )
     parameter_group = PacoReference(
         title="DB Parameter Group",
@@ -7744,6 +7782,17 @@ DB Instance that belongs to a DB Cluster.
         title="Enable Performance Insights",
         required=False,
     )
+    enhanced_monitoring_interval_in_seconds = schema.Int(
+        title="Enhanced Monitoring interval in seconds. This will enable enhanced monitoring unless set to 0.",
+        description="Must be one of 0, 1, 5, 10, 15, 30, 60.",
+        required=False,
+        constraint=isValidEnhancedMonitoringInterval,
+    )
+    event_notifications = schema.Object(
+        title="DB Instance Event Notifications",
+        required=False,
+        schema=IRDSDBInstanceEventNotifications,
+    )
     parameter_group = PacoReference(
         title="DB Parameter Group",
         required=False,
@@ -7761,9 +7810,27 @@ Container for `RDSClusterInstance`_ objects.
     taggedValue('contains', 'IRDSClusterInstances')
 
 
+class IRDSDBClusterEventNotifications(INamed):
+    """
+Event Notifications for a DB Cluster
+    """
+    groups = schema.List(
+        title="Groups",
+        value_type=schema.TextLine(title="Group"),
+        required=True,
+    )
+    event_categories = schema.List(
+        title="Event Categories",
+        value_type=schema.Choice(
+            title="Event Category",
+            vocabulary=vocabulary.rds_cluster_event_categories,
+        ),
+        required=True,
+    )
+
 class IRDSAurora(IResource, IRDS):
     """
-RDS Aurora
+RDS Aurora DB Cluster
     """
     availability_zones = schema.TextLine(
         title='Availability Zones to launch instances in.',
@@ -7779,6 +7846,11 @@ RDS Aurora
         max=259200,
         default=0,
         required=False,
+    )
+    cluster_event_notifications = schema.Object(
+        title="Cluster Event Notifications",
+        required=False,
+        schema=IRDSDBClusterEventNotifications,
     )
     cluster_parameter_group = PacoReference(
         title="DB Cluster Parameter Group",

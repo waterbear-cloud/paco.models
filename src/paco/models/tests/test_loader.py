@@ -347,6 +347,9 @@ class Testpacodemo(BaseTestModelLoader):
         assert pg_aurora.db_instances['first'].db_instance_type, 'db.t3.small'
         assert pg_aurora.default_instance.db_instance_type, 'db.t3.medium'
         assert pg_aurora.enable_kms_encryption, True
+        assert pg_aurora.cluster_event_notifications.groups, ['bob']
+        assert pg_aurora.default_instance.event_notifications.event_categories[0], 'availability'
+        assert pg_aurora.db_instances['first'].event_notifications.event_categories[0], 'failure'
 
     def test_lambda(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

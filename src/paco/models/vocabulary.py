@@ -124,6 +124,32 @@ rds_restore_types = SimpleVocabulary.fromValues([
 	'copy-on-write',
 ])
 
+rds_cluster_event_categories = SimpleVocabulary.fromValues([
+	"maintenance",
+	"failover",
+	"notification",
+	"creation",
+	"failure",
+	"deletion",
+])
+
+rds_instance_event_categories = SimpleVocabulary.fromValues([
+	"backup",
+	"maintenance",
+	"failover",
+	"creation",
+	"configuration change",
+	"recovery",
+	"deletion",
+	"restoration",
+	"failure",
+	"read replica",
+	"availability",
+	"low storage",
+	"notification",
+	"backtrack",
+])
+
 cloudwatch = {
 	'App': {
 		'dimension': '',

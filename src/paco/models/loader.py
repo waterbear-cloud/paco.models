@@ -28,7 +28,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
-    RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, \
+    RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, RDSDBClusterEventNotifications, RDSDBInstanceEventNotifications, \
     RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
@@ -348,19 +348,23 @@ SUB_TYPES_CLASS_MAP = {
         'option_settings': ('obj_list', NameValuePair),
     },
     RDSMysqlAurora: {
+        'cluster_event_notifications': ('direct_obj', RDSDBClusterEventNotifications),
         'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
         'default_instance': ('direct_obj', RDSClusterInstance),
         'dns': ('obj_list', DNS),
     },
     RDSPostgresqlAurora: {
+        'cluster_event_notifications': ('direct_obj', RDSDBClusterEventNotifications),
         'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
         'default_instance': ('direct_obj', RDSClusterDefaultInstance),
         'dns': ('obj_list', DNS),
     },
     RDSClusterInstance: {
+        'event_notifications': ('direct_obj', RDSDBInstanceEventNotifications),
         'monitoring': ('direct_obj', MonitorConfig)
     },
     RDSClusterDefaultInstance: {
+        'event_notifications': ('direct_obj', RDSDBInstanceEventNotifications),
         'monitoring': ('direct_obj', MonitorConfig)
     },
     RDSMysql: {

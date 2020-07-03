@@ -16,6 +16,9 @@ class UnusedPacoProjectField(Exception):
 class InvalidPacoReference(Exception):
     title = "Invalid Paco reference"
 
+class InvalidPacoSub(Exception):
+    title = "Invalid Paco subscitition in YAML"
+
 class InvalidCFNMapping(Exception):
     title = "Invalid CloudFormation Mapping from Paco model object"
 

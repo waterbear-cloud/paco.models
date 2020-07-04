@@ -7560,7 +7560,7 @@ RDS common fields shared by both DBInstance and DBCluster
         required=False
     )
     dns = schema.List(
-        title="List of DNS for the RDS",
+        title="DNS domains to create to resolve to the connection Endpoint",
         value_type=schema.Object(IDNS),
         required=False
     )
@@ -7881,6 +7881,11 @@ RDS Aurora DB Cluster
         description="Must be one of provisioned, serverless, parallelquery, global, or multimaster.",
         vocabulary=vocabulary.rds_cluster_engine_mode,
         required=False,
+    )
+    read_dns = schema.List(
+        title="DNS domains to create to resolve to the connection Read Endpoint",
+        value_type=schema.Object(IDNS),
+        required=False
     )
     restore_type = schema.Choice(
         title="Restore Type",

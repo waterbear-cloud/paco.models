@@ -352,12 +352,14 @@ SUB_TYPES_CLASS_MAP = {
         'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
         'default_instance': ('direct_obj', RDSClusterInstance),
         'dns': ('obj_list', DNS),
+        'read_dns': ('obj_list', DNS),
     },
     RDSPostgresqlAurora: {
         'cluster_event_notifications': ('direct_obj', RDSDBClusterEventNotifications),
         'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
         'default_instance': ('direct_obj', RDSClusterDefaultInstance),
         'dns': ('obj_list', DNS),
+        'read_dns': ('obj_list', DNS),
     },
     RDSClusterInstance: {
         'event_notifications': ('direct_obj', RDSDBInstanceEventNotifications),

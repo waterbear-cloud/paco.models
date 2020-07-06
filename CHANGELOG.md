@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- DeploymentPipeline now has an `ECR.Source` action.
+
 - Added `IEnablable` that is the same as `IDeployable` except it defaults to true.
 
 - Added `IRDSMysqlAurora` and `IRDSPostgresqlAurora` for Aurora support.

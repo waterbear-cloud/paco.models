@@ -5591,25 +5591,25 @@ ECR: Elastic Container Registry Repository
     )
     repository_name = schema.TextLine(
         title="Repository Name",
-        required=False
+        required=True,
     )
     lifecycle_policy_text = schema.TextLine(
         title="Lifecycle Policy",
-        required=False
+        required=False,
     )
     lifecycle_policy_registry_id = schema.TextLine(
         title="Lifecycle Policy Registray Id",
-        required=False
+        required=False,
     )
     repository_policy = schema.Object(
         title="Repository Policy",
         schema=IPolicy,
-        required=False
+        required=False,
     )
     account = PacoReference(
         title="Account the ECR Repository belongs to",
         required=False,
-        schema_constraint='IAccount'
+        schema_constraint='IAccount',
     )
 
 # IoT Analytics
@@ -8492,6 +8492,36 @@ class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
         description="",
         required=False,
         default="",
+    )
+
+class IDeploymentPipelineSourceECR(IDeploymentPipelineStageAction):
+    """Amazon ECR DeploymentPipeline Source Stage
+
+This Action is triggered whenever a new image is pushed to an Amazon ECR repository.
+
+.. code-block:: yaml
+
+  pipeline:
+    type: DeploymentPipeline
+    stages:
+      source:
+        ecr:
+          type: ECR.Source
+          enabled: true
+          repository:  paco.ref netenv.mynet.applications.myapp.groups.ecr.resources.myecr
+          image_tag: "latest"
+
+    """
+    taggedValue('contains', 'mixed')
+    repository = PacoReference(
+        title="An ECRRepository ref or the name of the an ECR repository.",
+        required=True,
+        str_ok=True,
+    )
+    image_tag = schema.TextLine(
+        title='The name of the tag used for the image.',
+        default="latest",
+        required=False,
     )
 
 class IDeploymentPipelineSourceGitHub(IDeploymentPipelineStageAction):

@@ -57,6 +57,8 @@ class Testpacodemo(BaseTestModelLoader):
         deploy_pipeline = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['pipeline']
         assert schemas.IDeploymentPipeline.providedBy(deploy_pipeline)
         assert deploy_pipeline.stages['source']['github'].type, 'GitHub.Source'
+        ecrpipe = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['ecrpipe']
+        assert ecrpipe.source['ecr'].type, 'ECR.Source'
 
     def test_ne_vpc(self):
         vpc = self.project['netenv']['pacodemo']['demo']['us-west-2'].network.vpc

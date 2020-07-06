@@ -413,6 +413,31 @@ applications:
                   enabled: true
                   target_lambda: paco.ref netenv.pacodemo.notification.groups.lambda.resources.function
                   user_parameters: '{"action": "start-from-pipeline"}'
+          ecrrepo:
+            type: ECRRepository
+            enabled: true
+            order: 29
+            repository_name: 'simple_app'
+          ecrpipe:
+            type: DeploymentPipeline
+            order: 30
+            enabled: true
+            configuration:
+              artifacts_bucket: paco.ref netenv.pacodemo.applications.app.groups.cicd.resources.pipeline_s3
+              account: paco.ref accounts.dev
+            source:
+              ecr:
+                type: ECR.Source
+                enabled: true
+                repository: paco.ref netenv.pacodemo.app.app.groups.cicd.resources.ecrrepo
+                image_tag: latest
+            deploy:
+              ecs:
+                type: ECS.Deploy
+                enabled: true
+                cluster: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_cluster
+                service: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_services.services.simple_app
+
       site:
         type: Application
         order: 1

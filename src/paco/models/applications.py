@@ -1829,6 +1829,14 @@ class DeploymentPipelinePacoCreateThenDeployImage(DeploymentPipelineStageAction)
     title = 'Paco.CreateThenDeployImage'
     resource_name = FieldProperty(schemas.IDeploymentPipelinePacoCreateThenDeployImage['resource_name'])
 
+
+@implementer(schemas.IDeploymentPipelineSourceECR)
+class DeploymentPipelineSourceECR(DeploymentPipelineStageAction):
+    title = 'ECR.Source'
+    repository = FieldProperty(schemas.IDeploymentPipelineSourceECR['repository'])
+    image_tag = FieldProperty(schemas.IDeploymentPipelineSourceECR['image_tag'])
+
+
 @implementer(schemas.IDeploymentPipelineSourceGitHub)
 class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
     title = 'GitHub.Source'

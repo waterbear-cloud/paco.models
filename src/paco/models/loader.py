@@ -33,7 +33,7 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
-    DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, \
+    DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceECR, \
     DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
@@ -112,6 +112,7 @@ logger = get_logger()
 
 DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
+    'ECR.Source': DeploymentPipelineSourceECR,
     'GitHub.Source': DeploymentPipelineSourceGitHub,
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
     'ManualApproval': DeploymentPipelineManualApproval,

@@ -1805,7 +1805,7 @@ class DeploymentPipelineConfiguration(Named):
         return self.resolve_ref_obj(ref)
 
 @implementer(schemas.IDeploymentPipelineStageAction)
-class DeploymentPipelineStageAction(Named, Deployable, dict):
+class DeploymentPipelineStageAction(Named, Enablable, dict):
     type = FieldProperty(schemas.IDeploymentPipelineStageAction['type'])
     run_order = FieldProperty(schemas.IDeploymentPipelineStageAction['run_order'])
 

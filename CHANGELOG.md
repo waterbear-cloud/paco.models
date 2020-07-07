@@ -21,6 +21,8 @@ Changelog for paco.models
 
 ### Changed
 
+- `IDeploymentPipelineStageAction` uses IEnablable so that deployment actions are enabled by default.
+
 - `ISNSTopic` uses IEnablable so that topics are enabled by default.
 
 7.3.0 (2020-06-22)

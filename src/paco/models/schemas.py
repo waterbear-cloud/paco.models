@@ -5578,8 +5578,25 @@ ECS Services and TaskDefinitions
 # ECR: Elastic Container Repository
 class IECRRepository(IResource):
     """
-ECR: Elastic Container Registry Repository
-    """
+Elastic Container Registry (ECR) Repository is a fully-managed Docker container registry.
+
+
+.. sidebar:: Prescribed Automation
+
+    ``cross_account_access``: Adds a Repository Policy that grants full access to the listed AWS Accounts.
+
+.. code-block:: yaml
+    :caption: Example ECRRepository
+
+    type: ECRRepository
+    enabled: true
+    order: 10
+    repository_name: 'ecr-example'
+    cross_account_access:
+      - paco.ref accounts.dev
+      - paco.ref accounts.tools
+
+"""
     cross_account_access = schema.List(
         title="Accounts to grant access to this ECR.",
         description="",
@@ -5598,7 +5615,7 @@ ECR: Elastic Container Registry Repository
         required=False,
     )
     lifecycle_policy_registry_id = schema.TextLine(
-        title="Lifecycle Policy Registray Id",
+        title="Lifecycle Policy Registry Id",
         required=False,
     )
     repository_policy = schema.Object(
@@ -5659,7 +5676,7 @@ Each activity must have an ``activity_type`` and supply fields specific for that
 There is an implicit Channel activity before all other activities and an an implicit Datastore
 activity after all other activities.
 
-.. code-block: yaml
+.. code-block:: yaml
     :caption: All example types for IoTAnalyticsPipeline pipeline_activities
 
     activity_type: lambda
@@ -8435,7 +8452,7 @@ Deployment Pipeline General Configuration
         schema_constraint=IAccount
     )
 
-class IDeploymentPipelineStageAction(INamed, IDeployable, IMapping):
+class IDeploymentPipelineStageAction(INamed, IEnablable, IMapping):
     """
 Deployment Pipeline Source Stage
     """
@@ -8816,7 +8833,195 @@ class ICodePipelineStages(INamed, IMapping):
 
 class IDeploymentPipeline(IResource):
     """
-CodePipeline: Source, Build and Deploy or Stages
+DeploymentPipeline creates AWS CodePipeline resources configured to act
+as CI/CDs to deploy code and assets to application resources. DeploymentPipelines allow you
+to express complex CI/CDs with minimal configuration.
+
+A DeploymentPipeline has a number of Actions for three pre-defined Stages: source, build and deploy.
+The currently supported list of actions for each stage is:
+
+.. code-block:: yaml
+    :caption: Current Actions available by Stage
+
+    source:
+      type: CodeCommit.Source
+      type: ECR.Source
+      type: GitHub.Source
+    build:
+      type: CodeBuild.Build
+    deploy:
+      type: CodeDeploy.Deploy
+      type: ECS.Deploy
+      type: ManualApproval
+
+DeploymentPipelines can be configured to work cross-account and will automatically encrypt
+the artifacts S3 Bucket with a KMS-CMK key that can only be accessed by the pipeline.
+The ``configuration`` field lets you set the account that the DeploymentPipeline's CodePipeilne
+resource will be created in and also specify the S3 Bucket to use for artifacts.
+
+.. code-block:: yaml
+    :caption: Configure a DeploymentPipeline to run in the tools account
+
+    configuration:
+      artifacts_bucket: paco.ref netenv.mynet.applications.myapp.groups.cicd.resources.artifacts
+      account: paco.ref accounts.tools
+
+
+DeploymentPipeline caveats - there are a few things to consider when creating pipelines:
+
+  * You need to create an S3 Bucket that will be configured to for artifacts. Even pipelines
+    which don't create artifacts will need this resource to hold ephemeral files created by CodePipeline.
+
+  * A pipeline that deploys artifacts to an AutoScalingGroup will need the ``artifacts_bucket`` to
+    allow the IAM Instance Role to read from the bucket.
+
+  * A pipeline with an ``ECR.Source`` source must be in the same account as the ECR Repository.
+
+  * A pipeline with an ``ECR.Source`` source must have at least one image alreaay created in it before
+    it can be created.
+
+  * A pipeline that is building Docker images needs to set ``privileged_mode: true``.
+
+  * If you are using a manual approval step before deploying, pay attention to the
+    ``run_order`` field. Normally you will want the approval action to happen before the deploy action.
+
+.. code-block:: yaml
+    :caption: Example S3 Bucket for a DeploymentPipeline that deploys to an AutoScalingGroup
+
+    type: S3Bucket
+    enabled: true
+    order: 10
+    bucket_name: "artifacts"
+    deletion_policy: "delete"
+    account: paco.ref accounts.tools
+    versioning: true
+    policy:
+      - aws:
+          - paco.sub '${paco.ref netenv.mynet.applications.myapp.groups.container.resources.asg.instance_iam_role.arn}'
+        effect: 'Allow'
+        action:
+          - 's3:Get*'
+          - 's3:List*'
+        resource_suffix:
+          - '/*'
+          - ''
+
+.. code-block:: yaml
+    :caption: Example DeploymentPipeline to deploy to ECS when an ECR Repository is updated
+
+    type: DeploymentPipeline
+    order: 10
+    enabled: true
+    configuration:
+      artifacts_bucket: paco.ref netenv.mynet.applications.myapp.groups.cicd.resources.artifacts
+      account: paco.ref accounts.tools
+    source:
+      ecr:
+        type: ECR.Source
+        repository: paco.ref netenv.mynet.applications.myapp.groups.container.resources.ecr_example
+        image_tag: latest
+    deploy:
+      ecs:
+        type: ECS.Deploy
+        cluster: paco.ref netenv.mynet.applications.myapp.groups.container.resources.ecs_cluster
+        service: paco.ref netenv.mynet.applications.myapp.groups.container.resources.ecs_config.services.simple_app
+
+.. code-block:: yaml
+    :caption: Example DeploymentPipeline to pull from GitHub, build a Docker image and then deploy from an ECR Repo
+
+    type: DeploymentPipeline
+    order: 20
+    enabled: true
+    configuration:
+      artifacts_bucket: paco.ref netenv.mynet.applications.myapp.groups.cicd.resources.artifacts
+      account: paco.ref accounts.tools
+    source:
+      github:
+        type: GitHub.Source
+        deployment_branch_name: "prod"
+        github_access_token: paco.ref netenv.mynet.secrets_manager.myapp.github.token
+        github_owner: MyExample
+        github_repository: MyExample-FrontEnd
+        poll_for_source_changes: false
+    build:
+      codebuild:
+        type: CodeBuild.Build
+        deployment_environment: "prod"
+        codebuild_image: 'aws/codebuild/standard:4.0'
+        codebuild_compute_type: BUILD_GENERAL1_MEDIUM
+        privileged_mode: true # To allow docker images to be built
+        codecommit_repo_users:
+          - paco.ref resource.codecommit.mygroup.myrepo.users.MyCodeCommitUser
+        secrets:
+          - paco.ref netenv.mynet.secrets_manager.myapp.github.ssh_private_key
+        role_policies:
+          - name: AmazonEC2ContainerRegistryPowerUser
+            statement:
+              - effect: Allow
+                action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:GetRepositoryPolicy
+                  - ecr:DescribeRepositories
+                  - ecr:ListImages
+                  - ecr:DescribeImages
+                  - ecr:BatchGetImage
+                  - ecr:GetLifecyclePolicy
+                  - ecr:GetLifecyclePolicyPreview
+                  - ecr:ListTagsForResource
+                  - ecr:DescribeImageScanFindings
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                  - ecr:PutImage
+                resource:
+                  - '*'
+    deploy:
+      ecs:
+        type: ECS.Deploy
+        cluster: paco.ref netenv.mynet.applications.myapp.groups.container.resources.cluster
+        service: paco.ref netenv.mynet.applications.myapp.groups.container.resources.services.services.frontend
+
+
+.. code-block:: yaml
+    :caption: Example DeploymentPipeline to pull from CodeCommit, build an app artifact and then deploy to an ASG using CodeDeploy
+
+    type: DeploymentPipeline
+    order: 30
+    enabled: true
+    configuration:
+      artifacts_bucket: paco.ref netenv.mynet.applications.myapp.groups.cicd.resources.artifacts
+      account: paco.ref accounts.tools
+    source:
+      codecommit:
+        type: CodeCommit.Source
+        codecommit_repository: paco.ref resource.codecommit.mygroiup.myrepo
+        deployment_branch_name: "prod"
+    build:
+      codebuild:
+        type: CodeBuild.Build
+        deployment_environment: "prod"
+        codebuild_image: 'aws/codebuild/amazonlinux2-x86_64-standard:1.0'
+        codebuild_compute_type: BUILD_GENERAL1_SMALL
+    deploy:
+      approval:
+        type: ManualApproval
+        run_order: 1
+        manual_approval_notification_email:
+          - bob@example.com
+          - sally@example.com
+      codedeploy:
+        type: CodeDeploy.Deploy
+        run_order: 2
+        alb_target_group: paco.ref netenv.mynet.applications.myapp.groups.backend.resources.alb.target_groups.api
+        auto_scaling_group: paco.ref netenv.mynet.applications.myapp.groups.backend.resources.api
+        auto_rollback_enabled: true
+        minimum_healthy_hosts:
+          type: HOST_COUNT
+          value: 0
+        deploy_style_option: WITHOUT_TRAFFIC_CONTROL
+
     """
     @invariant
     def stages_or_sourcebuildeploy(obj):
@@ -8967,7 +9172,7 @@ class IEFS(IResource):
 AWS Elastic File System (EFS) resource.
 
 .. code-block:: yaml
-    :caption: Example EFS resource YAML
+    :caption: Example EFS resource
 
     type: EFS
     order: 20

@@ -179,12 +179,10 @@ class Reference():
             ref=self
         )
 
-def get_model_obj_from_ref(ref, project):
-    """Resolves the reference to an object in a model.
+def get_model_obj_from_ref(ref, project, referring_obj=None):
+    """Resolves the reference to the model object it refers to.
     ref can be either a string or a Reference object.
-    project is an Project object.
     """
-    # ToDo: initial implementation - do we have ref corner cases to consider?
     if isinstance(ref, str):
         ref = Reference(ref)
     obj = project
@@ -199,7 +197,9 @@ def get_model_obj_from_ref(ref, project):
         if next_obj != None and isinstance(next_obj, str) == False:
             obj = next_obj
         else:
-            message = "\nCould not find model at {}\n".format(ref.raw)
+            message = f"\nCould not find model at {ref.raw}\n"
+            if referring_obj != None:
+                message += f"Object: {referring_obj.paco_ref_parts}\n"
             if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'snstopics', 's3', 'route53', 'resources']:
                 message += "Did you mean to run:\n"
                 message += "paco <command> resource.{}?\n".format(ref.ref)

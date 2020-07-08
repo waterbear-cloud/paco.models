@@ -9,7 +9,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath, InvalidPacoSub
+    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath, InvalidPacoSub, InvalidPacoReference
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
@@ -77,8 +77,8 @@ from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, 
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference, PacoReference, FileReference
+from paco.models.references import resolve_ref, is_ref, get_model_obj_from_ref
 from paco.models.vocabulary import aws_regions
-from paco.models.references import resolve_ref, is_ref
 from paco.models.yaml import ModelYAML
 from paco.models import schemas
 from pathlib import Path
@@ -918,7 +918,7 @@ Verify that '{}' has the correct indentation in the config file.
     if schemas.ICredentials.providedBy(obj):
         return
     for interface in most_specialized_interfaces(obj):
-        # invariants (these are also validate if they are explicitly part of a schema.Object() field)
+        # invariants (these are also to validate if they are explicitly part of a schema.Object() field)
         try:
             interface.validateInvariants(obj)
         except zope.interface.exceptions.Invalid as exc:
@@ -927,9 +927,10 @@ Verify that '{}' has the correct indentation in the config file.
         # validate all fields - this catches validation for required fields
         fields = zope.schema.getFields(interface)
         for name, field in fields.items():
+            value = getattr(obj, name, None)
             try:
                 if not field.readonly:
-                    field.validate(getattr(obj, name, None))
+                    field.validate(value)
             except ValidationError as exc:
                 raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
@@ -1378,7 +1379,21 @@ Duplicate key \"{}\" found on line {} at column {}.
         return self.read_yaml_file(path)
 
     def load_all(self):
-        'Basically does a LOAD "*",8,1'
+        """The loader starts here with a LOAD "*",8,1
+
+        Loader control flow:
+         - check paco project version
+         - read project.yaml first
+         - read .credentials
+         - load YAML for each sub-dir in this order:
+           * monitor
+           * accounts
+           * resource
+           * netenv
+         - load YAML from services sub-dir last
+         - add core monitoring metrics to the model
+         - validate that paco.refs resolve to objects with the correct schema
+        """
         # set-up the Troposphere YAML constructors
         # ToDo: YAML constructors appear to be global (set on the SafeConstructor class)
         # This approach replaces Paco CFN constructors with ones that load CFN Tags as
@@ -1408,6 +1423,8 @@ Duplicate key \"{}\" found on line {} at column {}.
                         instantiate_method(name, config, os.path.join(subdir, fname))
         self.instantiate_services()
         self.load_core_monitoring()
+        # not yet ready for prime-time
+        #self.validate_ref_schemas()
         self.yaml.restore_existing_constructors()
 
     def read_paco_project_version(self):
@@ -1434,23 +1451,46 @@ Duplicate key \"{}\" found on line {} at column {}.
                     version[0], version[1], paco_models_version
                 ))
 
-    def load_references(self):
-        """
-        Resolves all references
-        A reference is a string that refers to another value in the model. The original
-        reference string is stored as '_ref_<attribute>' while the resolved reference is
-        stored in the attribute.
-        """
-        # walk the model
-        for model in get_all_nodes(self.project):
-            for name, field in get_all_fields(model).items():
-                # check for lists of refs
-                #if zope.schema.interfaces.IList.providedBy(field):
+    def validate_ref_schemas(self):
+        "Validate that every paco.ref resolves to an object that implements the schema_constraint for the ref"
+        for obj in get_all_nodes(self.project):
+            for name, field in get_all_fields(obj).items():
+                if schemas.IPacoReference.providedBy(field):
+                    value = getattr(obj, name, None)
+                    # paco.refs are already validated during attribute loading
+                    # if they are str_ok=True they do not need to be a ref and do not follow their schema_constraint
+                    if not is_ref(value):
+                        continue
+                    ref = Reference(value)
+                    if ref.type == 'function':
+                        continue
+                    # refs within the EnvironmentDefault do not get normalized and can't be resolved to a model obj
+                    env_default = get_parent_by_interface(obj, schemas.IEnvironmentDefault)
+                    if not schemas.IEnvironmentRegion.providedBy(env_default):
+                        continue
 
-                # check for refs as normal attrs
-                if hasattr(model, '_ref_' + name):
-                    value = resolve_ref(getattr(model, '_ref_' + name), self.project)
-                    setattr(model, name, value)
+                    ref_obj = get_model_obj_from_ref(value, self.project, obj)
+                    # make the ref obj available in the model
+                    # ToDo: obj.get_ref_obj(fieldname) could replace get_model_obj_from_ref?
+                    setattr(obj, '_ref_' + name, ref_obj)
+                    if isinstance(field.schema_constraint, str):
+                        # can resolve to any kind of obj
+                        if field.schema_constraint == 'Interface':
+                            continue
+                        # not every PacoReference declares a schema_constraint
+                        # every paco.models.schemas should, but paco add-ons may not
+                        if field.schema_constraint == '':
+                            continue
+                        schema = getattr(schemas, field.schema_constraint)
+                    else:
+                        schema = field.schema_constraint
+                    if not schema.providedBy(ref_obj):
+                        message = "\nA paco.ref is refering to the wrong type of configuration:\n\n"
+                        message += f"Object: {obj.paco_ref_parts}\n"
+                        message += f"Field: {name}\n"
+                        message += f"Ref: {value}\n\n"
+                        message += f"Expected configuration of type '{field.schema_constraint}' but got 'I{ref_obj.__class__.__name__}'\n"
+                        raise InvalidPacoReference(message)
 
     def load_core_monitoring(self):
         "Loads monitoring metrics that are built into resources"

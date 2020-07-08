@@ -2667,6 +2667,91 @@ def get_parent_by_interface(context, interface=IProject):
         if max < 1:
             raise TypeError("Maximum location depth exceeded. Model is borked!")
 
+class IRoute53RecordSet(Interface):
+    """
+Route53 Record Set
+    """
+    record_name = schema.TextLine(
+        title='Record Set Full Name',
+        required=True
+    )
+    type = schema.TextLine(
+        title='Record Set Type',
+        required=True,
+        constraint = isValidRoute53RecordSetType
+    )
+    resource_records = schema.List(
+        title='Record Set Values',
+        required=True,
+        value_type=schema.TextLine(title='Resource Record')
+    )
+    ttl = schema.Int(
+        title='Record TTL',
+        required=False,
+        default=300
+    )
+
+    @invariant
+    def is_valid_values_check(obj):
+        if obj.type in ['CNAME', 'SOA']:
+            if len(obj.resource_records) > 1:
+                raise Invalid("If 'type' is {}, you may only specify one 'value'.".format(obj.type))
+
+class IRoute53HostedZoneExternalResource(INamed, IDeployable):
+    """
+Existing Hosted Zone configuration
+    """
+    hosted_zone_id = schema.TextLine(
+        title='ID of an existing Hosted Zone',
+        required=True
+    )
+    nameservers = schema.List(
+        title='List of the Hosted Zones Nameservers',
+        value_type=schema.TextLine(title='Nameservers'),
+        required=True
+    )
+
+class IHostedZone(Interface):
+    "Base interface for IRoute53HostedZone and IPrivateHostedZone"
+
+class IRoute53HostedZone(IHostedZone, INamed, IDeployable):
+    """
+Route53 Hosted Zone
+    """
+    domain_name = schema.TextLine(
+        title="Domain Name",
+        required=True
+    )
+    account = PacoReference(
+        title="Account this Hosted Zone belongs to",
+        required=True,
+        schema_constraint='IAccount'
+    )
+    record_sets = schema.List(
+        title='List of Record Sets',
+        value_type=schema.Object(IRoute53RecordSet),
+        required=True
+    )
+    parent_zone = schema.TextLine(
+        title='Parent Hozed Zone name',
+        required=False
+    )
+    external_resource = schema.Object(
+        title='External HostedZone Id Configuration',
+        schema = IRoute53HostedZoneExternalResource,
+        required=False
+    )
+    private_hosted_zone = schema.Bool(
+        title='Make this hosted zone private.',
+        required=False,
+        default=False
+    )
+    vpc_associations = PacoReference(
+        title="The VPC the private hosted zone will be provisioned in.",
+        required=False,
+        schema_constraint='IVPC'
+    )
+
 class IInternetGateway(IDeployable):
     """
 AWS Resource: IGW
@@ -2725,7 +2810,7 @@ class INATGateway(INamed, IDeployable):
 class IVPNGateway(INamed, IDeployable):
     """VPN Gateway"""
 
-class IPrivateHostedZone(IParent, IDeployable):
+class IPrivateHostedZone(IHostedZone, IParent, IDeployable):
     """Private Hosted Zone"""
     name = schema.TextLine(
         title="Hosted zone name",
@@ -3325,7 +3410,7 @@ class IDNS(IParent):
         title="Hosted Zone Id",
         required=False,
         str_ok=True,
-        schema_constraint='IRoute53HostedZone'
+        schema_constraint='IHostedZone'
     )
     domain_name = PacoReference(
         title="Domain name",
@@ -6775,90 +6860,6 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
 
 # Route53
 
-class IRoute53RecordSet(Interface):
-    """
-Route53 Record Set
-    """
-    record_name = schema.TextLine(
-        title='Record Set Full Name',
-        required=True
-    )
-    type = schema.TextLine(
-        title='Record Set Type',
-        required=True,
-        constraint = isValidRoute53RecordSetType
-    )
-    resource_records = schema.List(
-        title='Record Set Values',
-        required=True,
-        value_type=schema.TextLine(title='Resource Record')
-    )
-    ttl = schema.Int(
-        title='Record TTL',
-        required=False,
-        default=300
-    )
-
-    @invariant
-    def is_valid_values_check(obj):
-        if obj.type in ['CNAME', 'SOA']:
-            if len(obj.resource_records) > 1:
-                raise Invalid("If 'type' is {}, you may only specify one 'value'.".format(obj.type))
-
-class IRoute53HostedZoneExternalResource(INamed, IDeployable):
-    """
-Existing Hosted Zone configuration
-    """
-    hosted_zone_id = schema.TextLine(
-        title='ID of an existing Hosted Zone',
-        required=True
-    )
-    nameservers = schema.List(
-        title='List of the Hosted Zones Nameservers',
-        value_type=schema.TextLine(title='Nameservers'),
-        required=True
-    )
-
-class IRoute53HostedZone(INamed, IDeployable):
-    """
-Route53 Hosted Zone
-    """
-    domain_name = schema.TextLine(
-        title="Domain Name",
-        required=True
-    )
-    account = PacoReference(
-        title="Account this Hosted Zone belongs to",
-        required=True,
-        schema_constraint='IAccount'
-    )
-    record_sets = schema.List(
-        title='List of Record Sets',
-        value_type=schema.Object(IRoute53RecordSet),
-        required=True
-    )
-    parent_zone = schema.TextLine(
-        title='Parent Hozed Zone name',
-        required=False
-    )
-    external_resource = schema.Object(
-        title='External HostedZone Id Configuration',
-        schema = IRoute53HostedZoneExternalResource,
-        required=False
-    )
-    private_hosted_zone = schema.Bool(
-        title='Make this hosted zone private.',
-        required=False,
-        default=False
-    )
-    vpc_associations = PacoReference(
-        title="The VPC the private hosted zone will be provisioned in.",
-        required=False,
-        schema_constraint='IVPC'
-    )
-
-
-
 class IRoute53Resource(INamed):
     """
 The ``resource/route53.yaml`` file manages AWS Route 53 hosted zones.
@@ -8796,7 +8797,7 @@ ECS DeploymentPipeline Deploy Stage
         title="ECS Cluster",
         required=True,
         str_ok=False,
-        schema_constraint='IASG'
+        schema_constraint='IECSCluster'
     )
     service = PacoReference(
         title='ECS Service',
@@ -8996,7 +8997,7 @@ DeploymentPipeline caveats - there are a few things to consider when creating pi
     source:
       codecommit:
         type: CodeCommit.Source
-        codecommit_repository: paco.ref resource.codecommit.mygroiup.myrepo
+        codecommit_repository: paco.ref resource.codecommit.mygroup.myrepo
         deployment_branch_name: "prod"
     build:
       codebuild:

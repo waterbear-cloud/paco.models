@@ -158,7 +158,10 @@ class Parent(CFNExport):
         parts = []
         parent = obj.__parent__
         while parent != None:
-            parts.append(obj.name)
+            name = getattr(obj, 'name', None)
+            # objects of type IParent do not have a name, their parent's ref is returned
+            if name != None:
+                parts.append(name)
             obj = parent
             parent = obj.__parent__
         parts.reverse()

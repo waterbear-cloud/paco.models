@@ -7570,6 +7570,7 @@ RDS common fields shared by both DBInstance and DBCluster
     )
     db_snapshot_identifier = schema.TextLine(
         title="DB Snapshot Identifier to restore from",
+        description="Must be the ARN of a valid database snapshot.",
         required=False,
     )
     deletion_protection = schema.Bool(

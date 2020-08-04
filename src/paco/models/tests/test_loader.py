@@ -213,6 +213,12 @@ class Testpacodemo(BaseTestModelLoader):
         assert schemas.IDBParameterGroup.providedBy(dbparams)
         assert dbparams.parameters['block_encryption_mode'] == 'aes-128-ecb'
 
+    def test_iamuser_resource(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        github_user = demo_env['applications']['app'].groups['cicd'].resources['github_user']
+        assert schemas.IIAMUserResource.providedBy(github_user)
+        assert github_user.allows[0] == 'paco.ref netenv.pacodemo.demo.us-west-2.app.app.groups.cicd.resources.ecrrepo'
+
     def test_cloudwatch_logging(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         demo_webapp = demo_env['applications']['app'].groups['site'].resources['webapp']

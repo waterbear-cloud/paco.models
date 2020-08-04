@@ -1,11 +1,16 @@
 Changelog for paco.models
 =========================
 
-7.4.1 (unreleased)
+7.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- Added `IIAMUserResource` as an application-level IAMUser resource.
+
+### Changed
+
+- `IIAMUserProgrammaticAccess` changed to `IEnablable` and now defaults to True.
 
 7.4.0 (2020-07-14)
 ------------------

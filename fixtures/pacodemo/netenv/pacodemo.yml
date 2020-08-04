@@ -418,6 +418,16 @@ applications:
             enabled: true
             order: 29
             repository_name: 'simple_app'
+          github_user:
+            type: IAMUser
+            enabled: true
+            order: 40
+            programmatic_access:
+              enabled: true
+              access_key_1_version: 0
+              access_key_2_version: 0
+            allows:
+               - paco.ref netenv.pacodemo.app.app.groups.cicd.resources.ecrrepo
           ecrpipe:
             type: DeploymentPipeline
             order: 30

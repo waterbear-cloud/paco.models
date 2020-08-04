@@ -2038,3 +2038,8 @@ class CodeDeployDeploymentGroup(Named, Deployable):
 class CodeDeployApplication(ApplicationResource):
     compute_platform = FieldProperty(schemas.ICodeDeployApplication['compute_platform'])
     deployment_groups = FieldProperty(schemas.ICodeDeployApplication['deployment_groups'])
+
+@implementer(schemas.IIAMUserResource)
+class IAMUserResource(ApplicationResource):
+    allows = FieldProperty(schemas.IIAMUserResource['allows'])
+    programmatic_access = FieldProperty(schemas.IIAMUserResource['programmatic_access'])

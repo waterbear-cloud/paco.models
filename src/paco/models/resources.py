@@ -5,7 +5,7 @@ All things Resources.
 import json
 import troposphere.apigateway
 import troposphere.route53
-from paco.models.base import Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource, AccountRegions
+from paco.models.base import Enablable, Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource, AccountRegions
 from paco.models.metrics import Monitorable
 from paco.models import references
 from paco.models import schemas
@@ -576,7 +576,7 @@ class CloudTrailResource(Named):
 
 
 @implementer(schemas.IIAMUserProgrammaticAccess)
-class IAMUserProgrammaticAccess(Deployable):
+class IAMUserProgrammaticAccess(Enablable):
     access_key_1_version = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_1_version'])
     access_key_2_version = FieldProperty(schemas.IIAMUserProgrammaticAccess['access_key_2_version'])
 

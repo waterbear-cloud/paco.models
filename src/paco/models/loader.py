@@ -20,7 +20,7 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     VPCPeerings, SecurityGroupSets, SecurityGroups
 from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
 from paco.models.applications import Application, ResourceGroups, ResourceGroup, \
-    ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, \
+    ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, IAMUserResource, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
@@ -151,6 +151,7 @@ RESOURCES_CLASS_MAP = {
     'ElastiCacheRedis': ElastiCacheRedis,
     'ElasticsearchDomain': ElasticsearchDomain,
     'EventsRule': EventsRule,
+    'IAMUser': IAMUserResource,
     'IoTPolicy': IoTPolicy,
     'IoTTopicRule': IoTTopicRule,
     'IoTAnalyticsPipeline': IoTAnalyticsPipeline,
@@ -201,6 +202,10 @@ SUB_TYPES_CLASS_MAP = {
     },
     ECRRepository: {
         'repository_policy': ('direct_obj', Policy)
+    },
+    IAMUserResource: {
+        'allows': ('str_list', PacoReference),
+        'programmatic_access': ('direct_obj', IAMUserProgrammaticAccess),
     },
     IoTAnalyticsPipeline: {
         'channel_storage': ('direct_obj', IotAnalyticsStorage),

@@ -176,6 +176,17 @@ def isValidAWSRegionNameOrNone(value):
         raise InvalidAWSRegion
     return True
 
+class InvalidS3BucketHash(schema.ValidationError):
+    __doc__ = 'S3 Bucket suffix must be lower-case alphanumberic characters and no longer than 12 characters.'
+
+def isValidS3BucketHash(value):
+    "Must be lowercase alphanumeric and no more than 12 characters"
+    if len(value) > 12:
+        raise InvalidS3BucketHash
+    if re.match('^[0-9a-z]+$', value):
+        return True
+    raise InvalidS3BucketHash
+
 def isValidAWSRegionList(value):
     for region in value:
         isValidAWSRegionName(region)
@@ -2647,6 +2658,7 @@ class IProject(INamed, IMapping):
         title="S3 Bucket hash suffix",
         description="",
         required=False,
+        constraint=isValidS3BucketHash,
     )
 
 
@@ -8219,7 +8231,7 @@ settings, instance types, instance counts, and storage resources that you specif
         required=False,
     )
 
-class IIAMUserProgrammaticAccess(IDeployable):
+class IIAMUserProgrammaticAccess(IEnablable):
     """
 IAM User Programmatic Access Configuration
     """
@@ -8435,6 +8447,25 @@ IAM Resource contains IAM Users who can login and have different levels of acces
     users = schema.Object(
         title='IAM Users',
         schema=IIAMUsers,
+        required=False,
+    )
+
+class IIAMUserResource(IResource):
+    """
+IAM User
+    """
+    allows = schema.List(
+        title="Resources to allow this user to access.",
+        description="",
+        required=True,
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='Interface',
+        ),
+    )
+    programmatic_access = schema.Object(
+        title='Programmatic Access',
+        schema = IIAMUserProgrammaticAccess,
         required=False,
     )
 

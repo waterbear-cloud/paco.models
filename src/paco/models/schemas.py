@@ -2194,11 +2194,11 @@ S3 Bucket Policy
         default={},
         required=False,
     )
-    effect = schema.TextLine(
+    effect = schema.Choice(
         title="Effect",
-        default="Deny",
+        description="Must be one of 'Allow' or 'Deny'",
         required=True,
-        description="Must be one of: 'Allow', 'Deny'",
+        vocabulary=vocabulary.iam_policy_effect,
     )
     resource_suffix = schema.List(
         title="List of AWS Resources Suffixes",
@@ -3588,12 +3588,11 @@ class IStatement(INamed):
         required=False,
         # ToDo: Use awacs to add a constraint to check for valid conditions
     )
-    effect = schema.TextLine(
+    effect = schema.Choice(
         title="Effect",
-        description="Must be one of: 'Allow', 'Deny'",
+        description="Must be one of 'Allow' or 'Deny'",
         required=False,
-        # ToDo: check constraint
-        # constraint = vocabulary.iam_policy_effect
+        vocabulary=vocabulary.iam_policy_effect,
     )
     resource = schema.List(
         title="Resrource(s)",
@@ -3623,11 +3622,11 @@ class IPolicy(IParent):
     )
 
 class IAssumeRolePolicy(IParent):
-    effect = schema.TextLine(
+    effect = schema.Choice(
         title="Effect",
+        description="Must be one of 'Allow' or 'Deny'",
         required=False,
-        # ToDo: check constraint
-        # constraint = vocabulary.iam_policy_effect
+        vocabulary=vocabulary.iam_policy_effect,
     )
     aws = schema.List(
         title="List of AWS Principals",

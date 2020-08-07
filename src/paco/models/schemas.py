@@ -8467,6 +8467,11 @@ IAM User
         schema = IIAMUserProgrammaticAccess,
         required=False,
     )
+    account = PacoReference(
+        title="The account where Pipeline tools will be provisioned.",
+        required=False,
+        schema_constraint=IAccount
+    )
 
 class IDeploymentPipelineConfiguration(INamed):
     """

@@ -2043,7 +2043,23 @@ class IEventTarget(INamed):
 
 class IEventsRule(IResource):
     """
-Events Rule
+Events Rule resources match incoming or scheduled events and route them to target using Amazon EventBridge.
+
+.. sidebar:: Prescribed Automation
+
+    ``targets``: If the ``target`` is a Lambda, an IAM Role will be created that is granted permission to invoke it by this EventRule.
+
+.. code-block:: yaml
+    :caption: Lambda function resource YAML
+
+    type: EventsRule
+    enabled: true
+    order: 10
+    description: Invoke a Lambda every other minute
+    schedule_expression: "cron(*/2 * * * ? *)"
+    targets:
+        - target: paco.ref netenv.mynet.applications.myapp.groups.mygroup.resources.mylambda
+
     """
     # ToDo: add event_pattern field and invariant to make schedule_expression conditional
     # ToDo: constraint regex that validates schedule_expression

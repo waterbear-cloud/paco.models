@@ -2043,3 +2043,4 @@ class CodeDeployApplication(ApplicationResource):
 class IAMUserResource(ApplicationResource):
     allows = FieldProperty(schemas.IIAMUserResource['allows'])
     programmatic_access = FieldProperty(schemas.IIAMUserResource['programmatic_access'])
+    account = FieldProperty(schemas.IIAMUserResource['account'])

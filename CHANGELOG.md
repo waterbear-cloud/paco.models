@@ -12,6 +12,9 @@ Changelog for paco.models
 
 - `IIAMUserProgrammaticAccess` changed to `IEnablable` and now defaults to True.
 
+- The `ICloudFrontCustomErrorResponse` field `error_caching_min_ttl` has a default of 300.
+
+
 7.4.0 (2020-07-14)
 ------------------
 

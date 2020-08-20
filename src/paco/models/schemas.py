@@ -7354,7 +7354,8 @@ class ICloudFrontViewerCertificate(INamed):
 class ICloudFrontCustomErrorResponse(Interface):
     error_caching_min_ttl = schema.Int(
         title="Error Caching Min TTL",
-        required=False
+        required=False,
+        default=300,
     )
     error_code = schema.Int(
         title="HTTP Error Code",

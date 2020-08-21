@@ -139,7 +139,7 @@ class InvalidEndpointConfigurationType(schema.ValidationError):
 
 def isValidEndpointConfigurationType(value):
     if value not in ('EDGE', 'REGIONAL', 'PRIVATE'):
-        raise
+        raise InvalidEndpointConfigurationType
     return True
 
 class InvalidBinaryMediaTypes(schema.ValidationError):
@@ -483,7 +483,7 @@ class InvalidCFProtocolPolicy(schema.ValidationError):
 
 def isValidCFProtocolPolicy(value):
     if value not in ('http-only', 'https-only', 'match-viewer'):
-        raise InvalidCFPProtocolPolicy
+        raise InvalidCFProtocolPolicy
     return True
 
 class InvalidCFSSLProtocol(schema.ValidationError):
@@ -7496,6 +7496,76 @@ CloudFront CDN Configuration
         required=False,
     )
 
+# Pinpoint
+
+class IPinpointEmailChannel(Interface):
+    "Pinpoint Email Channel"
+    enable_email = schema.Bool(
+        title="Enable Email",
+        required=False,
+        default=True,
+    )
+    from_address = schema.TextLine(
+        title="The verified email address that you want to send email from when you send email through the channel.",
+        required=False,
+    )
+
+class IPinpointSMSChannel(Interface):
+    "Pinpoint SMS Channel"
+    enable_sms = schema.Bool(
+        title="Enable SMS",
+        required=False,
+        default=True,
+    )
+    # ToDo: constraints and invariants
+    sender_id = schema.TextLine(
+        title="The identity that you want to display on recipients' devices when they receive messages from the SMS channel.",
+        required=False,
+    )
+    short_code = schema.TextLine(
+        title="The registered short code that you want to use when you send messages through the SMS channel.",
+        required=False,
+    )
+
+class IPinpointApplication(IResource):
+    """Amazon Pinpoint is a flexible and scalable outbound and inbound marketing communications service.
+You can connect with customers over channels like email, SMS, push, or voice.
+
+A Pinpoint Application is a collection of related settings, customer information, segments, campaigns,
+and other types of Amazon Pinpoint resources.
+
+Currently AWS Pinpoint only supports general configuration suitable for sending transactional messages.
+
+.. sidebar:: Prescribed Automation
+
+    ``email_channel``: Will build an ARN to a Simple Email Service Verified Email in the same account and region.
+
+.. code-block:: yaml
+    :caption: example Pinpoint Application configuration
+
+    type: PinpointApplication
+    enabled: true
+    order: 20
+    title: "My SaaS Transactional Message Service"
+    email_channel:
+        enable_email: true
+        from_address: "bob@example.com"
+    sms_channel:
+        enable_sms: true
+        sender_id: MyUniqueName
+
+"""
+    sms_channel = schema.Object(
+        title="SMS Channel",
+        schema=IPinpointSMSChannel,
+        required=False
+    )
+    email_channel = schema.Object(
+        title="Email Channel",
+        schema=IPinpointEmailChannel,
+        required=False
+    )
+
 # RDS Schemas
 
 class IDBParameters(IMapping):
@@ -7554,7 +7624,7 @@ Option groups enable and configure features that are specific to a particular DB
     #   A list of VpcSecurityGroupMembership name strings used for this option.
 
 
-class IRDS(IResource, IMonitorable):
+class IRDS(IMonitorable):
     """
 RDS common fields shared by both DBInstance and DBCluster
     """
@@ -7665,7 +7735,7 @@ RDS common fields shared by both DBInstance and DBCluster
         schema_constraint='ISegment'
     )
 
-class IRDSInstance(IRDS):
+class IRDSInstance(IResource, IRDS):
     """
 RDS DB Instance
     """

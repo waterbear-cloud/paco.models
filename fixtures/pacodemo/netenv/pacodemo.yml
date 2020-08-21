@@ -135,6 +135,23 @@ applications:
          - bob
         classification: 'performance'
     groups:
+      market:
+        type: Application
+        title: Communications
+        order: 2000
+        resources:
+          pinpointapp:
+            type: PinpointApplication
+            title: My Example Pinpoint Application
+            enabled: true
+            order: 10
+            sms_channel:
+              enable_sms: true
+              sender_id: MisterId
+            email_channel:
+              enable_email: true
+              from_address: bob@example.com
+
       container:
         type: Application
         order: 500

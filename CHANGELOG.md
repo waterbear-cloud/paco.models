@@ -8,11 +8,16 @@ Changelog for paco.models
 
 - Added `IIAMUserResource` as an application-level IAMUser resource.
 
+- Minimal `IPinpointApplication` schema for AWS Pinpoint support.
+
 ### Changed
 
 - `IIAMUserProgrammaticAccess` changed to `IEnablable` and now defaults to True.
 
 - The `ICloudFrontCustomErrorResponse` field `error_caching_min_ttl` has a default of 300.
+
+- PyLance detected fixes: re-arrange `IRDS` schema so it no longer provides `IResource`.
+  https://github.com/microsoft/pylance-release
 
 
 7.4.0 (2020-07-14)

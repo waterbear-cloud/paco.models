@@ -7275,20 +7275,21 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         default=[ 'GET', 'HEAD', 'OPTIONS' ],
         required=False
     )
+    # These default, Max, Min, and Default TTL values specifically configure
+    # Cloudfront to use the Origin's cache-control header values when they
+    # exist. Changing these values will force Cloudfront to modify any
+    # Cache-Control header with the new values.
     default_ttl = schema.Int(
         title="Default TTL",
-        # Disable TTL bydefault, just pass through
-        default=0
+        default=86400
     )
     max_ttl = schema.Int(
         title="Maximum TTL",
-        # -1 i unset
-        default=-1
+        default=31536000
     )
     min_ttl = schema.Int(
         title="Minimum TTL",
-        # -1 is unset
-        default=-1
+        default=0
     )
     target_origin = PacoReference(
         title="Target Origin",

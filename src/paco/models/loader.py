@@ -9,7 +9,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    TroposphereConversionError, InvalidPacoSchema, InvalidLocalPath, InvalidPacoSub, InvalidPacoReference
+    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
@@ -18,8 +18,8 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
     VPCPeerings, SecurityGroupSets, SecurityGroups
-from paco.models.project import VersionControl, Project, Credentials, SharedState, PacoWorkBucket
-from paco.models.applications import Application, ResourceGroups, ResourceGroup, \
+from paco.models.project import VersionControl, Project, SharedState, PacoWorkBucket
+from paco.models.applications import Application, PinpointApplication, ResourceGroups, ResourceGroup, \
     ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, IAMUserResource, \
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
@@ -44,12 +44,13 @@ from paco.models.applications import Application, ResourceGroups, ResourceGroup,
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
-    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider
+    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, \
+    PinpointSMSChannel, PinpointEmailChannel
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
     DatasetContentDeliveryRule, DatasetS3Destination, DatasetQueryAction, DatasetContainerAction, \
-    DatasetVariables, DatasetVariable, IoTPolicy, IoTVariables
+    IoTPolicy, IoTVariables
 from paco.models.resources import S3Resource, S3Buckets, \
     EC2Resource, EC2KeyPairs, EC2KeyPair, EC2Users, EC2User, EC2Group, EC2Groups, \
     Route53Resource, Route53HostedZone, Route53RecordSet, Route53HostedZoneExternalResource, Route53HealthCheck, \
@@ -71,19 +72,18 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
     CloudFormationConfiguration, CloudFormationInit, CloudFormationParameters, CloudFormationInitServiceCollection, \
     CloudFormationInitService
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
-    BackupPlans, BackupVault, BackupVaults
+    BackupPlans, BackupVault
 from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
-from paco.models.references import Reference, PacoReference, FileReference
-from paco.models.references import resolve_ref, is_ref, get_model_obj_from_ref
+from paco.models.references import Reference, PacoReference
+from paco.models.references import is_ref, get_model_obj_from_ref
 from paco.models.vocabulary import aws_regions
 from paco.models.yaml import ModelYAML
 from paco.models import schemas
 from pathlib import Path
-from ruamel.yaml.compat import StringIO
-from zope.schema.interfaces import ConstraintNotSatisfied, ValidationError
+from zope.schema.interfaces import ValidationError
 import paco.models.services
 import itertools, os, copy
 import logging
@@ -92,8 +92,6 @@ import pkg_resources
 import re
 import ruamel.yaml
 import ruamel.yaml.composer
-import sys
-import troposphere
 import zope.schema
 import zope.schema.interfaces
 import zope.interface.exceptions
@@ -158,6 +156,7 @@ RESOURCES_CLASS_MAP = {
     'Lambda': Lambda,
     'LBApplication': LBApplication,
     'ManagedPolicy': ManagedPolicy,
+    'PinpointApplication': PinpointApplication,
     'RDS': RDS,
     'RDSMysql': RDSMysql,
     'RDSMysqlAurora': RDSMysqlAurora,
@@ -202,6 +201,10 @@ SUB_TYPES_CLASS_MAP = {
     },
     ECRRepository: {
         'repository_policy': ('direct_obj', Policy)
+    },
+    PinpointApplication: {
+        'sms_channel': ('direct_obj', PinpointSMSChannel),
+        'email_channel': ('direct_obj', PinpointEmailChannel),
     },
     IAMUserResource: {
         'allows': ('str_list', PacoReference),

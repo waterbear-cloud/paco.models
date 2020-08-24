@@ -38,6 +38,11 @@ class BaseTestModelLoader(unittest.TestCase):
 class Testpacodemo(BaseTestModelLoader):
 
     project_name = 'pacodemo'
+
+    def setUp(self):
+        self.demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        self.demo_app = self.demo_env['applications']['app']
+
     def test_project(self):
         assert isinstance(self.project, Project)
         assert self.project.name == 'waterbear-networks'
@@ -218,6 +223,12 @@ class Testpacodemo(BaseTestModelLoader):
         github_user = demo_env['applications']['app'].groups['cicd'].resources['github_user']
         assert schemas.IIAMUserResource.providedBy(github_user)
         assert github_user.allows[0] == 'paco.ref netenv.pacodemo.demo.us-west-2.app.app.groups.cicd.resources.ecrrepo'
+
+    def test_pinpointapp(self):
+        pinpointapp = self.demo_app.groups['market'].resources['pinpointapp']
+        assert schemas.IPinpointApplication(pinpointapp)
+        assert pinpointapp.email_channel.from_address == 'bob@example.com'
+        assert pinpointapp.sms_channel.sender_id == 'MisterId'
 
     def test_cloudwatch_logging(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

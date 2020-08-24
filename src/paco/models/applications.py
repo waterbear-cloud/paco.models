@@ -21,6 +21,7 @@ import troposphere.ecs
 import troposphere.elasticache
 import troposphere.elasticloadbalancingv2
 import troposphere.elasticsearch
+import troposphere.pinpoint
 import troposphere.rds
 import troposphere.s3
 import troposphere.secretsmanager
@@ -2044,3 +2045,37 @@ class IAMUserResource(ApplicationResource):
     allows = FieldProperty(schemas.IIAMUserResource['allows'])
     programmatic_access = FieldProperty(schemas.IIAMUserResource['programmatic_access'])
     account = FieldProperty(schemas.IIAMUserResource['account'])
+
+@implementer(schemas.IPinpointSMSChannel)
+class PinpointSMSChannel(Parent):
+    enable_sms = FieldProperty(schemas.IPinpointSMSChannel['enable_sms'])
+    sender_id = FieldProperty(schemas.IPinpointSMSChannel['sender_id'])
+    short_code = FieldProperty(schemas.IPinpointSMSChannel['short_code'])
+
+    troposphere_props = troposphere.pinpoint.SMSChannel.props
+    cfn_mapping = {
+        # 'ApplicationId':set in the template
+        'Enabled': 'enable_sms',
+        'SenderId': 'sender_id',
+        'ShortCode': 'short_code',
+    }
+
+@implementer(schemas.IPinpointEmailChannel)
+class PinpointEmailChannel(Parent):
+    enable_email = FieldProperty(schemas.IPinpointEmailChannel['enable_email'])
+    from_address = FieldProperty(schemas.IPinpointEmailChannel['from_address'])
+
+    troposphere_props = troposphere.pinpoint.EmailChannel.props
+    cfn_mapping = {
+        # 'ApplicationId': set in the template
+        # 'ConfigurationSet': (basestring, False), What is this?
+        'Enabled': 'enable_email',
+        'FromAddress': 'from_address',
+        # 'Identity': set in the template
+        # 'RoleArn': (basestring, False),
+    }
+
+@implementer(schemas.IPinpointApplication)
+class PinpointApplication(ApplicationResource):
+    sms_channel = FieldProperty(schemas.IPinpointApplication['sms_channel'])
+    email_channel = FieldProperty(schemas.IPinpointApplication['email_channel'])

@@ -505,6 +505,16 @@ class CodeCommit(Named, dict):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
+    def repo_list(self):
+        "List of all repositories"
+        out = []
+        for group in self.values():
+            for repo in group.values():
+                repo.repository_group = group
+                out.append(repo)
+        return out
+
+
 @implementer(schemas.IConfig)
 class Config(Resource):
     delivery_frequency = FieldProperty(schemas.IConfig["delivery_frequency"])

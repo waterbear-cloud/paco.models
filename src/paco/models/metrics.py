@@ -11,6 +11,8 @@ from paco.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
+class Monitor(Named, dict):
+    pass
 
 @implementer(schemas.ISNSTopics)
 class SNSTopics(AccountRef, Named, dict):
@@ -50,6 +52,9 @@ class AlarmSet(Named, dict):
 @implementer(schemas.IAlarmSets)
 class AlarmSets(Named, dict):
     "Collection of Alarms"
+
+class AlarmSetsContainer(Named, dict):
+    "Collection of AlarmSets"
 
 @implementer(schemas.IAlarm)
 class Alarm(Named, Regionalized, Deployable):

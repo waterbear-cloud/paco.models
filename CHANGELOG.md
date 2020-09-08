@@ -10,6 +10,8 @@ Changelog for paco.models
 
 - Minimal `IPinpointApplication` schema for AWS Pinpoint support.
 
+- AlarmSets and CWLogging are loaded into `project.monitor`. These are used by `paco describe` feature.
+
 ### Changed
 
 - `IIAMUserProgrammaticAccess` changed to `IEnablable` and now defaults to True.

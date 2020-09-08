@@ -12,7 +12,7 @@ from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile,
     InvalidLocalPath, InvalidPacoSub, InvalidPacoReference
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
-    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
+    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, AlarmSetsContainer, SNSTopics, Dimension, \
     HealthChecks, CloudWatchLogAlarm, CloudWatchDashboard, DashboardVariables
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
@@ -548,6 +548,9 @@ SUB_TYPES_CLASS_MAP = {
         'log_groups': ('container', (CloudWatchLogGroups, CloudWatchLogGroup)),
     },
     RegionContainer: {
+        'alarm_sets': ('twolevel_container', (AlarmSets, AlarmSet, CloudWatchAlarm))
+    },
+    AlarmSetsContainer: {
         'alarm_sets': ('twolevel_container', (AlarmSets, AlarmSet, CloudWatchAlarm))
     },
 
@@ -1099,6 +1102,28 @@ Configuration section:
                     second_obj = second_object_class(second_key, container[first_key])
                     apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
                     container[first_key][second_key] = second_obj
+        return container
+
+    elif sub_type == 'threelevel_container':
+        # not really generic - only used for AlarmSetsContainer loading ...
+        container_class = sub_class[0]
+        first_object_class = sub_class[1]
+        second_object_class = sub_class[2]
+        container = container_class(name, obj)
+        for first_key, first_value in value.items():
+            first_obj = first_object_class(first_key, container)
+            container[first_key] = first_obj
+            for second_key, second_value in first_value.items():
+                second_obj = second_object_class(second_key, container[first_key])
+                apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
+                container[first_key][second_key] = second_obj
+                for third_key, third_value in second_value.items():
+                    if 'type' in third_value and third_value['type'] == 'LogAlarm':
+                        third_obj = CloudWatchLogAlarm(third_key, container[first_key][second_key])
+                    else:
+                        third_obj = CloudWatchAlarm(third_key, container[first_key][second_key])
+                    apply_attributes_from_config(third_obj, third_value, config_folder, lookup_config, read_file_path)
+                    container[first_key][second_key][third_key] = second_obj
         return container
 
     elif sub_type == 'direct_obj':
@@ -1769,13 +1794,23 @@ Duplicate key \"{}\" found on line {} at column {}.
             self.monitor_config = {}
         if name.lower() == 'alarmsets':
             self.monitor_config['alarms'] = config
+            alarm_sets = sub_types_loader(
+                self.project,
+                'alarm_sets',
+                config,
+                config_folder=self.config_folder,
+                read_file_path=self.read_file_path,
+                sub_type='threelevel_container',
+                sub_class=(AlarmSetsContainer, AlarmSets, AlarmSet, CloudWatchAlarm)
+            )
+            self.project.monitor.alarm_sets = alarm_sets
         elif name.lower() == 'logging':
             if 'cw_logging' in config:
                 # load the CloudWatch logging into the model, currently this is
                 # just done to validate the YAML
                 cw_logging = CloudWatchLogging('cw_logging', self.project)
                 apply_attributes_from_config(cw_logging, config['cw_logging'])
-                self.project['cw_logging'] = cw_logging
+                self.project.monitor.cw_logging = cw_logging
             self.monitor_config['logging'] = config
 
     def instantiate_snstopics(self, config):
@@ -1803,12 +1838,6 @@ Duplicate key \"{}\" found on line {} at column {}.
         if config != None:
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj
-
-    def instantiate_cloudwatch_log_groups(self, config):
-        cw_log_groups = CWLogGroups()
-        self.project['cloudwatch_log_groups'] = cw_log_groups
-        if 'log_groups' in config:
-            apply_attributes_from_config(cw_log_groups, config['log_groups'])
 
     def instantiate_accounts(self, name, config, read_file_path=''):
         accounts = self.project['accounts']

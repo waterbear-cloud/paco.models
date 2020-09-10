@@ -1811,6 +1811,8 @@ Duplicate key \"{}\" found on line {} at column {}.
                 cw_logging = CloudWatchLogging('cw_logging', self.project)
                 apply_attributes_from_config(cw_logging, config['cw_logging'])
                 self.project.monitor.cw_logging = cw_logging
+                # original location - still used but can be refactored out
+                self.project['cw_logging'] = cw_logging
             self.monitor_config['logging'] = config
 
     def instantiate_snstopics(self, config):

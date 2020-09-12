@@ -1123,7 +1123,7 @@ Configuration section:
                     else:
                         third_obj = CloudWatchAlarm(third_key, container[first_key][second_key])
                     apply_attributes_from_config(third_obj, third_value, config_folder, lookup_config, read_file_path)
-                    container[first_key][second_key][third_key] = second_obj
+                    container[first_key][second_key][third_key] = third_obj
         return container
 
     elif sub_type == 'direct_obj':

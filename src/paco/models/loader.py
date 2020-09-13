@@ -1923,6 +1923,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                 print("WARNING: File ignored, perhaps it is misnamed? {}".format(read_file_path))
         else:
             self.project['resource'][name] = instantiate_method(config)
+            setattr(self.project['resource'], name, self.project['resource'][name])
             if self.project['resource'][name] != None:
                 self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
         return

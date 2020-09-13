@@ -6,7 +6,7 @@ import json
 import troposphere.apigateway
 import troposphere.route53
 from paco.models.base import Enablable, Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource, AccountRegions
-from paco.models.metrics import Monitorable
+from paco.models.metrics import Monitorable, SNSTopics
 from paco.models import references
 from paco.models import schemas
 from zope.interface import implementer
@@ -16,9 +16,6 @@ from paco.models.locations import get_parent_by_interface
 from paco.models.references import Reference
 from paco.models import references
 
-@implementer(schemas.IGlobalResources)
-class GlobalResources(Named, dict):
-    "Global Resources"
 
 @implementer(schemas.ITopics)
 class Topics(Named, dict):
@@ -35,6 +32,7 @@ class SNS(Named, dict):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.computed = Computed('computed', self)
+        self.topics = Topics('topics', self)
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
@@ -460,7 +458,7 @@ class CodeCommitRepository(Named, Deployable):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.user = CodeCommitUsers('users', self)
+        self.users = CodeCommitUsers('users', self)
 
 @implementer(schemas.ICodeCommitRepositoryGroup)
 class CodeCommitRepositoryGroup(Named, dict):
@@ -646,6 +644,10 @@ class IAMUser(Named, Deployable):
     permissions = FieldProperty(schemas.IIAMUser['permissions'])
     account_whitelist = FieldProperty(schemas.IIAMUser['account_whitelist'])
 
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.permissions = IAMUserPermissions('permissions', self)
+
 @implementer(schemas.IIAMUsers)
 class IAMUsers(Named, dict):
     pass
@@ -690,3 +692,20 @@ class SSMResource(Named):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.ssm_documents = SSMDocuments('ssm_documents', self)
+
+@implementer(schemas.IGlobalResources)
+class GlobalResources(Named, dict):
+    "Global Resources"
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self['cloudtrail'] = CloudTrailResource('cloudtrail', self)
+        self.cloudtrail = self['cloudtrail']
+        self['codecommit'] = CodeCommit('codecommit', self)
+        self.codecommit = self['codecommit']
+        self['sns'] = SNS('sns', self)
+        self.sns = self['sns']
+        self['snstopics'] = SNSTopics('snstopics', self)
+        self.snstopics = self['snstopics']
+        self['iam'] = IAMResource('iam', self)
+        self.iam = self['iam']

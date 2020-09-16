@@ -12,6 +12,9 @@ Changelog for paco.models
 
 - AlarmSets and CWLogging are loaded into `project.monitor`. These are used by `paco describe` feature.
 
+- Added `extend_base_schema` hook to the loader to allows Services to extend schemas before the loader loads.
+
+
 ### Changed
 
 - `IIAMUserProgrammaticAccess` changed to `IEnablable` and now defaults to True.

@@ -224,6 +224,10 @@ class CloudWatchAlarm(Alarm):
         #  'Metrics': ([MetricDataQuery], False),
     }
 
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self._extra_alarm_description = {}
+
     def threshold_human(self):
         "Human readable threshold"
         comparison = vocabulary.cloudwatch_comparison_operators[self.comparison_operator]
@@ -274,7 +278,7 @@ class CloudWatchAlarm(Alarm):
             "topic_arns": topic_arn_subs
         }
 
-        # conditional fields:
+        # conditional fields
         if self.description:
             description['description'] = self.description
         if self.runbook_url:
@@ -300,12 +304,36 @@ class CloudWatchAlarm(Alarm):
             description["envreg_name"] = envreg.name
             description["envreg_title"] = envreg.title
 
-        description_json = json.dumps(description)
+        # add any extended fields
+        description = self.extend_description(description)
 
+        # bake into JSON
+        description_json = json.dumps(description)
         return troposphere.Sub(
             description_json,
             sub_dict
         )
+
+    def add_to_alarm_description(self, add_dict):
+        "Adds additional fields to AlarmDescription"
+        for key, value in add_dict.items():
+            if key in self._extra_alarm_description:
+                raise paco.models.exceptions.AlarmDescriptionExtensionConflict(
+                   f"Another extension has already added the field name '{key}' to AlarmDescription."
+                )
+            self._extra_alarm_description[key] = value
+        return
+
+    def extend_description(self, description):
+        "Extend a description dict with any extra fields"
+        for key, value in self._extra_alarm_description.items():
+            if key in description:
+                raise paco.models.exceptions.AlarmDescriptionExtensionConflict(
+                   f"Can not extend AlarmDescription with the field name '{key}' as it's a Paco AlarmDescription reserved name."
+                )
+            description[key] = value
+        return description
+
 
 @implementer(schemas.ICloudWatchLogAlarm)
 class CloudWatchLogAlarm(CloudWatchAlarm):

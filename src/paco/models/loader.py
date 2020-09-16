@@ -1438,6 +1438,9 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         paco_project_version = self.read_paco_project_version()
         self.check_paco_project_version(paco_project_version)
+
+        self.extend_base_schemas()
+
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
         self.project.paco_project_version = '{}.{}'.format(paco_project_version[0], paco_project_version[1])
 
@@ -1751,6 +1754,29 @@ Duplicate key \"{}\" found on line {} at column {}.
                 self.config_folder,
                 read_file_path=self.read_file_path
             )
+
+    def extend_base_schemas(self):
+        """
+        Hook for Paco Services to extend/modify paco.models schemas and implementation
+        with additional fields. This will happen before any loading is done.
+        """
+        service_plugins = paco.models.services.list_service_plugins()
+        services_dir_name = 'service'
+        # Legacy directory name
+        if os.path.isdir(self.config_folder /'Services'):
+            services_dir_name = 'Services'
+        services_dir = self.config_folder / services_dir_name
+        for plugin_name, plugin_module in service_plugins.items():
+            if (services_dir / (plugin_name + '.yml')).is_file():
+                fname = plugin_name + '.yml'
+            elif (services_dir / (plugin_name + '.yaml')).is_file():
+                fname = plugin_name + '.yaml'
+            else:
+                continue
+
+            # call services extend_base_schemas
+            if hasattr(plugin_module, 'extend_base_schemas'):
+                plugin_module.extend_base_schemas()
 
     def instantiate_services(self):
         """

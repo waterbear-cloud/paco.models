@@ -16,6 +16,8 @@ Changelog for paco.models
 
 - Added `extend_base_schema` hook to the loader to allows Services to extend schemas before the loader loads.
 
+- Container loader can load empty objects (objects with no fields, only a name)
+
 ### Changed
 
 - `paco.modes.services.list_service_plugins` changed to `list_enabled_services`. Returns ony enabed services

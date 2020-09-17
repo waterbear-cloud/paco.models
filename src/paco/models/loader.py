@@ -1028,7 +1028,9 @@ def sub_types_loader(
         container = container_class(name, obj)
         for sub_key, sub_value in value.items():
             sub_obj = object_class(sub_key, container)
-            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
+            # allow for containers with objects that are only a name and have no fields
+            if sub_value != None:
+                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
             container[sub_key] = sub_obj
         return container
 

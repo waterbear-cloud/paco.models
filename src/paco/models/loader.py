@@ -3,6 +3,7 @@ The loader is responsible for reading a Paco project and creating a tree of Pyth
 model objects.
 """
 
+from paco.models.registry import EXTEND_BASE_MODEL_HOOKS
 from paco.models.locations import get_parent_by_interface
 from paco.models.formatter import get_formatted_model_context
 from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
@@ -1439,6 +1440,10 @@ Duplicate key \"{}\" found on line {} at column {}.
         paco_project_version = self.read_paco_project_version()
         self.check_paco_project_version(paco_project_version)
 
+        # forces importing of all active Paco Service modules
+        # this gives them a chance to register extensions through paco.extend calls
+        paco.models.services.list_enabled_services(self.config_folder)
+
         self.extend_base_schemas()
 
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
@@ -1757,26 +1762,11 @@ Duplicate key \"{}\" found on line {} at column {}.
 
     def extend_base_schemas(self):
         """
-        Hook for Paco Services to extend/modify paco.models schemas and implementation
+        Chance for Paco Services to extend/modify paco.models schemas and implementation
         with additional fields. This will happen before any loading is done.
         """
-        service_plugins = paco.models.services.list_service_plugins()
-        services_dir_name = 'service'
-        # Legacy directory name
-        if os.path.isdir(self.config_folder /'Services'):
-            services_dir_name = 'Services'
-        services_dir = self.config_folder / services_dir_name
-        for plugin_name, plugin_module in service_plugins.items():
-            if (services_dir / (plugin_name + '.yml')).is_file():
-                fname = plugin_name + '.yml'
-            elif (services_dir / (plugin_name + '.yaml')).is_file():
-                fname = plugin_name + '.yaml'
-            else:
-                continue
-
-            # call services extend_base_schemas
-            if hasattr(plugin_module, 'extend_base_schemas'):
-                plugin_module.extend_base_schemas()
+        for hook in EXTEND_BASE_MODEL_HOOKS:
+            hook()
 
     def instantiate_services(self):
         """
@@ -1785,27 +1775,21 @@ Duplicate key \"{}\" found on line {} at column {}.
         The entry point name will match a filename at:
           <PacoProject>/service/<EntryPointName>(.yml|.yaml)
         """
-        service_plugins = paco.models.services.list_service_plugins()
+        service_plugins = paco.models.services.list_enabled_services(self.config_folder)
         services_dir_name = 'service'
         # Legacy directory name
         if os.path.isdir(self.config_folder /'Services'):
             services_dir_name = 'Services'
         services_dir = self.config_folder / services_dir_name
-        for plugin_name, plugin_module in service_plugins.items():
-            if (services_dir / (plugin_name + '.yml')).is_file():
-                fname = plugin_name + '.yml'
-            elif (services_dir / (plugin_name + '.yaml')).is_file():
-                fname = plugin_name + '.yaml'
-            else:
-                continue
-            config = self.read_yaml(services_dir_name, fname)
-            service = plugin_module.instantiate_model(
+        for service_info in service_plugins.values():
+            config = self.read_yaml(services_dir_name, service_info['filename'])
+            service = service_info['module'].load_service_model(
                 config,
                 self.project,
                 self.monitor_config,
-                read_file_path=services_dir / fname
+                read_file_path=services_dir / service_info['filename']
             )
-            self.project['service'][plugin_name.lower()] = service
+            self.project['service'][service_info['name']] = service
 
         return
 

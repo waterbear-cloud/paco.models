@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- Added `paco.models.registry` as a place to contain configuration that extends or changes Paco.
+
 - Added `IIAMUserResource` as an application-level IAMUser resource.
 
 - Minimal `IPinpointApplication` schema for AWS Pinpoint support.
@@ -14,8 +16,10 @@ Changelog for paco.models
 
 - Added `extend_base_schema` hook to the loader to allows Services to extend schemas before the loader loads.
 
-
 ### Changed
+
+- `paco.modes.services.list_service_plugins` changed to `list_enabled_services`. Returns ony enabed services
+  in a dict format.
 
 - `IIAMUserProgrammaticAccess` changed to `IEnablable` and now defaults to True.
 

@@ -1,8 +1,3 @@
-import paco.models.exceptions
-import paco.models.services
-import json
-import troposphere
-import troposphere.cloudwatch
 from paco.models import schemas, vocabulary
 from paco.models.base import Deployable, Parent, Named, Name, Resource, ApplicationResource, AccountRef, Regionalized
 from paco.models.formatter import get_formatted_model_context
@@ -10,6 +5,13 @@ from paco.models.logging import CloudWatchLogSets
 from paco.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
+import json
+import paco.models.exceptions
+import paco.models.services
+import paco.models.registry
+import troposphere
+import troposphere.cloudwatch
+
 
 class Monitor(Named, dict):
     pass
@@ -120,20 +122,9 @@ class Alarm(Named, Regionalized, Deployable):
             project = get_parent_by_interface(self, schemas.IProject)
             snstopics = project['resource']['snstopics']
 
-        # if a service plugin provides override_alarm_actions, call that instead
-        service_plugins = paco.models.services.list_service_plugins()
-
-        # Error if more than one plugin provides override_alarm_actions
-        count = 0
-        for plugin_module in service_plugins.values():
-            if hasattr(plugin_module, 'override_alarm_actions'):
-                count += 1
-        if count > 1:
-            raise paco.models.exceptions.InvalidPacoProjectFile('More than one Service plugin is overriding alarm actions')
-
-        for plugin_name, plugin_module in service_plugins.items():
-            if hasattr(plugin_module, 'override_alarm_actions'):
-                return plugin_module.override_alarm_actions(None, self)
+        # if a Service has registered a custom AlarmActions hook, call that instead
+        if paco.models.registry.CW_ALARM_ACTIONS_HOOK != None:
+            return paco.models.registry.CW_ALARM_ACTIONS_HOOK(self)
 
         # default behaviour is to use notification groups directly
         notification_arns = [

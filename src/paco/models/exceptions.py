@@ -39,3 +39,6 @@ class InvalidLocalPath(Exception):
 
 class AlarmDescriptionExtensionConflict(Exception):
     title = "AlarmDescription extension conflict"
+
+class LoaderRegistrationError(Exception):
+    title = "Loader Registration conflict"

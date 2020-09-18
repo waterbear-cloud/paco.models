@@ -511,6 +511,7 @@ class ASG(ApplicationResource, Monitorable):
     cfn_init = FieldProperty(schemas.IASG['cfn_init'])
     desired_capacity = FieldProperty(schemas.IASG['desired_capacity'])
     desired_capacity_ignore_changes = FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
+    dns = FieldProperty(schemas.IASG['dns'])
     min_instances = FieldProperty(schemas.IASG['min_instances'])
     max_instances = FieldProperty(schemas.IASG['max_instances'])
     associate_public_ip_address = FieldProperty(schemas.IASG['associate_public_ip_address'])
@@ -1101,7 +1102,7 @@ class Listener(Named, PortProtocol):
     }
 
 @implementer(schemas.IDNS)
-class DNS(Parent):
+class DNS(Named, Parent):
     hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
     domain_name = FieldProperty(schemas.IDNS['domain_name'])
     ssl_certificate = FieldProperty(schemas.IDNS['ssl_certificate'])

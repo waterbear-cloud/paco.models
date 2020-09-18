@@ -473,6 +473,7 @@ SUB_TYPES_CLASS_MAP = {
         'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy),
         'ecs': ('direct_obj', ECSASGConfiguration),
         'ssh_access': ('direct_obj', SSHAccess),
+        'dns': ('obj_list', DNS),
     },
     ECSASGConfiguration: {
         'capacity_provider': ('direct_obj', ECSCapacityProvider),

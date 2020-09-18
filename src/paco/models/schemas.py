@@ -5004,6 +5004,12 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         default=False,
         required=False,
     )
+    dns = schema.List(
+        title="DNS domains to create to resolve to one of the ASGs EC2 Instances",
+        value_type=schema.Object(IDNS),
+        required=False
+    )
+
     ebs_optimized = schema.Bool(
         title="EBS Optimized",
         description="",

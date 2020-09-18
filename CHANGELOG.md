@@ -4,7 +4,9 @@ Changelog for paco.models
 7.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Added a `add_stack_hooks` to `paco.models.base.Resource`.
 
 
 7.5.0 (2020-09-17)

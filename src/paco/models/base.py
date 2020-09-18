@@ -349,6 +349,7 @@ class Type():
 @implementer(schemas.IResource)
 class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
     "Resource"
+    _stack_hooks = None
     order = FieldProperty(schemas.IResource['order'])
     change_protected = FieldProperty(schemas.IResource['change_protected'])
 
@@ -362,6 +363,15 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
         env_reg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
         project = get_parent_by_interface(self, schemas.IProject)
         return get_model_obj_from_ref(env_reg.network.aws_account, project)
+
+    def add_stack_hooks(self, stack_hooks):
+        """
+        Add StackHooks to the Resource
+        """
+        # class attributes are shared, create an instance attribute
+        if self._stack_hooks == None:
+            self._stack_hooks = []
+        self._stack_hooks.append(stack_hooks)
 
     # Resource Name methods
 

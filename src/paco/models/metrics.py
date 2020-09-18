@@ -1,8 +1,3 @@
-import paco.models.exceptions
-import paco.models.services
-import json
-import troposphere
-import troposphere.cloudwatch
 from paco.models import schemas, vocabulary
 from paco.models.base import Deployable, Parent, Named, Name, Resource, ApplicationResource, AccountRef, Regionalized
 from paco.models.formatter import get_formatted_model_context
@@ -10,7 +5,16 @@ from paco.models.logging import CloudWatchLogSets
 from paco.models.locations import get_parent_by_interface
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
+import json
+import paco.models.exceptions
+import paco.models.services
+import paco.models.registry
+import troposphere
+import troposphere.cloudwatch
 
+
+class Monitor(Named, dict):
+    pass
 
 @implementer(schemas.ISNSTopics)
 class SNSTopics(AccountRef, Named, dict):
@@ -50,6 +54,9 @@ class AlarmSet(Named, dict):
 @implementer(schemas.IAlarmSets)
 class AlarmSets(Named, dict):
     "Collection of Alarms"
+
+class AlarmSetsContainer(Named, dict):
+    "Collection of AlarmSets"
 
 @implementer(schemas.IAlarm)
 class Alarm(Named, Regionalized, Deployable):
@@ -115,20 +122,9 @@ class Alarm(Named, Regionalized, Deployable):
             project = get_parent_by_interface(self, schemas.IProject)
             snstopics = project['resource']['snstopics']
 
-        # if a service plugin provides override_alarm_actions, call that instead
-        service_plugins = paco.models.services.list_service_plugins()
-
-        # Error if more than one plugin provides override_alarm_actions
-        count = 0
-        for plugin_module in service_plugins.values():
-            if hasattr(plugin_module, 'override_alarm_actions'):
-                count += 1
-        if count > 1:
-            raise paco.models.exceptions.InvalidPacoProjectFile('More than one Service plugin is overriding alarm actions')
-
-        for plugin_name, plugin_module in service_plugins.items():
-            if hasattr(plugin_module, 'override_alarm_actions'):
-                return plugin_module.override_alarm_actions(None, self)
+        # if a Service has registered a custom AlarmActions hook, call that instead
+        if paco.models.registry.CW_ALARM_ACTIONS_HOOK != None:
+            return paco.models.registry.CW_ALARM_ACTIONS_HOOK(self)
 
         # default behaviour is to use notification groups directly
         notification_arns = [
@@ -219,6 +215,10 @@ class CloudWatchAlarm(Alarm):
         #  'Metrics': ([MetricDataQuery], False),
     }
 
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self._extra_alarm_description = {}
+
     def threshold_human(self):
         "Human readable threshold"
         comparison = vocabulary.cloudwatch_comparison_operators[self.comparison_operator]
@@ -269,7 +269,7 @@ class CloudWatchAlarm(Alarm):
             "topic_arns": topic_arn_subs
         }
 
-        # conditional fields:
+        # conditional fields
         if self.description:
             description['description'] = self.description
         if self.runbook_url:
@@ -295,12 +295,36 @@ class CloudWatchAlarm(Alarm):
             description["envreg_name"] = envreg.name
             description["envreg_title"] = envreg.title
 
-        description_json = json.dumps(description)
+        # add any extended fields
+        description = self.extend_description(description)
 
+        # bake into JSON
+        description_json = json.dumps(description)
         return troposphere.Sub(
             description_json,
             sub_dict
         )
+
+    def add_to_alarm_description(self, add_dict):
+        "Adds additional fields to AlarmDescription"
+        for key, value in add_dict.items():
+            if key in self._extra_alarm_description:
+                raise paco.models.exceptions.AlarmDescriptionExtensionConflict(
+                   f"Another extension has already added the field name '{key}' to AlarmDescription."
+                )
+            self._extra_alarm_description[key] = value
+        return
+
+    def extend_description(self, description):
+        "Extend a description dict with any extra fields"
+        for key, value in self._extra_alarm_description.items():
+            if key in description:
+                raise paco.models.exceptions.AlarmDescriptionExtensionConflict(
+                   f"Can not extend AlarmDescription with the field name '{key}' as it's a Paco AlarmDescription reserved name."
+                )
+            description[key] = value
+        return description
+
 
 @implementer(schemas.ICloudWatchLogAlarm)
 class CloudWatchLogAlarm(CloudWatchAlarm):

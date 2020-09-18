@@ -3,6 +3,7 @@ The loader is responsible for reading a Paco project and creating a tree of Pyth
 model objects.
 """
 
+from paco.models.registry import EXTEND_BASE_MODEL_HOOKS
 from paco.models.locations import get_parent_by_interface
 from paco.models.formatter import get_formatted_model_context
 from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, MetricFilters, MetricFilter, \
@@ -12,7 +13,7 @@ from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile,
     InvalidLocalPath, InvalidPacoSub, InvalidPacoReference
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
-    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, SNSTopics, Dimension, \
+    AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, AlarmSetsContainer, SNSTopics, Dimension, \
     HealthChecks, CloudWatchLogAlarm, CloudWatchDashboard, DashboardVariables
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
@@ -551,6 +552,9 @@ SUB_TYPES_CLASS_MAP = {
     RegionContainer: {
         'alarm_sets': ('twolevel_container', (AlarmSets, AlarmSet, CloudWatchAlarm))
     },
+    AlarmSetsContainer: {
+        'alarm_sets': ('twolevel_container', (AlarmSets, AlarmSet, CloudWatchAlarm))
+    },
 
     # Networking
     NetworkEnvironment: {
@@ -1025,7 +1029,9 @@ def sub_types_loader(
         container = container_class(name, obj)
         for sub_key, sub_value in value.items():
             sub_obj = object_class(sub_key, container)
-            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
+            # allow for containers with objects that are only a name and have no fields
+            if sub_value != None:
+                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
             container[sub_key] = sub_obj
         return container
 
@@ -1100,6 +1106,28 @@ Configuration section:
                     second_obj = second_object_class(second_key, container[first_key])
                     apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
                     container[first_key][second_key] = second_obj
+        return container
+
+    elif sub_type == 'threelevel_container':
+        # not really generic - only used for AlarmSetsContainer loading ...
+        container_class = sub_class[0]
+        first_object_class = sub_class[1]
+        second_object_class = sub_class[2]
+        container = container_class(name, obj)
+        for first_key, first_value in value.items():
+            first_obj = first_object_class(first_key, container)
+            container[first_key] = first_obj
+            for second_key, second_value in first_value.items():
+                second_obj = second_object_class(second_key, container[first_key])
+                apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
+                container[first_key][second_key] = second_obj
+                for third_key, third_value in second_value.items():
+                    if 'type' in third_value and third_value['type'] == 'LogAlarm':
+                        third_obj = CloudWatchLogAlarm(third_key, container[first_key][second_key])
+                    else:
+                        third_obj = CloudWatchAlarm(third_key, container[first_key][second_key])
+                    apply_attributes_from_config(third_obj, third_value, config_folder, lookup_config, read_file_path)
+                    container[first_key][second_key][third_key] = third_obj
         return container
 
     elif sub_type == 'direct_obj':
@@ -1414,6 +1442,13 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         paco_project_version = self.read_paco_project_version()
         self.check_paco_project_version(paco_project_version)
+
+        # forces importing of all active Paco Service modules
+        # this gives them a chance to register extensions through paco.extend calls
+        paco.models.services.list_enabled_services(self.config_folder)
+
+        self.extend_base_schemas()
+
         self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
         self.project.paco_project_version = '{}.{}'.format(paco_project_version[0], paco_project_version[1])
 
@@ -1728,6 +1763,14 @@ Duplicate key \"{}\" found on line {} at column {}.
                 read_file_path=self.read_file_path
             )
 
+    def extend_base_schemas(self):
+        """
+        Chance for Paco Services to extend/modify paco.models schemas and implementation
+        with additional fields. This will happen before any loading is done.
+        """
+        for hook in EXTEND_BASE_MODEL_HOOKS:
+            hook()
+
     def instantiate_services(self):
         """
         Load Services
@@ -1735,27 +1778,21 @@ Duplicate key \"{}\" found on line {} at column {}.
         The entry point name will match a filename at:
           <PacoProject>/service/<EntryPointName>(.yml|.yaml)
         """
-        service_plugins = paco.models.services.list_service_plugins()
+        service_plugins = paco.models.services.list_enabled_services(self.config_folder)
         services_dir_name = 'service'
         # Legacy directory name
         if os.path.isdir(self.config_folder /'Services'):
             services_dir_name = 'Services'
         services_dir = self.config_folder / services_dir_name
-        for plugin_name, plugin_module in service_plugins.items():
-            if (services_dir / (plugin_name + '.yml')).is_file():
-                fname = plugin_name + '.yml'
-            elif (services_dir / (plugin_name + '.yaml')).is_file():
-                fname = plugin_name + '.yaml'
-            else:
-                continue
-            config = self.read_yaml(services_dir_name, fname)
-            service = plugin_module.instantiate_model(
+        for service_info in service_plugins.values():
+            config = self.read_yaml(services_dir_name, service_info['filename'])
+            service = service_info['module'].load_service_model(
                 config,
                 self.project,
                 self.monitor_config,
-                read_file_path=services_dir / fname
+                read_file_path=services_dir / service_info['filename']
             )
-            self.project['service'][plugin_name.lower()] = service
+            self.project['service'][service_info['name']] = service
 
         return
 
@@ -1770,12 +1807,24 @@ Duplicate key \"{}\" found on line {} at column {}.
             self.monitor_config = {}
         if name.lower() == 'alarmsets':
             self.monitor_config['alarms'] = config
+            alarm_sets = sub_types_loader(
+                self.project,
+                'alarm_sets',
+                config,
+                config_folder=self.config_folder,
+                read_file_path=self.read_file_path,
+                sub_type='threelevel_container',
+                sub_class=(AlarmSetsContainer, AlarmSets, AlarmSet, CloudWatchAlarm)
+            )
+            self.project.monitor.alarm_sets = alarm_sets
         elif name.lower() == 'logging':
             if 'cw_logging' in config:
                 # load the CloudWatch logging into the model, currently this is
                 # just done to validate the YAML
                 cw_logging = CloudWatchLogging('cw_logging', self.project)
                 apply_attributes_from_config(cw_logging, config['cw_logging'])
+                self.project.monitor.cw_logging = cw_logging
+                # original location - still used but can be refactored out
                 self.project['cw_logging'] = cw_logging
             self.monitor_config['logging'] = config
 
@@ -1804,12 +1853,6 @@ Duplicate key \"{}\" found on line {} at column {}.
         if config != None:
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj
-
-    def instantiate_cloudwatch_log_groups(self, config):
-        cw_log_groups = CWLogGroups()
-        self.project['cloudwatch_log_groups'] = cw_log_groups
-        if 'log_groups' in config:
-            apply_attributes_from_config(cw_log_groups, config['log_groups'])
 
     def instantiate_accounts(self, name, config, read_file_path=''):
         accounts = self.project['accounts']
@@ -1893,6 +1936,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                 print("WARNING: File ignored, perhaps it is misnamed? {}".format(read_file_path))
         else:
             self.project['resource'][name] = instantiate_method(config)
+            setattr(self.project['resource'], name, self.project['resource'][name])
             if self.project['resource'][name] != None:
                 self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
         return

@@ -36,3 +36,9 @@ class InvalidModelObject(Exception):
 
 class InvalidLocalPath(Exception):
     title = "Local path location does not exist"
+
+class AlarmDescriptionExtensionConflict(Exception):
+    title = "AlarmDescription extension conflict"
+
+class LoaderRegistrationError(Exception):
+    title = "Loader Registration conflict"

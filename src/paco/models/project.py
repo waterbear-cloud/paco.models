@@ -1,11 +1,13 @@
-import paco.models.applications
-import paco.models.networks
-import paco.models.resources
 from paco.models import schemas
 from paco.models.base import Named
 from paco.models.schemas import IProject, IVersionControl, IPacoWorkBucket, ISharedState
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
+import paco.models.applications
+import paco.models.networks
+import paco.models.resources
+import paco.models.metrics
+import paco.models.logging
 
 
 @implementer(IVersionControl)
@@ -90,6 +92,16 @@ class Project(Named, dict):
         # SSM
         self.resource['ssm'] = paco.models.resources.SSMResource('ssm', self.resource)
         self.resource['ssm'].title = 'SSM Resource'
+
+        # Monitoring
+        self.monitor = paco.models.metrics.Monitor('monitor', self)
+
+        # Alarm Sets
+        self.monitor.alarm_sets = paco.models.metrics.AlarmSets('alarm_sets', self.monitor)
+
+        # CloudWatch Logging
+        self.monitor.cw_logging = paco.models.logging.CloudWatchLogging('cw_logging', self.resource)
+
 
     def find_object_from_cli(self, controller_type, component_name=None, config_name=None):
         found = None

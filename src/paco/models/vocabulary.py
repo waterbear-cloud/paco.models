@@ -28,6 +28,12 @@ log_levels = SimpleVocabulary.fromValues([
 	'debug',
 ])
 
+ecr_permissions = SimpleVocabulary.fromValues([
+	'Push',
+	'Pull',
+	'PushAndPull',
+])
+
 ecs_network_modes = SimpleVocabulary.fromValues([
 	'awsvpc',
 	'bridge',

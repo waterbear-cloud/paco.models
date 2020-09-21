@@ -33,6 +33,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
+    ECRRepositoryPermission, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceECR, \
     DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
@@ -324,8 +325,9 @@ SUB_TYPES_CLASS_MAP = {
         'parameters': ('dynamic_dict', DBParameters)
     },
     DeploymentPipelineBuildCodeBuild: {
-        'role_policies': ('obj_list', Policy),
         'codecommit_repo_users': ('str_list', PacoReference),
+        'ecr_repositories': ('obj_list', ECRRepositoryPermission),
+        'role_policies': ('obj_list', Policy),
         'secrets': ('str_list', PacoReference),
     },
     DeploymentPipelineDeployCodeDeploy: {

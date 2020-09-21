@@ -6,6 +6,9 @@ Changelog for paco.models
 
 ### Added
 
+- Added `ecr_repositories` to `IDeploymentPipelineBuildCodeBuild` to simplify declaring
+  ECR Repository permissions.
+
 - Added a `add_stack_hooks` to `paco.models.base.Resource`.
 
 

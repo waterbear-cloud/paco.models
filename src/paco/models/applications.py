@@ -1848,6 +1848,10 @@ class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
     github_access_token = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_access_token'])
     poll_for_source_changes = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['poll_for_source_changes'])
 
+@implementer(schemas.IECRRepositoryPermission)
+class ECRRepositoryPermission(Parent):
+    repository = FieldProperty(schemas.IECRRepositoryPermission['repository'])
+    permission = FieldProperty(schemas.IECRRepositoryPermission['permission'])
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
@@ -1857,15 +1861,17 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     codecommit_repo_users = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codecommit_repo_users'])
     deployment_environment = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['deployment_environment'])
+    ecr_repositories = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['ecr_repositories'])
     privileged_mode = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['privileged_mode'])
     role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
-    timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
     secrets = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['secrets'])
+    timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
-        self.role_policies = []
         self.codecommit_repo_users = []
+        self.ecr_repositories = []
+        self.role_policies = []
 
 @implementer(schemas.IDeploymentPipelineDeployS3)
 class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):

@@ -8738,17 +8738,24 @@ Assign the secert to the ``github_access_token`` GitHub action field by using th
         default=True,
     )
 
+class IECRRepositoryPermission(Interface):
+    repository = PacoReference(
+        title="ECR Repository",
+        required=True,
+        schema_constraint='IECRRepository',
+    )
+    permission = schema.Choice(
+        title="Permission",
+        description="Must be one of 'Push', 'Pull' or 'PushAndPull'",
+        required=True,
+        vocabulary=vocabulary.ecr_permissions,
+    )
+
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
     """
 CodeBuild DeploymentPipeline Build Stage
     """
     taggedValue('contains', 'mixed')
-    deployment_environment = schema.TextLine(
-        title="Deployment Environment",
-        description="",
-        default="",
-        required=False,
-    )
     buildspec = schema.TextLine(
         title="buildspec.yml filename",
         required=False,
@@ -8770,22 +8777,27 @@ CodeBuild DeploymentPipeline Build Stage
             schema_constraint='ICodeCommitUser'
         )
     )
-    timeout_mins = schema.Int(
-        title='Timeout in Minutes',
-        min=5,
-        max=480,
-        default=60,
+    deployment_environment = schema.TextLine(
+        title="Deployment Environment",
+        description="",
+        default="",
         required=False,
     )
-    role_policies = schema.List(
-        title='Project IAM Role Policies',
-        value_type=schema.Object(IPolicy),
+    ecr_repositories = schema.List(
+        title="ECR Respository Permissions",
+        value_type=schema.Object(IECRRepositoryPermission),
         required=False,
+        default=[],
     )
     privileged_mode = schema.Bool(
         title='Privileged Mode',
         default=False,
         required=False
+    )
+    role_policies = schema.List(
+        title='Project IAM Role Policies',
+        value_type=schema.Object(IPolicy),
+        required=False,
     )
     secrets = schema.List(
         title='List of PacoReferences to Secrets Manager secrets',
@@ -8793,6 +8805,13 @@ CodeBuild DeploymentPipeline Build Stage
         value_type=PacoReference(
             title="Secret Manager Secret"
         )
+    )
+    timeout_mins = schema.Int(
+        title='Timeout in Minutes',
+        min=5,
+        max=480,
+        default=60,
+        required=False,
     )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):

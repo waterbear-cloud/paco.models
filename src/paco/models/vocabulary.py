@@ -169,6 +169,10 @@ cloudwatch = {
 		'dimension': 'DistributionId',
 		'namespace': 'AWS/CloudFront'
 	},
+	'ECSCluster': {
+		'dimension': 'ClusterName',
+		'namespace': 'AWS/ECS',
+	},
 	'ECSServices': {
 		'dimension': 'ClusterName',
 		'namespace': 'AWS/ECS',

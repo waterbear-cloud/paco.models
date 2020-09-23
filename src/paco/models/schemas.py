@@ -5661,7 +5661,7 @@ class IECSService(INamed, IMonitorable):
         required=False
     )
 
-class IECSCluster(IResource):
+class IECSCluster(IResource, IMonitorable):
     """
 ECS Cluster
     """

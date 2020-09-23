@@ -1033,7 +1033,7 @@ class ECSServices(Resource, Monitorable):
         self.services = ECSServicesContainer('services', self)
 
 @implementer(schemas.IECSCluster)
-class ECSCluster(Resource):
+class ECSCluster(Resource, Monitorable):
 
     def resolve_ref(self, ref):
         return self.stack

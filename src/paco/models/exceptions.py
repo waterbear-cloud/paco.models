@@ -28,6 +28,9 @@ class InvalidPacoBucket(Exception):
 class InvalidAWSResourceName(Exception):
     title = "Name is not valid to use as an AWS Resource name"
 
+class InvalidAlarmConfiguration(Exception):
+    title = "Alarm configuration is not valid"
+
 class TroposphereConversionError(Exception):
     title = "Troposphere Conversion Error"
 

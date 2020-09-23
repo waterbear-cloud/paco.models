@@ -6,7 +6,9 @@ Changelog for paco.models
 
 ### Added
 
-- Added `monitoring` to `ECSServices`.
+- Helpful errors for misconfigured AlarmSets.
+
+- Added `monitoring` to `ECSServices` and `ECSCluster`.
 
 - Added `ecr_repositories` to `IDeploymentPipelineBuildCodeBuild` to simplify declaring
   ECR Repository permissions.

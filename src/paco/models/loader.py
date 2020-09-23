@@ -10,7 +10,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference
+    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference, InvalidAlarmConfiguration
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, AlarmSetsContainer, SNSTopics, Dimension, \
@@ -178,6 +178,9 @@ SUB_TYPES_CLASS_MAP = {
     Project: {
         'version_control': ('direct_obj', VersionControl),
         'shared_state': ('direct_obj', SharedState),
+    },
+    ECSCluster: {
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     ECSServices: {
         'task_definitions': ('container', (ECSTaskDefinitions, ECSTaskDefinition)),
@@ -1215,6 +1218,16 @@ Configuration section:
             resource_type = obj.__parent__.type
             alarm_set = AlarmSet(alarm_set_name, alarm_sets)
             alarm_set.resource_type = resource_type
+            if resource_type not in lookup_config['alarms']:
+                raise InvalidAlarmConfiguration(
+                    f"Resource Type '{resource_type}' does not have any AlarmSets specified.\n" +
+                    f"Monitoring config: {obj.paco_ref_parts}"
+                )
+            if alarm_set_name not in lookup_config['alarms'][resource_type]:
+                raise InvalidAlarmConfiguration(
+                    f"AlarmSet '{alarm_set_name}' does not exist for {resource_type} type.\n" +
+                    f"Monitoring config: {obj.paco_ref_parts}"
+                )
             lookup_config['alarms'][resource_type][alarm_set_name]
             for alarm_name, alarm_config in lookup_config['alarms'][resource_type][alarm_set_name].items():
                 if 'type' in alarm_config and alarm_config['type'] == 'LogAlarm':

@@ -161,7 +161,6 @@ cloudwatch = {
 		'dimension': '',
 		'namespace': ''
 	},
-
 	'ASG': {
 		'dimension': 'AutoScalingGroupName',
 		'namespace': 'AWS/AutoScaling'
@@ -169,6 +168,10 @@ cloudwatch = {
 	'CloudFront': {
 		'dimension': 'DistributionId',
 		'namespace': 'AWS/CloudFront'
+	},
+	'ECSServices': {
+		'dimension': 'ClusterName',
+		'namespace': 'AWS/ECS',
 	},
 	'ElastiCacheRedis': {
 		'dimension': 'CacheClusterId',

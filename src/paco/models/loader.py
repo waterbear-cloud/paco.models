@@ -46,7 +46,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
-    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, \
+    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig,\
     PinpointSMSChannel, PinpointEmailChannel
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
@@ -180,9 +180,11 @@ SUB_TYPES_CLASS_MAP = {
     ECSServices: {
         'task_definitions': ('container', (ECSTaskDefinitions, ECSTaskDefinition)),
         'services': ('container', (ECSServicesContainer, ECSService)),
+        'monitoring': ('direct_obj', ServicesMonitorConfig),
     },
     ECSService: {
         'load_balancers': ('obj_list', ECSLoadBalancer),
+        'monitoring': ('direct_obj', MonitorConfig),
     },
     ECSTaskDefinition: {
         'container_definitions': ('container', (ECSContainerDefinitions, ECSContainerDefinition)),

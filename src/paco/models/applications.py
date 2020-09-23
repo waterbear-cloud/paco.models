@@ -9,7 +9,7 @@ from paco.models.base import Parent, Named, Deployable, Enablable, Regionalized,
 from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
-from paco.models.metrics import Monitorable, AlarmNotifications
+from paco.models.metrics import Monitorable, AlarmNotifications, MonitorConfig
 from paco.models.vocabulary import application_group_types, aws_regions
 from paco.models.logging import CloudWatchLogRetention
 from paco.models.iam import Role
@@ -942,7 +942,8 @@ class ECSServicesContainer(Named, dict):
     pass
 
 @implementer(schemas.IECSService)
-class ECSService(Named):
+class ECSService(Named, Monitorable):
+    type = 'ECSService'
     deployment_controller = FieldProperty(schemas.IECSService['deployment_controller'])
     deployment_minimum_healthy_percent = FieldProperty(schemas.IECSService['deployment_minimum_healthy_percent'])
     deployment_maximum_percent = FieldProperty(schemas.IECSService['deployment_maximum_percent'])
@@ -1000,8 +1001,26 @@ class ECSService(Named):
         'TaskDefinition': 'task_definition',
     }
 
+class ServicesMonitorConfig(MonitorConfig):
+    "MonitorConfig with enabled based on any Service in the Services"
+    # _enabled = True
+
+    def __get_enabled(self):
+        # if getattr(self, '_enabled', False):
+        #     return False
+        for service in self.__parent__.services.values():
+            if getattr(service, 'monitoring', None) != None:
+                if service.monitoring.enabled == True:
+                    return True
+        return False
+
+    def __set_enabled(self, value):
+        self._enabled = value
+
+    enabled = property(__get_enabled, __set_enabled)
+
 @implementer(schemas.IECSServices)
-class ECSServices(Resource):
+class ECSServices(Resource, Monitorable):
     cluster = FieldProperty(schemas.IECSServices['cluster'])
     services = FieldProperty(schemas.IECSServices['services'])
     task_definitions = FieldProperty(schemas.IECSServices['task_definitions'])

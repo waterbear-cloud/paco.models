@@ -5598,7 +5598,7 @@ class IECSServicesContainer(IMapping):
     "Container for `ECSService`_ objects."
     taggedValue('contains', 'IECSService')
 
-class IECSService(INamed):
+class IECSService(INamed, IMonitorable):
     "ECS Service"
     deployment_controller = schema.Choice(
         title="Deployment Controller",
@@ -5655,7 +5655,7 @@ class IECSCluster(IResource):
 ECS Cluster
     """
 
-class IECSServices(IResource):
+class IECSServices(IResource, IMonitorable):
     """
 ECS Services and TaskDefinitions
     """

@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- Added `monitoring` to `ECSServices`.
+
 - Added `ecr_repositories` to `IDeploymentPipelineBuildCodeBuild` to simplify declaring
   ECR Repository permissions.
 

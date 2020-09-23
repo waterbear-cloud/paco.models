@@ -65,6 +65,7 @@ from paco.models.resources import S3Resource, S3Buckets, \
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
+    IAMUserPermissionDeploymentPipelines, IAMUserPermissionDeploymentPipelineResource, \
     SSMResource, SSMDocuments, SSMDocument, ConfigResource, Config, \
     SNS, Topics
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
@@ -124,6 +125,7 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
+    'DeploymentPipelines': IAMUserPermissionDeploymentPipelines,
     'CodeBuild': IAMUserPermissionCodeBuild,
     'CodeCommit': IAMUserPermissionCodeCommit,
     'Administrator': IAMUserPermissionAdministrator,
@@ -669,6 +671,9 @@ SUB_TYPES_CLASS_MAP = {
     IAMUser: {
         'programmatic_access': ('direct_obj', IAMUserProgrammaticAccess),
         'permissions': ('iam_user_permissions', IAMUserPermissions)
+    },
+    IAMUserPermissionDeploymentPipelines: {
+        'resources': ('obj_list', IAMUserPermissionDeploymentPipelineResource)
     },
     IAMUserPermissionCodeBuild: {
         'resources': ('obj_list', IAMUserPermissionCodeBuildResource)

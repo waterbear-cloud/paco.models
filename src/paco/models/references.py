@@ -179,6 +179,9 @@ class Reference():
             ref=self
         )
 
+    def get_model_obj(self, project):
+        return get_model_obj_from_ref(self, project)
+
 def get_model_obj_from_ref(ref, project, referring_obj=None):
     """Resolves the reference to the model object it refers to.
     ref can be either a string or a Reference object.

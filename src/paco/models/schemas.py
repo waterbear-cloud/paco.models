@@ -522,6 +522,17 @@ def isPacoCodeCommitPermissionPolicyValid(value):
         raise InvalidPacoCodeCommitPermissionPolicy
     return True
 
+# DeploymentPipeline
+class InvalidPacoDeploymentPipelinePermissionPolicy(schema.ValidationError):
+    __doc__ = 'permission must be one or ore more: ReadOnly, RetryStages'
+
+def isPacoDeploymentPipelinePermissionPolicyValid(value):
+    values = value.replace(' ', '').split(',')
+    for item in values:
+        if item not in ('RetryStages', 'ReadOnly'):
+            raise InvalidPacoDeploymentPipelinePermissionPolicy
+    return True
+
 # CodeBuild
 class InvalidCodeBuildComputeType(schema.ValidationError):
     __doc__ = 'codebuild_compute_type must be one of: BUILD_GENERAL1_SMALL | BUILD_GENERAL1_MEDIUM | BUILD_GENERAL1_LARGE'
@@ -8424,6 +8435,41 @@ CodeBuild IAM User Permission
     resources = schema.List(
         title='List of CodeBuild resources',
         value_type=schema.Object(IIAMUserPermissionCodeBuildResource),
+        required=False
+    )
+
+class IIAMUserPermissionDeploymentPipelineResource(IParent):
+    """
+CodeBuild Resource IAM User Permission Definition
+    """
+    pipeline = PacoReference(
+        title='CodePipeline Resource Reference',
+        required=False,
+        schema_constraint='Interface'
+    )
+    permission = schema.TextLine(
+        title='Paco Permission policy',
+        constraint = isPacoDeploymentPipelinePermissionPolicyValid,
+        required=False,
+        default='ReadOnly'
+    )
+    console_access_enabled = schema.Bool(
+        title='Console Access Boolean',
+        required=False,
+        default=True
+    )
+
+class IIAMUserPermissionDeploymentPipelines(IIAMUserPermission):
+    """
+CodeBuild IAM User Permission
+    """
+    accounts = CommaList(
+        title='Comma separated list of Paco AWS account names this user has access to',
+        required=False,
+    )
+    resources = schema.List(
+        title='List of CodeBuild resources',
+        value_type=schema.Object(IIAMUserPermissionDeploymentPipelineResource),
         required=False
     )
 

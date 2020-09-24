@@ -90,6 +90,10 @@ ecs_ulimit = SimpleVocabulary.fromValues([
 	'stack',
 ])
 
+ecs_predefined_metrics = SimpleVocabulary.fromValues([
+	"ALBRequestCountPerTarget", "ECSServiceAverageMemoryUtilization", "ECSServiceAverageCPUUtilization",
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

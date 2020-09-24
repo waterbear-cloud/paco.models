@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- ECSService has a `target_tracking_scaling_policies` for service scaling.
+
 - Helpful errors for misconfigured AlarmSets.
 
 - Added `monitoring` to `ECSServices` and `ECSCluster`.

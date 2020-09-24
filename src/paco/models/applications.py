@@ -941,6 +941,18 @@ class ECSLoadBalancer(Named):
 class ECSServicesContainer(Named, dict):
     pass
 
+@implementer(schemas.IECSTargetTrackingScalingPolicy)
+class ECSTargetTrackingScalingPolicy(Named, Enablable):
+    disable_scale_in = FieldProperty(schemas.IECSTargetTrackingScalingPolicy['disable_scale_in'])
+    scale_in_cooldown = FieldProperty(schemas.IECSTargetTrackingScalingPolicy['scale_in_cooldown'])
+    scale_out_cooldown = FieldProperty(schemas.IECSTargetTrackingScalingPolicy['scale_out_cooldown'])
+    predefined_metric = FieldProperty(schemas.IECSTargetTrackingScalingPolicy['predefined_metric'])
+    target = FieldProperty(schemas.IECSTargetTrackingScalingPolicy['target'])
+
+@implementer(schemas.IECSTargetTrackingScalingPolicies)
+class ECSTargetTrackingScalingPolicies(Named, dict):
+    pass
+
 @implementer(schemas.IECSService)
 class ECSService(Named, Monitorable):
     type = 'ECSService'
@@ -948,6 +960,10 @@ class ECSService(Named, Monitorable):
     deployment_minimum_healthy_percent = FieldProperty(schemas.IECSService['deployment_minimum_healthy_percent'])
     deployment_maximum_percent = FieldProperty(schemas.IECSService['deployment_maximum_percent'])
     desired_count = FieldProperty(schemas.IECSService['desired_count'])
+    minimum_tasks = FieldProperty(schemas.IECSService['minimum_tasks'])
+    maximum_tasks = FieldProperty(schemas.IECSService['maximum_tasks'])
+    suspend_scaling = FieldProperty(schemas.IECSService['suspend_scaling'])
+    target_tracking_scaling_policies = FieldProperty(schemas.IECSService['target_tracking_scaling_policies'])
     health_check_grace_period_seconds = FieldProperty(schemas.IECSService['health_check_grace_period_seconds'])
     task_definition = FieldProperty(schemas.IECSService['task_definition'])
     load_balancers = FieldProperty(schemas.IECSService['load_balancers'])
@@ -956,6 +972,7 @@ class ECSService(Named, Monitorable):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.load_balancers = []
+        self.target_tracking_scaling_policies = ECSTargetTrackingScalingPolicies('target_tracking_scaling_policies', self)
 
     def resolve_ref(self, ref):
         services = get_parent_by_interface(self, schemas.IECSServices)
@@ -983,7 +1000,7 @@ class ECSService(Named, Monitorable):
         # 'Cluster': set in template
         'DeploymentConfiguration': 'deployment_configuration_cfn',
         'DeploymentController': 'deployment_controller_cfn',
-        'DesiredCount': 'desired_count',
+        # 'DesiredCount': set in the template as Parameter
         # 'EnableECSManagedTags': (boolean, False),
         'HealthCheckGracePeriodSeconds': 'health_check_grace_period_seconds',
         # 'LaunchType': (launch_type_validator, False),

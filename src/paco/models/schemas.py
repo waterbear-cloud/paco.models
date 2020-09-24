@@ -5609,6 +5609,53 @@ class IECSServicesContainer(IMapping):
     "Container for `ECSService`_ objects."
     taggedValue('contains', 'IECSService')
 
+class IECSTargetTrackingScalingPolicy(INamed, IEnablable):
+    @invariant
+    def if_albrequestcount_need_tg(obj):
+        "Validate that if the metric is ALBRequestCountPerTarget, specify a target_group."
+        if obj.predefined_metric == 'ALBRequestCountPerTarget':
+            if not hasattr(obj, 'target_group'):
+                raise Invalid("Must specify the 'target_group' field to use as the source for an ALBRequestCountPerTarget.")
+
+    disable_scale_in = schema.Bool(
+        title="Disable ScaleIn",
+        default=False,
+        required=False,
+    )
+    scale_in_cooldown = schema.Int(
+        title="ScaleIn Cooldown",
+        min=0,
+        default=300,
+        required=False,
+    )
+    scale_out_cooldown = schema.Int(
+        title="ScaleIn Cooldown",
+        min=0,
+        default=300,
+        required=False,
+    )
+    predefined_metric = schema.Choice(
+        title="Predfined Metric to scale on",
+        description="Must be one of ALBRequestCountPerTarget, ECSServiceAverageMemoryUtilization or ECSServiceAverageCPUUtilization",
+        vocabulary=vocabulary.ecs_predefined_metrics,
+        required=True,
+    )
+    target_group = PacoReference(
+        title="ALB TargetGroup",
+        required=False,
+        str_ok=False,
+        schema_constraint='ITargetGroup',
+    )
+    target = schema.Int(
+        title="Target",
+        min=0,
+        required=True,
+    )
+
+class IECSTargetTrackingScalingPolicies(INamed, IMapping):
+    "Container for `IECSTargetTrackingScalingPolicy`_ objects."
+    taggedValue('contains', 'IECSTargetTrackingScalingPolicy')
+
 class IECSService(INamed, IMonitorable):
     "ECS Service"
     deployment_controller = schema.Choice(
@@ -5632,10 +5679,22 @@ class IECSService(INamed, IMonitorable):
         default=200,
     )
     desired_count = schema.Int(
-        title="Desried Count",
+        title="Desired Count",
         min=0,
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
+    )
+    minimum_tasks = schema.Int(
+        title="Minimum Tasks in service",
+        min=0,
+        required=False,
+        default=0,
+    )
+    maximum_tasks = schema.Int(
+        title="Maximum Tasks in service",
+        min=0,
+        required=False,
+        default=0,
     )
     health_check_grace_period_seconds = schema.Int(
         title="Health Check Grace Period (seconds)",
@@ -5643,6 +5702,16 @@ class IECSService(INamed, IMonitorable):
         max=2147483647,
         required=False,
         default=0,
+    )
+    suspend_scaling = schema.Bool(
+        title="Suspend any Service Scaling activities",
+        default=False,
+        required=False,
+    )
+    target_tracking_scaling_policies = schema.Object(
+        title="Target Tracking Scaling Policies",
+        schema=IECSTargetTrackingScalingPolicies,
+        required=False,
     )
     task_definition = schema.TextLine(
         title="Task Definition",

@@ -253,7 +253,27 @@ applications:
                     working_directory: /var/www
             services:
               simple_app:
+                minimum_tasks: 1
                 desired_count: 2
+                maximum_tasks: 4
+                suspend_scaling: false
+                target_tracking_scaling_policies:
+                  memory:
+                    enabled: true
+                    scale_in_cooldown: 300
+                    scale_out_cooldown: 300
+                    predefined_metric: ECSServiceAverageMemoryUtilization # ALBRequestCountPerTarget | ECSServiceAverageMemoryUtilization | ECSServiceAverageCPUUtilization
+                    target: 50
+                  cpu:
+                    enabled: true
+                    scale_in_cooldown: 300
+                    scale_out_cooldown: 300
+                    predefined_metric: ECSServiceAverageCPUUtilization
+                    target: 70
+                  alb:
+                    predefined_metric: ALBRequestCountPerTarget
+                    target_group: paco.ref netenv.pacodemo.applications.app.groups.containers.resources.alb.target_groups.app
+                    target: 10
                 task_definition: hello_web
                 load_balancers:
                   - container_name: hello

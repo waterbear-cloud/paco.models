@@ -352,6 +352,7 @@ class Testpacodemo(BaseTestModelLoader):
         cluster = demo_env['applications']['app'].groups['container'].resources['ecs_cluster']
         assert schemas.IECSCluster.providedBy(cluster)
         ecs_service_config = demo_env['applications']['app'].groups['container'].resources['ecs_services']
+        simple_app_service = ecs_service_config.services['simple_app']
         assert ecs_service_config.services['simple_app'].desired_count, 2
         assert ecs_service_config.services['simple_app'].load_balancers[0].container_name, 'hello'
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].cpu, 10
@@ -359,6 +360,10 @@ class Testpacodemo(BaseTestModelLoader):
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].health_check.retries, 5
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].ulimits[0].hard_limit, 1000
         assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].user, 'www-data'
+
+        assert simple_app_service.target_tracking_scaling_policies['memory'].scale_in_cooldown, 300
+        assert simple_app_service.target_tracking_scaling_policies['cpu'].predefined_metric, 'ECSServiceAverageCPUUtilization'
+        assert simple_app_service.target_tracking_scaling_policies['cpu'].target, 70
 
     def test_rds(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

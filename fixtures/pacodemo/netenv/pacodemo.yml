@@ -172,6 +172,17 @@ applications:
                 health_check_http_code: 200
                 health_check_path: /
                 connection_drain_timeout: 300
+              farapp:
+                health_check_interval: 10
+                health_check_timeout: 10
+                healthy_threshold: 2
+                unhealthy_threshold: 2
+                port: 80
+                protocol: HTTP
+                health_check_http_code: 200
+                health_check_path: /
+                connection_drain_timeout: 300
+                target_type: ip
             listeners:
               http:
                 port: 80
@@ -204,6 +215,26 @@ applications:
             order: 40
             cluster: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_cluster
             task_definitions:
+              hello_fargate:
+                fargate_compatibile: true
+                network_mode: awsvpc
+                cpu_units: 256
+                memory_in_mb: 512
+                container_definitions:
+                  server:
+                    cpu: 256
+                    essential: true
+                    logging:
+                      driver: awslogs
+                      expire_events_after_days: 7
+                    image: paco.ref netenv.pacodemo.app.app.groups.cicd.resources.ecrrepo
+                    image_tag: latest
+                    memory: 300 # in MiB
+                    port_mappings:
+                      - container_port: 80
+                        host_port: 0
+                        protocol: tcp
+
               hello_web:
                 container_definitions:
                   base:
@@ -252,6 +283,21 @@ applications:
                     user: www-data
                     working_directory: /var/www
             services:
+              fargate_app:
+                launch_type: Fargate
+                desired_count: 1
+                task_definition: hello_fargate
+                vpc_config:
+                  assign_public_ip: false
+                  security_groups:
+                    - paco.ref netenv.pacodemo.network.vpc.security_groups.app.lb
+                  segments:
+                    - paco.ref netenv.pacodemo.network.vpc.segments.webapp
+                load_balancers:
+                  - container_name: hello
+                    container_port: 80
+                    target_group: paco.ref netenv.pacodemo.applications.app.groups.containers.resources.alb.target_groups.app
+
               simple_app:
                 minimum_tasks: 1
                 desired_count: 2

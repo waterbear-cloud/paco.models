@@ -6,6 +6,10 @@ Changelog for paco.models
 
 ### Added
 
+- TargetGroup has a `target_type` field.
+
+- ECSServices has Fargate support.
+
 - ECSService has a `target_tracking_scaling_policies` for service scaling.
 
 - Helpful errors for misconfigured AlarmSets.

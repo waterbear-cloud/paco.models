@@ -94,6 +94,10 @@ ecs_predefined_metrics = SimpleVocabulary.fromValues([
 	"ALBRequestCountPerTarget", "ECSServiceAverageMemoryUtilization", "ECSServiceAverageCPUUtilization",
 ])
 
+ecs_launch_types = SimpleVocabulary.fromValues([
+	"EC2", "Fargate",
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',
@@ -776,6 +780,10 @@ instance_size_info = {
 
 target_group_protocol = SimpleVocabulary.fromValues(
     ['HTTP','HTTPS']
+)
+
+target_group_target_types = SimpleVocabulary.fromValues(
+    ['instance', 'ip', 'lambda']
 )
 
 lb_ssl_policy = SimpleVocabulary.fromValues([

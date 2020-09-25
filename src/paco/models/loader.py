@@ -45,7 +45,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     ElasticsearchDomain, ElasticsearchCluster, EBSOptions, ESAdvancedOptions, \
     ECSContainerDefinition, ECSContainerDefinitions, ECSTaskDefinitions, ECSTaskDefinition, \
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
-    ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy, \
+    ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy, ServiceVPCConfiguration, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
     DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig,\
     PinpointSMSChannel, PinpointEmailChannel
@@ -188,10 +188,15 @@ SUB_TYPES_CLASS_MAP = {
         'services': ('container', (ECSServicesContainer, ECSService)),
         'monitoring': ('direct_obj', ServicesMonitorConfig),
     },
+    ServiceVPCConfiguration: {
+        'security_groups': ('str_list', PacoReference),
+        'segments': ('str_list', PacoReference)
+    },
     ECSService: {
         'load_balancers': ('obj_list', ECSLoadBalancer),
         'target_tracking_scaling_policies': ('container', (ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy)),
         'monitoring': ('direct_obj', MonitorConfig),
+        'vpc_config': ('direct_obj', ServiceVPCConfiguration),
     },
     ECSTaskDefinition: {
         'container_definitions': ('container', (ECSContainerDefinitions, ECSContainerDefinition)),

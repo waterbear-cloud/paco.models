@@ -884,8 +884,11 @@ class ECSVolume(Parent):
 @implementer(schemas.IECSTaskDefinition)
 class ECSTaskDefinition(Named):
     container_definitions = FieldProperty(schemas.IECSTaskDefinition['container_definitions'])
-    volumes = FieldProperty(schemas.IECSTaskDefinition['volumes'])
+    cpu_units = FieldProperty(schemas.IECSTaskDefinition['cpu_units'])
+    fargate_compatibile = FieldProperty(schemas.IECSTaskDefinition['fargate_compatibile'])
+    memory_in_mb = FieldProperty(schemas.IECSTaskDefinition['memory_in_mb'])
     network_mode = FieldProperty(schemas.IECSTaskDefinition['network_mode'])
+    volumes = FieldProperty(schemas.IECSTaskDefinition['volumes'])
 
     @property
     def container_definitions_cfn(self):
@@ -899,20 +902,38 @@ class ECSTaskDefinition(Named):
             v.cfn_export_dict for v in self.volumes
         ]
 
+    @property
+    def cpu_cfn(self):
+        if self.fargate_compatibile:
+            return str(self.cpu_units)
+        return None
+
+    @property
+    def memory_cfn(self):
+        if self.fargate_compatibile:
+            return str(self.memory_in_mb)
+        return None
+
+    @property
+    def requires_compabilities_cfn(self):
+        if self.fargate_compatibile:
+            return ["FARGATE"]
+        return None
+
     troposphere_props = troposphere.ecs.TaskDefinition.props
     cfn_mapping = {
         'ContainerDefinitions': 'container_definitions_cfn',
-        # 'Cpu': (basestring, False),
+        'Cpu': 'cpu_cfn',
         # 'ExecutionRoleArn': created in the reseng
         # 'Family': (basestring, False),
         # 'InferenceAccelerators': ([InferenceAccelerator], False),
         # 'IpcMode': (basestring, False),
-        # 'Memory': (basestring, False),
-        # 'NetworkMode': (basestring, False),
+        'Memory': 'memory_cfn',
+        'NetworkMode': 'network_mode',
         # 'PidMode': (basestring, False),
         # 'PlacementConstraints': ([PlacementConstraint], False),
         # 'ProxyConfiguration': (ProxyConfiguration, False),
-        # 'RequiresCompatibilities': ([basestring], False),
+        'RequiresCompatibilities': 'requires_compabilities_cfn',
         # 'Tags': (Tags, False),
         # 'TaskRoleArn': (basestring, False),
         'Volumes': 'volumes_cfn',
@@ -953,6 +974,12 @@ class ECSTargetTrackingScalingPolicy(Named, Enablable):
 class ECSTargetTrackingScalingPolicies(Named, dict):
     pass
 
+@implementer(schemas.IServiceVPCConfiguration)
+class ServiceVPCConfiguration(Named):
+    assign_public_ip = FieldProperty(schemas.IServiceVPCConfiguration['assign_public_ip'])
+    segments = FieldProperty(schemas.IServiceVPCConfiguration['segments'])
+    security_groups = FieldProperty(schemas.IServiceVPCConfiguration['security_groups'])
+
 @implementer(schemas.IECSService)
 class ECSService(Named, Monitorable):
     type = 'ECSService'
@@ -966,8 +993,10 @@ class ECSService(Named, Monitorable):
     target_tracking_scaling_policies = FieldProperty(schemas.IECSService['target_tracking_scaling_policies'])
     health_check_grace_period_seconds = FieldProperty(schemas.IECSService['health_check_grace_period_seconds'])
     task_definition = FieldProperty(schemas.IECSService['task_definition'])
+    launch_type = FieldProperty(schemas.IECSService['launch_type'])
     load_balancers = FieldProperty(schemas.IECSService['load_balancers'])
     hostname = FieldProperty(schemas.IECSService['hostname'])
+    vpc_config = FieldProperty(schemas.IECSService['vpc_config'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -992,6 +1021,13 @@ class ECSService(Named, Monitorable):
         }
 
     @property
+    def launch_type_cfn(self):
+        if self.launch_type == 'Fargate':
+            return 'FARGATE'
+        else:
+            return 'EC2'
+
+    @property
     def deployment_controller_cfn(self):
         return {"Type": self.deployment_controller.upper()}
 
@@ -1003,9 +1039,9 @@ class ECSService(Named, Monitorable):
         # 'DesiredCount': set in the template as Parameter
         # 'EnableECSManagedTags': (boolean, False),
         'HealthCheckGracePeriodSeconds': 'health_check_grace_period_seconds',
-        # 'LaunchType': (launch_type_validator, False),
+        'LaunchType': 'launch_type_cfn',
         'LoadBalancers': 'load_balancers_cfn',
-        # 'NetworkConfiguration': (NetworkConfiguration, False),
+        # 'NetworkConfiguration': set in template
         # 'Role': (basestring, False),
         # 'PlacementConstraints': ([PlacementConstraint], False),
         # 'PlacementStrategies': ([PlacementStrategy], False),
@@ -1093,13 +1129,14 @@ class TargetGroups(Named, dict):
 @implementer(schemas.ITargetGroup)
 class TargetGroup(Resource, PortProtocol):
     type = 'TargetGroup'
-    health_check_interval = FieldProperty(schemas.ITargetGroup['health_check_interval'])
-    health_check_timeout = FieldProperty(schemas.ITargetGroup['health_check_timeout'])
-    healthy_threshold = FieldProperty(schemas.ITargetGroup['healthy_threshold'])
-    unhealthy_threshold = FieldProperty(schemas.ITargetGroup['unhealthy_threshold'])
-    health_check_http_code = FieldProperty(schemas.ITargetGroup['health_check_http_code'])
-    health_check_path = FieldProperty(schemas.ITargetGroup['health_check_path'])
     connection_drain_timeout = FieldProperty(schemas.ITargetGroup['connection_drain_timeout'])
+    healthy_threshold = FieldProperty(schemas.ITargetGroup['healthy_threshold'])
+    health_check_http_code = FieldProperty(schemas.ITargetGroup['health_check_http_code'])
+    health_check_interval = FieldProperty(schemas.ITargetGroup['health_check_interval'])
+    health_check_path = FieldProperty(schemas.ITargetGroup['health_check_path'])
+    health_check_timeout = FieldProperty(schemas.ITargetGroup['health_check_timeout'])
+    target_type = FieldProperty(schemas.ITargetGroup['target_type'])
+    unhealthy_threshold = FieldProperty(schemas.ITargetGroup['unhealthy_threshold'])
 
     def resolve_ref(self, ref):
         if ref.ref.endswith('.target_groups.'+self.name):

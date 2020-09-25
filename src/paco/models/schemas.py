@@ -3043,6 +3043,24 @@ class IVPC(INamed, IDeployable):
         required=True,
     )
 
+class IVPCConfiguration(INamed):
+    segments = schema.List(
+        title="VPC Segments to attach the function",
+        description="",
+        value_type=PacoReference(
+            title="Segment",
+            schema_constraint='ISegment',
+        ),
+        required=False
+    )
+    security_groups = schema.List(
+        title="List of VPC Security Group Ids",
+        value_type=PacoReference(
+            schema_constraint='ISecurityGroup'
+        ),
+        required=False
+    )
+
 class INetworkEnvironment(INamed, IDeployable, IMapping):
     """NetworkEnvironment"""
     # technically contains IEnvironment but there are set by the loader
@@ -3338,24 +3356,20 @@ Container for `TargetGroup`_ objects.
 
 class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
-    health_check_interval = schema.Int(
-        title="Health check interval",
-        required=False,
-    )
-    health_check_timeout = schema.Int(
-        title="Health check timeout",
+    connection_drain_timeout = schema.Int(
+        title="Connection drain timeout",
         required=False,
     )
     healthy_threshold = schema.Int(
         title="Healthy threshold",
         required=False,
     )
-    unhealthy_threshold = schema.Int(
-        title="Unhealthy threshold",
-        required=False,
-    )
     health_check_http_code = schema.TextLine(
         title="Health check HTTP codes",
+        required=False,
+    )
+    health_check_interval = schema.Int(
+        title="Health check interval",
         required=False,
     )
     health_check_path = schema.TextLine(
@@ -3363,8 +3377,18 @@ class ITargetGroup(IPortProtocol, IResource):
         default="/",
         required=False,
     )
-    connection_drain_timeout = schema.Int(
-        title="Connection drain timeout",
+    health_check_timeout = schema.Int(
+        title="Health check timeout",
+        required=False,
+    )
+    target_type = schema.Choice(
+        title="Target Type",
+        description="Must be one of 'instance', 'ip' or 'lambda'.",
+        default="instance",
+        vocabulary=vocabulary.target_group_target_types,
+    )
+    unhealthy_threshold = schema.Int(
+        title="Unhealthy threshold",
         required=False,
     )
 
@@ -5566,18 +5590,99 @@ class IECSVolume(IParent):
         # ToDo: constraint: only letters (uppercase and lowercase), numbers, and hyphens are allowed
     )
 
+fargate_CPU = {
+    256: {
+        512: None,
+        1024: None,
+        2048: None,
+    },
+    512: {
+        1024: None,
+        2048: None,
+        3072: None,
+        4096: None,
+    },
+    1024: {
+        2048: None,
+        3072: None,
+        4096: None,
+        5120: None,
+        6144: None,
+        7168: None,
+        8192: None,
+    },
+    2048: {
+        4096: None,
+        5120: None,
+        6144: None,
+        7168: None,
+        8192: None,
+        9216: None,
+        10240: None,
+        11264: None,
+        12288: None,
+        13312: None,
+        14336: None,
+        15360: None,
+        16384: None,
+    },
+    4096: {
+        8192: None,
+        9216: None,
+        10240: None,
+        11264: None,
+        12288: None,
+        13312: None,
+        14336: None,
+        15360: None,
+        16384: None,
+        17408: None,
+        18432: None,
+        19456: None,
+        20480: None,
+        21504: None,
+        22528: None,
+        23552: None,
+        24576: None,
+        25600: None,
+        26624: None,
+        27648: None,
+        28672: None,
+        29696: None,
+        30720: None,
+    }
+}
+
 class IECSTaskDefinition(INamed):
     "ECS Task Definition"
+    @invariant
+    def valid_cpu_memory_combos(obj):
+        "Ensure Fargate CPU/Memory combinations are valid"
+        if obj.memory_in_mb in fargate_CPU[obj.cpu_units]:
+            return True
+        raise Invalid(f"Not a valid cpu_units and memory_in_mb combination for Fargate. cpu_units: {obj.cpu_units} / memory_in_mb: {obj.memory_in_mb}")
+
     container_definitions = schema.Object(
         title="Container Definitions",
         schema=IECSContainerDefinitions,
         required=True,
     )
-    volumes = schema.List(
-        title="Volume definitions for the task",
-        value_type=schema.Object(IECSVolume),
-        default=[],
+    cpu_units = schema.Int(
+        title="CPU in Units",
+        description="Must be one of 256, 512, 1024, 2048 or 4096",
         required=False,
+        default=256,
+    )
+    fargate_compatibile = schema.Bool(
+        title="Require Fargate Compability",
+        required=False,
+        default=False,
+    )
+    memory_in_mb = schema.Int(
+        title="Memory in Mb",
+        description="Must be one of 512, 1024, 2048, 2048 or 4096 thru 30720",
+        required=False,
+        default=512,
     )
     network_mode = schema.Choice(
         title="Network Mode",
@@ -5585,6 +5690,12 @@ class IECSTaskDefinition(INamed):
         description="Must be one of awsvpc, bridge, host or none",
         required=False,
         default='bridge',
+    )
+    volumes = schema.List(
+        title="Volume definitions for the task",
+        value_type=schema.Object(IECSVolume),
+        default=[],
+        required=False,
     )
 
 class IECSLoadBalancer(INamed):
@@ -5656,6 +5767,14 @@ class IECSTargetTrackingScalingPolicies(INamed, IMapping):
     "Container for `IECSTargetTrackingScalingPolicy`_ objects."
     taggedValue('contains', 'IECSTargetTrackingScalingPolicy')
 
+
+class IServiceVPCConfiguration(IVPCConfiguration):
+    assign_public_ip = schema.Bool(
+        title="Assign Public IP",
+        default=False,
+        required=False,
+    )
+
 class IECSService(INamed, IMonitorable):
     "ECS Service"
     deployment_controller = schema.Choice(
@@ -5683,6 +5802,13 @@ class IECSService(INamed, IMonitorable):
         min=0,
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
+    )
+    launch_type = schema.Choice(
+        title="Launch Type",
+        description="Must be one of EC2 or Fargate",
+        vocabulary=vocabulary.ecs_launch_types,
+        required=False,
+        default='EC2',
     )
     minimum_tasks = schema.Int(
         title="Minimum Tasks in service",
@@ -5728,6 +5854,11 @@ class IECSService(INamed, IMonitorable):
     hostname = schema.TextLine(
         title="Container hostname",
         required=False
+    )
+    vpc_config = schema.Object(
+        title="VPC Configuration",
+        schema=IServiceVPCConfiguration,
+        required=False,
     )
 
 class IECSCluster(IResource, IMonitorable):
@@ -6406,27 +6537,10 @@ class ILambdaFunctionCode(IParent):
         required=False,
     )
 
-
-class ILambdaVpcConfig(INamed):
+class ILambdaVpcConfig(IVPCConfiguration):
     """
 Lambda Environment
     """
-    segments = schema.List(
-        title="VPC Segments to attach the function",
-        description="",
-        value_type=PacoReference(
-            title="Segment",
-            schema_constraint='ISegment',
-        ),
-        required=False
-    )
-    security_groups = schema.List(
-        title="List of VPC Security Group Ids",
-        value_type=PacoReference(
-            schema_constraint='ISecurityGroup'
-        ),
-        required=False
-    )
 
 class ILambda(IResource, ICloudWatchLogRetention, IMonitorable):
     """

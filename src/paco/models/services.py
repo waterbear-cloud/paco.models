@@ -31,7 +31,7 @@ def list_enabled_services(paco_home):
         if fname:
             module = entry_point.load()
             if not hasattr(module, 'SERVICE_INITIALIZATION_ORDER'):
-                module.initialization_order = count
+                module.SERVICE_INITIALIZATION_ORDER = count
                 count += 1
             load_order.append((module.SERVICE_INITIALIZATION_ORDER, entry_point.name, module, fname))
     load_order = sorted(load_order)

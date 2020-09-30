@@ -135,6 +135,64 @@ applications:
          - bob
         classification: 'performance'
     groups:
+      auth:
+        type: Application
+        title: Cognito
+        order: 1000
+        resources:
+          userpool:
+            type: CognitoUserPool
+            order: 10
+            enabled: true
+            auto_verified_attributes: email,phone_number
+            mfa: 'on'
+            schema:
+              - attribute_name: name
+                attribute_data_type: string
+                mutable: true
+                required: true
+              - attribute_name: email
+                attribute_data_type: string
+                mutable: false
+                required: true
+            app_clients:
+              bob:
+                generate_secret: true
+          ident:
+            type: CognitoIdentityPool
+            order: 20
+            enabled: true
+            allow_unauthenticated_identities: true
+            identity_providers:
+             - userpool_client: paco.ref netenv.pacodemo.applications.app.groups.auth.resources.userpool
+               serverside_token_check: true
+            unauthenticated_role:
+              enabled: true
+              policies:
+                - name: CognitoSync
+                  statement:
+                    - effect: Allow
+                      action:
+                        - "cognito-sync:*"
+                      resource:
+                        - '*'
+            authenticated_role:
+              enabled: true
+              policies:
+                - name: ViewDescribe
+                  statement:
+                    - effect: Allow
+                      action:
+                        - "cognito-sync:*"
+                        - "cognito-identity:*"
+                      resource:
+                        - '*'
+                    - effect: Allow
+                      action:
+                        - "lambda:InvokeFunction"
+                      resource:
+                        - '*'
+
       market:
         type: Application
         title: Communications

@@ -48,7 +48,9 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy, ServiceVPCConfiguration, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
     DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig,\
-    PinpointSMSChannel, PinpointEmailChannel
+    PinpointSMSChannel, PinpointEmailChannel, \
+    CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
+    CognitoIdentityProvider
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -78,7 +80,7 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
     BackupPlans, BackupVault
 from paco.models.events import EventsRule, EventTarget
-from paco.models.iam import IAM, ManagedPolicy, Role, Policy, AssumeRolePolicy, Statement, Principal
+from paco.models.iam import IAM, ManagedPolicy, Role, RoleDefaultEnabled, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference, PacoReference
@@ -143,6 +145,8 @@ RESOURCES_CLASS_MAP = {
     'EC2': EC2,
     'CloudFront': CloudFront,
     'CodeDeployApplication': CodeDeployApplication,
+    'CognitoIdentityPool': CognitoIdentityPool,
+    'CognitoUserPool': CognitoUserPool,
     'Dashboard': CloudWatchDashboard,
     'EBS': EBS,
     'EBSVolumeMount': EBSVolumeMount,
@@ -278,6 +282,17 @@ SUB_TYPES_CLASS_MAP = {
     CodeDeployDeploymentGroup: {
         'revision_location_s3': ('direct_obj', DeploymentGroupS3Location),
         'role_policies': ('obj_list', Policy)
+    },
+
+    # Cognito
+    CognitoIdentityPool: {
+        'identity_providers': ('obj_list', CognitoIdentityProvider),
+        'unauthenticated_role': ('direct_obj', RoleDefaultEnabled),
+        'authenticated_role': ('direct_obj', RoleDefaultEnabled),
+    },
+    CognitoUserPool: {
+        'schema': ('obj_list', CognitoUserPoolSchemaAttribute),
+        'app_clients': ('container', (CognitoUserPoolClients, CognitoUserPoolClient)),
     },
 
     # Backup
@@ -620,6 +635,10 @@ SUB_TYPES_CLASS_MAP = {
         'policies': ('obj_list', Policy),
         'assume_role_policy': ('direct_obj', AssumeRolePolicy)
     },
+    RoleDefaultEnabled: {
+        'policies': ('obj_list', Policy),
+        'assume_role_policy': ('direct_obj', AssumeRolePolicy),
+    },
     Policy: {
         'statement': ('obj_list', Statement),
     },
@@ -745,8 +764,6 @@ def gen_yaml_filename(folder, filename):
         yaml_file = os.path.join(folder, filename+ext)
         if os.path.isfile(yaml_file):
             return yaml_file
-    return yaml_file
-
 
 def get_all_nodes(root):
     "Return a list of all nodes in paco.models"
@@ -839,6 +856,7 @@ def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=
 
     Also handles loading of sub-types ...
     """
+    value = None
     # throw an error if there are fields which do not match the schema
     fields = get_all_fields(obj)
     if not zope.interface.common.mapping.IMapping.providedBy(obj):
@@ -1460,6 +1478,7 @@ Duplicate key \"{}\" found on line {} at column {}.
          - add core monitoring metrics to the model
          - validate that paco.refs resolve to objects with the correct schema
         """
+        name = None
         # set-up the Troposphere YAML constructors
         # ToDo: YAML constructors appear to be global (set on the SafeConstructor class)
         # This approach replaces Paco CFN constructors with ones that load CFN Tags as
@@ -1721,6 +1740,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         stored in the attribute.
         Inserts the Environment and Region into any paco.ref netenv.references.
         """
+        value = None
         # walk the model
         model_list = get_all_nodes(env_config)
         for model in model_list:

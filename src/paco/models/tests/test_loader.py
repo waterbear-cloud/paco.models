@@ -365,6 +365,14 @@ class Testpacodemo(BaseTestModelLoader):
         assert simple_app_service.target_tracking_scaling_policies['cpu'].predefined_metric, 'ECSServiceAverageCPUUtilization'
         assert simple_app_service.target_tracking_scaling_policies['cpu'].target, 70
 
+    def test_cognito(self):
+        auth_app = self.demo_app.groups['auth']
+        userpool = auth_app.resources['userpool']
+        assert schemas.ICognitoUserPool(userpool)
+        assert userpool.app_clients['bob'].generate_secret, True
+        idp = auth_app.resources['ident']
+        assert schemas.ICognitoIdentityPool(idp)
+
     def test_rds(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         pg_aurora = demo_env['applications']['app'].groups['site'].resources['pg_aurora']

@@ -98,6 +98,14 @@ ecs_launch_types = SimpleVocabulary.fromValues([
 	"EC2", "Fargate",
 ])
 
+cognito_mfa_configuration = SimpleVocabulary.fromValues([
+	"off", "on", "optional",
+])
+
+cognito_schema_datatype = SimpleVocabulary.fromValues([
+	"boolean", "datetime", "number", "string",
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- Initial Cognito support with resource types for `ICognitoUserPool` and `ICognitoIdentityPool`.
+
 - TargetGroup has a `target_type` field.
 
 - ECSServices has Fargate support.

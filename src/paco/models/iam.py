@@ -2,7 +2,7 @@
 IAM: Identity and Access Managment land
 """
 
-from paco.models.base import Parent, Named, Deployable
+from paco.models.base import Enablable, Parent, Named, Deployable
 from paco.models import schemas
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
@@ -21,17 +21,17 @@ class IAM(Named):
         }
         loader.apply_attributes_from_config(self, roles_dict)
 
-@implementer(schemas.IRole)
-class Role(Named, Deployable):
-    instance_profile = FieldProperty(schemas.IRole["instance_profile"])
-    path = FieldProperty(schemas.IRole["path"])
-    managed_policy_arns = FieldProperty(schemas.IRole["managed_policy_arns"])
-    max_session_duration = FieldProperty(schemas.IRole["max_session_duration"])
-    permissions_boundary = FieldProperty(schemas.IRole["permissions_boundary"])
-    assume_role_policy = FieldProperty(schemas.IRole["assume_role_policy"])
-    role_name = FieldProperty(schemas.IRole["role_name"])
-    global_role_name = FieldProperty(schemas.IRole["global_role_name"])
-    policies = FieldProperty(schemas.IRole["policies"])
+@implementer(schemas.IBaseRole)
+class BaseRole(Named):
+    instance_profile = FieldProperty(schemas.IBaseRole["instance_profile"])
+    path = FieldProperty(schemas.IBaseRole["path"])
+    managed_policy_arns = FieldProperty(schemas.IBaseRole["managed_policy_arns"])
+    max_session_duration = FieldProperty(schemas.IBaseRole["max_session_duration"])
+    permissions_boundary = FieldProperty(schemas.IBaseRole["permissions_boundary"])
+    assume_role_policy = FieldProperty(schemas.IBaseRole["assume_role_policy"])
+    role_name = FieldProperty(schemas.IBaseRole["role_name"])
+    global_role_name = FieldProperty(schemas.IBaseRole["global_role_name"])
+    policies = FieldProperty(schemas.IBaseRole["policies"])
 
     def __init__(self, __name__, __parent__):
         super().__init__(__name__, __parent__)
@@ -56,6 +56,14 @@ class Role(Named, Deployable):
 
     def resolve_ref(self, ref):
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.IRole)
+class Role(BaseRole, Deployable):
+    pass
+
+@implementer(schemas.IRoleDefaultEnabled)
+class RoleDefaultEnabled(BaseRole, Enablable):
+    pass
 
 @implementer(schemas.IPolicy)
 class Policy(Parent):

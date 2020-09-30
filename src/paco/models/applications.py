@@ -2,6 +2,8 @@
 All things Application Engine.
 """
 
+from os import confstr_names
+from troposphere.cognito import CognitoIdentityProvider
 from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Enablable, Regionalized, Resource, ApplicationResource, \
@@ -21,6 +23,7 @@ import troposphere.ecs
 import troposphere.elasticache
 import troposphere.elasticloadbalancingv2
 import troposphere.elasticsearch
+import troposphere.cognito
 import troposphere.pinpoint
 import troposphere.rds
 import troposphere.s3
@@ -2159,3 +2162,141 @@ class PinpointEmailChannel(Parent):
 class PinpointApplication(ApplicationResource):
     sms_channel = FieldProperty(schemas.IPinpointApplication['sms_channel'])
     email_channel = FieldProperty(schemas.IPinpointApplication['email_channel'])
+
+# Cognito
+
+@implementer(schemas.ICognitoUserPoolSchemaAttribute)
+class CognitoUserPoolSchemaAttribute(Parent):
+    attribute_name = FieldProperty(schemas.ICognitoUserPoolSchemaAttribute['attribute_name'])
+    attribute_data_type = FieldProperty(schemas.ICognitoUserPoolSchemaAttribute['attribute_data_type'])
+    mutable = FieldProperty(schemas.ICognitoUserPoolSchemaAttribute['mutable'])
+    required = FieldProperty(schemas.ICognitoUserPoolSchemaAttribute['required'])
+
+    @property
+    def attribute_data_type_cfn(self):
+        if self.attribute_data_type == 'boolean':
+            return 'Boolean'
+        elif self.attribute_data_type == 'datetime':
+            return 'DateTime'
+        elif self.attribute_data_type == 'number':
+            return 'Number'
+        elif self.attribute_data_type == 'string':
+            return 'String'
+
+    troposphere_props = troposphere.cognito.SchemaAttribute.props
+    cfn_mapping = {
+        'AttributeDataType': 'attribute_data_type_cfn',
+        # 'DeveloperOnlyAttribute': (boolean, False),
+        'Mutable': 'mutable',
+        'Name': 'attribute_name',
+        # 'NumberAttributeConstraints': (NumberAttributeConstraints, False),
+        # 'StringAttributeConstraints': (StringAttributeConstraints, False),
+        'Required': 'required',
+    }
+
+@implementer(schemas.ICognitoUserPoolClient)
+class CognitoUserPoolClient(Named):
+    generate_secret = FieldProperty(schemas.ICognitoUserPoolClient['generate_secret'])
+
+    troposphere_props = troposphere.cognito.UserPoolClient.props
+    cfn_mapping = {
+        # 'AllowedOAuthFlows': ([basestring], False),
+        # 'AllowedOAuthFlowsUserPoolClient': (boolean, False),
+        # 'AllowedOAuthScopes': ([basestring], False),
+        # 'AnalyticsConfiguration': (AnalyticsConfiguration, False),
+        # 'CallbackURLs': ([basestring], False),
+        'ClientName': 'name',
+        # 'DefaultRedirectURI': (basestring, False),
+        # 'ExplicitAuthFlows': ([basestring], False),
+        'GenerateSecret': 'generate_secret',
+        # 'LogoutURLs': ([basestring], False),
+        # 'PreventUserExistenceErrors': (basestring, False),
+        # 'ReadAttributes': ([basestring], False),
+        # 'RefreshTokenValidity': (positive_integer, False),
+        # 'SupportedIdentityProviders': ([basestring], False),
+        # 'UserPoolId': computed in template
+        # 'WriteAttributes': ([basestring], False),
+    }
+
+@implementer(schemas.ICognitoUserPoolClients)
+class CognitoUserPoolClients(Named, dict):
+    pass
+
+@implementer(schemas.ICognitoUserPool)
+class CognitoUserPool(Resource):
+    app_clients = FieldProperty(schemas.ICognitoUserPool['app_clients'])
+    auto_verified_attributes = FieldProperty(schemas.ICognitoUserPool['auto_verified_attributes'])
+    mfa = FieldProperty(schemas.ICognitoUserPool['mfa'])
+    schema = FieldProperty(schemas.ICognitoUserPool['schema'])
+
+    def __init__(self, name, __parent__):
+        super().__init__(name, __parent__)
+        self.app_clients = CognitoUserPoolClients('app_clients', self)
+        self.schema = []
+
+    @property
+    def auto_verified_attributes_cfn(self):
+        values = []
+        for choice in self.auto_verified_attributes.split(','):
+            values.append(choice.lower())
+        return values
+
+    @property
+    def mfa_cfn(self):
+        return self.mfa.upper()
+
+    @property
+    def schema_cfn(self):
+        return [schema_attr.cfn_export_dict for schema_attr in self.schema]
+
+    troposphere_props = troposphere.cognito.UserPool.props
+    cfn_mapping = {
+        # 'AccountRecoverySetting': (AccountRecoverySetting, False),
+        # 'AdminCreateUserConfig': (AdminCreateUserConfig, False),
+        # 'AliasAttributes': ([basestring], False),
+        'AutoVerifiedAttributes': 'auto_verified_attributes_cfn',
+        # 'DeviceConfiguration': (DeviceConfiguration, False),
+        # 'EmailConfiguration': (EmailConfiguration, False),
+        # 'EmailVerificationMessage': (basestring, False),
+        # 'EmailVerificationSubject': (basestring, False),
+        # 'EnabledMfas': ([basestring], False),
+        # 'LambdaConfig': (LambdaConfig, False),
+        'MfaConfiguration': 'mfa_cfn',
+        # 'Policies': (Policies, False),
+        'Schema': 'schema_cfn',
+        # 'SmsAuthenticationMessage': (basestring, False),
+        # 'SmsConfiguration': (SmsConfiguration, False),
+        # 'SmsVerificationMessage': (basestring, False),
+        # 'UserPoolAddOns': (UserPoolAddOns, False),
+        # 'UserPoolName': (basestring, False),
+        # 'UserPoolTags': (dict, False),
+        # 'UsernameAttributes': ([basestring], False),
+        # 'UsernameConfiguration': (UsernameConfiguration, False),
+        # 'VerificationMessageTemplate': (VerificationMessageTemplate, False),
+    }
+
+@implementer(schemas.ICognitoIdentityProvider)
+class CognitoIdentityProvider(Parent):
+    userpool_client = FieldProperty(schemas.ICognitoIdentityProvider['userpool_client'])
+    serverside_token_check = FieldProperty(schemas.ICognitoIdentityProvider['serverside_token_check'])
+
+@implementer(schemas.ICognitoIdentityPool)
+class CognitoIdentityPool(Resource):
+    allow_unauthenticated_identities = FieldProperty(schemas.ICognitoIdentityPool['allow_unauthenticated_identities'])
+    identity_providers = FieldProperty(schemas.ICognitoIdentityPool['identity_providers'])
+    unauthenticated_role = FieldProperty(schemas.ICognitoIdentityPool['unauthenticated_role'])
+    authenticated_role = FieldProperty(schemas.ICognitoIdentityPool['authenticated_role'])
+
+    troposphere_props = troposphere.cognito.IdentityPool.props
+    cfn_mapping = {
+        'AllowUnauthenticatedIdentities': 'allow_unauthenticated_identities',
+        # 'CognitoEvents': (dict, False),
+        # 'CognitoIdentityProviders': computed in template
+        # 'CognitoStreams': (CognitoStreams, False),
+        # 'DeveloperProviderName': (basestring, False),
+        # 'IdentityPoolName': (basestring, False),
+        # 'OpenIdConnectProviderARNs': ([basestring], False),
+        # 'PushSync': (PushSync, False),
+        # 'SamlProviderARNs': ([basestring], False),
+        # 'SupportedLoginProviders': (dict, False),
+    }

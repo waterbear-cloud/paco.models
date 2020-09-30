@@ -1,19 +1,17 @@
 from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue
 from zope.interface.common.mapping import IMapping
-from zope.interface.common.sequence import ISequence
-from zope import schema
-from zope.schema.fieldproperty import FieldProperty
 from paco.models import vocabulary
 from paco.models import gen_vocabulary
 from paco.models.references import PacoReference, FileReference, StringFileReference, YAMLFileReference
 import json
 import re
 import ipaddress
+import zope.schema
 
 
 # Constraints
 
-class InvalidLayerARNList(schema.ValidationError):
+class InvalidLayerARNList(zope.schema.ValidationError):
     __doc__ = 'Not a valid list of Layer ARNs'
 
 LAYER_ARN = re.compile(r"arn:aws:lambda:(.*):(\d+):layer:(.*):(.*)")
@@ -30,7 +28,7 @@ def isListOfLayerARNs(value):
                 raise InvalidLayerARNList
     return True
 
-class InvalidStringConditionOperator(schema.ValidationError):
+class InvalidStringConditionOperator(zope.schema.ValidationError):
     __doc__ = 'String Condition operator must be one of: StringEquals, StringNotEquals, StringEqualsIgnoreCase, StringNotEqualsIgnoreCase, StringLike, StringNotLike.',
 
 def isValidStringConditionOperator(value):
@@ -38,7 +36,7 @@ def isValidStringConditionOperator(value):
         raise InvalidStringConditionOperator
     return True
 
-class InvalidBackupNotification(schema.ValidationError):
+class InvalidBackupNotification(zope.schema.ValidationError):
     __doc__ = 'Backup Vault notification event must be one of: BACKUP_JOB_STARTED, BACKUP_JOB_COMPLETED, RESTORE_JOB_STARTED, RESTORE_JOB_COMPLETED, RECOVERY_POINT_MODIFIED.'
 
 def isValidBackupNotification(value):
@@ -47,7 +45,7 @@ def isValidBackupNotification(value):
             raise InvalidBackupNotification
     return True
 
-class InvalidEnhancedMonitoringInterval(schema.ValidationError):
+class InvalidEnhancedMonitoringInterval(zope.schema.ValidationError):
     __doc__ = 'Enhanced Monitoring Interval must be one of 0, 1, 5, 10, 15, 30, 60'
 
 def isValidEnhancedMonitoringInterval(value):
@@ -55,7 +53,7 @@ def isValidEnhancedMonitoringInterval(value):
         raise InvalidEnhancedMonitoringInterval
     return True
 
-class InvalidCodeDeployComputePlatform(schema.ValidationError):
+class InvalidCodeDeployComputePlatform(zope.schema.ValidationError):
     __doc__ = 'compute_platform must be one of ECS, Lambda or Server.'
 
 def isValidCodeDeployComputePlatform(value):
@@ -63,7 +61,7 @@ def isValidCodeDeployComputePlatform(value):
         raise InvalidCodeDeployComputePlatform
     return True
 
-class InvalidDeploymentGroupBundleType(schema.ValidationError):
+class InvalidDeploymentGroupBundleType(zope.schema.ValidationError):
     __doc__ = 'Bundle Type must be one of JSON, tar, tgz, YAML or zip.'
 
 def isValidDeploymentGroupBundleType(value):
@@ -71,7 +69,7 @@ def isValidDeploymentGroupBundleType(value):
         raise InvalidDeploymentGroupBundleType
     return True
 
-class InvalidS3KeyPrefix(schema.ValidationError):
+class InvalidS3KeyPrefix(zope.schema.ValidationError):
     __doc__ = 'Not a valid S3 bucket prefix. Can not start or end with /.'
 
 def isValidS3KeyPrefix(value):
@@ -79,7 +77,7 @@ def isValidS3KeyPrefix(value):
         raise InvalidS3KeyPrefix
     return True
 
-class InvalidSNSSubscriptionProtocol(schema.ValidationError):
+class InvalidSNSSubscriptionProtocol(zope.schema.ValidationError):
     __doc__ = 'Not a valid SNS Subscription protocol.'
 
 def isValidSNSSubscriptionProtocol(value):
@@ -87,10 +85,10 @@ def isValidSNSSubscriptionProtocol(value):
         raise InvalidSNSSubscriptionProtocol
     return True
 
-class InvalidSNSSubscriptionEndpoint(schema.ValidationError):
+class InvalidSNSSubscriptionEndpoint(zope.schema.ValidationError):
     __doc__ = 'Not a valid SNS Endpoint.'
 
-class InvalidJSON(schema.ValidationError):
+class InvalidJSON(zope.schema.ValidationError):
     __doc__ = "Not a valid JSON document."
 
 def isValidJSONOrNone(value):
@@ -102,7 +100,7 @@ def isValidJSONOrNone(value):
         raise InvalidJSON
     return True
 
-class InvalidApiGatewayAuthorizationType(schema.ValidationError):
+class InvalidApiGatewayAuthorizationType(zope.schema.ValidationError):
     __doc__ = 'Not a valid Api Gateway Method Authorization Type.'
 
 def isValidApiGatewayAuthorizationType(value):
@@ -110,7 +108,7 @@ def isValidApiGatewayAuthorizationType(value):
         raise InvalidApiGatewayAuthorizationType
     return True
 
-class InvalidApiGatewayIntegrationType(schema.ValidationError):
+class InvalidApiGatewayIntegrationType(zope.schema.ValidationError):
     __doc__ = 'Not a valid API Gateway Method Integration Type.'
 
 def isValidApiGatewayIntegrationType(value):
@@ -118,7 +116,7 @@ def isValidApiGatewayIntegrationType(value):
         raise InvalidApiGatewayIntegrationType
     return True
 
-class InvalidHttpMethod(schema.ValidationError):
+class InvalidHttpMethod(zope.schema.ValidationError):
     __doc__ = 'Not a valid HTTP Method.'
 
 def isValidHttpMethod(value):
@@ -126,7 +124,7 @@ def isValidHttpMethod(value):
         raise InvalidHttpMethod
     return True
 
-class InvalidApiKeySourceType(schema.ValidationError):
+class InvalidApiKeySourceType(zope.schema.ValidationError):
     __doc__ = 'Not a valid Api Key Source Type.'
 
 def isValidApiKeySourceType(value):
@@ -134,7 +132,7 @@ def isValidApiKeySourceType(value):
         raise InvalidApiKeySourceType
     return True
 
-class InvalidEndpointConfigurationType(schema.ValidationError):
+class InvalidEndpointConfigurationType(zope.schema.ValidationError):
     __doc__ = "Not a valid endpoint configuration type, must be one of: 'EDGE', 'REGIONAL', 'PRIVATE'"
 
 def isValidEndpointConfigurationType(value):
@@ -142,7 +140,7 @@ def isValidEndpointConfigurationType(value):
         raise InvalidEndpointConfigurationType
     return True
 
-class InvalidBinaryMediaTypes(schema.ValidationError):
+class InvalidBinaryMediaTypes(zope.schema.ValidationError):
     __doc__ = 'Not a valid binary media types.'
 
 def isValidBinaryMediaTypes(value):
@@ -159,7 +157,7 @@ def isValidBinaryMediaTypes(value):
 
     return True
 
-class InvalidAWSRegion(schema.ValidationError):
+class InvalidAWSRegion(zope.schema.ValidationError):
     __doc__ = 'Not a valid AWS Region name.'
 
 def isValidAWSRegionName(value):
@@ -176,7 +174,7 @@ def isValidAWSRegionNameOrNone(value):
         raise InvalidAWSRegion
     return True
 
-class InvalidS3BucketHash(schema.ValidationError):
+class InvalidS3BucketHash(zope.schema.ValidationError):
     __doc__ = 'S3 Bucket suffix must be lower-case alphanumberic characters and no longer than 12 characters.'
 
 def isValidS3BucketHash(value):
@@ -198,7 +196,7 @@ def isValidAWSRegionOrAllList(value):
         isValidAWSRegionName(region)
     return True
 
-class InvalidAWSHealthCheckRegion(schema.ValidationError):
+class InvalidAWSHealthCheckRegion(zope.schema.ValidationError):
     __doc__ = "AWS Health Check regions are: 'sa-east-1', 'us-west-1', 'us-west-2', 'ap-northeast-1', 'ap-southeast-1', 'eu-west-1', 'us-east-1', 'ap-southeast-2'"
 
 def isValidHealthCheckAWSRegionList(value):
@@ -226,7 +224,7 @@ valid_legacy_flags = (
         'target_group_name_2019_10_29',
         'aim_name_2019_11_28'
     )
-class InvalidLegacyFlag(schema.ValidationError):
+class InvalidLegacyFlag(zope.schema.ValidationError):
     __doc__ = 'Not a valid legacy flag. Must be one of: '
     first = True
     for flag in valid_legacy_flags:
@@ -245,7 +243,7 @@ def isValidLegacyFlagList(value):
         isValidLegacyFlag(flag)
     return True
 
-class InvalidEmailAddress(schema.ValidationError):
+class InvalidEmailAddress(zope.schema.ValidationError):
     __doc__ = 'Malformed email address'
 
 EMAIL_RE = re.compile(r"[^@]+@[^@]+\.[^@]+")
@@ -254,7 +252,7 @@ def isValidEmail(value):
         raise InvalidEmailAddress
     return True
 
-class InvalidHttpUrl(schema.ValidationError):
+class InvalidHttpUrl(zope.schema.ValidationError):
     __doc__ = 'Malformed HTTP URL'
 
 HTTP_RE = re.compile(r"^http:\/\/(.*)")
@@ -263,7 +261,7 @@ def isValidHttpUrl(value):
         raise InvalidHttpUrl
     return True
 
-class InvalidHttpsUrl(schema.ValidationError):
+class InvalidHttpsUrl(zope.schema.ValidationError):
     __doc__ = 'Malformed HTTPS URL'
 
 HTTPS_RE = re.compile(r"^https:\/\/(.*)")
@@ -272,7 +270,7 @@ def isValidHttpsUrl(value):
         raise InvalidHttpsUrl
     return True
 
-class InvalidInstanceSizeError(schema.ValidationError):
+class InvalidInstanceSizeError(zope.schema.ValidationError):
     __doc__ = 'Not a valid instance size (or update the instance_size_info vocabulary).'
 
 def isValidInstanceSize(value):
@@ -280,7 +278,7 @@ def isValidInstanceSize(value):
         raise InvalidInstanceSizeError
     return True
 
-class InvalidInstanceAMITypeError(schema.ValidationError):
+class InvalidInstanceAMITypeError(zope.schema.ValidationError):
     __doc__ = 'Not a valid instance AMI type (or update the ami_types vocabulary).'
 
 def isValidInstanceAMIType(value):
@@ -288,7 +286,7 @@ def isValidInstanceAMIType(value):
         raise InvalidInstanceAMITypeError
     return True
 
-class InvalidHealthCheckTypeError(schema.ValidationError):
+class InvalidHealthCheckTypeError(zope.schema.ValidationError):
     __doc__ = 'Not a valid health check type (can only be EC2 or ELB).'
 
 def isValidHealthCheckType(value):
@@ -296,7 +294,7 @@ def isValidHealthCheckType(value):
         raise InvalidHealthCheckTypeError
     return True
 
-class InvalidRoute53HealthCheckTypeError(schema.ValidationError):
+class InvalidRoute53HealthCheckTypeError(zope.schema.ValidationError):
     __doc__ = 'Route53 health check type must be one of HTTP, HTTPS or TCP.'
 
 def isValidRoute53HealthCheckType(value):
@@ -304,7 +302,7 @@ def isValidRoute53HealthCheckType(value):
         raise InvalidRoute53HealthCheckTypeError
     return True
 
-class InvalidRoute53RecordSetTypeError(schema.ValidationError):
+class InvalidRoute53RecordSetTypeError(zope.schema.ValidationError):
     __doc__ = 'Route53 RecordSet "type" be one of: A | MX | CNAME | Alias | SRV | TXT | NS | SOA'
 
 def isValidRoute53RecordSetType(value):
@@ -312,7 +310,7 @@ def isValidRoute53RecordSetType(value):
         raise InvalidRoute53RecordSetTypeError
     return True
 
-class InvalidStringCanOnlyContainDigits(schema.ValidationError):
+class InvalidStringCanOnlyContainDigits(zope.schema.ValidationError):
     __doc__ = 'String must only contain digits.'
 
 def isOnlyDigits(value):
@@ -320,7 +318,7 @@ def isOnlyDigits(value):
         return True
     raise InvalidStringCanOnlyContainDigits
 
-class InvalidCloudWatchLogRetention(schema.ValidationError):
+class InvalidCloudWatchLogRetention(zope.schema.ValidationError):
     __doc__ = 'String must be valid log retention value: {}'.format(', '.join(vocabulary.cloudwatch_log_retention.keys()))
 
 def isValidCloudWatchLogRetention(value):
@@ -329,7 +327,7 @@ def isValidCloudWatchLogRetention(value):
         raise InvalidCloudWatchLogRetention
     return True
 
-class InvalidCidrIpv4(schema.ValidationError):
+class InvalidCidrIpv4(zope.schema.ValidationError):
     __doc__ = 'String must be a valid CIDR v4 (e.g. 20.50.120.4/30)'
 
 def isValidCidrIpv4orBlank(value):
@@ -354,7 +352,7 @@ def isValidCidrIpv4orBlank(value):
         raise InvalidCidrIpv4
     return True
 
-class InvalidComparisonOperator(schema.ValidationError):
+class InvalidComparisonOperator(zope.schema.ValidationError):
     __doc__ = 'Comparison Operator must be one of: GreaterThanThreshold, GreaterThanOrEqualToThreshold, LessThanThreshold, or LessThanOrEqualToThreshold.'
 
 def isComparisonOperator(value):
@@ -362,7 +360,7 @@ def isComparisonOperator(value):
         raise InvalidComparisonOperator
     return True
 
-class InvalidAlarmSeverity(schema.ValidationError):
+class InvalidAlarmSeverity(zope.schema.ValidationError):
     __doc__ = 'Severity must be one of: low, critical'
 
 def isValidAlarmSeverity(value):
@@ -375,7 +373,7 @@ def isValidAlarmSeverityFilter(value):
     if not value: return True
     return isValidAlarmSeverity(value)
 
-class InvalidMissingDataValue(schema.ValidationError):
+class InvalidMissingDataValue(zope.schema.ValidationError):
     __doc__ = 'treat_missing_data must be one of: breaching, notBreaching, ignore or missing'
 
 def isMissingDataValue(value):
@@ -383,7 +381,7 @@ def isMissingDataValue(value):
         raise InvalidMissingDataValue
     return True
 
-class InvalidAlarmStatistic(schema.ValidationError):
+class InvalidAlarmStatistic(zope.schema.ValidationError):
     __doc__ = 'statistic must be one of: Average, Maximum, Minimum, SampleCount or Sum.'
 
 def isValidAlarmStatisticValue(value):
@@ -391,7 +389,7 @@ def isValidAlarmStatisticValue(value):
         raise InvalidAlarmStatistic
     return True
 
-class InvalidExtendedStatisticValue(schema.ValidationError):
+class InvalidExtendedStatisticValue(zope.schema.ValidationError):
     __doc__ = '`extended_statistic` must match pattern p(\d{1,2}(\.\d{0,2})?|100). Examlpes: p95, p0.0, p98.59, p100'
 
 def isValidExtendedStatisticValue(value):
@@ -400,7 +398,7 @@ def isValidExtendedStatisticValue(value):
     else:
         raise InvalidExtendedStatisticValue
 
-class InvalidEvaluateLowSampleCountPercentileValue(schema.ValidationError):
+class InvalidEvaluateLowSampleCountPercentileValue(zope.schema.ValidationError):
     __doc__ = 'evaluate_low_sample_count_percentile must be one of: evaluate or ignore.'
 
 def isValidEvaluateLowSampleCountPercentileValue(value):
@@ -408,7 +406,7 @@ def isValidEvaluateLowSampleCountPercentileValue(value):
         raise InvalidEvaluateLowSampleCountPercentileValue
     return True
 
-class InvalidAlarmClassification(schema.ValidationError):
+class InvalidAlarmClassification(zope.schema.ValidationError):
     __doc__ = 'Classification must be one of: health, performance, security'
 
 def isValidAlarmClassification(value):
@@ -421,7 +419,7 @@ def isValidAlarmClassificationFilter(value):
     if not value: return True
     return isValidAlarmClassification(value)
 
-class InvalidASGMetricName(schema.ValidationError):
+class InvalidASGMetricName(zope.schema.ValidationError):
     __doc__ = 'ASG Metric name is not valid'
 
 def isValidASGMetricNames(value):
@@ -430,7 +428,7 @@ def isValidASGMetricNames(value):
             raise InvalidASGMetricName
     return True
 
-class InvalidCWAgentTimezone(schema.ValidationError):
+class InvalidCWAgentTimezone(zope.schema.ValidationError):
     __doc__ = 'Timezone choices for CW Agent'
 
 def isValidCWAgentTimezone(value):
@@ -438,7 +436,7 @@ def isValidCWAgentTimezone(value):
         raise InvalidCWAgentTimezone
     return True
 
-class InvalidCFViewerProtocolPolicy(schema.ValidationError):
+class InvalidCFViewerProtocolPolicy(zope.schema.ValidationError):
     __doc__ = 'Viewer Protocol Policy must be one of: allow-all | https-only | redirect-to-https'
 
 def isValidCFViewerProtocolPolicy(value):
@@ -446,7 +444,7 @@ def isValidCFViewerProtocolPolicy(value):
         raise InvalidCFViewerProtocolPolicy
     return True
 
-class InvalidCloudFrontCookiesForward(schema.ValidationError):
+class InvalidCloudFrontCookiesForward(zope.schema.ValidationError):
     __doc__ = 'Cookies Forward must be one of: all | none | whitelist'
 
 def isValidCloudFrontCookiesForward(value):
@@ -454,7 +452,7 @@ def isValidCloudFrontCookiesForward(value):
         raise InvalidCloudFrontCookiesForward
     return True
 
-class InvalidCFSSLSupportedMethod(schema.ValidationError):
+class InvalidCFSSLSupportedMethod(zope.schema.ValidationError):
     __doc__ = 'SSL Supported Methods must be one of: sni-only | vip'
 
 def isValidCFSSLSupportedMethod(value):
@@ -462,7 +460,7 @@ def isValidCFSSLSupportedMethod(value):
         raise InvalidCFSSLSupportedMethod
     return True
 
-class InvalidCFMinimumProtocolVersion(schema.ValidationError):
+class InvalidCFMinimumProtocolVersion(zope.schema.ValidationError):
     __doc__ = 'Mimimum SSL Protocol Version must be one of: SSLv3 | TLSv1 | TLSv1.1_2016 | TLSv1.2_2018 | TLSv1_2016'
 
 def isValidCFMinimumProtocolVersion(value):
@@ -470,7 +468,7 @@ def isValidCFMinimumProtocolVersion(value):
         raise InvalidCFMinimumProtocolVersion
     return True
 
-class InvalidCFPriceClass(schema.ValidationError):
+class InvalidCFPriceClass(zope.schema.ValidationError):
     __doc__ = 'Price Class must be one of: 100 | 200 | All'
 
 def isValidCFPriceClass(value):
@@ -478,7 +476,7 @@ def isValidCFPriceClass(value):
         raise InvalidCFPriceClass
     return True
 
-class InvalidCFProtocolPolicy(schema.ValidationError):
+class InvalidCFProtocolPolicy(zope.schema.ValidationError):
     __doc__ = 'Protocol Policy must be one of: http-only | https-only | match-viewer'
 
 def isValidCFProtocolPolicy(value):
@@ -486,7 +484,7 @@ def isValidCFProtocolPolicy(value):
         raise InvalidCFProtocolPolicy
     return True
 
-class InvalidCFSSLProtocol(schema.ValidationError):
+class InvalidCFSSLProtocol(zope.schema.ValidationError):
     __doc__ = 'SSL Protocols must be one of: SSLv3 | TLSv1 | TLSv1.1 | TLSv1.2'
 
 def isValidCFSSLProtocol(value):
@@ -496,7 +494,7 @@ def isValidCFSSLProtocol(value):
     return True
 
 # ElastiCache
-class InvalidAZMode(schema.ValidationError):
+class InvalidAZMode(zope.schema.ValidationError):
     __doc__ = 'AZMode must be one of: cross-az | single-az'
 
 def isValidAZMode(value):
@@ -504,7 +502,7 @@ def isValidAZMode(value):
         raise InvalidAZMode
     return True
 
-class InvalidRedisCacheParameterGroupFamily(schema.ValidationError):
+class InvalidRedisCacheParameterGroupFamily(zope.schema.ValidationError):
     __doc__ = 'cache_parameter_group_family must be one of: redis2.6 | redis2.8 | redis3.2 | redis4.0 | redis5.0'
 
 def isRedisCacheParameterGroupFamilyValid(value):
@@ -514,7 +512,7 @@ def isRedisCacheParameterGroupFamilyValid(value):
 
 
 # IAM
-class InvalidPacoCodeCommitPermissionPolicy(schema.ValidationError):
+class InvalidPacoCodeCommitPermissionPolicy(zope.schema.ValidationError):
     __doc__ = 'permission must be one of: ReadWrite | ReadOnly'
 
 def isPacoCodeCommitPermissionPolicyValid(value):
@@ -523,7 +521,7 @@ def isPacoCodeCommitPermissionPolicyValid(value):
     return True
 
 # DeploymentPipeline
-class InvalidPacoDeploymentPipelinePermissionPolicy(schema.ValidationError):
+class InvalidPacoDeploymentPipelinePermissionPolicy(zope.schema.ValidationError):
     __doc__ = 'permission must be one or ore more: ReadOnly, RetryStages'
 
 def isPacoDeploymentPipelinePermissionPolicyValid(value):
@@ -534,7 +532,7 @@ def isPacoDeploymentPipelinePermissionPolicyValid(value):
     return True
 
 # CodeBuild
-class InvalidCodeBuildComputeType(schema.ValidationError):
+class InvalidCodeBuildComputeType(zope.schema.ValidationError):
     __doc__ = 'codebuild_compute_type must be one of: BUILD_GENERAL1_SMALL | BUILD_GENERAL1_MEDIUM | BUILD_GENERAL1_LARGE'
 
 def isValidCodeBuildComputeType(value):
@@ -543,7 +541,7 @@ def isValidCodeBuildComputeType(value):
     return True
 
 # ASG Scaling Policy Type
-class InvalidASGScalignPolicyType(schema.ValidationError):
+class InvalidASGScalignPolicyType(zope.schema.ValidationError):
     __doc__ = 'policy_type must be one of: SimpleScaling | StepScaling | TargetTrackingScaling'
 
 def IsValidASGScalignPolicyType(value):
@@ -552,7 +550,7 @@ def IsValidASGScalignPolicyType(value):
     return True
 
 # ASG Scaling Policy Adjustment Type
-class InvalidASGScalingPolicyAdjustmentType(schema.ValidationError):
+class InvalidASGScalingPolicyAdjustmentType(zope.schema.ValidationError):
     __doc__ = 'policy_type must be one of: ChangeInCapacity | ExactCapacity | PercentChangeInCapacity'
 
 def IsValidASGScalingPolicyAdjustmentType(value):
@@ -561,7 +559,7 @@ def IsValidASGScalingPolicyAdjustmentType(value):
     return True
 
 # ASG Scaling Policy Adjustment Type
-class InvalidASGLifecycleTransition(schema.ValidationError):
+class InvalidASGLifecycleTransition(zope.schema.ValidationError):
     __doc__ = 'lifecycle_transition must be one of: autoscaling:EC2_INSTANCE_LAUNCHING | autoscaling:EC2_INSTANCE_TERMINATING'
 
 def IsValidASGLifecycleTransition(value):
@@ -570,7 +568,7 @@ def IsValidASGLifecycleTransition(value):
     return True
 
 # ASG Scaling Policy Adjustment Type
-class InvalidASGLifecycleDefaultResult(schema.ValidationError):
+class InvalidASGLifecycleDefaultResult(zope.schema.ValidationError):
     __doc__ = 'default_result must be one of: CONTINUE | ABANDON'
 
 def IsValidASGLifecycleDefaultResult(value):
@@ -579,7 +577,7 @@ def IsValidASGLifecycleDefaultResult(value):
     return True
 
 # ASG AvailabilityZones
-class InvalidASGAvailabilityZone(schema.ValidationError):
+class InvalidASGAvailabilityZone(zope.schema.ValidationError):
     __doc__ = 'availability_zone must be one of: all | 1 | 2 | 3 | 4 | ...'
 
 def IsValidASGAvailabilityZone(value):
@@ -593,7 +591,7 @@ def IsValidASGAvailabilityZone(value):
 
 
 # Lambda Environment variables
-class InvalidLambdaEnvironmentVariable(schema.ValidationError):
+class InvalidLambdaEnvironmentVariable(zope.schema.ValidationError):
     __doc__ = 'Can not be a reserved Environment Variable name and must be alphanumeric or _ character only.'
 
 RESERVED_ENVIRONMENT_VARIABLES = [
@@ -627,7 +625,7 @@ def isValidLambdaVariableName(value):
         raise InvalidLambdaEnvironmentVariable("Invalid characters in name: %s" % value)
     return True
 
-class InvalidBranchEnvMappings(schema.ValidationError):
+class InvalidBranchEnvMappings(zope.schema.ValidationError):
     __doc__ = 'Branch to environment mappings must be in the form <branch-name>:<environment-name>.'
 
 def isValidBranchEnvMappings(value):
@@ -637,7 +635,7 @@ def isValidBranchEnvMappings(value):
     return True
 
 # EBS Volume Type
-class InvalidEBSVolumeType(schema.ValidationError):
+class InvalidEBSVolumeType(zope.schema.ValidationError):
     __doc__ = 'volume_type must be one of: gp2 | io1 | sc1 | st1 | standard'
 
 def isValidEBSVolumeType(value):
@@ -646,7 +644,7 @@ def isValidEBSVolumeType(value):
     return True
 
 # NAT Gateway
-class InvalidNATGatewayType(schema.ValidationError):
+class InvalidNATGatewayType(zope.schema.ValidationError):
     __doc__ = 'NATGateay type must be one of: Managed | EC2'
 
 def IsValidNATGatewayType(value):
@@ -659,13 +657,13 @@ def IsValidNATGatewayType(value):
 #
 class IDNSEnablable(Interface):
     """Provides a parent with an inheritable DNS enabled field"""
-    dns_enabled = schema.Bool(
+    dns_enabled = zope.schema.Bool(
         title='Boolean indicating whether DNS record sets will be created.',
         default=True,
         required=False,
     )
 
-class CommaList(schema.List):
+class CommaList(zope.schema.List):
     """Comma separated list of valeus"""
 
     def constraint(self, value):
@@ -688,7 +686,7 @@ class ITitle(Interface):
 A title is a human-readable name. It can be as long as you want, and can change without
 breaking any configuration.
     """
-    title=schema.TextLine(
+    title=zope.schema.TextLine(
         title="Title",
         default="",
         required=False,
@@ -699,7 +697,7 @@ class INamed(IParent, ITitle):
 A name given to a cloud resource. Names identify resources and changing them
 can break configuration.
 """
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Name",
         default="",
         required=False,
@@ -710,7 +708,7 @@ class IEnablable(Interface):
     """
 Indicate if this configuration should be enabled.
     """
-    enabled = schema.Bool(
+    enabled = zope.schema.Bool(
         title="Enabled",
         description="",
         default=True,
@@ -721,7 +719,7 @@ class IDeployable(Interface):
     """
 Indicates if this configuration tree should be enabled or not.
     """
-    enabled = schema.Bool(
+    enabled = zope.schema.Bool(
         title="Enabled",
         description="Could be deployed to AWS",
         default=False,
@@ -732,7 +730,7 @@ class IName(Interface):
     """
 A name that can be changed or duplicated with other similar cloud resources without breaking anything.
     """
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Name",
         default="",
         required=False,
@@ -759,7 +757,7 @@ class IPacoReference(Interface):
 class ILocalPath(Interface):
     """Path to a directory or file on the local filesystem"""
 
-class LocalPath(schema.TextLine):
+class LocalPath(zope.schema.TextLine):
     pass
 
 # work around circular imports for references
@@ -772,7 +770,7 @@ classImplements(YAMLFileReference, IYAMLFileReference)
 
 class INameValuePair(IParent):
     """A Name/Value pair to use for RDS Option Group configuration"""
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Name",
         required=True,
     )
@@ -785,7 +783,7 @@ class INameValuePair(IParent):
 
 class IAdminIAMUser(IDeployable):
     """An AWS Account Administerator IAM User"""
-    username = schema.TextLine(
+    username = zope.schema.TextLine(
         title="IAM Username",
         default="",
         required=False,
@@ -829,30 +827,30 @@ child accounts.
     root_email: dev@example.com
 
 """
-    account_type = schema.TextLine(
+    account_type = zope.schema.TextLine(
         title="Account Type",
         description="Supported types: 'AWS'",
         default="AWS",
         required=False,
     )
-    account_id = schema.TextLine(
+    account_id = zope.schema.TextLine(
         title="Account ID",
         description="Can only contain digits.",
         required=False,
         constraint = isOnlyDigits
     )
-    admin_delegate_role_name = schema.TextLine(
+    admin_delegate_role_name = zope.schema.TextLine(
         title="Administrator delegate IAM Role name for the account",
         description="",
         default="Paco-Organization-Account-Delegate-Role",
         required=False,
     )
-    is_master = schema.Bool(
+    is_master = zope.schema.Bool(
         title="Boolean indicating if this a Master account",
         default=False,
         required=False,
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="Region to install AWS Account specific resources",
         default="no-region-set",
         missing_value = "no-region-set",
@@ -860,62 +858,62 @@ child accounts.
         description='Must be a valid AWS Region name',
         constraint = isValidAWSRegionName
     )
-    root_email = schema.TextLine(
+    root_email = zope.schema.TextLine(
         title="The email address for the root user of this account",
         required=True,
         description='Must be a valid email address.',
         constraint = isValidEmail
     )
-    organization_account_ids = schema.List(
+    organization_account_ids = zope.schema.List(
         title="A list of account ids to add to the Master account's AWS Organization",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         required=False,
         description='Each string in the list must contain only digits.'
     )
-    admin_iam_users = schema.Dict(
+    admin_iam_users = zope.schema.Dict(
         title="Admin IAM Users",
-        value_type=schema.Object(IAdminIAMUser),
+        value_type=zope.schema.Object(IAdminIAMUser),
         required=False,
     )
 
 class ISecurityGroupRule(IName):
-    cidr_ip = schema.TextLine(
+    cidr_ip = zope.schema.TextLine(
         title="CIDR IP",
         default="",
         description="A valid CIDR v4 block or an empty string",
         constraint = isValidCidrIpv4orBlank,
         required=False,
     )
-    cidr_ip_v6 = schema.TextLine(
+    cidr_ip_v6 = zope.schema.TextLine(
         title="CIDR IP v6",
         description="A valid CIDR v6 block or an empty string",
         default="",
         required=False,
     )
-    description=schema.TextLine(
+    description=zope.schema.TextLine(
         title="Description",
         default="",
         description="Max 255 characters. Allowed characters are a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*.",
         required=False,
     )
-    from_port = schema.Int(
+    from_port = zope.schema.Int(
         title="From port",
         description="A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default=-1,
         required=False
     )
-    protocol = schema.TextLine(
+    protocol = zope.schema.TextLine(
         title="IP Protocol",
         description="The IP protocol name (tcp, udp, icmp, icmpv6) or number.",
         required=False,
     )
-    to_port = schema.Int(
+    to_port = zope.schema.Int(
         title="To port",
         description="A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default=-1,
         required=False
     )
-    port = schema.Int(
+    port = zope.schema.Int(
         title="Port",
         description="A value of -1 indicates all ICMP/ICMPv6 types. If you specify all ICMP/ICMPv6 types, you must specify all codes.",
         default=-1,
@@ -955,27 +953,27 @@ class ISecurityGroup(INamed, IDeployable):
     """
 AWS Resource: Security Group
     """
-    group_name = schema.TextLine(
+    group_name = zope.schema.TextLine(
         title="Group name",
         default="",
         description="Up to 255 characters in length. Cannot start with sg-.",
         required=False,
     )
-    group_description=schema.TextLine(
+    group_description=zope.schema.TextLine(
         title="Group description",
         default="",
         description="Up to 255 characters in length",
         required=False,
     )
-    ingress = schema.List(
+    ingress = zope.schema.List(
         title="Ingress",
-        value_type=schema.Object(schema=IIngressRule),
+        value_type=zope.schema.Object(schema=IIngressRule),
         description="Every list item must be an IngressRule",
         required=False,
     )
-    egress = schema.List(
+    egress = zope.schema.List(
         title="Egress",
-        value_type=schema.Object(schema=IEgressRule),
+        value_type=zope.schema.Object(schema=IEgressRule),
         description="Every list item must be an EgressRule",
         required=False,
     )
@@ -985,7 +983,7 @@ class IApplicationEngines(INamed, IMapping):
     taggedValue('contains', 'IApplicationEngine')
 
 class IType(Interface):
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title="Type of Resources",
         description="A valid AWS Resource type: ASG, LBApplication, etc.",
         required=False,
@@ -996,14 +994,14 @@ class IResource(IType, INamed, IDeployable, IDNSEnablable):
 Resources may represent a single physical resource in the cloud,
 or several closely related resources.
     """
-    order = schema.Int(
+    order = zope.schema.Int(
         title="The order in which the resource will be deployed",
         description="",
         min=0,
         default=0,
         required=False,
     )
-    change_protected = schema.Bool(
+    change_protected = zope.schema.Bool(
         title="Boolean indicating whether this resource can be modified or not.",
         default=False,
         required=False,
@@ -1030,12 +1028,12 @@ class IAccountRef(Interface):
 
 class IServiceEnvironment(IAccountRef, INamed):
     "A service composed of one or more applications"
-    applications = schema.Object(
+    applications = zope.schema.Object(
         title="Applications",
-        schema = IApplicationEngines,
+        schema=IApplicationEngines,
         required=False,
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="Region",
         required=False,
         constraint = isValidAWSRegionName,
@@ -1052,7 +1050,7 @@ class IAccountRegions(IParent):
         required=True,
         schema_constraint='IAccount'
     )
-    regions = schema.List(
+    regions = zope.schema.List(
         title="Regions",
         required=True,
     )
@@ -1063,22 +1061,22 @@ class IResources(INamed, IMapping):
 
 class IResourceGroup(INamed, IDeployable, IDNSEnablable):
     "A group of `Resources`_ to support an `Application`_."
-    title=schema.TextLine(
+    title=zope.schema.TextLine(
         title="Title",
         default="",
         required=False,
     )
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title="Type"
     )
-    order = schema.Int(
+    order = zope.schema.Int(
         title="The order in which the group will be deployed",
         description="",
         min=0,
         required=True
     )
-    resources = schema.Object(IResources)
-    dns_enabled = schema.Bool(
+    resources = zope.schema.Object(IResources)
+    dns_enabled = zope.schema.Bool(
         title="",
         required=False,
     )
@@ -1101,21 +1099,21 @@ class IAlarmNotification(INamed):
     """
 Alarm Notification
     """
-    groups = schema.List(
+    groups = zope.schema.List(
         title="List of groups",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Group"
         ),
         required=True
     )
-    classification = schema.TextLine(
+    classification = zope.schema.TextLine(
         title="Classification filter",
         description="Must be one of: 'performance', 'security', 'health' or ''.",
         constraint = isValidAlarmClassificationFilter,
         default='',
         required=False,
     )
-    severity = schema.TextLine(
+    severity = zope.schema.TextLine(
         title="Severity filter",
         constraint = isValidAlarmSeverityFilter,
         description="Must be one of: 'low', 'critical'",
@@ -1126,9 +1124,9 @@ class INotifiable(Interface):
     """
 A notifiable object
     """
-    notifications = schema.Object(
+    notifications = zope.schema.Object(
         title="Alarm Notifications",
-        schema = IAlarmNotifications,
+        schema=IAlarmNotifications,
         required=False,
     )
 
@@ -1137,7 +1135,7 @@ class IAlarmSet(INamed, IMapping, INotifiable):
 A container of Alarm objects.
     """
     taggedValue('contains', 'mixed')
-    resource_type = schema.TextLine(
+    resource_type = zope.schema.TextLine(
         title="Resource type",
         description="Must be a valid AWS resource type",
         required=False,
@@ -1568,7 +1566,7 @@ class IDimension(IParent):
     """
 A dimension of a metric
     """
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Dimension name",
         required=False,
     )
@@ -1585,7 +1583,7 @@ A Paco Alarm.
 
 This is a base schema which defines metadata useful to categorize an alarm.
     """
-    classification = schema.TextLine(
+    classification = zope.schema.TextLine(
         title="Classification",
         description="Must be one of: 'performance', 'security' or 'health'",
         constraint = isValidAlarmClassification,
@@ -1593,21 +1591,21 @@ This is a base schema which defines metadata useful to categorize an alarm.
         default='unset',
         missing_value = 'unset',
     )
-    description=schema.TextLine(
+    description=zope.schema.TextLine(
         title="Description",
         required=False,
     )
-    notification_groups = schema.List(
+    notification_groups = zope.schema.List(
         readonly = True,
         title="List of notification groups the alarm is subscribed to.",
-        value_type=schema.TextLine(title="Notification group name"),
+        value_type=zope.schema.TextLine(title="Notification group name"),
         required=False,
     )
-    runbook_url = schema.TextLine(
+    runbook_url = zope.schema.TextLine(
         title="Runbook URL",
         required=False,
     )
-    severity = schema.TextLine(
+    severity = zope.schema.TextLine(
         title="Severity",
         default="low",
         constraint = isValidAlarmSeverity,
@@ -1634,90 +1632,90 @@ A CloudWatch Alarm
         if not getattr(obj, 'statistic', None) and not getattr(obj, 'extended_statistic', None):
             raise Invalid('Must include one of `statistic` or `extended_statistic`.')
 
-    alarm_actions = schema.List(
+    alarm_actions = zope.schema.List(
         title="Alarm Actions",
         readonly = True,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Alarm Action",
             required=False,
         ),
         required=False,
     )
-    alarm_description=schema.Text(
+    alarm_description=zope.schema.Text(
         title="Alarm Description",
         readonly = True,
         description="Valid JSON document with Paco fields.",
         required=False,
     )
-    actions_enabled = schema.Bool(
+    actions_enabled = zope.schema.Bool(
         title="Actions Enabled",
         readonly = True,
         required=False,
     )
-    comparison_operator = schema.TextLine(
+    comparison_operator = zope.schema.TextLine(
         title="Comparison operator",
         constraint = isComparisonOperator,
         description="Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
         required=False,
     )
-    dimensions = schema.List(
+    dimensions = zope.schema.List(
         title="Dimensions",
-        value_type=schema.Object(schema=IDimension),
+        value_type=zope.schema.Object(schema=IDimension),
         required=False,
     )
-    enable_ok_actions = schema.Bool(
+    enable_ok_actions = zope.schema.Bool(
         title="Enable Actions when alarm transitions to the OK state.",
         default=False,
         required=False,
     )
-    enable_insufficient_data_actions = schema.Bool(
+    enable_insufficient_data_actions = zope.schema.Bool(
         title="Enable Actions when alarm transitions to the INSUFFICIENT_DATA state.",
         default=False,
         required=False,
     )
-    evaluate_low_sample_count_percentile = schema.TextLine(
+    evaluate_low_sample_count_percentile = zope.schema.TextLine(
         title="Evaluate low sample count percentile",
         description="Must be one of `evaluate` or `ignore`.",
         required=False,
         constraint = isValidEvaluateLowSampleCountPercentileValue,
     )
-    evaluation_periods = schema.Int(
+    evaluation_periods = zope.schema.Int(
         title="Evaluation periods",
         min=1,
         required=False,
     )
-    extended_statistic = schema.TextLine(
+    extended_statistic = zope.schema.TextLine(
         title="Extended statistic",
         description="A value between p0.0 and p100.",
         required=False,
         constraint = isValidExtendedStatisticValue,
     )
     # ToDo: implement Metrics - also update invariant
-    # metrics = schema.List()
-    metric_name = schema.TextLine(
+    # metrics = zope.schema.List()
+    metric_name = zope.schema.TextLine(
         title="Metric name",
         required=True,
     )
-    namespace = schema.TextLine(
+    namespace = zope.schema.TextLine(
         title="Namespace",
         required=False,
     )
-    period = schema.Int(
+    period = zope.schema.Int(
         title="Period in seconds",
         required=False,
         min=1,
     )
-    statistic = schema.TextLine(
+    statistic = zope.schema.TextLine(
         title="Statistic",
         required=False,
         description="Must be one of `Maximum`, `SampleCount`, `Sum`, `Minimum`, `Average`.",
         constraint = isValidAlarmStatisticValue,
     )
-    threshold = schema.Float(
+    threshold = zope.schema.Float(
         title="Threshold",
         required=False,
     )
-    treat_missing_data = schema.TextLine(
+    treat_missing_data = zope.schema.TextLine(
         title="Treat missing data",
         description="Must be one of `breaching`, `notBreaching`, `ignore` or `missing`.",
         required=False,
@@ -1725,11 +1723,11 @@ A CloudWatch Alarm
     )
 
 class ICloudWatchLogAlarm(ICloudWatchAlarm):
-    log_set_name = schema.TextLine(
+    log_set_name = zope.schema.TextLine(
         title="Log Set Name",
         required=True
     )
-    log_group_name = schema.TextLine(
+    log_group_name = zope.schema.TextLine(
         title="Log Group Name",
         required=True
     )
@@ -1751,7 +1749,7 @@ class ISNSTopicSubscription(Interface):
         elif obj.protocol in ['email','email-json']:
             isValidEmail(obj.endpoint)
 
-    protocol = schema.TextLine(
+    protocol = zope.schema.TextLine(
         title="Notification protocol",
         default="email",
         description="Must be a valid SNS Topic subscription protocol: 'http', 'https', 'email', 'email-json', 'sms', 'sqs', 'application', 'lambda'.",
@@ -1764,7 +1762,7 @@ class ISNSTopicSubscription(Interface):
         required=False,
         schema_constraint='ISNSTopic'
     )
-    filter_policy = schema.TextLine(
+    filter_policy = zope.schema.TextLine(
         title="Filter Policy",
         description="Must be valid JSON",
         constraint=isValidJSONOrNone,
@@ -1808,23 +1806,23 @@ Simple Notification Service (SNS) Topic resource.
         protocol: lambda
 
 """
-    display_name = schema.TextLine(
+    display_name = zope.schema.TextLine(
         title="Display name for SMS Messages",
         required=False,
     )
-    locations = schema.List(
+    locations = zope.schema.List(
         title="Locations",
         description="Only applies to a global SNS Topic",
-        value_type=schema.Object(IAccountRegions),
+        value_type=zope.schema.Object(IAccountRegions),
         default=[],
         required=False,
     )
-    subscriptions = schema.List(
+    subscriptions = zope.schema.List(
         title="List of SNS Topic Subscriptions",
-        value_type=schema.Object(ISNSTopicSubscription),
+        value_type=zope.schema.Object(ISNSTopicSubscription),
         required=False,
     )
-    cross_account_access = schema.Bool(
+    cross_account_access = zope.schema.Bool(
         title="Cross-account access from all other accounts in this project.",
         description="",
         required=False,
@@ -1841,13 +1839,13 @@ class ISNS(INamed, IMapping):
     """
 AWS Simple Notification Systems (SNS)
     """
-    default_locations = schema.List(
+    default_locations = zope.schema.List(
         title="Locations",
-        value_type=schema.Object(IAccountRegions),
+        value_type=zope.schema.Object(IAccountRegions),
         default=[],
         required=False,
     )
-    topics = schema.Object(
+    topics = zope.schema.Object(
         title="SNS Topics",
         schema=ITopics,
         required=False,
@@ -1857,7 +1855,7 @@ AWS Simple Notification Systems (SNS)
 
 class ISNSTopics(IAccountRef):
     "Container for SNS Topics"
-    regions = schema.List(
+    regions = zope.schema.List(
         title="Regions to provision the Notification Groups in. Special list of ['ALL'] will select all of the project's active regions.",
         required=False,
         default=['ALL'],
@@ -1876,7 +1874,7 @@ class ICloudWatchDashboard(IResource):
         required=True,
         constraint=isValidJSONOrNone
     )
-    variables = schema.Dict(
+    variables = zope.schema.Dict(
         title="Dashboard Variables",
         default={},
         required=False
@@ -1885,7 +1883,7 @@ class ICloudWatchDashboard(IResource):
 # Logging schemas
 
 class ICloudWatchLogRetention(Interface):
-    expire_events_after_days = schema.TextLine(
+    expire_events_after_days = zope.schema.TextLine(
         title="Expire Events After. Retention period of logs in this group",
         description="",
         default="",
@@ -1903,34 +1901,34 @@ class ICloudWatchLogSource(INamed, ICloudWatchLogRetention):
     """
 Log source for a CloudWatch agent.
     """
-    encoding = schema.TextLine(
+    encoding = zope.schema.TextLine(
         title="Encoding",
         default="utf-8",
         required=False,
     )
-    log_stream_name = schema.TextLine(
+    log_stream_name = zope.schema.TextLine(
         title="Log stream name",
         description="CloudWatch Log Stream name",
         required=True,
         min_length=1
     )
-    multi_line_start_pattern = schema.Text(
+    multi_line_start_pattern = zope.schema.Text(
         title="Multi-line start pattern",
         default="",
         required=False,
     )
-    path = schema.TextLine(
+    path = zope.schema.TextLine(
         title="Path",
         default="",
         required=True,
         description="Must be a valid filesystem path expression. Wildcard * is allowed."
     )
-    timestamp_format = schema.TextLine(
+    timestamp_format = zope.schema.TextLine(
         title="Timestamp format",
         default="",
         required=False,
     )
-    timezone = schema.TextLine(
+    timezone = zope.schema.TextLine(
         title="Timezone",
         default="Local",
         constraint = isValidCWAgentTimezone,
@@ -1942,20 +1940,20 @@ class IMetricTransformation(Interface):
     """
 Metric Transformation
     """
-    default_value = schema.Float(
+    default_value = zope.schema.Float(
         title="The value to emit when a filter pattern does not match a log event.",
         required=False,
     )
-    metric_name = schema.TextLine(
+    metric_name = zope.schema.TextLine(
         title="The name of the CloudWatch Metric.",
         required=True,
     )
-    metric_namespace = schema.TextLine(
+    metric_namespace = zope.schema.TextLine(
         title="The namespace of the CloudWatch metric. If not set, the namespace used will be 'AIM/{log-group-name}'.",
         required=False,
         max_length = 255,
     )
-    metric_value = schema.TextLine(
+    metric_value = zope.schema.TextLine(
         title="The value that is published to the CloudWatch metric.",
         required=True,
     )
@@ -1970,14 +1968,14 @@ class IMetricFilter(INamed):
     """
     Metric filter
     """
-    filter_pattern = schema.Text(
+    filter_pattern = zope.schema.Text(
         title="Filter pattern",
         default="",
         required=False,
     )
-    metric_transformations = schema.List(
+    metric_transformations = zope.schema.List(
         title="Metric transformations",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             title="Metric Transformation",
             schema=IMetricTransformation
         ),
@@ -1995,17 +1993,17 @@ class ICloudWatchLogGroup(INamed, ICloudWatchLogRetention):
     """
 A CloudWatchLogGroup is responsible for retention, access control and metric filters
     """
-    metric_filters = schema.Object(
+    metric_filters = zope.schema.Object(
         title="Metric Filters",
-        schema = IMetricFilters,
+        schema=IMetricFilters,
         required=False,
     )
-    sources = schema.Object(
+    sources = zope.schema.Object(
         title="A CloudWatchLogSources container",
-        schema = ICloudWatchLogSources,
+        schema=ICloudWatchLogSources,
         required=False,
     )
-    log_group_name = schema.TextLine(
+    log_group_name = zope.schema.TextLine(
         title="Log group name. Can override the LogGroup name used from the name field.",
         description="",
         default="",
@@ -2022,9 +2020,9 @@ class ICloudWatchLogSet(INamed, ICloudWatchLogRetention):
     """
 A set of Log Group objects
     """
-    log_groups = schema.Object(
+    log_groups = zope.schema.Object(
         title="A CloudWatchLogGroups container",
-        schema = ICloudWatchLogGroups,
+        schema=ICloudWatchLogGroups,
         required=False,
     )
 
@@ -2032,9 +2030,9 @@ class ICloudWatchLogging(INamed, ICloudWatchLogRetention):
     """
 CloudWatch Logging configuration
     """
-    log_sets = schema.Object(
+    log_sets = zope.schema.Object(
         title="A CloudWatchLogSets container",
-        schema = ICloudWatchLogSets,
+        schema=ICloudWatchLogSets,
         required=False,
     )
 
@@ -2046,7 +2044,7 @@ class IEventTarget(INamed):
         schema_constraint='Interface',
         required=True,
     )
-    input_json = schema.TextLine(
+    input_json = zope.schema.TextLine(
         title="Valid JSON passed as input to the target.",
         required=False,
         constraint=isValidJSONOrNone,
@@ -2074,27 +2072,27 @@ Events Rule resources match incoming or scheduled events and route them to targe
     """
     # ToDo: add event_pattern field and invariant to make schedule_expression conditional
     # ToDo: constraint regex that validates schedule_expression
-    description=schema.Text(
+    description=zope.schema.Text(
         title="Description",
         required=False,
         default='',
         max_length=512,
     )
-    schedule_expression = schema.TextLine(
+    schedule_expression = zope.schema.TextLine(
         title="Schedule Expression",
         required=True
     )
-    enabled_state = schema.Bool(
+    enabled_state = zope.schema.Bool(
         title="Enabled State",
         required=False,
         default=True
     )
     # ToDo: constrain List to not be empty
-    targets = schema.List(
+    targets = zope.schema.List(
         title="The AWS Resources that are invoked when the Rule is triggered.",
         description="",
         required=True,
-        value_type=schema.Object(IEventTarget),
+        value_type=zope.schema.Object(IEventTarget),
     )
 
 # Metric and monitoring schemas
@@ -2108,27 +2106,27 @@ A set of metrics to collect and an optional collection interval:
     - free
     collection_interval: 900
     """
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Metric(s) group name",
         required=False,
     )
-    measurements = schema.List(
+    measurements = zope.schema.List(
         title="Measurements",
-        value_type=schema.TextLine(title="Metric measurement name"),
+        value_type=zope.schema.TextLine(title="Metric measurement name"),
         required=False,
     )
-    collection_interval = schema.Int(
+    collection_interval = zope.schema.Int(
         title="Collection interval",
         description="",
         min=1,
         required=False,
     )
-    resources = schema.List(
+    resources = zope.schema.List(
         title="List of resources for this metric",
-        value_type=schema.TextLine(title="Metric resource"),
+        value_type=zope.schema.TextLine(title="Metric resource"),
         required=False
     )
-    drop_device = schema.Bool(
+    drop_device = zope.schema.Bool(
         title="Drops the device name from disk metrics",
         default=True,
         required=False
@@ -2143,37 +2141,37 @@ class IMonitorConfig(IDeployable, INamed, INotifiable):
     """
 A set of metrics and a default collection interval
     """
-    asg_metrics = schema.List(
+    asg_metrics = zope.schema.List(
         title="ASG Metrics",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         constraint=isValidASGMetricNames,
         description="Must be one of: 'GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'",
         required=False,
     )
-    alarm_sets = schema.Object(
+    alarm_sets = zope.schema.Object(
         title="Sets of Alarm Sets",
         schema=IAlarmSets,
         required=False,
     )
-    collection_interval = schema.Int(
+    collection_interval = zope.schema.Int(
         title="Collection interval",
         min=1,
         default=60,
         required=False,
     )
-    health_checks = schema.Object(
+    health_checks = zope.schema.Object(
         title="Set of Health Checks",
         schema=IHealthChecks,
         required=False,
     )
-    log_sets = schema.Object(
+    log_sets = zope.schema.Object(
         title="Sets of Log Sets",
         schema=ICloudWatchLogSets,
         required=False,
     )
-    metrics = schema.List(
+    metrics = zope.schema.List(
         title="Metrics",
-        value_type=schema.Object(IMetric),
+        value_type=zope.schema.Object(IMetric),
         required=False,
     )
 
@@ -2181,8 +2179,8 @@ class IMonitorable(Interface):
     """
 A monitorable resource
     """
-    monitoring = schema.Object(
-        schema = IMonitorConfig,
+    monitoring = zope.schema.Object(
+        schema=IMonitorConfig,
         required=False,
     )
 
@@ -2191,22 +2189,22 @@ class IS3BucketPolicy(Interface):
 S3 Bucket Policy
     """
     # ToDo: Validate actions using awacs
-    action = schema.List(
+    action = zope.schema.List(
         title="List of Actions",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Action"
         ),
         required=True,
     )
-    aws = schema.List(
+    aws = zope.schema.List(
         title="List of AWS Principals.",
         description="Either this field or the principal field must be set.",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="AWS Principal"
         ),
         required=False,
     )
-    condition = schema.Dict(
+    condition = zope.schema.Dict(
         title="Condition",
         description='Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
         default={},
@@ -2215,26 +2213,26 @@ S3 Bucket Policy
     )
     # ToDo: validate principal using awacs
     # ToDo: validate that only one principal type is supplied, as that is all that is currently supported by paco.cftemplates.s3.py
-    principal = schema.Dict(
+    principal = zope.schema.Dict(
         title="Prinicpals",
         description="Either this field or the aws field must be set. Key should be one of: AWS, Federated, Service or CanonicalUser. Value can be either a String or a List.",
         default={},
         required=False,
     )
-    effect = schema.Choice(
+    effect = zope.schema.Choice(
         title="Effect",
         description="Must be one of 'Allow' or 'Deny'",
         required=True,
         vocabulary=vocabulary.iam_policy_effect,
     )
-    resource_suffix = schema.List(
+    resource_suffix = zope.schema.List(
         title="List of AWS Resources Suffixes",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Resources Suffix"
         ),
         required=True,
     )
-    sid = schema.TextLine(
+    sid = zope.schema.TextLine(
         title="Statement Id",
         required=False,
     )
@@ -2248,7 +2246,7 @@ S3 Bucket Policy
 
 class IS3LambdaConfiguration(IParent):
     # ToDo: add constraint
-    event = schema.TextLine(
+    event = zope.schema.TextLine(
         title="S3 bucket event for which to invoke the AWS Lambda function",
         description="Must be a supported event type: https://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html",
         required=False,
@@ -2260,9 +2258,9 @@ class IS3LambdaConfiguration(IParent):
     )
 
 class IS3NotificationConfiguration(IParent):
-    lambdas = schema.List(
+    lambdas = zope.schema.List(
         title="Lambda configurations",
-        value_type=schema.Object(IS3LambdaConfiguration),
+        value_type=zope.schema.Object(IS3LambdaConfiguration),
         required=False,
     )
 
@@ -2273,13 +2271,13 @@ class IS3StaticWebsiteHostingRedirectRequests(IParent):
         required=True,
         schema_constraint='IS3Bucket'
     )
-    protocol = schema.TextLine(
+    protocol = zope.schema.TextLine(
         title="Protocol",
         required=True
     )
 
 class IS3StaticWebsiteHosting(IParent, IDeployable):
-    redirect_requests = schema.Object(
+    redirect_requests = zope.schema.Object(
         title="Redirect requests configuration.",
         schema=IS3StaticWebsiteHostingRedirectRequests,
         required=False
@@ -2343,7 +2341,7 @@ it is still possible to override this to use other accouns and regions if desire
           - ''
 
 """
-    bucket_name = schema.TextLine(
+    bucket_name = zope.schema.TextLine(
         title="Bucket Name",
         description="A short unique name to assign the bucket.",
         default="bucket",
@@ -2354,46 +2352,46 @@ it is still possible to override this to use other accouns and regions if desire
         required=False,
         schema_constraint='IAccount',
     )
-    deletion_policy = schema.TextLine(
+    deletion_policy = zope.schema.TextLine(
         title="Bucket Deletion Policy",
         default="delete",
         required=False,
     )
-    notifications = schema.Object(
+    notifications = zope.schema.Object(
         title="Notification configuration",
-        schema = IS3NotificationConfiguration,
+        schema=IS3NotificationConfiguration,
         required=False,
     )
-    policy = schema.List(
+    policy = zope.schema.List(
         title="List of S3 Bucket Policies",
         description="",
-        value_type=schema.Object(IS3BucketPolicy),
+        value_type=zope.schema.Object(IS3BucketPolicy),
         required=False,
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="Bucket region",
         default=None,
         required=False
     )
-    cloudfront_origin = schema.Bool(
+    cloudfront_origin = zope.schema.Bool(
         title="Creates and listens for a CloudFront Access Origin Identity",
         required=False,
         default=False,
     )
-    external_resource = schema.Bool(
+    external_resource = zope.schema.Bool(
         title='Boolean indicating whether the S3 Bucket already exists or not',
         default=False,
         required=False,
     )
-    versioning = schema.Bool(
+    versioning = zope.schema.Bool(
         title="Enable Versioning on the bucket.",
         default=False,
         required=False,
     )
-    static_website_hosting = schema.Object(
+    static_website_hosting = zope.schema.Object(
         title="Static website hosting configuration.",
         required=False,
-        schema = IS3StaticWebsiteHosting
+        schema=IS3StaticWebsiteHosting
     )
 
 class IApplicationS3Bucket(IApplicationResource, IS3Bucket):
@@ -2406,7 +2404,7 @@ class IS3Buckets(INamed, IMapping):
 
 class IS3Resource(INamed):
     """S3 Bucket"""
-    buckets = schema.Object(
+    buckets = zope.schema.Object(
         title="Dictionary of S3Bucket objects",
         schema=IS3Buckets,
         required=True,
@@ -2416,14 +2414,14 @@ class IApplicationEngine(INamed, IDeployable, INotifiable, IMonitorable, IDNSEna
     """
 Application Engine : A template describing an application
     """
-    order = schema.Int(
+    order = zope.schema.Int(
         title="The order in which the application will be processed",
         description="",
         min=0,
         default=0,
         required=False
     )
-    groups = schema.Object(IResourceGroups)
+    groups = zope.schema.Object(IResourceGroups)
 
 
 class IApplication(IApplicationEngine):
@@ -2435,12 +2433,12 @@ class IEC2KeyPair(INamed):
     """
 EC2 SSH Key Pair
     """
-    keypair_name = schema.TextLine(
+    keypair_name = zope.schema.TextLine(
         title="The name of the EC2 KeyPair",
         description="",
         required=True
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="AWS Region",
         description="Must be a valid AWS Region name",
         default="no-region-set",
@@ -2461,16 +2459,16 @@ Container for `EC2KeyPair`_ objects.
     taggedValue('contains', 'IEC2KeyPair')
 
 class IEC2User(INamed):
-    full_name = schema.TextLine(
+    full_name = zope.schema.TextLine(
         title="Full Name",
         required=False,
     )
-    email = schema.TextLine(
+    email = zope.schema.TextLine(
         title="Email",
         required=False,
         constraint=isValidEmail,
     )
-    public_ssh_key = schema.TextLine(
+    public_ssh_key = zope.schema.TextLine(
         title="Public SSH Key",
         required=True,
     )
@@ -2482,7 +2480,7 @@ Container for `EC2User`_ objects.
     taggedValue('contains', 'IEC2User')
 
 class IEC2Group(INamed):
-    members = schema.List(
+    members = zope.schema.List(
         title="List of Users",
         default=[],
         required=True,
@@ -2499,17 +2497,17 @@ class IEC2Resource(INamed):
     """
 EC2 Resource Configuration
     """
-    keypairs = schema.Object(
+    keypairs = zope.schema.Object(
         title="Group of EC2 Key Pairs",
         schema=IEC2KeyPairs,
         required=False,
     )
-    users = schema.Object(
+    users = zope.schema.Object(
         title="SSH Users",
         schema=IEC2Users,
         required=False
     )
-    groups = schema.Object(
+    groups = zope.schema.Object(
         title="SSH Users",
         schema=IEC2Groups,
         required=False
@@ -2524,14 +2522,14 @@ class IEC2(IResource):
     """
 EC2 Instance
     """
-    associate_public_ip_address = schema.Bool(
+    associate_public_ip_address = zope.schema.Bool(
         title="Associate Public IP Address",
         description="",
         default=False,
         required=False,
     )
     instance_iam_profile = Attribute("Instance IAM Profile")
-    instance_ami = schema.TextLine(
+    instance_ami = zope.schema.TextLine(
         title="Instance AMI",
         description="",
         required=False,
@@ -2542,17 +2540,17 @@ EC2 Instance
         required=False,
         schema_constraint=IEC2KeyPair
     )
-    instance_type = schema.TextLine(
+    instance_type = zope.schema.TextLine(
         title="Instance type",
         description="",
         required=False,
     )
-    segment = schema.TextLine(
+    segment = zope.schema.TextLine(
         title="Segment",
         description="",
         required=False,
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="Security groups",
         description="",
         value_type=PacoReference(
@@ -2561,25 +2559,25 @@ EC2 Instance
         ),
         required=False,
     )
-    root_volume_size_gb = schema.Int(
+    root_volume_size_gb = zope.schema.Int(
         title="Root volume size GB",
         description="",
         default=8,
         min=8,
         required=False,
     )
-    disable_api_termination = schema.Bool(
+    disable_api_termination = zope.schema.Bool(
         title="Disable API Termination",
         description="",
         default=False,
         required=False,
     )
-    private_ip_address = schema.TextLine(
+    private_ip_address = zope.schema.TextLine(
         title="Private IP Address",
         description="",
         required=False,
     )
-    user_data_script = schema.Text(
+    user_data_script = zope.schema.Text(
         title="User data script",
         description="",
         default="",
@@ -2593,39 +2591,39 @@ class INetworkEnvironments(INamed, IMapping):
 
 class IVersionControl(INamed):
     "Version control configuration for Paco"
-    enforce_branch_environments = schema.Bool(
+    enforce_branch_environments = zope.schema.Bool(
         title="Enforce vcs branches to provision environments",
         default=False,
         required=False,
     )
-    environment_branch_prefix = schema.TextLine(
+    environment_branch_prefix = zope.schema.TextLine(
         title="Environment branch prefix",
         default="ENV-",
         required=False,
     )
-    git_branch_environment_mappings = schema.List(
+    git_branch_environment_mappings = zope.schema.List(
         title="Git branch to environment mappings",
         description="Must be in the format <environment-name>:<branch-name>. The branch name " + \
         "will not be prefixed with the normal environment branch prefix.",
         default=[],
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         required=False,
         constraint=isValidBranchEnvMappings,
     )
-    global_environment_name = schema.TextLine(
+    global_environment_name = zope.schema.TextLine(
         title="Name of the environment that controls global resources.",
         default="prod",
         required=False,
     )
 
 class IPacoWorkBucket(INamed):
-    bucket_name = schema.TextLine(
+    bucket_name = zope.schema.TextLine(
         title="Bucket Name",
         description="A short unique name to assign the bucket",
         default="paco-work",
         required=False,
     )
-    enabled = schema.Bool(
+    enabled = zope.schema.Bool(
         title="Enable sharing the .paco-work directory by syncing to an S3 Bucket.",
         required=False,
         default=False,
@@ -2635,14 +2633,14 @@ class IPacoWorkBucket(INamed):
         required=True,
         schema_constraint=IAccount
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="AWS Region",
         required=False,
         constraint=isValidAWSRegionNameOrNone,
     )
 
 class ISharedState(INamed):
-    paco_work_bucket = schema.Object(
+    paco_work_bucket = zope.schema.Object(
         title="Paco work bucket",
         description="",
         schema=IPacoWorkBucket,
@@ -2652,36 +2650,36 @@ class ISharedState(INamed):
 class IProject(INamed, IMapping):
     "Project : the root node in the config for a Paco Project"
     taggedValue('contains', 'mixed')
-    paco_project_version = schema.TextLine(
+    paco_project_version = zope.schema.TextLine(
         title="Paco project version",
         default="",
         required=False,
     )
-    active_regions = schema.List(
+    active_regions = zope.schema.List(
         title="Regions that resources can be provisioned in",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         constraint=isValidAWSRegionList,
         required=False,
     )
-    legacy_flags = schema.List(
+    legacy_flags = zope.schema.List(
         title='List of Legacy Flags',
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         constraint=isValidLegacyFlagList,
         required=False,
     )
-    version_control = schema.Object(
+    version_control = zope.schema.Object(
         title="Version Control integration",
         description="",
         schema=IVersionControl,
         required=False,
     )
-    shared_state = schema.Object(
+    shared_state = zope.schema.Object(
         title="Shared State",
         description="",
         schema=ISharedState,
         required=False
     )
-    s3bucket_hash = schema.TextLine(
+    s3bucket_hash = zope.schema.TextLine(
         title="S3 Bucket hash suffix",
         description="",
         required=False,
@@ -2710,21 +2708,21 @@ class IRoute53RecordSet(Interface):
     """
 Route53 Record Set
     """
-    record_name = schema.TextLine(
+    record_name = zope.schema.TextLine(
         title='Record Set Full Name',
         required=True
     )
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title='Record Set Type',
         required=True,
         constraint = isValidRoute53RecordSetType
     )
-    resource_records = schema.List(
+    resource_records = zope.schema.List(
         title='Record Set Values',
         required=True,
-        value_type=schema.TextLine(title='Resource Record')
+        value_type=zope.schema.TextLine(title='Resource Record')
     )
-    ttl = schema.Int(
+    ttl = zope.schema.Int(
         title='Record TTL',
         required=False,
         default=300
@@ -2740,13 +2738,13 @@ class IRoute53HostedZoneExternalResource(INamed, IDeployable):
     """
 Existing Hosted Zone configuration
     """
-    hosted_zone_id = schema.TextLine(
+    hosted_zone_id = zope.schema.TextLine(
         title='ID of an existing Hosted Zone',
         required=True
     )
-    nameservers = schema.List(
+    nameservers = zope.schema.List(
         title='List of the Hosted Zones Nameservers',
-        value_type=schema.TextLine(title='Nameservers'),
+        value_type=zope.schema.TextLine(title='Nameservers'),
         required=True
     )
 
@@ -2757,7 +2755,7 @@ class IRoute53HostedZone(IHostedZone, INamed, IDeployable):
     """
 Route53 Hosted Zone
     """
-    domain_name = schema.TextLine(
+    domain_name = zope.schema.TextLine(
         title="Domain Name",
         required=True
     )
@@ -2766,21 +2764,21 @@ Route53 Hosted Zone
         required=True,
         schema_constraint='IAccount'
     )
-    record_sets = schema.List(
+    record_sets = zope.schema.List(
         title='List of Record Sets',
-        value_type=schema.Object(IRoute53RecordSet),
+        value_type=zope.schema.Object(IRoute53RecordSet),
         required=True
     )
-    parent_zone = schema.TextLine(
+    parent_zone = zope.schema.TextLine(
         title='Parent Hozed Zone name',
         required=False
     )
-    external_resource = schema.Object(
+    external_resource = zope.schema.Object(
         title='External HostedZone Id Configuration',
-        schema = IRoute53HostedZoneExternalResource,
+        schema=IRoute53HostedZoneExternalResource,
         required=False
     )
-    private_hosted_zone = schema.Bool(
+    private_hosted_zone = zope.schema.Bool(
         title='Make this hosted zone private.',
         required=False,
         default=False
@@ -2798,13 +2796,13 @@ AWS Resource: IGW
 
 class INATGateway(INamed, IDeployable):
     """NAT Gateway"""
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title='NAT Gateway type',
         default='Managed',
         required=False,
         constraint=IsValidNATGatewayType
     )
-    availability_zone = schema.TextLine(
+    availability_zone = zope.schema.TextLine(
         title='Availability Zones to launch instances in.',
         description="Can be 'all' or number of AZ: 1, 2, 3, 4 ...",
         default='all',
@@ -2817,7 +2815,7 @@ class INATGateway(INamed, IDeployable):
         required=False,
         schema_constraint='ISegment'
     )
-    default_route_segments = schema.List(
+    default_route_segments = zope.schema.List(
         title="Default Route Segments",
         description="",
         value_type=PacoReference(
@@ -2826,7 +2824,7 @@ class INATGateway(INamed, IDeployable):
         ),
         required=False,
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="Security Groups",
         value_type=PacoReference(
             title="Paco reference",
@@ -2840,7 +2838,7 @@ class INATGateway(INamed, IDeployable):
         required=False,
         schema_constraint=IEC2KeyPair
     )
-    ec2_instance_type = schema.TextLine(
+    ec2_instance_type = zope.schema.TextLine(
         title="EC2 Instance Type",
         required=False,
         default='t2.nano'
@@ -2851,14 +2849,14 @@ class IVPNGateway(INamed, IDeployable):
 
 class IPrivateHostedZone(IHostedZone, IParent, IDeployable):
     """Private Hosted Zone"""
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Hosted zone name",
         required=False,
     )
-    vpc_associations = schema.List(
+    vpc_associations = zope.schema.List(
         title="List of VPC Ids",
         required=False,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="VPC ID"
         ),
         default=None
@@ -2868,37 +2866,37 @@ class ISegment(INamed, IDeployable):
     """
 Segment
     """
-    internet_access = schema.Bool(
+    internet_access = zope.schema.Bool(
         title="Internet Access",
         default=False,
         required=False,
     )
-    az1_cidr = schema.TextLine(
+    az1_cidr = zope.schema.TextLine(
         title="Availability Zone 1 CIDR",
         default="",
         required=False,
     )
-    az2_cidr = schema.TextLine(
+    az2_cidr = zope.schema.TextLine(
         title="Availability Zone 2 CIDR",
         default="",
         required=False,
     )
-    az3_cidr = schema.TextLine(
+    az3_cidr = zope.schema.TextLine(
         title="Availability Zone 3 CIDR",
         default="",
         required=False,
     )
-    az4_cidr = schema.TextLine(
+    az4_cidr = zope.schema.TextLine(
         title="Availability Zone 4 CIDR",
         default="",
         required=False,
     )
-    az5_cidr = schema.TextLine(
+    az5_cidr = zope.schema.TextLine(
         title="Availability Zone 5 CIDR",
         default="",
         required=False,
     )
-    az6_cidr = schema.TextLine(
+    az6_cidr = zope.schema.TextLine(
         title="Availability Zone 6 CIDR",
         default="",
         required=False,
@@ -2913,7 +2911,7 @@ VPC Peering Route
         required=False,
         schema_constraint='ISegment'
     )
-    cidr = schema.TextLine(
+    cidr = zope.schema.TextLine(
         title="CIDR IP",
         default="",
         description="A valid CIDR v4 block or an empty string",
@@ -2926,19 +2924,19 @@ class IVPCPeering(INamed, IDeployable):
 VPC Peering
     """
     # peer_* is used when peering with an external VPC
-    peer_role_name = schema.TextLine(
+    peer_role_name = zope.schema.TextLine(
         title='Remote peer role name',
         required=False
     )
-    peer_vpcid = schema.TextLine(
+    peer_vpcid = zope.schema.TextLine(
         title='Remote peer VPC Id',
         required=False
     )
-    peer_account_id = schema.TextLine(
+    peer_account_id = zope.schema.TextLine(
         title='Remote peer AWS account Id',
         required=False
     )
-    peer_region = schema.TextLine(
+    peer_region = zope.schema.TextLine(
         title='Remote peer AWS region',
         required=False
     )
@@ -2950,9 +2948,9 @@ VPC Peering
         schema_constraint='INetworkEnvironment'
     )
     # Routes forward traffic to the peering connection
-    routing = schema.List(
+    routing = zope.schema.List(
         title="Peering routes",
-        value_type=schema.Object(IVPCPeeringRoute),
+        value_type=zope.schema.Object(IVPCPeeringRoute),
         required=True
     )
 
@@ -2982,61 +2980,61 @@ class IVPCPeerings(INamed, IMapping):
 
 class IVPC(INamed, IDeployable):
     """VPC"""
-    cidr = schema.TextLine(
+    cidr = zope.schema.TextLine(
         title="CIDR",
         description="",
         default="",
         required=False,
     )
-    enable_dns_hostnames = schema.Bool(
+    enable_dns_hostnames = zope.schema.Bool(
         title="Enable DNS Hostnames",
         description="",
         default=False,
         required=False,
     )
-    enable_dns_support = schema.Bool(
+    enable_dns_support = zope.schema.Bool(
         title="Enable DNS Support",
         description="",
         default=False,
         required=False,
     )
-    enable_internet_gateway = schema.Bool(
+    enable_internet_gateway = zope.schema.Bool(
         title="Internet Gateway",
         description="",
         default=False,
         required=False,
     )
-    nat_gateway = schema.Object(
+    nat_gateway = zope.schema.Object(
         title="NAT Gateways",
         description="",
         schema=INATGateways,
         required=True,
     )
-    vpn_gateway = schema.Object(
+    vpn_gateway = zope.schema.Object(
         title="VPN Gateways",
         description="",
         schema=IVPNGateways,
         required=True,
     )
-    private_hosted_zone = schema.Object(
+    private_hosted_zone = zope.schema.Object(
         title="Private hosted zone",
         description="",
         schema=IPrivateHostedZone,
         required=False,
     )
-    security_groups = schema.Object(
+    security_groups = zope.schema.Object(
         title="Security Group Sets",
         description="Security Groups Sets are containers for SecurityGroups containers.",
         schema=ISecurityGroupSets,
         required=True,
     )
-    segments = schema.Object(
+    segments = zope.schema.Object(
         title="Segments",
         description="",
         schema=ISegments,
         required=True,
     )
-    peering = schema.Object(
+    peering = zope.schema.Object(
         title="VPC Peering",
         description="",
         schema=IVPCPeerings,
@@ -3044,7 +3042,7 @@ class IVPC(INamed, IDeployable):
     )
 
 class IVPCConfiguration(INamed):
-    segments = schema.List(
+    segments = zope.schema.List(
         title="VPC Segments to attach the function",
         description="",
         value_type=PacoReference(
@@ -3053,7 +3051,7 @@ class IVPCConfiguration(INamed):
         ),
         required=False
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="List of VPC Security Group Ids",
         value_type=PacoReference(
             schema_constraint='ISecurityGroup'
@@ -3069,19 +3067,19 @@ class INetworkEnvironment(INamed, IDeployable, IMapping):
     taggedValue('contains', 'mixed')
 
 class ICredentials(INamed):
-    aws_access_key_id = schema.TextLine(
+    aws_access_key_id = zope.schema.TextLine(
         title="AWS Access Key ID",
         description="",
         default="",
         required=False,
     )
-    aws_secret_access_key = schema.TextLine(
+    aws_secret_access_key = zope.schema.TextLine(
         title="AWS Secret Access Key",
         description="",
         default="",
         required=False,
     )
-    aws_default_region = schema.TextLine(
+    aws_default_region = zope.schema.TextLine(
         title="AWS Default Region",
         description="Must be a valid AWS Region name",
         default="no-region-set",
@@ -3089,30 +3087,30 @@ class ICredentials(INamed):
         required=True,
         constraint = isValidAWSRegionName
     )
-    master_account_id = schema.TextLine(
+    master_account_id = zope.schema.TextLine(
         title="Master AWS Account ID",
         description="",
         default="",
         required=False,
     )
-    master_admin_iam_username = schema.TextLine(
+    master_admin_iam_username = zope.schema.TextLine(
         title="Master Account Admin IAM Username",
         description="",
         default="",
         required=False,
     )
-    admin_iam_role_name = schema.TextLine(
+    admin_iam_role_name = zope.schema.TextLine(
         title="Administrator IAM Role Name",
         required=False,
     )
-    mfa_session_expiry_secs = schema.Int(
+    mfa_session_expiry_secs = zope.schema.Int(
         title='The number of seconds before an MFA token expires.',
         default=60 * 60,    # 1 hour: 3600 seconds
         min=60 * 15,        # 15 minutes: 900 seconds
         max=(60 * 60) * 12, # 12 hours: 43200 seconds
         required=False,
     )
-    assume_role_session_expiry_secs = schema.Int(
+    assume_role_session_expiry_secs = zope.schema.Int(
         title='The number of seconds before an assumed role token expires.',
         default=60 * 15,   # 15 minutes: 900 seconds
         min=60 * 15,       # 15 minutes: 900 seconds
@@ -3129,13 +3127,13 @@ class INetwork(INamed, IDeployable, IMapping):
         required=False,
         schema_constraint='IAccount',
     )
-    availability_zones = schema.Int(
+    availability_zones = zope.schema.Int(
         title="Availability Zones",
         description="",
         default=0,
         required=False,
     )
-    vpc = schema.Object(
+    vpc = zope.schema.Object(
         title="VPC",
         description="",
         schema=IVPC,
@@ -3146,51 +3144,51 @@ class INetwork(INamed, IDeployable, IMapping):
 # Secrets Manager schemas
 
 class IGenerateSecretString(IParent, IDeployable):
-    exclude_characters = schema.Text(
+    exclude_characters = zope.schema.Text(
         title="A string that includes characters that should not be included in the generated password.",
         required=False,
         max_length=4096
     )
-    exclude_lowercase = schema.Bool(
+    exclude_lowercase = zope.schema.Bool(
         title="The generated password should not include lowercase letters.",
         default=False,
         required=False
     )
-    exclude_numbers = schema.Bool(
+    exclude_numbers = zope.schema.Bool(
         title="The generated password should exclude digits.",
         default=False,
         required=False
     )
-    exclude_punctuation = schema.Bool(
+    exclude_punctuation = zope.schema.Bool(
         title="The generated password should not include punctuation characters.",
         default=False,
         required=False
     )
-    exclude_uppercase = schema.Bool(
+    exclude_uppercase = zope.schema.Bool(
         title="The generated password should not include uppercase letters.",
         default=False,
         required=False
     )
-    generate_string_key = schema.TextLine(
+    generate_string_key = zope.schema.TextLine(
         title="The JSON key name that's used to add the generated password to the JSON structure.",
         required=False,
         max_length=10240
     )
-    include_space = schema.Bool(
+    include_space = zope.schema.Bool(
         title="The generated password can include the space character.",
         required=False
     )
-    password_length = schema.Int(
+    password_length = zope.schema.Int(
         title="The desired length of the generated password.",
         default=32,
         required=False
     )
-    require_each_included_type = schema.Bool(
+    require_each_included_type = zope.schema.Bool(
         title="The generated password must include at least one of every allowed character type.",
         default=True,
         required=False
     )
-    secret_string_template = schema.Text(
+    secret_string_template = zope.schema.Text(
         title="A properly structured JSON string that the generated password can be added to.",
         required=False,
         max_length=10240
@@ -3204,7 +3202,7 @@ class ISecretsManagerSecret(INamed, IDeployable):
         required=False,
         schema_constraint='IAccount'
     )
-    generate_secret_string = schema.Object(
+    generate_secret_string = zope.schema.Object(
         title="Generate SecretString object",
         required=False,
         schema=IGenerateSecretString,
@@ -3232,7 +3230,7 @@ class IAccountContainer(INamed, IMapping):
 class IRegionContainer(INamed, IMapping):
     "Container for objects which do not belong to a specific Environment."
     taggedValue('contains', 'mixed')
-    alarm_sets = schema.Object(
+    alarm_sets = zope.schema.Object(
         title="Alarm Sets",
         schema=IAlarmSets,
         required=False
@@ -3246,20 +3244,20 @@ Default values for an Environment's configuration
     # technically it can contain non-environment objects directly,
     # but it should never do so.
     taggedValue('contains', 'mixed')
-    applications = schema.Object(
+    applications = zope.schema.Object(
         title="Application container",
         required=True,
-        schema = IApplicationEngines,
+        schema=IApplicationEngines,
     )
-    network = schema.Object(
+    network = zope.schema.Object(
         title="Network",
         required=False,
-        schema = INetwork,
+        schema=INetwork,
     )
-    secrets_manager = schema.Object(
+    secrets_manager = zope.schema.Object(
         title="Secrets Manager",
         required=False,
-        schema = ISecretsManager
+        schema=ISecretsManager
     )
 
 class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
@@ -3284,24 +3282,24 @@ class ISSMDocuments(INamed, IMapping):
     taggedValue('contains', 'ISSMDocument')
 
 class ISSMDocument(IResource):
-    locations = schema.List(
+    locations = zope.schema.List(
         title="Locations",
-        value_type=schema.Object(IAccountRegions),
+        value_type=zope.schema.Object(IAccountRegions),
         default=[],
         required=True,
     )
-    content = schema.Text(
+    content = zope.schema.Text(
         title="JSON or YAML formatted SSM document",
         required=True,
     )
-    document_type = schema.Choice(
+    document_type = zope.schema.Choice(
         title="Document Type",
         required=True,
         vocabulary=vocabulary.ssm_document_types,
     )
 
 class ISSMResource(INamed):
-    ssm_documents = schema.Object(
+    ssm_documents = zope.schema.Object(
         title="SSM Documents",
         schema=ISSMDocuments,
         required=True,
@@ -3310,26 +3308,26 @@ class ISSMResource(INamed):
 # Networking
 
 class IAWSCertificateManager(IResource):
-    domain_name = schema.TextLine(
+    domain_name = zope.schema.TextLine(
         title="Domain Name",
         description="",
         default="",
         required=False,
     )
-    subject_alternative_names = schema.List(
+    subject_alternative_names = zope.schema.List(
         title="Subject alternative names",
         description="",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="alternative name"
         ),
         required=False,
     )
-    external_resource = schema.Bool(
+    external_resource = zope.schema.Bool(
         title="Marks this resource as external to avoid creating and validating it.",
         default=False,
         required=False,
     )
-    private_ca = schema.TextLine(
+    private_ca = zope.schema.TextLine(
         title="Private Certificate Authority ARN",
         description="",
         default=None,
@@ -3338,11 +3336,11 @@ class IAWSCertificateManager(IResource):
 
 class IPortProtocol(Interface):
     """Port and Protocol"""
-    port = schema.Int(
+    port = zope.schema.Int(
         title="Port",
         required=False,
     )
-    protocol = schema.Choice(
+    protocol = zope.schema.Choice(
         title="Protocol",
         vocabulary=vocabulary.target_group_protocol,
         required=False,
@@ -3356,68 +3354,68 @@ Container for `TargetGroup`_ objects.
 
 class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
-    connection_drain_timeout = schema.Int(
+    connection_drain_timeout = zope.schema.Int(
         title="Connection drain timeout",
         required=False,
     )
-    healthy_threshold = schema.Int(
+    healthy_threshold = zope.schema.Int(
         title="Healthy threshold",
         required=False,
     )
-    health_check_http_code = schema.TextLine(
+    health_check_http_code = zope.schema.TextLine(
         title="Health check HTTP codes",
         required=False,
     )
-    health_check_interval = schema.Int(
+    health_check_interval = zope.schema.Int(
         title="Health check interval",
         required=False,
     )
-    health_check_path = schema.TextLine(
+    health_check_path = zope.schema.TextLine(
         title="Health check path",
         default="/",
         required=False,
     )
-    health_check_timeout = schema.Int(
+    health_check_timeout = zope.schema.Int(
         title="Health check timeout",
         required=False,
     )
-    target_type = schema.Choice(
+    target_type = zope.schema.Choice(
         title="Target Type",
         description="Must be one of 'instance', 'ip' or 'lambda'.",
         default="instance",
         vocabulary=vocabulary.target_group_target_types,
     )
-    unhealthy_threshold = schema.Int(
+    unhealthy_threshold = zope.schema.Int(
         title="Unhealthy threshold",
         required=False,
     )
 
 class IListenerRule(IDeployable):
-    rule_type = schema.TextLine(
+    rule_type = zope.schema.TextLine(
         title="Type of Rule",
         required=False,
     )
-    priority = schema.Int(
+    priority = zope.schema.Int(
         title="Forward condition priority",
         required=False,
         default=1
     )
-    host = schema.TextLine(
+    host = zope.schema.TextLine(
         title="Host header value",
         required=False,
     )
-    path_pattern = schema.List(
+    path_pattern = zope.schema.List(
         title="List of paths to match",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         required=False
     )
     # Redirect Rule Variables
-    redirect_host = schema.TextLine(
+    redirect_host = zope.schema.TextLine(
         title="The host to redirect to",
         required=False,
     )
     # Forward Rule Variables
-    target_group = schema.TextLine(
+    target_group = zope.schema.TextLine(
         title="Target group name",
         required=False,
     )
@@ -3437,12 +3435,12 @@ class IListener(IParent, IPortProtocol):
         if obj.redirect != None and obj.target_group != '':
             raise Invalid("Can not set both a redirect and a target_group for a listener.")
 
-    redirect = schema.Object(
+    redirect = zope.schema.Object(
         title="Redirect",
         schema=IPortProtocol,
         required=False,
     )
-    ssl_certificates = schema.List(
+    ssl_certificates = zope.schema.List(
         title="List of SSL certificate References",
         value_type=PacoReference(
             title="SSL Certificate Reference",
@@ -3450,20 +3448,20 @@ class IListener(IParent, IPortProtocol):
         ),
         required=False,
     )
-    ssl_policy = schema.Choice(
+    ssl_policy = zope.schema.Choice(
         title="SSL Policy",
         default="",
         vocabulary=vocabulary.lb_ssl_policy,
         required=False,
     )
-    target_group = schema.TextLine(
+    target_group = zope.schema.TextLine(
         title="Target group",
         default="",
         required=False
     )
-    rules = schema.Dict(
+    rules = zope.schema.Dict(
         title="Container of listener rules",
-        value_type=schema.Object(IListenerRule),
+        value_type=zope.schema.Object(IListenerRule),
         required=False,
         default=None
     )
@@ -3486,7 +3484,7 @@ class IDNS(IParent):
         required=False,
         schema_constraint='IAWSCertificateManager'
     )
-    ttl = schema.Int(
+    ttl = zope.schema.Int(
         title="TTL",
         default=300,
         required=False
@@ -3554,27 +3552,27 @@ to a target group, use the ``target_groups`` field on an ASG resource.
     segment: public
 
 """
-    target_groups = schema.Object(
+    target_groups = zope.schema.Object(
         title="Target Groups",
         schema=ITargetGroups,
         required=False,
     )
-    listeners = schema.Object(
+    listeners = zope.schema.Object(
         title="Listeners",
         schema=IListeners,
         required=False,
     )
-    dns = schema.List(
+    dns = zope.schema.List(
         title="List of DNS for the ALB",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False,
     )
-    scheme = schema.Choice(
+    scheme = zope.schema.Choice(
         title="Scheme",
         vocabulary=vocabulary.lb_scheme,
         required=False,
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="Security Groups",
         value_type=PacoReference(
             title="Paco reference",
@@ -3582,17 +3580,17 @@ to a target group, use the ``target_groups`` field on an ASG resource.
         ),
         required=False,
     )
-    segment = schema.TextLine(
+    segment = zope.schema.TextLine(
         title="Id of the segment stack",
         required=False,
     )
-    idle_timeout_secs = schema.Int(
+    idle_timeout_secs = zope.schema.Int(
         title='Idle timeout in seconds',
         description='The idle timeout value, in seconds.',
         default=60,
         required=False,
     )
-    enable_access_logs = schema.Bool(
+    enable_access_logs = zope.schema.Bool(
         title="Write access logs to an S3 Bucket",
         required=False
     )
@@ -3601,24 +3599,24 @@ to a target group, use the ``target_groups`` field on an ASG resource.
         required=False,
         schema_constraint='IS3Bucket'
     )
-    access_logs_prefix = schema.TextLine(
+    access_logs_prefix = zope.schema.TextLine(
         title="Access Logs S3 Bucket prefix",
         required=False
     )
 
 class IPrincipal(INamed):
-    aws = schema.List(
+    aws = zope.schema.List(
         title="List of AWS Principals",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="AWS Principal",
             default="",
             required=False
         ),
         required=False
     )
-    service = schema.List(
+    service = zope.schema.List(
         title="List of AWS Service Principals",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="AWS Service Principal",
             default="",
             required=False
@@ -3627,30 +3625,30 @@ class IPrincipal(INamed):
     )
 
 class IStatement(INamed):
-    action = schema.List(
+    action = zope.schema.List(
         title="Action(s)",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         required=False,
     )
-    condition = schema.Dict(
+    condition = zope.schema.Dict(
         title="Condition",
         description='Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
         default={},
         required=False,
         # ToDo: Use awacs to add a constraint to check for valid conditions
     )
-    effect = schema.Choice(
+    effect = zope.schema.Choice(
         title="Effect",
         description="Must be one of 'Allow' or 'Deny'",
         required=False,
         vocabulary=vocabulary.iam_policy_effect,
     )
-    resource = schema.List(
+    resource = zope.schema.List(
         title="Resrource(s)",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         required=False,
     )
-    principal = schema.Object(
+    principal = zope.schema.Object(
         title="Principal",
         schema=IPrincipal,
         required=False
@@ -3658,14 +3656,14 @@ class IStatement(INamed):
 
 
 class IPolicy(IParent):
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Policy name",
         default="",
         required=False,
     )
-    statement = schema.List(
+    statement = zope.schema.List(
         title="Statements",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             title="Statement",
             schema=IStatement
         ),
@@ -3673,24 +3671,24 @@ class IPolicy(IParent):
     )
 
 class IAssumeRolePolicy(IParent):
-    effect = schema.Choice(
+    effect = zope.schema.Choice(
         title="Effect",
         description="Must be one of 'Allow' or 'Deny'",
         required=False,
         vocabulary=vocabulary.iam_policy_effect,
     )
-    aws = schema.List(
+    aws = zope.schema.List(
         title="List of AWS Principals",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="AWS Principal",
             default="",
             required=False
         ),
         required=False
     )
-    service = schema.List(
+    service = zope.schema.List(
         title="Service",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Service",
             default="",
             required=False
@@ -3699,47 +3697,47 @@ class IAssumeRolePolicy(IParent):
     )
     # ToDo: what are 'aws' keys for? implement ...
 
-class IRole(INamed, IDeployable):
-    assume_role_policy = schema.Object(
+class IBaseRole(INamed):
+    assume_role_policy = zope.schema.Object(
         title="Assume role policy",
         schema=IAssumeRolePolicy,
         required=False
     )
-    instance_profile = schema.Bool(
+    instance_profile = zope.schema.Bool(
         title="Instance profile",
         default=False,
         required=False
     )
-    path = schema.TextLine(
+    path = zope.schema.TextLine(
         title="Path",
         default="/",
         required=False
     )
-    role_name = schema.TextLine(
+    role_name = zope.schema.TextLine(
         title="Role name",
         default="",
         required=False
     )
-    global_role_name = schema.Bool(
+    global_role_name = zope.schema.Bool(
         title="Role name is globally unique and will not be hashed",
         required=False,
         default=False,
     )
-    policies = schema.List(
+    policies = zope.schema.List(
         title="Policies",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             schema=IPolicy
         ),
         required=False
     )
-    managed_policy_arns = schema.List(
+    managed_policy_arns = zope.schema.List(
         title="Managed policy ARNs",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Managed policy ARN"
         ),
         required=False
     )
-    max_session_duration = schema.Int(
+    max_session_duration = zope.schema.Int(
         title="Maximum session duration",
         description="The maximum session duration (in seconds)",
         min=3600,
@@ -3747,44 +3745,50 @@ class IRole(INamed, IDeployable):
         default=3600,
         required=False
     )
-    permissions_boundary = schema.TextLine(
+    permissions_boundary = zope.schema.TextLine(
         title="Permissions boundary ARN",
         description="Must be valid ARN",
         default="",
         required=False
     )
 
+class IRole(IBaseRole, IDeployable):
+    "IAM Role that is disabled by default"
+
+class IRoleDefaultEnabled(IBaseRole, IEnablable):
+    "IAM Role that is enabled by default"
+
 class IManagedPolicy(INamed, IDeployable):
     """
 IAM Managed Policy
     """
-    policy_name = schema.TextLine(
+    policy_name = zope.schema.TextLine(
         title="Policy Name used in AWS. This will be prefixed with an 8 character hash.",
         required=True,
     )
-    roles = schema.List(
+    roles = zope.schema.List(
         title="List of Role Names",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Role Name"
         ),
         required=False,
     )
-    users = schema.List(
+    users = zope.schema.List(
         title="List of IAM Users",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="IAM User name"
         ),
         required=False,
     )
-    statement = schema.List(
+    statement = zope.schema.List(
         title="Statements",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             title="Statement",
             schema=IStatement
         ),
         required=False,
     )
-    path = schema.TextLine(
+    path = zope.schema.TextLine(
         title="Path",
         default="/",
         required=False,
@@ -3792,17 +3796,17 @@ IAM Managed Policy
 
 
 class IIAM(INamed):
-    roles = schema.Dict(
+    roles = zope.schema.Dict(
         title="Roles",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             title="Role",
             schema=IRole
         ),
         required=False,
     )
-    policies = schema.Dict(
+    policies = zope.schema.Dict(
         title="Policies",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             title="ManagedPolicy",
             schema=IManagedPolicy
         ),
@@ -3813,7 +3817,7 @@ class IEFSMount(IDeployable):
     """
 EFS Mount Folder and Target Configuration
     """
-    folder = schema.TextLine(
+    folder = zope.schema.TextLine(
         title='Folder to mount the EFS target',
         required=True
     )
@@ -3828,48 +3832,151 @@ class ISimpleCloudWatchAlarm(IParent):
     """
 A Simple CloudWatch Alarm
     """
-    alarm_description=schema.Text(
+    alarm_description=zope.schema.Text(
         title="Alarm Description",
         description="Valid JSON document with Paco fields.",
         required=False,
     )
-    actions_enabled = schema.Bool(
+    actions_enabled = zope.schema.Bool(
         title="Actions Enabled",
         required=False,
     )
-    comparison_operator = schema.TextLine(
+    comparison_operator = zope.schema.TextLine(
         title="Comparison operator",
         constraint = isComparisonOperator,
         description="Must be one of: 'GreaterThanThreshold','GreaterThanOrEqualToThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold'",
         required=False,
     )
-    evaluation_periods = schema.Int(
+    evaluation_periods = zope.schema.Int(
         title="Evaluation periods",
         required=False,
     )
-    metric_name = schema.TextLine(
+    metric_name = zope.schema.TextLine(
         title="Metric name",
         required=True,
     )
-    namespace = schema.TextLine(
+    namespace = zope.schema.TextLine(
         title="Namespace",
         required=False,
     )
-    period = schema.Int(
+    period = zope.schema.Int(
         title="Period in seconds",
         required=False,
     )
-    statistic = schema.TextLine(
+    statistic = zope.schema.TextLine(
         title="Statistic",
         required=False,
     )
-    threshold = schema.Float(
+    threshold = zope.schema.Float(
         title="Threshold",
         required=False,
     )
-    dimensions = schema.List(
+    dimensions = zope.schema.List(
         title='Dimensions',
-        value_type=schema.Object(IDimension),
+        value_type=zope.schema.Object(IDimension),
+        required=False,
+    )
+
+# Cognito
+
+class ICognitoUserPoolSchemaAttribute(IParent):
+    attribute_name = zope.schema.TextLine(
+        title="Name",
+        description="From 1 to 20 characters",
+        required=False,
+    )
+    attribute_data_type = zope.schema.Choice(
+        title="Attribute Data Type",
+        vocabulary=vocabulary.cognito_schema_datatype,
+        required=False,
+    )
+    mutable = zope.schema.Bool(
+        title="Mutable",
+        required=False,
+    )
+    required = zope.schema.Bool(
+        title="Required",
+        required=False,
+    )
+
+class ICognitoUserPoolClient(INamed):
+    generate_secret = zope.schema.Bool(
+        title="Generate Secret",
+        required=False,
+        default=False,
+    )
+
+class ICognitoUserPoolClients(INamed, IMapping):
+    "A container of `CognitoUserPoolClient`_ objects."
+    taggedValue('contains', 'ICognitoUserPoolClient')
+
+class InvalidAutoVerifiedAttributes(zope.schema.ValidationError):
+    __doc__ = "Must be only 'email' or 'phone_number' or 'email,phone_number'."
+
+def isValidAutoVerifiedAttributes(value):
+    for choice in value.split(','):
+        choice = choice.lower()
+        if choice.strip() not in ('email', 'phone_number'):
+            raise InvalidAutoVerifiedAttributes(f"{choice} is not a valid value.")
+    return True
+
+class ICognitoUserPool(IResource):
+    auto_verified_attributes = zope.schema.TextLine(
+        title="Auto Verified Attributes",
+        description="Can be either 'email', 'phone_number' or 'email,phone_number'",
+        required=False,
+        constraint=isValidAutoVerifiedAttributes,
+    )
+    mfa = zope.schema.Choice(
+        title="MFA Configuration",
+        description="Must be one of 'off', 'on' or 'optional'",
+        required=False,
+        vocabulary=vocabulary.cognito_mfa_configuration,
+        default='off',
+    )
+    schema = zope.schema.List(
+        title="Schema Attributes",
+        description="",
+        value_type=zope.schema.Object(ICognitoUserPoolSchemaAttribute),
+        default=[],
+    )
+    app_clients = zope.schema.Object(
+        title="App Clients",
+        schema=ICognitoUserPoolClients,
+        required=False,
+    )
+
+class ICognitoIdentityProvider(IParent):
+    userpool_client = PacoReference(
+        title="Identity Provider",
+        schema_constraint='ICognitoUserPoolClient',
+        required=True,
+    )
+    serverside_token_check = zope.schema.Bool(
+        title="ServerSide Token Check",
+        required=False,
+        default=False,
+    )
+
+class ICognitoIdentityPool(IResource):
+    allow_unauthenticated_identities = zope.schema.Bool(
+        title="Allow Unauthenticated Identities",
+        description="",
+        default=False,
+        required=False,
+    )
+    identity_providers = zope.schema.List(
+        title="Identity Providers",
+        value_type=zope.schema.Object(ICognitoIdentityProvider),
+        required=False,
+        default=[],
+    )
+    unauthenticated_role = zope.schema.Object(
+        IRoleDefaultEnabled,
+        required=False,
+    )
+    authenticated_role = zope.schema.Object(
+        IRoleDefaultEnabled,
         required=False,
     )
 
@@ -3952,39 +4059,39 @@ class ICloudFormationInitPathOrUrlPackageSet(IMapping):
                 raise Invalid('Package path/URL must be at least 1 char')
 
 class ICloudFormationInitPackages(INamed):
-    apt = schema.Object(
+    apt = zope.schema.Object(
         title="Apt packages",
         schema=ICloudFormationInitVersionedPackageSet,
         required=False
     )
-    msi = schema.Object(
+    msi = zope.schema.Object(
         title="MSI packages",
         schema=ICloudFormationInitPathOrUrlPackageSet,
         required=False
     )
-    python = schema.Object(
+    python = zope.schema.Object(
         title="Apt packages",
         schema=ICloudFormationInitVersionedPackageSet,
         required=False
     )
-    rpm = schema.Object(
+    rpm = zope.schema.Object(
         title="RPM packages",
         schema=ICloudFormationInitPathOrUrlPackageSet,
         required=False
     )
-    rubygems = schema.Object(
+    rubygems = zope.schema.Object(
         title="Rubygems packages",
         schema=ICloudFormationInitVersionedPackageSet,
         required=False
     )
-    yum = schema.Object(
+    yum = zope.schema.Object(
         title="Yum packages",
         schema=ICloudFormationInitVersionedPackageSet,
         required=False
     )
 
 class ICloudFormationInitGroup(Interface):
-    gid = schema.TextLine(
+    gid = zope.schema.TextLine(
         title="Gid",
         required=False,
     )
@@ -3995,21 +4102,21 @@ Container for CloudFormationInit Groups
     """
 
 class ICloudFormationInitUser(Interface):
-    groups = schema.List(
+    groups = zope.schema.List(
         title="Groups",
         required=False,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Group"
         ),
         default=[]
     )
-    uid = schema.Int(
+    uid = zope.schema.Int(
         title="Uid",
         required=False,
         min=100,
         max=65535
     )
-    home_dir = schema.TextLine(
+    home_dir = zope.schema.TextLine(
         title="Home dir",
         required=True
     )
@@ -4022,7 +4129,7 @@ Container for CloudFormationInit Users
 class ICloudFormationInitSources(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
-class InvalidCfnInitEncoding(schema.ValidationError):
+class InvalidCfnInitEncoding(zope.schema.ValidationError):
     __doc__ = 'File encoding must be one of plain or base64.'
 
 def isValidCfnInitEncoding(value):
@@ -4034,7 +4141,7 @@ def isValidS3KeyPrefix(value):
         raise InvalidS3KeyPrefix
     return True
 
-class InvalidStorageKeyPrefix(schema.ValidationError):
+class InvalidStorageKeyPrefix(zope.schema.ValidationError):
     __doc__ = "Not a valid key prefix. Must match regular expression pattern ^[a-zA-Z0-9!_.*'()/{}:-]*/$"
 
 KEYPREFIX_RE = re.compile(r"^[a-zA-Z0-9!_.*'()/{}:-]*/$")
@@ -4062,7 +4169,7 @@ class ICloudFormationInitFile(INamed):
         if obj.encoding != None and obj.content == None:
             raise Invalid("For cfn-init file configuration, encoding requires the content to be set.")
 
-    content = schema.Object(
+    content = zope.schema.Object(
         title="""Either a string or a properly formatted YAML object.""",
         required=False,
         schema=Interface
@@ -4075,34 +4182,34 @@ class ICloudFormationInitFile(INamed):
         title="File path to a properly formatted CloudFormation Functions YAML object.",
         required=False
     )
-    source = schema.TextLine(
+    source = zope.schema.TextLine(
         title="A URL to load the file from.",
         required=False
     )
-    encoding = schema.TextLine(
+    encoding = zope.schema.TextLine(
         title="The encoding format.",
         required=False,
         constraint=isValidCfnInitEncoding
     )
-    group = schema.TextLine(
+    group = zope.schema.TextLine(
         title="The name of the owning group for this file. Not supported for Windows systems.",
         required=False
     )
-    owner = schema.TextLine(
+    owner = zope.schema.TextLine(
         title="The name of the owning user for this file. Not supported for Windows systems.",
         required=False
     )
-    mode = schema.TextLine(
+    mode = zope.schema.TextLine(
         title="""A six-digit octal value representing the mode for this file.""",
         min_length=6,
         max_length=6,
         required=False
     )
-    authentication = schema.TextLine(
+    authentication = zope.schema.TextLine(
         title="""The name of an authentication method to use.""",
         required=False
     )
-    context = schema.TextLine(
+    context = zope.schema.TextLine(
         title="""Specifies a context for files that are to be processed as Mustache templates.""",
         required=False
     )
@@ -4111,27 +4218,27 @@ class ICloudFormationInitCommands(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
 class ICloudFormationInitCommand(Interface):
-    command = schema.Text(
+    command = zope.schema.Text(
         title="Command",
         required=True,
         min_length=1
     )
-    env = schema.Dict(
+    env = zope.schema.Dict(
         title="Environment Variables. This property overwrites, rather than appends, the existing environment.",
         required=False,
         default={}
     )
-    cwd = schema.TextLine(
+    cwd = zope.schema.TextLine(
         title="Cwd. The working directory",
         required=False,
         min_length=1
     )
-    test = schema.TextLine(
+    test = zope.schema.TextLine(
         title="A test command that determines whether cfn-init runs commands that are specified in the command key. If the test passes, cfn-init runs the commands.",
         required=False,
         min_length=1
     )
-    ignore_errors = schema.Bool(
+    ignore_errors = zope.schema.Bool(
         title="Ingore errors - determines whether cfn-init continues to run if the command in contained in the command key fails (returns a non-zero value). Set to true if you want cfn-init to continue running even if the command fails.",
         required=False,
         default=False
@@ -4139,37 +4246,37 @@ class ICloudFormationInitCommand(Interface):
 
 class ICloudFormationInitService(Interface):
     # ToDo: Invariant to check commands list
-    ensure_running = schema.Bool(
+    ensure_running = zope.schema.Bool(
         title="Ensure that the service is running or stopped after cfn-init finishes.",
         required=False
     )
-    enabled = schema.Bool(
+    enabled = zope.schema.Bool(
         title="Ensure that the service will be started or not started upon boot.",
         required=False
     )
-    files = schema.List(
+    files = zope.schema.List(
         title="A list of files. If cfn-init changes one directly via the files block, this service will be restarted",
         required=False,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="File"
         ),
     )
-    sources = schema.List(
+    sources = zope.schema.List(
         title="A list of directories. If cfn-init expands an archive into one of these directories, this service will be restarted.",
         required=False,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Sources"
         ),
     )
-    packages = schema.Dict(
+    packages = zope.schema.Dict(
         title="A map of package manager to list of package names. If cfn-init installs or updates one of these packages, this service will be restarted.",
         required=False,
         default={}
     )
-    commands = schema.List(
+    commands = zope.schema.List(
         title="A list of command names. If cfn-init runs the specified command, this service will be restarted.",
         required=False,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Commands"
         ),
     )
@@ -4178,12 +4285,12 @@ class ICloudFormationInitServiceCollection(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
 class ICloudFormationInitServices(INamed):
-    sysvinit = schema.Object(
+    sysvinit = zope.schema.Object(
         title="SysVInit Services for Linux OS",
         schema=ICloudFormationInitServiceCollection,
         required=False
     )
-    windows = schema.Object(
+    windows = zope.schema.Object(
         title="Windows Services for Windows OS",
         schema=ICloudFormationInitServiceCollection,
         required=False
@@ -4196,37 +4303,37 @@ class ICloudFormationConfiguration(INamed):
             if username in obj.groups:
                 raise Invalid("Both user and group with the name {} can not be set. When a user is created it automatically creates a group with the same name. Explicitly creating the group will cause the user add operation to fail.".format(username))
 
-    packages = schema.Object(
+    packages = zope.schema.Object(
         title="Packages",
         schema=ICloudFormationInitPackages,
         required=False
     )
-    groups = schema.Object(
+    groups = zope.schema.Object(
         title="Groups",
         schema=ICloudFormationInitGroups,
         required=False
     )
-    users = schema.Object(
+    users = zope.schema.Object(
         title="Users",
         schema=ICloudFormationInitUsers,
         required=False
     )
-    sources = schema.Object(
+    sources = zope.schema.Object(
         title="Sources",
         schema=ICloudFormationInitSources,
         required=False
     )
-    files = schema.Object(
+    files = zope.schema.Object(
         title="Files",
         schema=ICloudFormationInitFiles,
         required=False
     )
-    commands = schema.Object(
+    commands = zope.schema.Object(
         title="Commands",
         schema=ICloudFormationInitCommands,
         required=False
     )
-    services = schema.Object(
+    services = zope.schema.Object(
         title="Services",
         schema=ICloudFormationInitServices,
         required=False
@@ -4346,17 +4453,17 @@ not yet implemented.
 .. _CloudFormation Init: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-init.html
 
     """
-    config_sets = schema.Object(
+    config_sets = zope.schema.Object(
         title="CloudFormation Init configSets",
         schema=ICloudFormationConfigSets,
         required=True
     )
-    configurations = schema.Object(
+    configurations = zope.schema.Object(
         title="CloudFormation Init configurations",
         schema=ICloudFormationConfigurations,
         required=True
     )
-    parameters = schema.Dict(
+    parameters = zope.schema.Dict(
         title="Parameters",
         default={},
         required=False
@@ -4374,20 +4481,20 @@ class IASGLifecycleHook(INamed, IDeployable):
     """
 ASG Lifecycle Hook
     """
-    lifecycle_transition = schema.TextLine(
+    lifecycle_transition = zope.schema.TextLine(
         title='ASG Lifecycle Transition',
         constraint = IsValidASGLifecycleTransition,
         required=True
     )
-    notification_target_arn = schema.TextLine(
+    notification_target_arn = zope.schema.TextLine(
         title='Lifecycle Notification Target Arn',
         required=True
     )
-    role_arn = schema.TextLine(
+    role_arn = zope.schema.TextLine(
         title='Licecycel Publish Role ARN',
         required=True
     )
-    default_result = schema.TextLine(
+    default_result = zope.schema.TextLine(
         title='Default Result',
         required=False,
         constraint = IsValidASGLifecycleDefaultResult
@@ -4403,30 +4510,30 @@ class IASGScalingPolicy(INamed, IDeployable):
     """
 Auto Scaling Group Scaling Policy
     """
-    policy_type = schema.TextLine(
+    policy_type = zope.schema.TextLine(
         title='Policy Type',
         default='SimpleScaling',
         # SimpleScaling, StepScaling, and TargetTrackingScaling
         constraint=IsValidASGScalignPolicyType,
     )
-    adjustment_type = schema.TextLine(
+    adjustment_type = zope.schema.TextLine(
         title='Adjustment Type',
         default='ChangeInCapacity',
         # ChangeInCapacity, ExactCapacity, and PercentChangeInCapacity
         constraint=IsValidASGScalingPolicyAdjustmentType,
     )
-    scaling_adjustment = schema.Int(
+    scaling_adjustment = zope.schema.Int(
         title='Scaling Adjustment'
     )
-    cooldown = schema.Int(
+    cooldown = zope.schema.Int(
         title='Scaling Cooldown in Seconds',
         default=300,
         min=0,
         required=False
     )
-    alarms = schema.List(
+    alarms = zope.schema.List(
         title='Alarms',
-        value_type=schema.Object(ISimpleCloudWatchAlarm),
+        value_type=zope.schema.Object(ISimpleCloudWatchAlarm),
     )
 
     @invariant
@@ -4460,9 +4567,9 @@ Elastic IP (EIP) resource.
         ttl: 60
 
 """
-    dns = schema.List(
+    dns = zope.schema.List(
         title="List of DNS for the EIP",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False
     )
 
@@ -4470,7 +4577,7 @@ class IEBSVolumeMount(IParent, IDeployable):
     """
 EBS Volume Mount Configuration
     """
-    folder = schema.TextLine(
+    folder = zope.schema.TextLine(
         title='Folder to mount the EBS Volume',
         required=True
     )
@@ -4480,11 +4587,11 @@ EBS Volume Mount Configuration
         str_ok=True,
         schema_constraint='IEBS'
     )
-    device = schema.TextLine(
+    device = zope.schema.TextLine(
         title='Device to mount the EBS Volume with.',
         required=True
     )
-    filesystem = schema.TextLine(
+    filesystem = zope.schema.TextLine(
         title='Filesystem to mount the EBS Volume with.',
         required=True
     )
@@ -4509,23 +4616,23 @@ If the volume is going to be used by an ASG, it should launch an instance in the
 
     """
 
-    size_gib = schema.Int(
+    size_gib = zope.schema.Int(
         title="Volume Size in GiB",
         description="",
         default=10,
         required=False
     )
-    snapshot_id = schema.TextLine(
+    snapshot_id = zope.schema.TextLine(
         title="Snapshot ID",
         description="",
         required=False
     )
-    availability_zone = schema.Int(
+    availability_zone = zope.schema.Int(
         # Can be: 1 | 2 | 3 | 4 | ...
         title='Availability Zone to create Volume in.',
         required=True
     )
-    volume_type = schema.TextLine(
+    volume_type = zope.schema.TextLine(
         title="Volume Type",
         description="Must be one of: gp2 | io1 | sc1 | st1 | standard",
         default='gp2',
@@ -4537,26 +4644,26 @@ class IEC2LaunchOptions(INamed):
     """
 EC2 Launch Options
     """
-    update_packages = schema.Bool(
+    update_packages = zope.schema.Bool(
         title='Update Distribution Packages',
         required=False,
         default=False
     )
-    cfn_init_config_sets = schema.List(
+    cfn_init_config_sets = zope.schema.List(
         title="List of cfn-init config sets",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="",
             required=False
         ),
         required=False,
         default=[]
     )
-    ssm_agent = schema.Bool(
+    ssm_agent = zope.schema.Bool(
         title='Install SSM Agent',
         required=False,
         default=True
     )
-    ssm_expire_events_after_days = schema.TextLine(
+    ssm_expire_events_after_days = zope.schema.TextLine(
         title="Retention period of SSM logs",
         description="",
         default="30",
@@ -4565,36 +4672,36 @@ EC2 Launch Options
     )
 
 class IBlockDevice(IParent):
-    delete_on_termination = schema.Bool(
+    delete_on_termination = zope.schema.Bool(
         title="Indicates whether to delete the volume when the instance is terminated.",
         default=True,
         required=False
     )
-    encrypted = schema.Bool(
+    encrypted = zope.schema.Bool(
         title="Specifies whether the EBS volume is encrypted.",
         required=False
     )
-    iops = schema.Int(
+    iops = zope.schema.Int(
         title="The number of I/O operations per second (IOPS) to provision for the volume.",
         description="The maximum ratio of IOPS to volume size (in GiB) is 50:1, so for 5,000 provisioned IOPS, you need at least 100 GiB storage on the volume.",
         min=100,
         max=20000,
         required=False
     )
-    snapshot_id = schema.TextLine(
+    snapshot_id = zope.schema.TextLine(
         title="The snapshot ID of the volume to use.",
         min_length=1,
         max_length=255,
         required=False
     )
-    size_gib = schema.Int(
+    size_gib = zope.schema.Int(
         title="The volume size, in Gibibytes (GiB).",
         description="This can be a number from 1-1,024 for standard, 4-16,384 for io1, 1-16,384 for gp2, and 500-16,384 for st1 and sc1.",
         min=1,
         max=16384,
         required=False
     )
-    volume_type = schema.TextLine(
+    volume_type = zope.schema.TextLine(
         title="The volume type, which can be standard for Magnetic, io1 for Provisioned IOPS SSD, gp2 for General Purpose SSD, st1 for Throughput Optimized HDD, or sc1 for Cold HDD.",
         description="Must be one of standard, io1, gp2, st1 or sc1.",
         constraint=isValidEBSVolumeType
@@ -4609,18 +4716,18 @@ class IBlockDeviceMapping(IParent):
             raise Invalid("Can not set both ebs and virtual_name for block_device_mappings.")
         return True
 
-    device_name = schema.TextLine(
+    device_name = zope.schema.TextLine(
         title="The device name exposed to the EC2 instance",
         required=True,
         min_length=1,
         max_length=255
     )
-    ebs = schema.Object(
+    ebs = zope.schema.Object(
         title="Amazon Ebs volume",
         schema=IBlockDevice,
         required=False
     )
-    virtual_name = schema.TextLine(
+    virtual_name = zope.schema.TextLine(
         title="The name of the virtual device.",
         description="The name must be in the form ephemeralX where X is a number starting from zero (0), for example, ephemeral0.",
         min_length=1,
@@ -4632,54 +4739,54 @@ class IASGRollingUpdatePolicy(INamed):
     """
 AutoScalingRollingUpdate Policy
     """
-    enabled = schema.Bool(
+    enabled = zope.schema.Bool(
         title="Enable an UpdatePolicy for the ASG",
         description="",
         default=True,
         required=False,
     )
-    max_batch_size = schema.Int(
+    max_batch_size = zope.schema.Int(
         title="Maximum batch size",
         description="",
         default=1,
         min=1,
         required=False,
     )
-    min_instances_in_service = schema.Int(
+    min_instances_in_service = zope.schema.Int(
         title="Minimum instances in service",
         description="",
         default=0,
         min=0,
         required=False,
     )
-    pause_time = schema.TextLine(
+    pause_time = zope.schema.TextLine(
         title="Minimum instances in service",
         description="Must be in the format PT#H#M#S",
         required=False,
         default='',
     )
-    wait_on_resource_signals = schema.Bool(
+    wait_on_resource_signals = zope.schema.Bool(
         title="Wait for resource signals",
         description="",
         default=False
     )
 
 class IECSCapacityProvider(INamed, IDeployable):
-    target_capacity = schema.Int(
+    target_capacity = zope.schema.Int(
         title="Target Capacity",
         min=1,
         max=100,
         required=False,
         default=100,
     )
-    minimum_scaling_step_size = schema.Int(
+    minimum_scaling_step_size = zope.schema.Int(
         title="Minimum Scaling Step Size",
         min=1,
         max=10000,
         required=False,
         default=1,
     )
-    maximum_scaling_step_size = schema.Int(
+    maximum_scaling_step_size = zope.schema.Int(
         title="Maximum Scaling Step Size",
         min=1,
         max=10000,
@@ -4694,13 +4801,13 @@ class IECSASGConfiguration(INamed):
         str_ok=False,
         schema_constraint='IECSCluster'
     )
-    log_level = schema.Choice(
+    log_level = zope.schema.Choice(
         title="Log Level",
         vocabulary=vocabulary.log_levels,
         default='error',
         required=False,
     )
-    capacity_provider = schema.Object(
+    capacity_provider = zope.schema.Object(
         title="Capacity Provider",
         required=False,
         schema=IECSCapacityProvider,
@@ -4725,17 +4832,17 @@ class ISSHAccess(INamed):
 
         return True
 
-    users = schema.List(
+    users = zope.schema.List(
         title="User",
         description="Must match a user declared in resource/ec2.yaml",
-        value_type=schema.TextLine(title="User"),
+        value_type=zope.schema.TextLine(title="User"),
         required=False,
         default=[],
     )
-    groups = schema.List(
+    groups = zope.schema.List(
         title="Groups",
         description="Must match a group declared in resource/ec2.yaml",
-        value_type=schema.TextLine(title="Group"),
+        value_type=zope.schema.TextLine(title="Group"),
         required=False,
         default=[],
     )
@@ -4995,75 +5102,75 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         if obj.desired_capacity > obj.max_instances:
             raise Invalid("ASG desired_capacity must be less than or equal to max_instances.")
 
-    associate_public_ip_address = schema.Bool(
+    associate_public_ip_address = zope.schema.Bool(
         title="Associate Public IP Address",
         description="",
         default=False,
         required=False,
     )
-    availability_zone = schema.TextLine(
+    availability_zone = zope.schema.TextLine(
         # Can be: all | 1 | 2 | 3 | 4 | ...
         title='Availability Zones to launch instances in.',
         default='all',
         required=False,
         constraint=IsValidASGAvailabilityZone
     )
-    block_device_mappings = schema.List(
+    block_device_mappings = zope.schema.List(
         title="Block Device Mappings",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             title="Block Device Mapping",
             schema=IBlockDeviceMapping
         ),
         required=False
     )
-    cfn_init = schema.Object(
+    cfn_init = zope.schema.Object(
         title="CloudFormation Init",
         schema=ICloudFormationInit,
         required=False
     )
-    cooldown_secs = schema.Int(
+    cooldown_secs = zope.schema.Int(
         title="Cooldown seconds",
         description="",
         default=300,
         required=False,
     )
-    desired_capacity = schema.Int(
+    desired_capacity = zope.schema.Int(
         title="Desired capacity",
         description="",
         default=1,
         required=False,
     )
-    desired_capacity_ignore_changes = schema.Bool(
+    desired_capacity_ignore_changes = zope.schema.Bool(
         title="Ignore changes to the desired_capacity after the ASG is created.",
         description="",
         default=False,
         required=False,
     )
-    dns = schema.List(
+    dns = zope.schema.List(
         title="DNS domains to create to resolve to one of the ASGs EC2 Instances",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False
     )
 
-    ebs_optimized = schema.Bool(
+    ebs_optimized = zope.schema.Bool(
         title="EBS Optimized",
         description="",
         default=False,
         required=False,
     )
-    ebs_volume_mounts = schema.List(
+    ebs_volume_mounts = zope.schema.List(
         title='Elastic Block Store Volume Mounts',
-        value_type= schema.Object(IEBSVolumeMount),
+        value_type= zope.schema.Object(IEBSVolumeMount),
         required=False,
     )
-    ecs = schema.Object(
+    ecs = zope.schema.Object(
         title="ECS Configuration",
         schema=IECSASGConfiguration,
         required=False,
     )
-    efs_mounts = schema.List(
+    efs_mounts = zope.schema.List(
         title='Elastic Filesystem Configuration',
-        value_type=schema.Object(IEFSMount),
+        value_type=zope.schema.Object(IEFSMount),
         required=False,
     )
     eip = PacoReference(
@@ -5072,20 +5179,20 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         str_ok=True,
         schema_constraint='IEIP'
     )
-    health_check_grace_period_secs = schema.Int(
+    health_check_grace_period_secs = zope.schema.Int(
         title="Health check grace period in seconds",
         description="",
         default=300,
         required=False,
     )
-    health_check_type = schema.TextLine(
+    health_check_type = zope.schema.TextLine(
         title="Health check type",
         description="Must be one of: 'EC2', 'ELB'",
         default='EC2',
         constraint = isValidHealthCheckType,
         required=False,
     )
-    instance_iam_role = schema.Object(
+    instance_iam_role = zope.schema.Object(
         IRole,
         required=False
     )
@@ -5096,13 +5203,13 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         required=False,
         schema_constraint='IFunction'
     )
-    instance_ami_ignore_changes = schema.Bool(
+    instance_ami_ignore_changes = zope.schema.Bool(
         title="Do not update the instance_ami after creation.",
         description="",
         default=False,
         required=False,
     )
-    instance_ami_type = schema.TextLine(
+    instance_ami_type = zope.schema.TextLine(
         title="The AMI Operating System family",
         description="Must be one of amazon, centos, suse, debian, ubuntu, microsoft or redhat.",
         constraint = isValidInstanceAMIType,
@@ -5115,29 +5222,29 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         required=False,
         schema_constraint='IEC2KeyPair'
     )
-    instance_monitoring = schema.Bool(
+    instance_monitoring = zope.schema.Bool(
         title="Instance monitoring",
         description="",
         default=False,
         required=False,
     )
-    instance_type = schema.TextLine(
+    instance_type = zope.schema.TextLine(
         title="Instance type",
         description="",
         constraint = isValidInstanceSize,
         required=False,
     )
-    launch_options = schema.Object(
+    launch_options = zope.schema.Object(
         title='EC2 Launch Options',
         schema=IEC2LaunchOptions,
         required=True,
     )
-    lifecycle_hooks = schema.Object(
+    lifecycle_hooks = zope.schema.Object(
         title='Lifecycle Hooks',
         schema=IASGLifecycleHooks,
         required=False
     )
-    load_balancers = schema.List(
+    load_balancers = zope.schema.List(
         title="Target groups",
         description="",
         value_type=PacoReference(
@@ -5146,24 +5253,24 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         ),
         required=False,
     )
-    max_instances = schema.Int(
+    max_instances = zope.schema.Int(
         title="Maximum instances",
         description="",
         default=2,
         required=False,
     )
-    min_instances = schema.Int(
+    min_instances = zope.schema.Int(
         title="Minimum instances",
         description="",
         default=1,
         required=False,
     )
-    scaling_policies = schema.Object(
+    scaling_policies = zope.schema.Object(
         title='Scaling Policies',
         schema=IASGScalingPolicies,
         required=False,
     )
-    scaling_policy_cpu_average = schema.Int(
+    scaling_policy_cpu_average = zope.schema.Int(
         title="Average CPU Scaling Polciy",
         # Default is 0 == disabled
         default=0,
@@ -5171,7 +5278,7 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         max=100,
         required=False,
     )
-    secrets = schema.List(
+    secrets = zope.schema.List(
         title='List of Secrets Manager References',
         value_type=PacoReference(
             title='Secrets Manager Reference',
@@ -5179,7 +5286,7 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         ),
         required=False
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="Security groups",
         description="",
         value_type=PacoReference(
@@ -5188,18 +5295,18 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         ),
         required=False,
     )
-    segment = schema.TextLine(
+    segment = zope.schema.TextLine(
         title="Segment",
         description="",
         required=False,
     )
-    ssh_access = schema.Object(
+    ssh_access = zope.schema.Object(
         title="SSH Access",
         description="",
         schema=ISSHAccess,
         required=False,
     )
-    target_groups = schema.List(
+    target_groups = zope.schema.List(
         title="Target groups",
         description="",
         value_type=PacoReference(
@@ -5208,28 +5315,28 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         ),
         required=False,
     )
-    termination_policies = schema.List(
+    termination_policies = zope.schema.List(
         title="Terminiation policies",
         description="",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Termination policy",
             description=""
         ),
         required=False,
     )
-    user_data_pre_script = schema.Text(
+    user_data_pre_script = zope.schema.Text(
         title="User data pre-script",
         description="",
         default="",
         required=False,
     )
-    user_data_script = schema.Text(
+    user_data_script = zope.schema.Text(
         title="User data script",
         description="",
         default="",
         required=False,
     )
-    rolling_update_policy = schema.Object(
+    rolling_update_policy = zope.schema.Object(
         title="Rolling Update Policy",
         description="",
         schema=IASGRollingUpdatePolicy,
@@ -5242,19 +5349,19 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
 
 class IPortMapping(IParent):
     "Port Mapping"
-    container_port = schema.Int(
+    container_port = zope.schema.Int(
         title="Container Port",
         min=0,
         max=65535,
         required=False,
     )
-    host_port = schema.Int(
+    host_port = zope.schema.Int(
         title="Host Port",
         min=0,
         max=65535,
         required=False,
     )
-    protocol = schema.Choice(
+    protocol = zope.schema.Choice(
         title="Protocol",
         description="Must be either 'tcp' or 'udp'",
         vocabulary=vocabulary.network_protocols,
@@ -5263,16 +5370,16 @@ class IPortMapping(IParent):
 
 class IECSMountPoint(IParent):
     "ECS TaskDefinition Mount Point"
-    container_path = schema.TextLine(
+    container_path = zope.schema.TextLine(
         title="The path on the container to mount the host volume at.",
         required=False,
     )
-    read_only = schema.Bool(
+    read_only = zope.schema.Bool(
         title="Read Only",
         required=False,
         default=False,
     )
-    source_volume = schema.TextLine(
+    source_volume = zope.schema.TextLine(
         title="The name of the volume to mount.",
         description="Must be a volume name referenced in the name parameter of task definition volume.",
         required=False,
@@ -5280,19 +5387,19 @@ class IECSMountPoint(IParent):
 
 class IECSVolumesFrom(IParent):
     "VoumesFrom"
-    read_only = schema.Bool(
+    read_only = zope.schema.Bool(
         title="Read Only",
         required=False,
         default=False,
     )
-    source_container = schema.TextLine(
+    source_container = zope.schema.TextLine(
         title="The name of another container within the same task definition from which to mount volumes.",
         required=True,
     )
 
 class IECSLogging(INamed, ICloudWatchLogRetention):
     "ECS Logging Configuration"
-    driver = schema.Choice(
+    driver = zope.schema.Choice(
         title="Log Driver",
         description="One of awsfirelens, awslogs, fluentd, gelf, journald, json-file, splunk, syslog",
         vocabulary=vocabulary.ecs_log_drivers,
@@ -5301,7 +5408,7 @@ class IECSLogging(INamed, ICloudWatchLogRetention):
 
 class IECSTaskDefinitionSecret(IParent):
     """A Name/ValueFrom pair of Paco references to Secrets Manager secrets"""
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Name",
         required=True,
     )
@@ -5313,12 +5420,12 @@ class IECSTaskDefinitionSecret(IParent):
 
 class IECSContainerDependency(IParent):
     "ECS Container Dependency"
-    container_name = schema.TextLine(
+    container_name = zope.schema.TextLine(
         title="Container Name",
         description="Must be an existing container name.",
         required=True,
     )
-    condition = schema.Choice(
+    condition = zope.schema.Choice(
         title="Condition",
         description="Must be one of COMPLETE, HEALTHY, START or SUCCESS",
         required=True,
@@ -5330,46 +5437,46 @@ class IDockerLabels(INamed, IMapping):
 
 class IECSHostEntry(IParent):
     "ECS Host Entry"
-    hostname = schema.TextLine(
+    hostname = zope.schema.TextLine(
         title="Hostname",
         required=True,
     )
-    ip_address = schema.TextLine(
+    ip_address = zope.schema.TextLine(
         title="IP Address",
         required=True,
     )
 
 class IECSHealthCheck(INamed):
     "ECS Health Check"
-    command = schema.List(
+    command = zope.schema.List(
         title="A string array representing the command that the container runs to determine if it is healthy. The string array must start with CMD to execute the command arguments directly, or CMD-SHELL to run the command with the container's default shell.",
         required=True,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Command Part",
         )
     )
-    retries = schema.Int(
+    retries = zope.schema.Int(
         title="Retries",
         min=1,
         max=10,
         default=3,
         required=False,
     )
-    timeout = schema.Int(
+    timeout = zope.schema.Int(
         title="The time period in seconds to wait for a health check to succeed before it is considered a failure.",
         min=2,
         max=60,
         default=5,
         required=False,
     )
-    interval = schema.Int(
+    interval = zope.schema.Int(
         title="The time period in seconds between each health check execution.",
         min=5,
         max=300,
         default=30,
         required=False,
     )
-    start_period = schema.Int(
+    start_period = zope.schema.Int(
         title="The optional grace period within which to provide containers time to bootstrap before failed health checks count towards the maximum number of retries.",
         min=0,
         max=300,
@@ -5378,17 +5485,17 @@ class IECSHealthCheck(INamed):
 
 class IECSUlimit(IParent):
     "ECS Ulimit"
-    name = schema.Choice(
+    name = zope.schema.Choice(
         title="The type of the ulimit",
         vocabulary=vocabulary.ecs_ulimit,
         required=True,
     )
-    hard_limit = schema.Int(
+    hard_limit = zope.schema.Int(
         title="The hard limit for the ulimit type.",
         required=True,
         min=1,
     )
-    soft_limit = schema.Int(
+    soft_limit = zope.schema.Int(
         title="The soft limit for the ulimit type.",
         required=True,
         min=1,
@@ -5396,82 +5503,82 @@ class IECSUlimit(IParent):
 
 class IECSContainerDefinition(INamed):
     "ECS Container Definition"
-    command = schema.List(
+    command = zope.schema.List(
         title="Command (Docker CMD)",
         description="List of strings",
-        value_type=schema.Text(),
+        value_type=zope.schema.Text(),
         required=False,
     )
-    depends_on = schema.List(
+    depends_on = zope.schema.List(
         title="Depends On",
         description="List of ECS Container Dependencies",
-        value_type=schema.Object(IECSContainerDependency),
+        value_type=zope.schema.Object(IECSContainerDependency),
         required=False,
         default=[],
     )
-    disable_networking = schema.Bool(
+    disable_networking = zope.schema.Bool(
         title="Disable Networking",
         description="",
         required=False,
         default=False,
     )
-    dns_search_domains = schema.List(
+    dns_search_domains = zope.schema.List(
         title="List of DNS search domains. Maps to 'DnsSearch' in Docker.",
         required=False,
         default=[],
     )
-    dns_servers = schema.List(
+    dns_servers = zope.schema.List(
         title="List of DNS servers. Maps to 'Dns' in Docker.",
         required=False,
         default=[],
     )
-    docker_labels = schema.Object(
+    docker_labels = zope.schema.Object(
         title="A key/value map of labels. Maps to 'Labels' in Docker.",
         required=False,
         schema=IDockerLabels,
     )
-    docker_security_options = schema.List(
+    docker_security_options = zope.schema.List(
         title="List of custom labels for SELinux and AppArmor multi-level security systems.",
         description="Must be a list of no-new-privileges, apparmor:PROFILE, label:value, or credentialspec:CredentialSpecFilePath",
-        value_type=schema.Choice(
+        value_type=zope.schema.Choice(
             vocabulary=vocabulary.ecs_docker_security_options,
         ),
         required=False,
         default=[],
     )
-    cpu = schema.Int(
+    cpu = zope.schema.Int(
         title="Cpu units",
         required=False,
     )
-    entry_point = schema.List(
+    entry_point = zope.schema.List(
         title="Entry Pont (Docker ENTRYPOINT)",
         description="List of strings",
-        value_type=schema.Text(),
+        value_type=zope.schema.Text(),
         required=False,
     )
-    environment = schema.List(
+    environment = zope.schema.List(
         title='List of environment name value pairs.',
-        value_type=schema.Object(INameValuePair),
+        value_type=zope.schema.Object(INameValuePair),
         required=False
     )
-    essential = schema.Bool(
+    essential = zope.schema.Bool(
         title="Essential",
         required=False,
         default=False,
         # ToDo: constraint all tasks must have at least one essential
     )
-    extra_hosts = schema.List(
+    extra_hosts = zope.schema.List(
         title="List of hostnames and IP address mappings to append to the /etc/hosts file on the container.",
         required=False,
         default=[],
-        value_type=schema.Object(IECSHostEntry),
+        value_type=zope.schema.Object(IECSHostEntry),
     )
-    health_check = schema.Object(
+    health_check = zope.schema.Object(
         title="The container health check command and associated configuration parameters for the container. This parameter maps to 'HealthCheck' in Docker.",
         required=False,
         schema=IECSHealthCheck,
     )
-    hostname = schema.TextLine(
+    hostname = zope.schema.TextLine(
         title="Hostname to use for your container. This parameter maps to 'Hostname' in Docker.",
         required=False,
     )
@@ -5482,90 +5589,90 @@ class IECSContainerDefinition(INamed):
         str_ok=True,
         schema_constraint='IECRRepository',
     )
-    image_tag = schema.TextLine(
+    image_tag = zope.schema.TextLine(
         title="Tag used for the ECR Repository Image",
         required=False,
         default="latest",
     )
-    interactive = schema.Bool(
+    interactive = zope.schema.Bool(
         title="When this parameter is true, this allows you to deploy containerized applications that require stdin or a tty to be allocated. This parameter maps to 'OpenStdin' in Docker.",
         required=False,
     )
-    logging = schema.Object(
+    logging = zope.schema.Object(
         title="Logging Configuration",
         schema=IECSLogging,
         required=False,
     )
-    memory = schema.Int(
+    memory = zope.schema.Int(
         title="The amount (in MiB) of memory to present to the container. If your container attempts to exceed the memory specified here, the container is killed.",
         min=4,
         required=False,
         # ToDo: constraints - required if no task-level memory, must be greater than memory_reservation
     )
-    memory_reservation = schema.Int(
+    memory_reservation = zope.schema.Int(
         title="The soft limit (in MiB) of memory to reserve for the container. When system memory is under heavy contention, Docker attempts to keep the container memory to this soft limit.",
         required=False,
         min=4,
     )
-    mount_points = schema.List(
+    mount_points = zope.schema.List(
         title="The mount points for data volumes in your container.",
-        value_type=schema.Object(IECSMountPoint),
+        value_type=zope.schema.Object(IECSMountPoint),
         required=False,
     )
-    port_mappings = schema.List(
+    port_mappings = zope.schema.List(
         title="Port Mappings",
-        value_type=schema.Object(IPortMapping),
+        value_type=zope.schema.Object(IPortMapping),
         default=[],
         required=False,
     )
-    privileged = schema.Bool(
+    privileged = zope.schema.Bool(
         title="Give the container elevated privileges on the host container instance (similar to the root user).",
         required=False,
         default=False,
     )
-    pseudo_terminal = schema.Bool(
+    pseudo_terminal = zope.schema.Bool(
         title="Allocate a TTY. This parameter maps to 'Tty' in Docker.",
         required=False,
     )
-    readonly_root_filesystem = schema.Bool(
+    readonly_root_filesystem = zope.schema.Bool(
         title="Read-only access to its root file system. This parameter maps to 'ReadonlyRootfs' in Docker.",
         required=False,
     )
-    start_timeout = schema.Int(
+    start_timeout = zope.schema.Int(
         title="Time duration (in seconds) to wait before giving up on resolving dependencies for a container.",
         min=1,
         default=300,
         required=False,
     )
-    stop_timeout = schema.Int(
+    stop_timeout = zope.schema.Int(
         title="Time duration (in seconds) to wait before the container is forcefully killed if it doesn't exit normally on its own.",
         min=1,
         max=120,
         default=30,
         required=False,
     )
-    secrets = schema.List(
+    secrets = zope.schema.List(
         title='List of name, value_from pairs to secret manager Paco references.',
-        value_type=schema.Object(IECSTaskDefinitionSecret),
+        value_type=zope.schema.Object(IECSTaskDefinitionSecret),
         required=False
     )
-    ulimits =schema.List(
+    ulimits =zope.schema.List(
         title="List of ulimits to set in the container. This parameter maps to 'Ulimits' in Docker",
-        value_type=schema.Object(IECSUlimit),
+        value_type=zope.schema.Object(IECSUlimit),
         required=False,
         default=[],
     )
-    user = schema.TextLine(
+    user = zope.schema.TextLine(
         title="The user name to use inside the container. This parameter maps to 'User' in Docker.",
         required=False,
     )
-    volumes_from = schema.List(
+    volumes_from = zope.schema.List(
         title="Volumes to mount from another container (Docker VolumesFrom).",
-        value_type=schema.Object(IECSVolumesFrom),
+        value_type=zope.schema.Object(IECSVolumesFrom),
         default=[],
         required=False,
     )
-    working_directory = schema.TextLine(
+    working_directory = zope.schema.TextLine(
         title="The working directory in which to run commands inside the container. This parameter maps to 'WorkingDir' in Docker.",
         required=False,
     )
@@ -5582,7 +5689,7 @@ class IECSVolume(IParent):
     "ECS Volume"
     # docker_volume_configuration
     # host
-    name = schema.TextLine(
+    name = zope.schema.TextLine(
         title="Name",
         min_length=1,
         max_length=255,
@@ -5662,49 +5769,49 @@ class IECSTaskDefinition(INamed):
             return True
         raise Invalid(f"Not a valid cpu_units and memory_in_mb combination for Fargate. cpu_units: {obj.cpu_units} / memory_in_mb: {obj.memory_in_mb}")
 
-    container_definitions = schema.Object(
+    container_definitions = zope.schema.Object(
         title="Container Definitions",
         schema=IECSContainerDefinitions,
         required=True,
     )
-    cpu_units = schema.Int(
+    cpu_units = zope.schema.Int(
         title="CPU in Units",
         description="Must be one of 256, 512, 1024, 2048 or 4096",
         required=False,
         default=256,
     )
-    fargate_compatibile = schema.Bool(
+    fargate_compatibile = zope.schema.Bool(
         title="Require Fargate Compability",
         required=False,
         default=False,
     )
-    memory_in_mb = schema.Int(
+    memory_in_mb = zope.schema.Int(
         title="Memory in Mb",
         description="Must be one of 512, 1024, 2048, 2048 or 4096 thru 30720",
         required=False,
         default=512,
     )
-    network_mode = schema.Choice(
+    network_mode = zope.schema.Choice(
         title="Network Mode",
         vocabulary=vocabulary.ecs_network_modes,
         description="Must be one of awsvpc, bridge, host or none",
         required=False,
         default='bridge',
     )
-    volumes = schema.List(
+    volumes = zope.schema.List(
         title="Volume definitions for the task",
-        value_type=schema.Object(IECSVolume),
+        value_type=zope.schema.Object(IECSVolume),
         default=[],
         required=False,
     )
 
 class IECSLoadBalancer(INamed):
     "ECS Load Balancer"
-    container_name = schema.TextLine(
+    container_name = zope.schema.TextLine(
         title="Container Name",
         # ToDO: constraint for valid task def container definition name
     )
-    container_port = schema.Int(
+    container_port = zope.schema.Int(
         title="Container Port",
         min=0,
         max=65535,
@@ -5728,24 +5835,24 @@ class IECSTargetTrackingScalingPolicy(INamed, IEnablable):
             if not hasattr(obj, 'target_group'):
                 raise Invalid("Must specify the 'target_group' field to use as the source for an ALBRequestCountPerTarget.")
 
-    disable_scale_in = schema.Bool(
+    disable_scale_in = zope.schema.Bool(
         title="Disable ScaleIn",
         default=False,
         required=False,
     )
-    scale_in_cooldown = schema.Int(
+    scale_in_cooldown = zope.schema.Int(
         title="ScaleIn Cooldown",
         min=0,
         default=300,
         required=False,
     )
-    scale_out_cooldown = schema.Int(
+    scale_out_cooldown = zope.schema.Int(
         title="ScaleIn Cooldown",
         min=0,
         default=300,
         required=False,
     )
-    predefined_metric = schema.Choice(
+    predefined_metric = zope.schema.Choice(
         title="Predfined Metric to scale on",
         description="Must be one of ALBRequestCountPerTarget, ECSServiceAverageMemoryUtilization or ECSServiceAverageCPUUtilization",
         vocabulary=vocabulary.ecs_predefined_metrics,
@@ -5757,7 +5864,7 @@ class IECSTargetTrackingScalingPolicy(INamed, IEnablable):
         str_ok=False,
         schema_constraint='ITargetGroup',
     )
-    target = schema.Int(
+    target = zope.schema.Int(
         title="Target",
         min=0,
         required=True,
@@ -5769,7 +5876,7 @@ class IECSTargetTrackingScalingPolicies(INamed, IMapping):
 
 
 class IServiceVPCConfiguration(IVPCConfiguration):
-    assign_public_ip = schema.Bool(
+    assign_public_ip = zope.schema.Bool(
         title="Assign Public IP",
         default=False,
         required=False,
@@ -5777,85 +5884,85 @@ class IServiceVPCConfiguration(IVPCConfiguration):
 
 class IECSService(INamed, IMonitorable):
     "ECS Service"
-    deployment_controller = schema.Choice(
+    deployment_controller = zope.schema.Choice(
         title="Deployment Controller",
         vocabulary=vocabulary.ecs_deployment_types,
         description="One of ecs, code_deploy or external",
         default='ecs',
         required=False,
     )
-    deployment_minimum_healthy_percent = schema.Int(
+    deployment_minimum_healthy_percent = zope.schema.Int(
         title="Deployment Minimum Healthy Percent",
         min=1,
         max=100,
         required=False,
         default=100,
     )
-    deployment_maximum_percent = schema.Int(
+    deployment_maximum_percent = zope.schema.Int(
         title="Deployment Maximum Percent",
         min=1,
         required=False,
         default=200,
     )
-    desired_count = schema.Int(
+    desired_count = zope.schema.Int(
         title="Desired Count",
         min=0,
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
     )
-    launch_type = schema.Choice(
+    launch_type = zope.schema.Choice(
         title="Launch Type",
         description="Must be one of EC2 or Fargate",
         vocabulary=vocabulary.ecs_launch_types,
         required=False,
         default='EC2',
     )
-    minimum_tasks = schema.Int(
+    minimum_tasks = zope.schema.Int(
         title="Minimum Tasks in service",
         min=0,
         required=False,
         default=0,
     )
-    maximum_tasks = schema.Int(
+    maximum_tasks = zope.schema.Int(
         title="Maximum Tasks in service",
         min=0,
         required=False,
         default=0,
     )
-    health_check_grace_period_seconds = schema.Int(
+    health_check_grace_period_seconds = zope.schema.Int(
         title="Health Check Grace Period (seconds)",
         min=0,
         max=2147483647,
         required=False,
         default=0,
     )
-    suspend_scaling = schema.Bool(
+    suspend_scaling = zope.schema.Bool(
         title="Suspend any Service Scaling activities",
         default=False,
         required=False,
     )
-    target_tracking_scaling_policies = schema.Object(
+    target_tracking_scaling_policies = zope.schema.Object(
         title="Target Tracking Scaling Policies",
         schema=IECSTargetTrackingScalingPolicies,
         required=False,
     )
-    task_definition = schema.TextLine(
+    task_definition = zope.schema.TextLine(
         title="Task Definition",
         required=False,
         # ToDo: constraint for valid task def name
         # ToDo: constraint if using ECS deployment controller
     )
-    load_balancers = schema.List(
+    load_balancers = zope.schema.List(
         title="Load Balancers",
-        value_type=schema.Object(IECSLoadBalancer),
+        value_type=zope.schema.Object(IECSLoadBalancer),
         required=False,
         default=[],
     )
-    hostname = schema.TextLine(
+    hostname = zope.schema.TextLine(
         title="Container hostname",
         required=False
     )
-    vpc_config = schema.Object(
+    vpc_config = zope.schema.Object(
         title="VPC Configuration",
         schema=IServiceVPCConfiguration,
         required=False,
@@ -5876,25 +5983,25 @@ ECS Services and TaskDefinitions
         str_ok=False,
         schema_constraint='IECSCluster'
     )
-    task_definitions = schema.Object(
+    task_definitions = zope.schema.Object(
         title="Task Definitions",
         description="",
         schema=IECSTaskDefinitions,
         required=True,
     )
-    services = schema.Object(
+    services = zope.schema.Object(
         title="Service",
         description="",
         schema=IECSServicesContainer,
         required=True,
     )
-    service_discovery_namespace_name = schema.TextLine(
+    service_discovery_namespace_name = zope.schema.TextLine(
         title="Service Discovery Namespace",
         description="",
         required=False,
         default='',
     )
-    secrets_manager_access = schema.List(
+    secrets_manager_access = zope.schema.List(
         title="List Secrets Manager secret Paco references",
         description="",
         value_type=PacoReference(
@@ -5926,7 +6033,7 @@ Elastic Container Registry (ECR) Repository is a fully-managed Docker container 
       - paco.ref accounts.tools
 
 """
-    cross_account_access = schema.List(
+    cross_account_access = zope.schema.List(
         title="Accounts to grant access to this ECR.",
         description="",
         value_type=PacoReference(
@@ -5935,19 +6042,19 @@ Elastic Container Registry (ECR) Repository is a fully-managed Docker container 
         ),
         required=False,
     )
-    repository_name = schema.TextLine(
+    repository_name = zope.schema.TextLine(
         title="Repository Name",
         required=True,
     )
-    lifecycle_policy_text = schema.TextLine(
+    lifecycle_policy_text = zope.schema.TextLine(
         title="Lifecycle Policy",
         required=False,
     )
-    lifecycle_policy_registry_id = schema.TextLine(
+    lifecycle_policy_registry_id = zope.schema.TextLine(
         title="Lifecycle Policy Registry Id",
         required=False,
     )
-    repository_policy = schema.Object(
+    repository_policy = zope.schema.Object(
         title="Repository Policy",
         schema=IPolicy,
         required=False,
@@ -5964,7 +6071,7 @@ Elastic Container Registry (ECR) Repository is a fully-managed Docker container 
 # not constrained to fixed periods - this can be any X number of days. If set
 # to 0 then it will be considered 'Unlimited' by IoC Analytics Storage.
 class IStorageRetention(Interface):
-    expire_events_after_days = schema.Int(
+    expire_events_after_days = zope.schema.Int(
         title="Expire Events After Days",
         description="Must be 1 or greater. If set to an explicit 0 then it is considered unlimited.",
         default=0,
@@ -5986,7 +6093,7 @@ class IIotAnalyticsStorage(INamed, IStorageRetention):
         required=False,
         schema_constraint='IS3Bucket'
     )
-    key_prefix = schema.TextLine(
+    key_prefix = zope.schema.TextLine(
         title="Key Prefix for S3 Bucket",
         required=False,
         default="",
@@ -6095,30 +6202,30 @@ activity after all other activities.
                 if not getattr(obj, field, None) and allowed[field] == True:
                     raise Invalid(f"Activity {obj.name} of activity_type: {obj.activity_type} is missing field '{field}'.")
 
-    activity_type = schema.TextLine(
+    activity_type = zope.schema.TextLine(
         title='Activity Type',
         required=True,
     )
-    attributes = schema.Object(
+    attributes = zope.schema.Object(
         title="Attributes",
         required=False,
         schema=IAttributes,
     )
-    attribute_list = schema.List(
+    attribute_list = zope.schema.List(
         title="Attribute List",
         required=False,
     )
-    attribute = schema.TextLine(
+    attribute = zope.schema.TextLine(
         title="Attribute",
         required=False,
     )
-    batch_size = schema.Int(
+    batch_size = zope.schema.Int(
         title="Batch Size",
         min=1,
         max=1000,
         required=False,
     )
-    filter = schema.TextLine(
+    filter = zope.schema.TextLine(
         title="Filter",
         required=False,
     )
@@ -6127,11 +6234,11 @@ activity after all other activities.
         required=False,
         schema_constraint='ILambda'
     )
-    math = schema.TextLine(
+    math = zope.schema.TextLine(
         title="Math",
         required=False,
     )
-    thing_name = schema.TextLine(
+    thing_name = zope.schema.TextLine(
         title="Thing Name",
         required=False,
     )
@@ -6141,16 +6248,16 @@ class IIoTPipelineActivities(INamed, IMapping):
     taggedValue('contains', 'IIoTPipelineActivity')
 
 class IDatasetVariable(INamed):
-    double_value = schema.Float(
+    double_value = zope.schema.Float(
         title="Double Value",
         required=False,
     )
-    output_file_uri_value = schema.TextLine(
+    output_file_uri_value = zope.schema.TextLine(
         title="Output file URI value",
         description="The URI of the location where dataset contents are stored, usually the URI of a file in an S3 bucket.",
         required=False,
     )
-    string_value = schema.Text(
+    string_value = zope.schema.Text(
         title="String Value",
         required=False,
     )
@@ -6160,35 +6267,35 @@ class IDatasetVariables(INamed, IMapping):
     taggedValue('contains', 'IDatasetVariables')
 
 class IDatasetContainerAction(INamed):
-    image_arn = schema.TextLine(
+    image_arn = zope.schema.TextLine(
         title="Image ARN",
         required=True,
     )
-    resource_compute_type = schema.Choice(
+    resource_compute_type = zope.schema.Choice(
         title="Resource Compute Type",
         vocabulary=vocabulary.iot_dataset_container_types,
         description="Either ACU_1 (vCPU=4, memory=16 GiB) or ACU_2 (vCPU=8, memory=32 GiB)",
         required=True,
     )
-    resource_volume_size_gb = schema.Int(
+    resource_volume_size_gb = zope.schema.Int(
         title="Resource Volume Size in GB",
         min=1,
         max=50,
         required=True
     )
-    variables = schema.Object(
+    variables = zope.schema.Object(
         title="Variables",
         schema=IDatasetVariables,
         required=True,
     )
 
 class IDatasetQueryAction(INamed):
-    filters = schema.List(
+    filters = zope.schema.List(
         title="Filters",
         required=False,
         default=[],
     )
-    sql_query = schema.TextLine(
+    sql_query = zope.schema.TextLine(
         title="Sql Query Dataset Action object",
         required=True,
     )
@@ -6199,13 +6306,13 @@ class IDatasetS3Destination(IParent):
         required=True,
         schema_constraint='IS3Bucket'
     )
-    key = schema.TextLine(
+    key = zope.schema.TextLine(
         title="Key",
         required=True,
     )
 
 class IDatasetContentDeliveryRule(INamed):
-    s3_destination = schema.Object(
+    s3_destination = zope.schema.Object(
         title="S3 Destination",
         required=False,
         schema=IDatasetS3Destination,
@@ -6216,38 +6323,38 @@ class IDatasetContentDeliveryRules(INamed, IMapping):
     taggedValue('contains', 'IDatasetContentDeliveryRule')
 
 class IDatasetTrigger(IParent):
-    schedule_expression = schema.TextLine(
+    schedule_expression = zope.schema.TextLine(
         title="Schedule Expression",
         required=False,
     )
-    triggering_dataset = schema.TextLine(
+    triggering_dataset = zope.schema.TextLine(
         title="Triggering Dataset",
         required=False
     )
 
 class IIoTDataset(INamed, IStorageRetention):
-    container_action = schema.Object(
+    container_action = zope.schema.Object(
         title="Dataset Container action",
         required=False,
         schema=IDatasetContainerAction,
     )
-    query_action = schema.Object(
+    query_action = zope.schema.Object(
         title="SQL Query action",
         required=False,
         schema=IDatasetQueryAction,
     )
-    content_delivery_rules = schema.Object(
+    content_delivery_rules = zope.schema.Object(
         title="Content Delivery Rules",
         schema=IDatasetContentDeliveryRules,
         required=False,
     )
-    triggers = schema.List(
+    triggers = zope.schema.List(
         title="Triggers",
-        value_type=schema.Object(IDatasetTrigger),
+        value_type=zope.schema.Object(IDatasetTrigger),
         required=False,
         default=[],
     )
-    version_history = schema.Int(
+    version_history = zope.schema.Int(
         title="How many versions of dataset contents are kept. 0 indicates Unlimited. If not specified or set to null, only the latest version plus the latest succeeded version (if they are different) are kept for the time period specified by expire_events_after_days field.",
         min=0,
         max=1000,
@@ -6323,26 +6430,26 @@ with an SQL Query to create subsets of a Datastore suitable for analysis with to
         version_history: 5
 
     """
-    channel_storage = schema.Object(
+    channel_storage = zope.schema.Object(
         title="IoT Analytics Channel raw storage",
         schema=IIotAnalyticsStorage,
         required=False,
     )
-    datastore_name = schema.TextLine(
+    datastore_name = zope.schema.TextLine(
         title="Datastore name",
         required=False,
     )
-    datastore_storage = schema.Object(
+    datastore_storage = zope.schema.Object(
         title="IoT Analytics Datastore storage",
         schema=IIotAnalyticsStorage,
         required=False,
     )
-    pipeline_activities = schema.Object(
+    pipeline_activities = zope.schema.Object(
         title="IoT Analytics Pipeline Activies",
         schema=IIoTPipelineActivities,
         required=False
     )
-    datasets = schema.Object(
+    datasets = zope.schema.Object(
         title="IoT Analytics Datasets",
         schema=IIoTDatasets,
         required=True,
@@ -6398,7 +6505,7 @@ in it will not be replace, so that all IoT Policy Variables can be used.
         required=True,
         constraint=isValidJSONOrNone
     )
-    variables = schema.Dict(
+    variables = zope.schema.Dict(
         title="IoT Policy replacement variables",
         default={},
         required=False
@@ -6419,12 +6526,12 @@ class IIoTTopicRuleIoTAnalyticsAction(IParent):
     )
 
 class IIoTTopicRuleAction(IParent):
-    awslambda = schema.Object(
+    awslambda = zope.schema.Object(
         title="Lambda Action",
         required=False,
         schema=IIoTTopicRuleLambdaAction,
     )
-    iotanalytics = schema.Object(
+    iotanalytics = zope.schema.Object(
         title="IoT Analytics Action",
         required=False,
         schema=IIoTTopicRuleIoTAnalyticsAction,
@@ -6457,24 +6564,24 @@ MQTT message coming in to IoT Core.
     sql: "SELECT * FROM 'sensor/example'"
 
 """
-    actions = schema.List(
+    actions = zope.schema.List(
         title="Actions",
         description="An IoTTopicRule must define at least one action.",
         required=True,
-        value_type=schema.Object(IIoTTopicRuleAction),
+        value_type=zope.schema.Object(IIoTTopicRuleAction),
         default=[],
     )
-    aws_iot_sql_version = schema.TextLine(
+    aws_iot_sql_version = zope.schema.TextLine(
         title="AWS IoT SQL Version",
         default="2016-03-23",
         required=False,
     )
-    rule_enabled = schema.Bool(
+    rule_enabled = zope.schema.Bool(
         title="Rule is Enabled",
         default=True,
         required=False,
     )
-    sql = schema.Text(
+    sql = zope.schema.Text(
         title="SQL statement used to query the topic",
         description="Must be a valid Sql statement",
         required=True
@@ -6486,7 +6593,7 @@ class ILambdaVariable(IParent):
     """
     Lambda Environment Variable
     """
-    key = schema.TextLine(
+    key = zope.schema.TextLine(
         title='Variable Name',
         required=True,
         constraint=isValidLambdaVariableName
@@ -6502,9 +6609,9 @@ class ILambdaEnvironment(IParent):
     """
 Lambda Environment
     """
-    variables = schema.List(
+    variables = zope.schema.List(
         title="Lambda Function Variables",
-        value_type=schema.Object(ILambdaVariable),
+        value_type=zope.schema.Object(ILambdaVariable),
         required=False,
     )
 
@@ -6532,7 +6639,7 @@ class ILambdaFunctionCode(IParent):
         str_ok=True,
         schema_constraint='IS3Bucket'
     )
-    s3_key = schema.TextLine(
+    s3_key = zope.schema.TextLine(
         title="The Amazon S3 key of the deployment package.",
         required=False,
     )
@@ -6634,75 +6741,75 @@ The code for the Lambda function can be specified in one of three ways in the ``
           - paco.ref netenv.app.network.vpc.security_groups.app.function
 
 """
-    code = schema.Object(
+    code = zope.schema.Object(
         title="The function deployment package.",
         schema=ILambdaFunctionCode,
         required=True,
     )
-    description=schema.TextLine(
+    description=zope.schema.TextLine(
         title="A description of the function.",
         required=True,
     )
-    environment = schema.Object(
+    environment = zope.schema.Object(
         title="Lambda Function Environment",
         schema=ILambdaEnvironment,
         default=None,
         required=False,
     )
-    iam_role = schema.Object(
+    iam_role = zope.schema.Object(
         title="The IAM Role this Lambda will execute as.",
         required=True,
         schema=IRole,
     )
-    layers = schema.List(
+    layers = zope.schema.List(
         title="Layers",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         description="Up to 5 Layer ARNs",
         constraint=isListOfLayerARNs
     )
-    log_group_names = schema.List(
+    log_group_names = zope.schema.List(
         title="Log Group names",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         description="List of Log Group names",
         required=False,
         default=[]
     )
-    handler = schema.TextLine(
+    handler = zope.schema.TextLine(
         title="Function Handler",
         required=True,
     )
-    memory_size = schema.Int(
+    memory_size = zope.schema.Int(
         title="Function memory size (MB)",
         min=128,
         max=3008,
         default=128,
         required=False,
     )
-    reserved_concurrent_executions = schema.Int(
+    reserved_concurrent_executions = zope.schema.Int(
         title="Reserved Concurrent Executions",
         default=0,
         required=False,
     )
-    runtime = schema.TextLine(
+    runtime = zope.schema.TextLine(
         title="Runtime environment",
         required=True,
         # dotnetcore1.0 | dotnetcore2.1 | go1.x | java8 | nodejs10.x | nodejs8.10 | provided | python2.7 | python3.6 | python3.7 | ruby2.5
         default='python3.7',
     )
     # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
-    timeout = schema.Int(
+    timeout = zope.schema.Int(
         title="Max function execution time in seconds.",
         description="Must be between 0 and 900 seconds.",
         min=0,
         max=900,
         required=False,
     )
-    sdb_cache = schema.Bool(
+    sdb_cache = zope.schema.Bool(
         title="SDB Cache Domain",
         required=False,
         default=False,
     )
-    sns_topics = schema.List(
+    sns_topics = zope.schema.List(
         title="List of SNS Topic Paco references or SNS Topic ARNs to subscribe the Lambda to.",
         value_type=PacoReference(
             str_ok=True,
@@ -6710,7 +6817,7 @@ The code for the Lambda function can be specified in one of three ways in the ``
         ),
         required=False,
     )
-    vpc_config = schema.Object(
+    vpc_config = zope.schema.Object(
         title="Vpc Configuration",
         required=False,
         schema=ILambdaVpcConfig
@@ -6719,32 +6826,32 @@ The code for the Lambda function can be specified in one of three ways in the ``
 # API Gateway
 
 class IApiGatewayMethodMethodResponseModel(Interface):
-    content_type = schema.TextLine(
+    content_type = zope.schema.TextLine(
         title="Content Type",
         required=False,
     )
-    model_name = schema.TextLine(
+    model_name = zope.schema.TextLine(
         title="Model name",
         default="",
         required=False,
     )
 
 class IApiGatewayMethodMethodResponse(Interface):
-    status_code = schema.TextLine(
+    status_code = zope.schema.TextLine(
         title="HTTP Status code",
         description="",
         required=True,
     )
-    response_models = schema.List(
+    response_models = zope.schema.List(
         title="The resources used for the response's content type.",
         description="""Specify response models as key-value pairs (string-to-string maps),
 with a content type as the key and a Model Paco name as the value.""",
-        value_type=schema.Object(title="Response Model", schema = IApiGatewayMethodMethodResponseModel),
+        value_type=zope.schema.Object(title="Response Model", schema=IApiGatewayMethodMethodResponseModel),
         required=False,
     )
 
 class IApiGatewayMethodIntegrationResponse(Interface):
-    content_handling = schema.TextLine(
+    content_handling = zope.schema.TextLine(
         title="Specifies how to handle request payload content type conversions.",
         description="""Valid values are:
 
@@ -6757,33 +6864,33 @@ to the integration request without modification.
 """,
         required=False
     )
-    response_parameters = schema.Dict(
+    response_parameters = zope.schema.Dict(
         title="Response Parameters",
         default={},
         required=False,
     )
-    response_templates = schema.Dict(
+    response_templates = zope.schema.Dict(
         title="Response Templates",
         default={},
         required=False,
     )
-    selection_pattern = schema.TextLine(
+    selection_pattern = zope.schema.TextLine(
         title="A regular expression that specifies which error strings or status codes from the backend map to the integration response.",
         required=False,
     )
-    status_code = schema.TextLine(
+    status_code = zope.schema.TextLine(
         title="The status code that API Gateway uses to map the integration response to a MethodResponse status code.",
         description  = "Must match a status code in the method_respones for this API Gateway REST API.",
         required=True,
     )
 
 class IApiGatewayMethodIntegration(IParent):
-    integration_responses = schema.List(
+    integration_responses = zope.schema.List(
         title="Integration Responses",
-        value_type=schema.Object(IApiGatewayMethodIntegrationResponse),
+        value_type=zope.schema.Object(IApiGatewayMethodIntegrationResponse),
         required=False,
     )
-    request_parameters = schema.Dict(
+    request_parameters = zope.schema.Dict(
         title="The request parameters that API Gateway sends with the backend request.",
         description="""Specify request parameters as key-value pairs (string-to-string mappings),
 with a destination as the key and a source as the value. Specify the destination by using the
@@ -6797,14 +6904,14 @@ their destination in the request.
         default={},
         required=False,
     )
-    integration_http_method = schema.TextLine(
+    integration_http_method = zope.schema.TextLine(
         title="Integration HTTP Method",
         description="Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
         default="POST",
         constraint = isValidHttpMethod,
         required=False,
     )
-    integration_type = schema.TextLine(
+    integration_type = zope.schema.TextLine(
         title="Integration Type",
         description="Must be one of AWS, AWS_PROXY, HTTP, HTTP_PROXY or MOCK.",
         constraint = isValidApiGatewayIntegrationType,
@@ -6816,7 +6923,7 @@ their destination in the request.
         required=False,
         schema_constraint='ILambda'
     )
-    uri = schema.TextLine(
+    uri = zope.schema.TextLine(
         title="Integration URI",
         required=False,
     )
@@ -6824,34 +6931,34 @@ their destination in the request.
 
 class IApiGatewayMethod(IResource):
     "API Gateway Method"
-    authorization_type = schema.TextLine(
+    authorization_type = zope.schema.TextLine(
         title="Authorization Type",
         description="Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
         constraint = isValidApiGatewayAuthorizationType,
         required=True,
     )
-    http_method = schema.TextLine(
+    http_method = zope.schema.TextLine(
         title="HTTP Method",
         description="Must be one of ANY, DELETE, GET, HEAD, OPTIONS, PATCH, POST or PUT.",
         constraint = isValidHttpMethod,
         required=False,
     )
-    resource_id = schema.TextLine(
+    resource_id = zope.schema.TextLine(
         title="Resource Id",
         required=False,
     )
-    integration = schema.Object(
+    integration = zope.schema.Object(
         title="Integration",
-        schema = IApiGatewayMethodIntegration,
+        schema=IApiGatewayMethodIntegration,
         required=False,
     )
-    method_responses = schema.List(
+    method_responses = zope.schema.List(
         title="Method Responses",
         description="List of ApiGatewayMethod MethodResponses",
-        value_type=schema.Object(IApiGatewayMethodMethodResponse),
+        value_type=zope.schema.Object(IApiGatewayMethodMethodResponse),
         required=False,
     )
-    request_parameters = schema.Dict(
+    request_parameters = zope.schema.Dict(
         title="Request Parameters",
         description="""Specify request parameters as key-value pairs (string-to-Boolean mapping),
         with a source as the key and a Boolean as the value. The Boolean specifies whether
@@ -6862,15 +6969,15 @@ class IApiGatewayMethod(IResource):
     )
 
 class IApiGatewayModel(IResource):
-    content_type = schema.TextLine(
+    content_type = zope.schema.TextLine(
         title="Content Type",
         required=False,
     )
-    description=schema.Text(
+    description=zope.schema.Text(
         title="Description",
         required=False,
     )
-    schema = schema.Dict(
+    schema=zope.schema.Dict(
         title="Schema",
         description='JSON format. Will use null({}) if left empty.',
         default={},
@@ -6878,31 +6985,31 @@ class IApiGatewayModel(IResource):
     )
 
 class IApiGatewayResource(IResource):
-    parent_id = schema.TextLine(
+    parent_id = zope.schema.TextLine(
         title="Id of the parent resource. Default is 'RootResourceId' for a resource without a parent.",
         default="RootResourceId",
         required=False,
     )
-    path_part = schema.TextLine(
+    path_part = zope.schema.TextLine(
         title="Path Part",
         required=True,
     )
-    rest_api_id = schema.TextLine(
+    rest_api_id = zope.schema.TextLine(
         title="Name of the API Gateway REST API this resource belongs to.",
         readonly = True,
     )
 
 class IApiGatewayStage(IResource):
     "API Gateway Stage"
-    deployment_id = schema.TextLine(
+    deployment_id = zope.schema.TextLine(
         title="Deployment ID",
         required=False,
     )
-    description=schema.Text(
+    description=zope.schema.Text(
         title="Description",
         required=False,
     )
-    stage_name = schema.TextLine(
+    stage_name = zope.schema.TextLine(
         title="Stage name",
         required=False,
     )
@@ -6995,22 +7102,22 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         if count > 1:
             raise Invalid("Only one of body, body_file_location or body_s3_location can be set.")
 
-    api_key_source_type = schema.TextLine(
+    api_key_source_type = zope.schema.TextLine(
         title="API Key Source Type",
         description="Must be one of 'HEADER' to read the API key from the X-API-Key header of a request or 'AUTHORIZER' to read the API key from the UsageIdentifierKey from a Lambda authorizer.",
         constraint = isValidApiKeySourceType,
         required=False,
     )
-    binary_media_types = schema.List(
+    binary_media_types = zope.schema.List(
         title="Binary Media Types. The list of binary media types that are supported by the RestApi resource, such as image/png or application/octet-stream. By default, RestApi supports only UTF-8-encoded text payloads.",
         description="Duplicates are not allowed. Slashes must be escaped with ~1. For example, image/png would be image~1png in the BinaryMediaTypes list.",
         constraint = isValidBinaryMediaTypes,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Binary Media Type"
         ),
         required=False,
     )
-    body = schema.Text(
+    body = zope.schema.Text(
         title="Body. An OpenAPI specification that defines a set of RESTful APIs in JSON or YAML format. For YAML templates, you can also provide the specification in YAML format.",
         description="Must be valid JSON.",
         required=False,
@@ -7020,38 +7127,38 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         description="Must be valid path to a valid JSON document.",
         required=False,
     )
-    body_s3_location = schema.TextLine(
+    body_s3_location = zope.schema.TextLine(
         title="The Amazon Simple Storage Service (Amazon S3) location that points to an OpenAPI file, which defines a set of RESTful APIs in JSON or YAML format.",
         description="Valid S3Location string to a valid JSON or YAML document.",
         required=False,
     )
-    clone_from = schema.TextLine(
+    clone_from = zope.schema.TextLine(
         title="CloneFrom. The ID of the RestApi resource that you want to clone.",
         required=False,
     )
-    description=schema.Text(
+    description=zope.schema.Text(
         title="Description of the RestApi resource.",
         required=False,
     )
-    endpoint_configuration = schema.List(
+    endpoint_configuration = zope.schema.List(
         title="Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",
         description="List of strings, each must be one of 'EDGE', 'REGIONAL', 'PRIVATE'",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Endpoint Type",
             constraint = isValidEndpointConfigurationType
         ),
         required=False,
     )
-    fail_on_warnings = schema.Bool(
+    fail_on_warnings = zope.schema.Bool(
         title="Indicates whether to roll back the resource if a warning occurs while API Gateway is creating the RestApi resource.",
         default=False,
         required=False,
     )
-    methods = schema.Object(
-        schema = IApiGatewayMethods,
+    methods = zope.schema.Object(
+        schema=IApiGatewayMethods,
         required=False,
     )
-    minimum_compression_size = schema.Int(
+    minimum_compression_size = zope.schema.Int(
         title="An integer that is used to enable compression on an API. When compression is enabled, compression or decompression is not applied on the payload if the payload size is smaller than this value. Setting it to zero allows compression for any payload size.",
         description="A non-negative integer between 0 and 10485760 (10M) bytes, inclusive.",
         default=None,
@@ -7059,29 +7166,29 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         min=0,
         max=10485760,
     )
-    models = schema.Object(
-        schema = IApiGatewayModels,
+    models = zope.schema.Object(
+        schema=IApiGatewayModels,
         required=False,
     )
-    parameters = schema.Dict(
+    parameters = zope.schema.Dict(
         title="Parameters. Custom header parameters for the request.",
         description="Dictionary of key/value pairs that are strings.",
-        value_type=schema.TextLine(title="Value"),
+        value_type=zope.schema.TextLine(title="Value"),
         default={},
         required=False,
     )
-    policy = schema.Text(
+    policy = zope.schema.Text(
         title="""A policy document that contains the permissions for the RestApi resource, in JSON format. To set the ARN for the policy, use the !Join intrinsic function with "" as delimiter and values of "execute-api:/" and "*".""",
         description="Valid JSON document",
         constraint = isValidJSONOrNone,
         required=False,
     )
-    resources = schema.Object(
-        schema = IApiGatewayResources,
+    resources = zope.schema.Object(
+        schema=IApiGatewayResources,
         required=False,
     )
-    stages = schema.Object(
-        schema = IApiGatewayStages,
+    stages = zope.schema.Object(
+        schema=IApiGatewayStages,
         required=False,
     )
 
@@ -7107,9 +7214,9 @@ Provision Route 53 with:
         account: aim.ref accounts.prod
 
     """
-    hosted_zones = schema.Dict(
+    hosted_zones = zope.schema.Dict(
         title="Hosted Zones",
-        value_type=schema.Object(IRoute53HostedZone),
+        value_type=zope.schema.Object(IRoute53HostedZone),
         default=None,
         required=False,
     )
@@ -7136,34 +7243,34 @@ class IRoute53HealthCheck(IResource):
             if obj.health_check_type not in ('HTTP', 'HTTPS'):
                 raise Invalid("If match_string field supplied, health_check_type must be HTTP or HTTPS.")
 
-    domain_name = schema.TextLine(
+    domain_name = zope.schema.TextLine(
         title="Fully Qualified Domain Name",
         description="Either this or the load_balancer field can be set but not both.",
         required=False
     )
-    enable_sni = schema.Bool(
+    enable_sni = zope.schema.Bool(
         title="Enable SNI",
         required=False,
         default=False
     )
-    failure_threshold = schema.Int(
+    failure_threshold = zope.schema.Int(
         title="Number of consecutive health checks that an endpoint must pass or fail for Amazon Route 53 to change the current status of the endpoint from unhealthy to healthy or vice versa.",
         min=1,
         max=10,
         required=False,
         default=3,
     )
-    health_check_type = schema.TextLine(
+    health_check_type = zope.schema.TextLine(
         title="Health Check Type",
         description="Must be one of HTTP, HTTPS or TCP",
         required=True,
         constraint=isValidRoute53HealthCheckType,
     )
-    health_checker_regions = schema.List(
+    health_checker_regions = zope.schema.List(
         title="Health checker regions",
         description="List of AWS Region names (e.g. us-west-2) from which to make health checks.",
         required=False,
-        value_type=schema.TextLine(title="AWS Region"),
+        value_type=zope.schema.TextLine(title="AWS Region"),
         constraint=isValidHealthCheckAWSRegionList,
     )
     ip_address = PacoReference(
@@ -7178,30 +7285,30 @@ class IRoute53HealthCheck(IResource):
         required=False,
         schema_constraint='ILBApplication'
     )
-    latency_graphs = schema.Bool(
+    latency_graphs = zope.schema.Bool(
         title="Measure latency and display CloudWatch graph in the AWS Console",
         required=False,
         default=False,
     )
-    match_string = schema.TextLine(
+    match_string = zope.schema.TextLine(
         title="String to match in the first 5120 bytes of the response",
         min_length=1,
         max_length=255,
         required=False,
     )
-    port = schema.Int(
+    port = zope.schema.Int(
         title="Port",
         min=1,
         max=65535,
         required=False,
         default=80,
     )
-    request_interval_fast = schema.Bool(
+    request_interval_fast = zope.schema.Bool(
         title="Fast request interval will only wait 10 seconds between each health check response instead of the standard 30",
         default=False,
         required=False,
     )
-    resource_path = schema.TextLine(
+    resource_path = zope.schema.TextLine(
         title="Resource Path",
         description="String such as '/health.html'. Path should return a 2xx or 3xx. Query string parameters are allowed: '/search?query=health'",
         max_length=255,
@@ -7222,16 +7329,16 @@ class ICodeCommitUser(INamed):
     """
 CodeCommit User
     """
-    username = schema.TextLine(
+    username = zope.schema.TextLine(
         title="CodeCommit Username",
         required=False,
     )
-    public_ssh_key = schema.TextLine(
+    public_ssh_key = zope.schema.TextLine(
         title="CodeCommit User Public SSH Key",
         default=None,
         required=False,
     )
-    permissions = schema.Choice(
+    permissions = zope.schema.Choice(
         title='Permissions',
         description="Must be one of ReadWrite or ReadOnly",
         required=False,
@@ -7243,7 +7350,7 @@ class ICodeCommitRepository(INamed, IDeployable):
     """
 CodeCommit Repository
     """
-    repository_name = schema.TextLine(
+    repository_name = zope.schema.TextLine(
         title="Repository Name",
         required=False,
     )
@@ -7252,22 +7359,22 @@ CodeCommit Repository
         required=True,
         schema_constraint='IAccount'
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="AWS Region",
         required=False,
     )
-    description=schema.TextLine(
+    description=zope.schema.TextLine(
         title="Repository Description",
         required=False,
     )
-    external_resource = schema.Bool(
+    external_resource = zope.schema.Bool(
         title='Boolean indicating whether the CodeCommit repository already exists or not',
         default=False,
         required=False,
     )
-    users = schema.Dict(
+    users = zope.schema.Dict(
         title="CodeCommit Users",
-        value_type=schema.Object(ICodeCommitUser),
+        value_type=zope.schema.Object(ICodeCommitUser),
         default=None,
         required=False,
     )
@@ -7289,21 +7396,21 @@ class IConfig(IResource):
     """
 AWS Config
 """
-    delivery_frequency = schema.Choice(
+    delivery_frequency = zope.schema.Choice(
         title="Delivery Frequency",
         required=False,
         default='One_Hour',
         vocabulary=vocabulary.aws_config_delivery_frequencies,
     )
-    global_resources_region = schema.TextLine(
+    global_resources_region = zope.schema.TextLine(
         title="Region to record Global resource changes",
         description='Must be a valid AWS Region name',
         constraint = isValidAWSRegionName,
         required=True,
     )
-    locations = schema.List(
+    locations = zope.schema.List(
         title="Locations",
-        value_type=schema.Object(IAccountRegions),
+        value_type=zope.schema.Object(IAccountRegions),
         default=[],
         required=False,
     )
@@ -7318,7 +7425,7 @@ class IConfigResource(INamed):
     """
 Global AWS Config configuration
     """
-    config = schema.Object(
+    config = zope.schema.Object(
         title="AWS Config",
         schema=IConfig,
         default=None,
@@ -7366,7 +7473,7 @@ A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs fr
         s3_key_prefix: cloudtrails
 
 """
-    accounts = schema.List(
+    accounts = zope.schema.List(
         title="Accounts to enable this CloudTrail in. Leave blank to assume all accounts.",
         description="",
         value_type=PacoReference(
@@ -7375,17 +7482,17 @@ A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs fr
         ),
         required=False,
     )
-    cloudwatchlogs_log_group = schema.Object(
+    cloudwatchlogs_log_group = zope.schema.Object(
         title="CloudWatch Logs LogGroup to deliver this trail to.",
         required=False,
         default=None,
-        schema = ICloudWatchLogGroup,
+        schema=ICloudWatchLogGroup,
     )
-    enable_kms_encryption = schema.Bool(
+    enable_kms_encryption = zope.schema.Bool(
         title="Enable KMS Key encryption",
         default=False,
     )
-    kms_users = schema.List(
+    kms_users = zope.schema.List(
         title="IAM Users with access to CloudTrail bucket",
         value_type=PacoReference(
             title="KMS User",
@@ -7393,22 +7500,22 @@ A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs fr
             schema_constraint='IIAMUser'
         )
     )
-    enable_log_file_validation = schema.Bool(
+    enable_log_file_validation = zope.schema.Bool(
         title="Enable log file validation",
         default=True,
         required=False,
     )
-    include_global_service_events = schema.Bool(
+    include_global_service_events = zope.schema.Bool(
         title="Include global service events",
         default=True,
         required=False,
     )
-    is_multi_region_trail = schema.Bool(
+    is_multi_region_trail = zope.schema.Bool(
         title="Is multi-region trail?",
         default=True,
         required=False,
     )
-    region = schema.TextLine(
+    region = zope.schema.TextLine(
         title="Region to create the CloudTrail",
         default="",
         description='Must be a valid AWS Region name or empty string',
@@ -7421,7 +7528,7 @@ A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs fr
         required=True,
         schema_constraint='IAccount'
     )
-    s3_key_prefix = schema.TextLine(
+    s3_key_prefix = zope.schema.TextLine(
         title="S3 Key Prefix specifies the Amazon S3 key prefix that comes after the name of the bucket.",
         description="Do not include a leading or trailing / in your prefix. They are provided already.",
         default="",
@@ -7440,54 +7547,54 @@ class ICloudTrailResource(INamed):
     """
 Global CloudTrail configuration
     """
-    trails = schema.Object(
+    trails = zope.schema.Object(
         title="CloudTrails",
-        schema = ICloudTrails,
+        schema=ICloudTrails,
         default=None,
         required=False,
     )
 
 class ICloudFrontCookies(INamed):
-    forward = schema.TextLine(
+    forward = zope.schema.TextLine(
         title="Cookies Forward Action",
         constraint = isValidCloudFrontCookiesForward,
         default='all',
         required=False
     )
-    whitelisted_names = schema.List(
+    whitelisted_names = zope.schema.List(
         title="White Listed Names",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         required=False
     )
 
 class ICloudFrontForwardedValues(INamed):
-    query_string = schema.Bool(
+    query_string = zope.schema.Bool(
         title="Forward Query Strings",
         default=True,
         required=False
     )
-    cookies = schema.Object(
+    cookies = zope.schema.Object(
         title="Forward Cookies",
-        schema = ICloudFrontCookies,
+        schema=ICloudFrontCookies,
         required=False
     )
-    headers = schema.List(
+    headers = zope.schema.List(
         title="Forward Headers",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         default=['*'],
         required=False
     )
 
 class ICloudFrontDefaultCacheBehavior(INamed):
-    allowed_methods = schema.List(
+    allowed_methods = zope.schema.List(
         title="List of Allowed HTTP Methods",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         default=[ 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT' ],
         required=False
     )
-    cached_methods = schema.List(
+    cached_methods = zope.schema.List(
         title="List of HTTP Methods to cache",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         default=[ 'GET', 'HEAD', 'OPTIONS' ],
         required=False
     )
@@ -7495,15 +7602,15 @@ class ICloudFrontDefaultCacheBehavior(INamed):
     # Cloudfront to use the Origin's cache-control header values when they
     # exist. Changing these values will force Cloudfront to modify any
     # Cache-Control header with the new values.
-    default_ttl = schema.Int(
+    default_ttl = zope.schema.Int(
         title="Default TTL",
         default=86400
     )
-    max_ttl = schema.Int(
+    max_ttl = zope.schema.Int(
         title="Maximum TTL",
         default=31536000
     )
-    min_ttl = schema.Int(
+    min_ttl = zope.schema.Int(
         title="Minimum TTL",
         default=0
     )
@@ -7511,24 +7618,24 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         title="Target Origin",
         schema_constraint='ICloudFrontOrigin'
     )
-    viewer_protocol_policy = schema.TextLine(
+    viewer_protocol_policy = zope.schema.TextLine(
         title="Viewer Protocol Policy",
         constraint = isValidCFViewerProtocolPolicy,
         default='redirect-to-https'
     )
-    forwarded_values = schema.Object(
+    forwarded_values = zope.schema.Object(
         title="Forwarded Values",
-        schema = ICloudFrontForwardedValues,
+        schema=ICloudFrontForwardedValues,
         required=False
     )
-    compress = schema.Bool(
+    compress = zope.schema.Bool(
         title="Compress certain files automatically",
         required=False,
         default=False
     )
 
 class ICloudFrontCacheBehavior(ICloudFrontDefaultCacheBehavior):
-    path_pattern = schema.TextLine(
+    path_pattern = zope.schema.TextLine(
         title="Path Pattern",
         required=True
     )
@@ -7539,13 +7646,13 @@ class ICloudFrontViewerCertificate(INamed):
         required=False,
         schema_constraint='IAWSCertificateManager'
     )
-    ssl_supported_method = schema.TextLine(
+    ssl_supported_method = zope.schema.TextLine(
         title="SSL Supported Method",
         constraint = isValidCFSSLSupportedMethod,
         required=False,
         default='sni-only'
     )
-    minimum_protocol_version = schema.TextLine(
+    minimum_protocol_version = zope.schema.TextLine(
         title="Minimum SSL Protocol Version",
         constraint = isValidCFMinimumProtocolVersion,
         required=False,
@@ -7553,52 +7660,52 @@ class ICloudFrontViewerCertificate(INamed):
     )
 
 class ICloudFrontCustomErrorResponse(Interface):
-    error_caching_min_ttl = schema.Int(
+    error_caching_min_ttl = zope.schema.Int(
         title="Error Caching Min TTL",
         required=False,
         default=300,
     )
-    error_code = schema.Int(
+    error_code = zope.schema.Int(
         title="HTTP Error Code",
         required=False
     )
-    response_code = schema.Int(
+    response_code = zope.schema.Int(
         title="HTTP Response Code",
         required=False
     )
-    response_page_path = schema.TextLine(
+    response_page_path = zope.schema.TextLine(
         title="Response Page Path",
         required=False
     )
 
 class ICloudFrontCustomOriginConfig(INamed):
-    http_port = schema.Int(
+    http_port = zope.schema.Int(
         title="HTTP Port",
         required=False
     )
-    https_port = schema.Int(
+    https_port = zope.schema.Int(
         title="HTTPS Port",
         required=False,
     )
-    protocol_policy = schema.TextLine(
+    protocol_policy = zope.schema.TextLine(
         title="Protocol Policy",
         constraint = isValidCFProtocolPolicy,
         required=True,
     )
-    ssl_protocols = schema.List(
+    ssl_protocols = zope.schema.List(
         title="List of SSL Protocols",
-        value_type=schema.TextLine(),
+        value_type=zope.schema.TextLine(),
         constraint = isValidCFSSLProtocol,
         required=True,
     )
-    read_timeout = schema.Int(
+    read_timeout = zope.schema.Int(
         title="Read timeout",
         min=4,
         max=60,
         default=30,
         required=False,
     )
-    keepalive_timeout = schema.Int(
+    keepalive_timeout = zope.schema.Int(
         title="HTTP Keepalive Timeout",
         min=1,
         max=60,
@@ -7621,22 +7728,22 @@ CloudFront Origin Configuration
         required=False,
         schema_constraint='IRoute53HostedZone'
     )
-    custom_origin_config = schema.Object(
+    custom_origin_config = zope.schema.Object(
         title="Custom Origin Configuration",
-        schema = ICloudFrontCustomOriginConfig,
+        schema=ICloudFrontCustomOriginConfig,
         required=False,
     )
 
 class ICloudFrontFactory(INamed):
     """CloudFront Factory"""
-    domain_aliases = schema.List(
+    domain_aliases = zope.schema.List(
         title="List of DNS for the Distribution",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False,
     )
-    viewer_certificate = schema.Object(
+    viewer_certificate = zope.schema.Object(
         title="Viewer Certificate",
-        schema = ICloudFrontViewerCertificate,
+        schema=ICloudFrontViewerCertificate,
         required=False,
     )
 
@@ -7644,55 +7751,55 @@ class ICloudFront(IResource, IDeployable, IMonitorable):
     """
 CloudFront CDN Configuration
     """
-    domain_aliases = schema.List(
+    domain_aliases = zope.schema.List(
         title="List of DNS for the Distribution",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False,
     )
-    default_root_object = schema.TextLine(
+    default_root_object = zope.schema.TextLine(
         title="The default path to load from the origin.",
         default='',
         required=False,
     )
-    default_cache_behavior = schema.Object(
+    default_cache_behavior = zope.schema.Object(
         title="Default Cache Behavior",
-        schema = ICloudFrontDefaultCacheBehavior,
+        schema=ICloudFrontDefaultCacheBehavior,
         required=False,
     )
-    cache_behaviors = schema.List(
+    cache_behaviors = zope.schema.List(
         title='List of Cache Behaviors',
-        value_type=schema.Object(ICloudFrontCacheBehavior),
+        value_type=zope.schema.Object(ICloudFrontCacheBehavior),
         required=False
     )
-    viewer_certificate = schema.Object(
+    viewer_certificate = zope.schema.Object(
         title="Viewer Certificate",
-        schema = ICloudFrontViewerCertificate,
+        schema=ICloudFrontViewerCertificate,
         required=False,
     )
-    price_class = schema.TextLine(
+    price_class = zope.schema.TextLine(
         title="Price Class",
         constraint = isValidCFPriceClass,
         default='All',
         required=False,
     )
-    custom_error_responses = schema.List(
+    custom_error_responses = zope.schema.List(
         title="List of Custom Error Responses",
-        value_type=schema.Object(ICloudFrontCustomErrorResponse),
+        value_type=zope.schema.Object(ICloudFrontCustomErrorResponse),
         default=None,
         required=False,
     )
-    origins = schema.Dict(
+    origins = zope.schema.Dict(
         title="Map of Origins",
-        value_type=schema.Object(ICloudFrontOrigin),
+        value_type=zope.schema.Object(ICloudFrontOrigin),
         required=False,
     )
-    webacl_id = schema.TextLine(
+    webacl_id = zope.schema.TextLine(
         title="WAF WebACLId",
         required=False,
     )
-    factory = schema.Dict(
+    factory = zope.schema.Dict(
         title="CloudFront Factory",
-        value_type=schema.Object(ICloudFrontFactory),
+        value_type=zope.schema.Object(ICloudFrontFactory),
         default=None,
         required=False,
     )
@@ -7701,29 +7808,29 @@ CloudFront CDN Configuration
 
 class IPinpointEmailChannel(Interface):
     "Pinpoint Email Channel"
-    enable_email = schema.Bool(
+    enable_email = zope.schema.Bool(
         title="Enable Email",
         required=False,
         default=True,
     )
-    from_address = schema.TextLine(
+    from_address = zope.schema.TextLine(
         title="The verified email address that you want to send email from when you send email through the channel.",
         required=False,
     )
 
 class IPinpointSMSChannel(Interface):
     "Pinpoint SMS Channel"
-    enable_sms = schema.Bool(
+    enable_sms = zope.schema.Bool(
         title="Enable SMS",
         required=False,
         default=True,
     )
     # ToDo: constraints and invariants
-    sender_id = schema.TextLine(
+    sender_id = zope.schema.TextLine(
         title="The identity that you want to display on recipients' devices when they receive messages from the SMS channel.",
         required=False,
     )
-    short_code = schema.TextLine(
+    short_code = zope.schema.TextLine(
         title="The registered short code that you want to use when you send messages through the SMS channel.",
         required=False,
     )
@@ -7756,12 +7863,12 @@ Currently AWS Pinpoint only supports general configuration suitable for sending 
         sender_id: MyUniqueName
 
 """
-    sms_channel = schema.Object(
+    sms_channel = zope.schema.Object(
         title="SMS Channel",
         schema=IPinpointSMSChannel,
         required=False
     )
-    email_channel = schema.Object(
+    email_channel = zope.schema.Object(
         title="Email Channel",
         schema=IPinpointEmailChannel,
         required=False
@@ -7777,16 +7884,16 @@ class IDBParameterGroup(IResource):
     """
 DBParameterGroup
     """
-    description=schema.Text(
+    description=zope.schema.Text(
         title="Description",
         required=False
     )
-    family = schema.TextLine(
+    family = zope.schema.TextLine(
         title="Database Family",
         required=True
         # ToDo: constraint for this is fairly complex and can change
     )
-    parameters = schema.Object(
+    parameters = zope.schema.Object(
         title="Database Parameter set",
         schema=IDBParameters,
         required=True
@@ -7802,20 +7909,20 @@ class IRDSOptionConfiguration(Interface):
     """
 Option groups enable and configure features that are specific to a particular DB engine.
     """
-    option_name = schema.TextLine(
+    option_name = zope.schema.TextLine(
         title='Option Name',
         required=False,
     )
-    option_settings = schema.List(
+    option_settings = zope.schema.List(
         title='List of option name value pairs.',
-        value_type=schema.Object(INameValuePair),
+        value_type=zope.schema.Object(INameValuePair),
         required=False,
     )
-    option_version = schema.TextLine(
+    option_version = zope.schema.TextLine(
         title='Option Version',
         required=False,
     )
-    port = schema.TextLine(
+    port = zope.schema.TextLine(
         title='Port',
         required=False,
     )
@@ -7851,38 +7958,38 @@ RDS common fields shared by both DBInstance and DBCluster
             raise Invalid("Engine Version is not support by AWS RDS")
         return True
 
-    backup_preferred_window = schema.TextLine(
+    backup_preferred_window = zope.schema.TextLine(
         title="Backup Preferred Window",
         required=False,
     )
-    backup_retention_period = schema.Int(
+    backup_retention_period = zope.schema.Int(
         title="Backup Retention Period in days",
         required=False,
     )
-    cloudwatch_logs_exports = schema.List(
+    cloudwatch_logs_exports = zope.schema.List(
         title="List of CloudWatch Logs Exports",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="CloudWatch Log Export",
         ),
         required=False,
         # ToDo: Constraint that depends upon the database type
     )
-    db_snapshot_identifier = schema.TextLine(
+    db_snapshot_identifier = zope.schema.TextLine(
         title="DB Snapshot Identifier to restore from",
         description="Must be the ARN of a valid database snapshot.",
         required=False,
     )
-    deletion_protection = schema.Bool(
+    deletion_protection = zope.schema.Bool(
         title="Deletion Protection",
         default=False,
         required=False
     )
-    dns = schema.List(
+    dns = zope.schema.List(
         title="DNS domains to create to resolve to the connection Endpoint",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False
     )
-    engine_version = schema.TextLine(
+    engine_version = zope.schema.TextLine(
         title="RDS Engine Version",
         required=False,
     )
@@ -7891,15 +7998,15 @@ RDS common fields shared by both DBInstance and DBCluster
         required=False,
         schema_constraint='Interface'
     )
-    maintenance_preferred_window = schema.TextLine(
+    maintenance_preferred_window = zope.schema.TextLine(
         title="Maintenance Preferred Window",
         required=False,
     )
-    master_username = schema.TextLine(
+    master_username = zope.schema.TextLine(
         title="Master Username",
         required=False,
     )
-    master_user_password = schema.TextLine(
+    master_user_password = zope.schema.TextLine(
         title="Master User Password",
         required=False,
     )
@@ -7914,7 +8021,7 @@ RDS common fields shared by both DBInstance and DBCluster
         required=False,
         schema_constraint='IRoute53HostedZone'
     )
-    port = schema.Int(
+    port = zope.schema.Int(
         title="DB Port",
         required=False,
     )
@@ -7923,7 +8030,7 @@ RDS common fields shared by both DBInstance and DBCluster
         required=False,
         schema_constraint='ISecretsManagerSecret'
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="List of VPC Security Group Ids",
         value_type=PacoReference(
             schema_constraint='ISecurityGroup'
@@ -7940,25 +8047,25 @@ class IRDSInstance(IResource, IRDS):
     """
 RDS DB Instance
     """
-    allow_major_version_upgrade = schema.Bool(
+    allow_major_version_upgrade = zope.schema.Bool(
         title="Allow major version upgrades",
         required=False,
     )
-    auto_minor_version_upgrade = schema.Bool(
+    auto_minor_version_upgrade = zope.schema.Bool(
         title="Automatic minor version upgrades",
         required=False,
     )
-    db_instance_type = schema.TextLine(
+    db_instance_type = zope.schema.TextLine(
         title="RDS Instance Type",
         required=False,
     )
-    license_model = schema.TextLine(
+    license_model = zope.schema.TextLine(
         title="License Model",
         required=False,
     )
-    option_configurations = schema.List(
+    option_configurations = zope.schema.List(
         title="Option Configurations",
-        value_type=schema.Object(IRDSOptionConfiguration),
+        value_type=zope.schema.Object(IRDSOptionConfiguration),
         required=False,
     )
     parameter_group = PacoReference(
@@ -7966,19 +8073,19 @@ RDS DB Instance
         required=False,
         schema_constraint='IDBParameterGroup'
     )
-    publically_accessible = schema.Bool(
+    publically_accessible = zope.schema.Bool(
         title="Assign a Public IP address",
         required=False,
     )
-    storage_encrypted = schema.Bool(
+    storage_encrypted = zope.schema.Bool(
         title="Enable Storage Encryption",
         required=False,
     )
-    storage_type = schema.TextLine(
+    storage_type = zope.schema.TextLine(
         title="DB Storage Type",
         required=False,
     )
-    storage_size_gb = schema.Int(
+    storage_size_gb = zope.schema.Int(
         title="DB Storage Size in Gigabytes",
         required=False,
     )
@@ -7988,7 +8095,7 @@ class IRDSMultiAZ(IRDSInstance):
 RDS with MultiAZ capabilities. When you provision a Multi-AZ DB Instance, Amazon RDS automatically creates a
 primary DB Instance and synchronously replicates the data to a standby instance in a different Availability Zone (AZ).
     """
-    multi_az = schema.Bool(
+    multi_az = zope.schema.Bool(
         title="Multiple Availability Zone deployment",
         default=False,
         required=False,
@@ -8001,14 +8108,14 @@ class IRDSDBInstanceEventNotifications(INamed):
     """
 DB Instance Event Notifications
     """
-    groups = schema.List(
+    groups = zope.schema.List(
         title="Groups",
-        value_type=schema.TextLine(title="Group"),
+        value_type=zope.schema.TextLine(title="Group"),
         required=True,
     )
-    event_categories = schema.List(
+    event_categories = zope.schema.List(
         title="Event Categories",
-        value_type=schema.Choice(
+        value_type=zope.schema.Choice(
             title="Event Category",
             vocabulary=vocabulary.rds_instance_event_categories,
         ),
@@ -8022,16 +8129,16 @@ Default configuration for a DB Instance that belongs to a DB Cluster.
     # Note: IRDSClusterDefaultInstance is the same as IRDSClusterInstance except it provides default values for fields.
     # (otherwise the instance-level field defaults would shadow cluster-level specific settings)
 
-    allow_major_version_upgrade = schema.Bool(
+    allow_major_version_upgrade = zope.schema.Bool(
         title="Allow major version upgrades",
         required=False,
     )
-    auto_minor_version_upgrade = schema.Bool(
+    auto_minor_version_upgrade = zope.schema.Bool(
         title="Automatic minor version upgrades",
         required=False,
     )
     # ToDo: Add an invariant to check that az is within the number in the segment
-    availability_zone = schema.Int(
+    availability_zone = zope.schema.Int(
         title='Availability Zone where the instance will be provisioned.',
         description="Must be one of 1, 2, 3 ...",
         required=False,
@@ -8039,23 +8146,23 @@ Default configuration for a DB Instance that belongs to a DB Cluster.
         max=10,
     )
     # ToDO: invariant - this is required at either default or instance-level
-    db_instance_type = schema.TextLine(
+    db_instance_type = zope.schema.TextLine(
         title="DB Instance Type",
         required=False,
     )
-    enable_performance_insights = schema.Bool(
+    enable_performance_insights = zope.schema.Bool(
         title="Enable Performance Insights",
         required=False,
         default=False,
     )
-    enhanced_monitoring_interval_in_seconds = schema.Int(
+    enhanced_monitoring_interval_in_seconds = zope.schema.Int(
         title="Enhanced Monitoring interval in seconds. This will enable enhanced monitoring unless set to 0.",
         description="Must be one of 0, 1, 5, 10, 15, 30, 60.",
         default=0,
         required=False,
         constraint=isValidEnhancedMonitoringInterval,
     )
-    event_notifications = schema.Object(
+    event_notifications = zope.schema.Object(
         title="DB Instance Event Notifications",
         required=False,
         schema=IRDSDBInstanceEventNotifications,
@@ -8065,7 +8172,7 @@ Default configuration for a DB Instance that belongs to a DB Cluster.
         required=False,
         schema_constraint='IDBParameterGroup'
     )
-    publicly_accessible = schema.Bool(
+    publicly_accessible = zope.schema.Bool(
         title="Assign a Public IP address",
         required=False,
         default=False,
@@ -8075,16 +8182,16 @@ class IRDSClusterInstance(INamed, IMonitorable):
     """
 DB Instance that belongs to a DB Cluster.
     """
-    allow_major_version_upgrade = schema.Bool(
+    allow_major_version_upgrade = zope.schema.Bool(
         title="Allow major version upgrades",
         required=False,
     )
-    auto_minor_version_upgrade = schema.Bool(
+    auto_minor_version_upgrade = zope.schema.Bool(
         title="Automatic minor version upgrades",
         required=False,
     )
     # ToDo: Add an invariant to check that az is within the number in the segment
-    availability_zone = schema.Int(
+    availability_zone = zope.schema.Int(
         title='Availability Zone where the instance will be provisioned.',
         description="Must be one of 1, 2, 3 ...",
         required=False,
@@ -8092,21 +8199,21 @@ DB Instance that belongs to a DB Cluster.
         max=10,
     )
     # ToDO: invariant - this is required at either default or instance-level
-    db_instance_type = schema.TextLine(
+    db_instance_type = zope.schema.TextLine(
         title="DB Instance Type",
         required=False,
     )
-    enable_performance_insights = schema.Bool(
+    enable_performance_insights = zope.schema.Bool(
         title="Enable Performance Insights",
         required=False,
     )
-    enhanced_monitoring_interval_in_seconds = schema.Int(
+    enhanced_monitoring_interval_in_seconds = zope.schema.Int(
         title="Enhanced Monitoring interval in seconds. This will enable enhanced monitoring unless set to 0.",
         description="Must be one of 0, 1, 5, 10, 15, 30, 60.",
         required=False,
         constraint=isValidEnhancedMonitoringInterval,
     )
-    event_notifications = schema.Object(
+    event_notifications = zope.schema.Object(
         title="DB Instance Event Notifications",
         required=False,
         schema=IRDSDBInstanceEventNotifications,
@@ -8116,7 +8223,7 @@ DB Instance that belongs to a DB Cluster.
         required=False,
         schema_constraint='IDBParameterGroup'
     )
-    publicly_accessible = schema.Bool(
+    publicly_accessible = zope.schema.Bool(
         title="Assign a Public IP address",
         required=False,
     )
@@ -8132,14 +8239,14 @@ class IRDSDBClusterEventNotifications(INamed):
     """
 Event Notifications for a DB Cluster
     """
-    groups = schema.List(
+    groups = zope.schema.List(
         title="Groups",
-        value_type=schema.TextLine(title="Group"),
+        value_type=zope.schema.TextLine(title="Group"),
         required=True,
     )
-    event_categories = schema.List(
+    event_categories = zope.schema.List(
         title="Event Categories",
-        value_type=schema.Choice(
+        value_type=zope.schema.Choice(
             title="Event Category",
             vocabulary=vocabulary.rds_cluster_event_categories,
         ),
@@ -8150,14 +8257,14 @@ class IRDSAurora(IResource, IRDS):
     """
 RDS Aurora DB Cluster
     """
-    availability_zones = schema.TextLine(
+    availability_zones = zope.schema.TextLine(
         title='Availability Zones to launch instances in.',
         description="Must be one of all, 1, 2, 3 ...",
         default='all',
         required=False,
         constraint=IsValidASGAvailabilityZone
     )
-    backtrack_window_in_seconds = schema.Int(
+    backtrack_window_in_seconds = zope.schema.Int(
         title="Backtrack Window in seconds. Disabled when set to 0.",
         description="Maximum is 72 hours (259,200 seconds).",
         min=0,
@@ -8165,7 +8272,7 @@ RDS Aurora DB Cluster
         default=0,
         required=False,
     )
-    cluster_event_notifications = schema.Object(
+    cluster_event_notifications = zope.schema.Object(
         title="Cluster Event Notifications",
         required=False,
         schema=IRDSDBClusterEventNotifications,
@@ -8175,44 +8282,44 @@ RDS Aurora DB Cluster
         required=False,
         schema_constraint='IDBClusterParameterGroup'
     )
-    db_instances = schema.Object(
+    db_instances = zope.schema.Object(
         title="DB Instances",
         required=True,
         schema=IRDSClusterInstances,
     )
-    default_instance = schema.Object(
+    default_instance = zope.schema.Object(
         title="Default DB Instance configuration",
         required=False,
         schema=IRDSClusterDefaultInstance,
     )
-    enable_http_endpoint = schema.Bool(
+    enable_http_endpoint = zope.schema.Bool(
         title="Enable an HTTP endpoint to provide a connectionless web service API for running SQL queries",
         default=False,
         required=False,
     )
-    enable_kms_encryption = schema.Bool(
+    enable_kms_encryption = zope.schema.Bool(
         title="Enable KMS Key encryption. Will create one KMS-CMK key dedicated to each DBCluster.",
         default=False,
     )
-    engine_mode = schema.Choice(
+    engine_mode = zope.schema.Choice(
         title="Engine Mode",
         description="Must be one of provisioned, serverless, parallelquery, global, or multimaster.",
         vocabulary=vocabulary.rds_cluster_engine_mode,
         required=False,
     )
-    read_dns = schema.List(
+    read_dns = zope.schema.List(
         title="DNS domains to create to resolve to the connection Read Endpoint",
-        value_type=schema.Object(IDNS),
+        value_type=zope.schema.Object(IDNS),
         required=False
     )
-    restore_type = schema.Choice(
+    restore_type = zope.schema.Choice(
         title="Restore Type",
         description="Must be one of full-copy or copy-on-write",
         default='full-copy',
         vocabulary=vocabulary.rds_restore_types,
         required=False,
     )
-    use_latest_restorable_time = schema.Bool(
+    use_latest_restorable_time = zope.schema.Bool(
         title="Restore the DB cluster to the latest restorable backup time",
         required=False,
         default=False,
@@ -8223,7 +8330,7 @@ class IRDSMysqlAurora(IRDSAurora):
 RDS MySQL Aurora Cluster
     """
     # ToDo: constraint
-    database_name = schema.TextLine(
+    database_name = zope.schema.TextLine(
         title="Database Name to create in the cluster",
         description="Must be a valid database name for the DB Engine. Must contain 1 to 64 letters or numbers. Can't be MySQL reserved word.",
         required=False,
@@ -8236,7 +8343,7 @@ class IRDSPostgresqlAurora(IRDSAurora):
 RDS PostgreSQL Aurora Cluster
     """
     # ToDo: constraint
-    database_name = schema.TextLine(
+    database_name = zope.schema.TextLine(
         title="Database Name to create in the cluster",
         description="Must be a valid database name for the DB Engine. Must contain 1 to 63 letters, numbers or underscores. Must begin with a letter or an underscore. Can't be PostgreSQL reserved word.",
         required=False,
@@ -8262,51 +8369,51 @@ Base ElastiCache Interface
         if obj.cache_clusters == None and obj.number_of_read_replicas == None:
             raise Invalid("Must supply either cache_clusters or number_of_read_replicas.")
 
-    at_rest_encryption = schema.Bool(
+    at_rest_encryption = zope.schema.Bool(
         title="Enable encryption at rest",
         required=False,
     )
-    auto_minor_version_upgrade = schema.Bool(
+    auto_minor_version_upgrade = zope.schema.Bool(
         title="Enable automatic minor version upgrades",
         required=False,
     )
-    automatic_failover_enabled = schema.Bool(
+    automatic_failover_enabled = zope.schema.Bool(
         title="Specifies whether a read-only replica is automatically promoted to read/write primary if the existing primary fails",
         required=False,
     )
-    az_mode = schema.TextLine(
+    az_mode = zope.schema.TextLine(
         title="AZ mode",
         constraint=isValidAZMode,
         required=False,
     )
-    cache_clusters = schema.Int(
+    cache_clusters = zope.schema.Int(
         title="Number of Cache Clusters",
         required=False,
         min=1,
         max=6
     )
-    cache_node_type = schema.TextLine(
+    cache_node_type = zope.schema.TextLine(
         title="Cache Node Instance type",
         description="",
         required=False,
     )
-    description=schema.Text(
+    description=zope.schema.Text(
         title="Replication Description",
         required=False,
     )
-    engine = schema.TextLine(
+    engine = zope.schema.TextLine(
         title="ElastiCache Engine",
         required=False
     )
-    engine_version = schema.TextLine(
+    engine_version = zope.schema.TextLine(
         title="ElastiCache Engine Version",
         required=False
     )
-    maintenance_preferred_window = schema.TextLine(
+    maintenance_preferred_window = zope.schema.TextLine(
         title='Preferred maintenance window',
         required=False,
     )
-    number_of_read_replicas = schema.Int(
+    number_of_read_replicas = zope.schema.Int(
         title="Number of read replicas",
         required=False,
     )
@@ -8316,11 +8423,11 @@ Base ElastiCache Interface
         required=False,
         schema_constraint='Interface'
     )
-    port = schema.Int(
+    port = zope.schema.Int(
         title="Port",
         required=False,
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="List of Security Groups",
         value_type=PacoReference(
             schema_constraint='ISecurityGroup'
@@ -8338,16 +8445,16 @@ class IElastiCacheRedis(IResource, IElastiCache, IMonitorable):
     """
 Redis ElastiCache Interface
     """
-    cache_parameter_group_family = schema.TextLine(
+    cache_parameter_group_family = zope.schema.TextLine(
         title='Cache Parameter Group Family',
         constraint=isRedisCacheParameterGroupFamilyValid,
         required=False
     )
-    snapshot_retention_limit_days = schema.Int(
+    snapshot_retention_limit_days = zope.schema.Int(
         title="Snapshot Retention Limit in Days",
         required=False,
     )
-    snapshot_window = schema.TextLine(
+    snapshot_window = zope.schema.TextLine(
         title="The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your node group (shard).",
         required=False,
         # ToDo: constraint for "windows"
@@ -8359,20 +8466,20 @@ class IESAdvancedOptions(IMapping):
 
 class IEBSOptions(Interface):
     # this is not IDeployable so it can have a different title to desribce it's configuration purpose
-    enabled = schema.Bool(
+    enabled = zope.schema.Bool(
         title="Specifies whether Amazon EBS volumes are attached to data nodes in the Amazon ES domain.",
         required=False
     )
-    iops = schema.Int(
+    iops = zope.schema.Int(
         title="The number of I/O operations per second (IOPS) that the volume supports.",
         required=False
     )
-    volume_size_gb = schema.Int(
+    volume_size_gb = zope.schema.Int(
         title="The size (in GiB) of the EBS volume for each data node.",
         description="The minimum and maximum size of an EBS volume depends on the EBS volume type and the instance type to which it is attached.",
         required=False,
     )
-    volume_type = schema.TextLine(
+    volume_type = zope.schema.TextLine(
         title="The EBS volume type to use with the Amazon ES domain.",
         description="Must be one of: standard, gp2, io1, st1, or sc1",
         required=False,
@@ -8380,41 +8487,41 @@ class IEBSOptions(Interface):
     )
 
 class IElasticsearchCluster(Interface):
-    dedicated_master_count = schema.Int(
+    dedicated_master_count = zope.schema.Int(
         title="The number of instances to use for the master node.",
         description="If you specify this field, you must specify true for the dedicated_master_enabled field.",
         required=False,
         min=1,
     )
-    dedicated_master_enabled =schema.Bool(
+    dedicated_master_enabled =zope.schema.Bool(
         title="Indicates whether to use a dedicated master node for the Amazon ES domain.",
         required=False,
     )
     # ToDo: add constraint for instance types
-    dedicated_master_type = schema.TextLine(
+    dedicated_master_type = zope.schema.TextLine(
         title="The hardware configuration of the computer that hosts the dedicated master node",
         description="Valid Elasticsearch instance type, such as m3.medium.elasticsearch. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html",
         required=False,
     )
-    instance_count = schema.Int(
+    instance_count = zope.schema.Int(
         title="The number of data nodes (instances) to use in the Amazon ES domain.",
         required=False,
     )
     # ToDo: add constraint for instance types
-    instance_type = schema.TextLine(
+    instance_type = zope.schema.TextLine(
         title="The instance type for your data nodes.",
         description="Valid Elasticsearch instance type, such as m3.medium.elasticsearch. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html",
         required=False,
     )
     # ToDo: invariant to only allow if zone_awareness_enabled: true
-    zone_awareness_availability_zone_count = schema.Int(
+    zone_awareness_availability_zone_count = zope.schema.Int(
         title="If you enabled multiple Availability Zones (AZs), the number of AZs that you want the domain to use.",
         default=2,
         required=False,
         min=2,
         max=3,
     )
-    zone_awareness_enabled = schema.Bool(
+    zone_awareness_enabled = zope.schema.Bool(
         title="Enable zone awareness for the Amazon ES domain.",
         required=False
     )
@@ -8468,24 +8575,24 @@ settings, instance types, instance counts, and storage resources that you specif
         required=False,
         constraint=isValidJSONOrNone
     )
-    advanced_options = schema.Object(
+    advanced_options = zope.schema.Object(
         title="Advanced Options",
         schema=IESAdvancedOptions,
         required=False
     )
-    ebs_volumes = schema.Object(
+    ebs_volumes = zope.schema.Object(
         title="EBS volumes that are attached to data nodes in the Amazon ES domain.",
         required=False,
         schema=IEBSOptions,
     )
-    cluster = schema.Object(
+    cluster = zope.schema.Object(
         title="Elasticsearch Cluster configuration",
         schema=IElasticsearchCluster,
         required=False,
     )
     # ToDo: provide option to set the UpgradeElasticsearchVersion update policy to true
     # during stack updates to allow for no downtime upgrades
-    elasticsearch_version = schema.TextLine(
+    elasticsearch_version = zope.schema.TextLine(
         title="The version of Elasticsearch to use, such as 2.3.",
         default="1.5",
         required=False,
@@ -8496,24 +8603,24 @@ settings, instance types, instance counts, and storage resources that you specif
     # ToDo: log publishing
     #log_publishing_log_group
     #log_publising_enabled
-    node_to_node_encryption = schema.Bool(
+    node_to_node_encryption = zope.schema.Bool(
         title="Enable node-to-node encryption",
         required=False,
     )
-    snapshot_start_hour = schema.Int(
+    snapshot_start_hour = zope.schema.Int(
         title="The hour in UTC during which the service takes an automated daily snapshot of the indices in the Amazon ES domain.",
         min=0,
         max=23,
         required=False,
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="List of Security Groups",
         value_type=PacoReference(
             schema_constraint='ISecurityGroup'
         ),
         required=False,
     )
-    segment = schema.TextLine(
+    segment = zope.schema.TextLine(
         title="Segment",
         required=False,
     )
@@ -8522,12 +8629,12 @@ class IIAMUserProgrammaticAccess(IEnablable):
     """
 IAM User Programmatic Access Configuration
     """
-    access_key_1_version = schema.Int(
+    access_key_1_version = zope.schema.Int(
         title='Access key version id',
         default=0,
         required=False
     )
-    access_key_2_version = schema.Int(
+    access_key_2_version = zope.schema.Int(
         title='Access key version id',
         default=0,
         required=False
@@ -8537,7 +8644,7 @@ class IIAMUserPermission(INamed, IDeployable):
     """
 IAM User Permission
     """
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title="Type of IAM User Access",
         description="A valid Paco IAM user access type: Administrator, CodeCommit, etc.",
         required=False,
@@ -8551,7 +8658,7 @@ Administrator IAM User Permission
         title='Comma separated list of Paco AWS account names this user has access to',
         required=False,
     )
-    read_only = schema.Bool(
+    read_only = zope.schema.Bool(
         title='Enabled ReadOnly access',
         default=False,
         required=False,
@@ -8567,16 +8674,16 @@ CodeCommit Repository IAM User Permission Definition
         required=False,
         schema_constraint='ICodeCommitRepository'
     )
-    permission = schema.TextLine(
+    permission = zope.schema.TextLine(
         title='Paco Permission policy',
         constraint = isPacoCodeCommitPermissionPolicyValid,
         required=False,
     )
-    console_access_enabled = schema.Bool(
+    console_access_enabled = zope.schema.Bool(
         title='Console Access Boolean',
         required=False,
     )
-    public_ssh_key = schema.TextLine(
+    public_ssh_key = zope.schema.TextLine(
         title="CodeCommit User Public SSH Key",
         default=None,
         required=False,
@@ -8586,9 +8693,9 @@ class IIAMUserPermissionCodeCommit(IIAMUserPermission):
     """
 CodeCommit IAM User Permission
     """
-    repositories = schema.List(
+    repositories = zope.schema.List(
         title='List of repository permissions',
-        value_type=schema.Object(IIAMUserPermissionCodeCommitRepository),
+        value_type=zope.schema.Object(IIAMUserPermissionCodeCommitRepository),
         required=False,
     )
 
@@ -8601,12 +8708,12 @@ CodeBuild Resource IAM User Permission Definition
         required=False,
         schema_constraint='Interface'
     )
-    permission = schema.TextLine(
+    permission = zope.schema.TextLine(
         title='Paco Permission policy',
         constraint = isPacoCodeCommitPermissionPolicyValid,
         required=False,
     )
-    console_access_enabled = schema.Bool(
+    console_access_enabled = zope.schema.Bool(
         title='Console Access Boolean',
         required=False,
     )
@@ -8615,9 +8722,9 @@ class IIAMUserPermissionCodeBuild(IIAMUserPermission):
     """
 CodeBuild IAM User Permission
     """
-    resources = schema.List(
+    resources = zope.schema.List(
         title='List of CodeBuild resources',
-        value_type=schema.Object(IIAMUserPermissionCodeBuildResource),
+        value_type=zope.schema.Object(IIAMUserPermissionCodeBuildResource),
         required=False
     )
 
@@ -8630,13 +8737,13 @@ CodeBuild Resource IAM User Permission Definition
         required=False,
         schema_constraint='Interface'
     )
-    permission = schema.TextLine(
+    permission = zope.schema.TextLine(
         title='Paco Permission policy',
         constraint = isPacoDeploymentPipelinePermissionPolicyValid,
         required=False,
         default='ReadOnly'
     )
-    console_access_enabled = schema.Bool(
+    console_access_enabled = zope.schema.Bool(
         title='Console Access Boolean',
         required=False,
         default=True
@@ -8650,9 +8757,9 @@ CodeBuild IAM User Permission
         title='Comma separated list of Paco AWS account names this user has access to',
         required=False,
     )
-    resources = schema.List(
+    resources = zope.schema.List(
         title='List of CodeBuild resources',
-        value_type=schema.Object(IIAMUserPermissionDeploymentPipelineResource),
+        value_type=zope.schema.Object(IIAMUserPermissionDeploymentPipelineResource),
         required=False
     )
 
@@ -8664,18 +8771,18 @@ Custom IAM User Permission
         title='Comma separated list of Paco AWS account names this user has access to',
         required=False,
     )
-    managed_policies = schema.List(
+    managed_policies = zope.schema.List(
         title="AWS Managed Policies",
-        value_type=schema.Choice(
+        value_type=zope.schema.Choice(
             title="Managed policies",
             vocabulary=gen_vocabulary.iam_managed_policies,
         ),
         required=False,
         default=[],
     )
-    policies = schema.List(
+    policies = zope.schema.List(
         title="Policies",
-        value_type=schema.Object(
+        value_type=zope.schema.Object(
             schema=IPolicy
         ),
         required=False,
@@ -8729,25 +8836,25 @@ have delegate IAM Roles in other accounts that they are allowed to assume.
         required=True,
         schema_constraint='IAccount',
     )
-    username = schema.TextLine(
+    username = zope.schema.TextLine(
         title='IAM Username',
         required=False,
     )
-    description=schema.TextLine(
+    description=zope.schema.TextLine(
         title='IAM User Description',
         required=False,
     )
-    console_access_enabled = schema.Bool(
+    console_access_enabled = zope.schema.Bool(
         title='Console Access Boolean'
     )
-    programmatic_access = schema.Object(
+    programmatic_access = zope.schema.Object(
         title='Programmatic Access',
-        schema = IIAMUserProgrammaticAccess,
+        schema=IIAMUserProgrammaticAccess,
         required=False,
     )
-    permissions = schema.Object(
+    permissions = zope.schema.Object(
         title='Paco IAM User Permissions',
-        schema = IIAMUserPermissions,
+        schema=IIAMUserPermissions,
         required=False,
     )
     account_whitelist = CommaList(
@@ -8766,7 +8873,7 @@ class IIAMResource(INamed):
     """
 IAM Resource contains IAM Users who can login and have different levels of access to the AWS Console and API.
     """
-    users = schema.Object(
+    users = zope.schema.Object(
         title='IAM Users',
         schema=IIAMUsers,
         required=False,
@@ -8776,7 +8883,7 @@ class IIAMUserResource(IResource):
     """
 IAM User
     """
-    allows = schema.List(
+    allows = zope.schema.List(
         title="Resources to allow this user to access.",
         description="",
         required=True,
@@ -8785,9 +8892,9 @@ IAM User
             schema_constraint='Interface',
         ),
     )
-    programmatic_access = schema.Object(
+    programmatic_access = zope.schema.Object(
         title='Programmatic Access',
-        schema = IIAMUserProgrammaticAccess,
+        schema=IIAMUserProgrammaticAccess,
         required=False,
     )
     account = PacoReference(
@@ -8817,11 +8924,11 @@ class IDeploymentPipelineStageAction(INamed, IEnablable, IMapping):
 Deployment Pipeline Source Stage
     """
     taggedValue('contains', 'mixed')
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title='The type of DeploymentPipeline Source Stage',
         required=False,
     )
-    run_order = schema.Int(
+    run_order = zope.schema.Int(
         title='The order in which to run this stage',
         min=1,
         max=999,
@@ -8839,7 +8946,7 @@ CodeCommit DeploymentPipeline Source Stage
         required=False,
         schema_constraint='ICodeCommitRepository'
     )
-    deployment_branch_name = schema.TextLine(
+    deployment_branch_name = zope.schema.TextLine(
         title="Deployment Branch Name",
         description="",
         default="",
@@ -8849,7 +8956,7 @@ CodeCommit DeploymentPipeline Source Stage
 class IDeploymentPipelinePacoCreateThenDeployImage(IDeploymentPipelineStageAction):
     """Paco CreateThenDeployImage Action"""
     taggedValue('contains', 'mixed')
-    resource_name = schema.TextLine(
+    resource_name = zope.schema.TextLine(
         title="Name of an external resource identifier",
         description="",
         required=True,
@@ -8864,7 +8971,7 @@ class IDeploymentPipelineLambdaInvoke(IDeploymentPipelineStageAction):
         required=True,
         schema_constraint='ILambda',
     )
-    user_parameters = schema.TextLine(
+    user_parameters = zope.schema.TextLine(
         title="User Parameters string that can be processed by the Lambda",
         description="",
         required=False,
@@ -8895,7 +9002,7 @@ This Action is triggered whenever a new image is pushed to an Amazon ECR reposit
         required=True,
         str_ok=True,
     )
-    image_tag = schema.TextLine(
+    image_tag = zope.schema.TextLine(
         title='The name of the tag used for the image.',
         default="latest",
         required=False,
@@ -8941,17 +9048,17 @@ Assign the secert to the ``github_access_token`` GitHub action field by using th
 
 """
     taggedValue('contains', 'mixed')
-    deployment_branch_name = schema.TextLine(
+    deployment_branch_name = zope.schema.TextLine(
         title="The name of the branch where source changes are to be detected.",
         description="",
         default="master",
         required=False
     )
-    github_owner = schema.TextLine(
+    github_owner = zope.schema.TextLine(
         title='The name of the GitHub user or organization who owns the GitHub repository.',
         required=True
     )
-    github_repository = schema.TextLine(
+    github_repository = zope.schema.TextLine(
         title='The name of the repository where source changes are to be detected.',
         required=True
     )
@@ -8961,7 +9068,7 @@ Assign the secert to the ``github_access_token`` GitHub action field by using th
         schema_constraint='ISecretsManagerSecret',
         str_ok=True
     )
-    poll_for_source_changes = schema.Bool(
+    poll_for_source_changes = zope.schema.Bool(
         title='Poll for Source Changes',
         required=False,
         default=True,
@@ -8973,7 +9080,7 @@ class IECRRepositoryPermission(Interface):
         required=True,
         schema_constraint='IECRRepository',
     )
-    permission = schema.Choice(
+    permission = zope.schema.Choice(
         title="Permission",
         description="Must be one of 'Push', 'Pull' or 'PushAndPull'",
         required=True,
@@ -8985,20 +9092,20 @@ class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
 CodeBuild DeploymentPipeline Build Stage
     """
     taggedValue('contains', 'mixed')
-    buildspec = schema.TextLine(
+    buildspec = zope.schema.TextLine(
         title="buildspec.yml filename",
         required=False,
     )
-    codebuild_image = schema.TextLine(
+    codebuild_image = zope.schema.TextLine(
         title='CodeBuild Docker Image',
         required=False,
     )
-    codebuild_compute_type = schema.TextLine(
+    codebuild_compute_type = zope.schema.TextLine(
         title='CodeBuild Compute Type',
         constraint = isValidCodeBuildComputeType,
         required=False,
     )
-    codecommit_repo_users = schema.List(
+    codecommit_repo_users = zope.schema.List(
         title="CodeCommit Users",
         required=False,
         value_type=PacoReference(
@@ -9006,36 +9113,36 @@ CodeBuild DeploymentPipeline Build Stage
             schema_constraint='ICodeCommitUser'
         )
     )
-    deployment_environment = schema.TextLine(
+    deployment_environment = zope.schema.TextLine(
         title="Deployment Environment",
         description="",
         default="",
         required=False,
     )
-    ecr_repositories = schema.List(
+    ecr_repositories = zope.schema.List(
         title="ECR Respository Permissions",
-        value_type=schema.Object(IECRRepositoryPermission),
+        value_type=zope.schema.Object(IECRRepositoryPermission),
         required=False,
         default=[],
     )
-    privileged_mode = schema.Bool(
+    privileged_mode = zope.schema.Bool(
         title='Privileged Mode',
         default=False,
         required=False
     )
-    role_policies = schema.List(
+    role_policies = zope.schema.List(
         title='Project IAM Role Policies',
-        value_type=schema.Object(IPolicy),
+        value_type=zope.schema.Object(IPolicy),
         required=False,
     )
-    secrets = schema.List(
+    secrets = zope.schema.List(
         title='List of PacoReferences to Secrets Manager secrets',
         required=False,
         value_type=PacoReference(
             title="Secret Manager Secret"
         )
     )
-    timeout_mins = schema.Int(
+    timeout_mins = zope.schema.Int(
         title='Timeout in Minutes',
         min=5,
         max=480,
@@ -9055,26 +9162,26 @@ Amazon S3 Deployment Provider
         schema_constraint='IS3Bucket'
     )
     # Extract: Required: Required if Extract = false
-    extract = schema.Bool(
+    extract = zope.schema.Bool(
         title="Boolean indicating whether the deployment artifact will be unarchived.",
         default=True,
         required=False,
     )
     # ObjectKey: Required if Extract = false
-    object_key = schema.TextLine(
+    object_key = zope.schema.TextLine(
         title="S3 object key to store the deployment artifact as.",
         required=False,
     )
-    input_artifacts = schema.List(
+    input_artifacts = zope.schema.List(
         title="Input Artifacts",
         required=False,
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Stage.Action",
         )
     )
     # KMSEncryptionKeyARN: Optional
     # This is used internally for now.
-    #kms_encryption_key_arn = schema.TextLine(
+    #kms_encryption_key_arn = zope.schema.TextLine(
     #    title="The KMS Key Arn used for artifact encryption.",
     #    required=False
     #)
@@ -9083,7 +9190,7 @@ Amazon S3 Deployment Provider
     # canned_acl =
 
     # CacheControl: Optional
-    # cache_control = schema.TextLine()
+    # cache_control = zope.schema.TextLine()
     # The CacheControl parameter controls caching behavior for requests/responses for objects
     # in the bucket. For a list of valid values, see the Cache-Control header field for HTTP
     # operations. To enter multiple values in CacheControl, use a comma between each value.
@@ -9097,10 +9204,10 @@ class IDeploymentPipelineManualApproval(IDeploymentPipelineStageAction):
 ManualApproval DeploymentPipeline
     """
     taggedValue('contains', 'mixed')
-    manual_approval_notification_email = schema.List(
+    manual_approval_notification_email = zope.schema.List(
         title="Manual Approval Notification Email List",
         description="",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Manual approval notification email",
             description="",
             default="",
@@ -9113,12 +9220,12 @@ class ICodeDeployMinimumHealthyHosts(INamed):
     """
 CodeDeploy Minimum Healthy Hosts
     """
-    type = schema.TextLine(
+    type = zope.schema.TextLine(
         title="Deploy Config Type",
         default="HOST_COUNT",
         required=False,
     )
-    value = schema.Int(
+    value = zope.schema.Int(
         title="Deploy Config Value",
         default=0,
         required=False,
@@ -9134,17 +9241,17 @@ CodeDeploy DeploymentPipeline Deploy Stage
         required=False,
         schema_constraint='IASG'
     )
-    auto_rollback_enabled = schema.Bool(
+    auto_rollback_enabled = zope.schema.Bool(
         title="Automatic rollback enabled",
         description="",
         default=True
     )
-    minimum_healthy_hosts = schema.Object(
+    minimum_healthy_hosts = zope.schema.Object(
         title="The minimum number of healthy instances that should be available at any time during the deployment.",
-        schema = ICodeDeployMinimumHealthyHosts,
+        schema=ICodeDeployMinimumHealthyHosts,
         required=False
     )
-    deploy_style_option = schema.TextLine(
+    deploy_style_option = zope.schema.TextLine(
         title="Deploy Style Option",
         description="",
         default="WITH_TRAFFIC_CONTROL",
@@ -9155,7 +9262,7 @@ CodeDeploy DeploymentPipeline Deploy Stage
         required=False,
         schema_constraint='IRole'
     )
-    elb_name = schema.TextLine(
+    elb_name = zope.schema.TextLine(
         title="ELB Name",
         description="",
         default="",
@@ -9409,27 +9516,27 @@ DeploymentPipeline caveats - there are a few things to consider when creating pi
             if obj.source != None or obj.build != None or obj.deploy != None:
                 raise Invalid("Can only specify stages field or the source/build/deploy fields but not both.")
 
-    configuration = schema.Object(
+    configuration = zope.schema.Object(
         title='Deployment Pipeline General Configuration',
         schema=IDeploymentPipelineConfiguration,
         required=False,
     )
-    source = schema.Object(
+    source = zope.schema.Object(
         title='Deployment Pipeline Source Stage',
         schema=IDeploymentPipelineSourceStage,
         required=False,
     )
-    build = schema.Object(
+    build = zope.schema.Object(
         title='Deployment Pipeline Build Stage',
         schema=IDeploymentPipelineBuildStage,
         required=False,
     )
-    deploy = schema.Object(
+    deploy = zope.schema.Object(
         title='Deployment Pipeline Deploy Stage',
         schema=IDeploymentPipelineDeployStage,
         required=False,
     )
-    stages = schema.Object(
+    stages = zope.schema.Object(
         title='Stages',
         schema=ICodePipelineStages,
         required=False,
@@ -9441,13 +9548,13 @@ class IDeploymentGroupS3Location(IParent):
         required=False,
         schema_constraint='IS3Bucket'
     )
-    bundle_type = schema.TextLine(
+    bundle_type = zope.schema.TextLine(
         title="Bundle Type",
         description="Must be one of JSON, tar, tgz, YAML or zip.",
         required=False,
         constraint=isValidDeploymentGroupBundleType
     )
-    key = schema.TextLine(
+    key = zope.schema.TextLine(
         title="The name of the Amazon S3 object that represents the bundled artifacts for the application revision.",
         required=True
     )
@@ -9456,16 +9563,16 @@ class ICodeDeployDeploymentGroups(INamed, IMapping):
     taggedValue('contains', 'mixed')
 
 class ICodeDeployDeploymentGroup(INamed, IDeployable):
-    ignore_application_stop_failures = schema.Bool(
+    ignore_application_stop_failures = zope.schema.Bool(
         title="Ignore Application Stop Failures",
         required=False,
     )
-    revision_location_s3 = schema.Object(
+    revision_location_s3 = zope.schema.Object(
         title="S3 Bucket revision location",
         required=False,
         schema=IDeploymentGroupS3Location
     )
-    autoscalinggroups = schema.List(
+    autoscalinggroups = zope.schema.List(
         title="AutoScalingGroups that CodeDeploy automatically deploys revisions to when new instances are created",
         required=False,
         value_type=PacoReference(
@@ -9473,10 +9580,10 @@ class ICodeDeployDeploymentGroup(INamed, IDeployable):
             schema_constraint='IASG'
         )
     )
-    role_policies = schema.List(
+    role_policies = zope.schema.List(
         title="Policies to grant the deployment group role",
         required=False,
-        value_type=schema.Object(IPolicy),
+        value_type=zope.schema.Object(IPolicy),
     )
 
 class ICodeDeployApplication(IResource):
@@ -9534,13 +9641,13 @@ It can be convienent to install the CodeDeploy agent on your instances using Clo
             ensure_running: true
 
 """
-    compute_platform = schema.TextLine(
+    compute_platform = zope.schema.TextLine(
         title="Compute Platform",
         description="Must be one of Lambda, Server or ECS",
         constraint=isValidCodeDeployComputePlatform,
         required=True
     )
-    deployment_groups = schema.Object(
+    deployment_groups = zope.schema.Object(
         title="CodeDeploy Deployment Groups",
         schema=ICodeDeployDeploymentGroups,
         required=True,
@@ -9562,11 +9669,11 @@ AWS Elastic File System (EFS) resource.
       - paco.ref netenv.mynet.network.vpc.security_groups.cloud.content
 
     """
-    encrypted = schema.Bool(
+    encrypted = zope.schema.Bool(
         title='Encryption at Rest',
         default=False
     )
-    security_groups = schema.List(
+    security_groups = zope.schema.List(
         title="Security groups",
         description="`SecurityGroup`_ the EFS belongs to",
         value_type=PacoReference(
@@ -9575,7 +9682,7 @@ AWS Elastic File System (EFS) resource.
         ),
         required=True,
     )
-    segment = schema.TextLine(
+    segment = zope.schema.TextLine(
         title="Segment",
         description="",
         required=False,
@@ -9584,17 +9691,17 @@ AWS Elastic File System (EFS) resource.
 # AWS Backup
 
 class IBackupPlanRule(INamed):
-    schedule_expression = schema.TextLine(
+    schedule_expression = zope.schema.TextLine(
         title="Schedule Expression",
         description="Must be a valid Schedule Expression.",
         required=False
     )
-    lifecycle_delete_after_days = schema.Int(
+    lifecycle_delete_after_days = zope.schema.Int(
         title="Delete after days",
         required=False,
         min=1
     )
-    lifecycle_move_to_cold_storage_after_days = schema.Int(
+    lifecycle_move_to_cold_storage_after_days = zope.schema.Int(
         title="Move to cold storage after days",
         description="If Delete after days value is set, this value must be smaller",
         required=False,
@@ -9602,35 +9709,35 @@ class IBackupPlanRule(INamed):
     )
 
 class IBackupSelectionConditionResourceType(IParent):
-    condition_type = schema.TextLine(
+    condition_type = zope.schema.TextLine(
         title="Condition Type",
         description="String Condition operator must be one of: StringEquals, StringNotEquals, StringEqualsIgnoreCase, StringNotEqualsIgnoreCase, StringLike, StringNotLike.",
         required=True,
         constraint=isValidStringConditionOperator
     )
-    condition_key = schema.TextLine(
+    condition_key = zope.schema.TextLine(
         title="Tag Key",
         required=True,
         min_length=1
     )
-    condition_value = schema.TextLine(
+    condition_value = zope.schema.TextLine(
         title="Tag Value",
         required=True,
         min_length=1
     )
 
 class IBackupPlanSelection(IParent):
-    title=schema.TextLine(
+    title=zope.schema.TextLine(
         title="Title",
         default="",
         required=True,
     )
-    tags = schema.List(
+    tags = zope.schema.List(
         title="List of condition resource types",
         required=False,
-        value_type=schema.Object(IBackupSelectionConditionResourceType)
+        value_type=zope.schema.Object(IBackupSelectionConditionResourceType)
     )
-    resources = schema.List(
+    resources = zope.schema.List(
         title="Backup Plan Resources",
         value_type=PacoReference(
             title="Resource",
@@ -9643,14 +9750,14 @@ class IBackupPlan(IResource):
     """
 AWS Backup Plan
     """
-    plan_rules = schema.List(
+    plan_rules = zope.schema.List(
         title="Backup Plan Rules",
-        value_type=schema.Object(IBackupPlanRule),
+        value_type=zope.schema.Object(IBackupPlanRule),
         required=True,
     )
-    selections = schema.List(
+    selections = zope.schema.List(
         title="Backup Plan Selections",
-        value_type=schema.Object(IBackupPlanSelection),
+        value_type=zope.schema.Object(IBackupPlanSelection),
         required=False
     )
 
@@ -9664,20 +9771,20 @@ class IBackupVault(IResource):
     """
 An AWS Backup Vault.
     """
-    notification_events = schema.List(
+    notification_events = zope.schema.List(
         title="Notification Events",
         description="Each notification event must be one of BACKUP_JOB_STARTED, BACKUP_JOB_COMPLETED, RESTORE_JOB_STARTED, RESTORE_JOB_COMPLETED, RECOVERY_POINT_MODIFIED",
-        value_type=schema.TextLine(
+        value_type=zope.schema.TextLine(
             title="Notification Event"
         ),
         constraint=isValidBackupNotification,
         required=False
     )
-    notification_group = schema.TextLine(
+    notification_group = zope.schema.TextLine(
         title="Notification Group",
         required=False
     )
-    plans = schema.Object(
+    plans = zope.schema.Object(
         title="Backup Plans",
         schema=IBackupPlans,
         required=False

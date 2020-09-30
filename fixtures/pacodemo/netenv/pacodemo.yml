@@ -158,6 +158,23 @@ applications:
             app_clients:
               bob:
                 generate_secret: true
+                callback_urls:
+                  - https://example.com
+                  - https://example.com/more
+                logout_urls:
+                  - https://example.com/logout
+                allowed_oauth_flows:
+                  - code
+                  - implicit
+                  - client_credentials
+                allowed_oauth_scopes:
+                  - phone
+                  - email
+                  - openid
+                  - profile
+                domain_name: some-test-example
+                identity_providers:
+                  - cognito
           ident:
             type: CognitoIdentityPool
             order: 20

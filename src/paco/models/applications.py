@@ -2196,24 +2196,51 @@ class CognitoUserPoolSchemaAttribute(Parent):
 
 @implementer(schemas.ICognitoUserPoolClient)
 class CognitoUserPoolClient(Named):
+    allowed_oauth_flows = FieldProperty(schemas.ICognitoUserPoolClient['allowed_oauth_flows'])
+    allowed_oauth_scopes = FieldProperty(schemas.ICognitoUserPoolClient['allowed_oauth_scopes'])
+    callback_urls = FieldProperty(schemas.ICognitoUserPoolClient['callback_urls'])
+    domain_name = FieldProperty(schemas.ICognitoUserPoolClient['domain_name'])
     generate_secret = FieldProperty(schemas.ICognitoUserPoolClient['generate_secret'])
+    identity_providers = FieldProperty(schemas.ICognitoUserPoolClient['identity_providers'])
+    logout_urls = FieldProperty(schemas.ICognitoUserPoolClient['logout_urls'])
+
+    @property
+    def allowed_oauth_flows_userpool_client_cfn(self):
+        "AllowedOAuthFlowsUserPoolClient is True if any OAuth configuration is set"
+        if len(self.allowed_oauth_flows) > 0 or len(self.allowed_oauth_scopes) > 0:
+            return True
+        return False
+
+    @property
+    def identity_providers_cfn(self):
+        ips = []
+        for ip in self.identity_providers:
+            if ip == 'cognito':
+                ips.append('COGNITO')
+            elif ip == 'facebook':
+                ips.append('Facebook')
+            elif ip == 'google':
+                ips.append('Google')
+            elif ip == 'facebook':
+                ips.append('LoginWithAmazon')
+        return ips
 
     troposphere_props = troposphere.cognito.UserPoolClient.props
     cfn_mapping = {
-        # 'AllowedOAuthFlows': ([basestring], False),
-        # 'AllowedOAuthFlowsUserPoolClient': (boolean, False),
-        # 'AllowedOAuthScopes': ([basestring], False),
+        'AllowedOAuthFlows': 'allowed_oauth_flows',
+        'AllowedOAuthFlowsUserPoolClient': 'allowed_oauth_flows_userpool_client_cfn',
+        'AllowedOAuthScopes': 'allowed_oauth_scopes',
         # 'AnalyticsConfiguration': (AnalyticsConfiguration, False),
-        # 'CallbackURLs': ([basestring], False),
+        'CallbackURLs': 'callback_urls',
         'ClientName': 'name',
         # 'DefaultRedirectURI': (basestring, False),
         # 'ExplicitAuthFlows': ([basestring], False),
         'GenerateSecret': 'generate_secret',
-        # 'LogoutURLs': ([basestring], False),
+        'LogoutURLs': 'logout_urls',
         # 'PreventUserExistenceErrors': (basestring, False),
         # 'ReadAttributes': ([basestring], False),
         # 'RefreshTokenValidity': (positive_integer, False),
-        # 'SupportedIdentityProviders': ([basestring], False),
+        'SupportedIdentityProviders': 'identity_providers_cfn',
         # 'UserPoolId': computed in template
         # 'WriteAttributes': ([basestring], False),
     }

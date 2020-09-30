@@ -106,6 +106,14 @@ cognito_schema_datatype = SimpleVocabulary.fromValues([
 	"boolean", "datetime", "number", "string",
 ])
 
+cognito_allowed_oauth_flows = SimpleVocabulary.fromValues([
+	"code", "implicit", "client_credentials",
+])
+
+cognito_identity_providers = SimpleVocabulary.fromValues([
+	"cognito", "facebook", "google", "amazon",
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

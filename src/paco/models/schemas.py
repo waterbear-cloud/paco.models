@@ -3900,10 +3900,47 @@ class ICognitoUserPoolSchemaAttribute(IParent):
     )
 
 class ICognitoUserPoolClient(INamed):
+    allowed_oauth_flows = zope.schema.List(
+        title="Allowed OAuth Flows",
+        required=False,
+        default=[],
+        value_type=zope.schema.Choice(
+            title="Allowed OAuth Flow",
+            vocabulary=vocabulary.cognito_allowed_oauth_flows
+        )
+    )
+    allowed_oauth_scopes = zope.schema.List(
+        title="Allow OAuth Scopes",
+        required=False,
+        default=[],
+    )
+    callback_urls = zope.schema.List(
+        title="Callback URLs",
+        required=False,
+        default=[],
+    )
+    domain_name = zope.schema.TextLine(
+        title="Domain Name or domain prefix",
+        required=False,
+    )
     generate_secret = zope.schema.Bool(
         title="Generate Secret",
         required=False,
         default=False,
+    )
+    identity_providers = zope.schema.List(
+        title="Identity Providers",
+        required=False,
+        default=[],
+        value_type=zope.schema.Choice(
+            title="Identity Provider",
+            vocabulary=vocabulary.cognito_identity_providers,
+        )
+    )
+    logout_urls = zope.schema.List(
+        title="Logout URLs",
+        required=False,
+        default=[],
     )
 
 class ICognitoUserPoolClients(INamed, IMapping):

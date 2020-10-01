@@ -127,12 +127,12 @@ class Reference():
         self.resource_ref = None
         self.region = None
 
-        if self.type == 'netenv':
+        if self.type == 'netenv' or self.type == 'service':
+            # paco.ref service.describe.<account>.<region>.myapp
             # do not try to find region for short environment refs like 'paco.ref netenv.mynet.prod'
             if len(self.parts) > 3:
                 if self.parts[3] in vocabulary.aws_regions.keys():
                     self.region = self.parts[3]
-
         if is_ref(self.raw) == False:
             print("Invalid Paco reference: %s" % (value))
             #raise StackException(PacoErrorCode.Unknown)

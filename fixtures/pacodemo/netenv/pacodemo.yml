@@ -145,7 +145,29 @@ applications:
             order: 10
             enabled: true
             auto_verified_attributes: email,phone_number
+            account_recovery: verified_email, verified_phone_number
+            user_creation:
+              admin_only: true
+              unused_account_validity_in_days: 7
+              invite_message_templates:
+                email_subject: 'Welcome to the Test!'
+                email_message: "Would you like to test the email?"
+                sms_message: "Or get an SMS on your smart phone?"
+            email:
+              from_address: bob@example.com
+              reply_to_address: no-reply@example.com
+              verification_message: "You must verify your email {####}"
+              verification_subject: "Do the verificiation!"
+            mfa_methods:
+              - sms
+              - software_token
             mfa: 'on'
+            password:
+              minimum_length: 8
+              require_lowercase: true
+              require_uppercase: true
+              require_numbers: true
+              require_symbols: false
             schema:
               - attribute_name: name
                 attribute_data_type: string

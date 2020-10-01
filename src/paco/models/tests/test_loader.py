@@ -370,6 +370,7 @@ class Testpacodemo(BaseTestModelLoader):
         userpool = auth_app.resources['userpool']
         assert schemas.ICognitoUserPool(userpool)
         assert userpool.app_clients['bob'].generate_secret, True
+        assert userpool.user_creation.invite_message_templates.email_message, "Would you like to test the email?"
         idp = auth_app.resources['ident']
         assert schemas.ICognitoIdentityPool(idp)
 

@@ -50,7 +50,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig,\
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
-    CognitoIdentityProvider
+    CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
+    CognitouserPoolPasswordPolicy
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -291,8 +292,14 @@ SUB_TYPES_CLASS_MAP = {
         'authenticated_role': ('direct_obj', RoleDefaultEnabled),
     },
     CognitoUserPool: {
-        'schema': ('obj_list', CognitoUserPoolSchemaAttribute),
         'app_clients': ('container', (CognitoUserPoolClients, CognitoUserPoolClient)),
+        'email': ('direct_obj', CognitoEmailConfiguration),
+        'password': ('direct_obj', CognitouserPoolPasswordPolicy),
+        'schema': ('obj_list', CognitoUserPoolSchemaAttribute),
+        'user_creation': ('direct_obj', CognitoUserCreation),
+    },
+    CognitoUserCreation: {
+        'invite_message_templates': ('direct_obj', CognitoInviteMessageTemplates)
     },
 
     # Backup

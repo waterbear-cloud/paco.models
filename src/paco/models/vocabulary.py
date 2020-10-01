@@ -114,6 +114,10 @@ cognito_identity_providers = SimpleVocabulary.fromValues([
 	"cognito", "facebook", "google", "amazon",
 ])
 
+cognito_mfa_methods = SimpleVocabulary.fromValues([
+	"sms", "software_token",
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

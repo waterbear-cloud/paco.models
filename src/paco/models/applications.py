@@ -271,7 +271,6 @@ class S3Bucket(Resource, Deployable):
         service = get_parent_by_interface(self, schemas.IService)
         app = get_parent_by_interface(self, schemas.IApplication)
 
-
         bucket_name_list_standard = [
                 self.bucket_name_prefix,
                 self.bucket_name,
@@ -2249,12 +2248,43 @@ class CognitoUserPoolClient(Named):
 class CognitoUserPoolClients(Named, dict):
     pass
 
+@implementer(schemas.ICognitoInviteMessageTemplates)
+class CognitoInviteMessageTemplates(Named):
+    email_subject = FieldProperty(schemas.ICognitoInviteMessageTemplates['email_subject'])
+    email_message = FieldProperty(schemas.ICognitoInviteMessageTemplates['email_message'])
+    sms_message = FieldProperty(schemas.ICognitoInviteMessageTemplates['sms_message'])
+
+@implementer(schemas.ICognitoUserCreation)
+class CognitoUserCreation(Named):
+    admin_only = FieldProperty(schemas.ICognitoUserCreation['admin_only'])
+    unused_account_validity_in_days = FieldProperty(schemas.ICognitoUserCreation['unused_account_validity_in_days'])
+    invite_message_templates = FieldProperty(schemas.ICognitoUserCreation['invite_message_templates'])
+
+@implementer(schemas.ICognitoEmailConfiguration)
+class CognitoEmailConfiguration(Named):
+    from_address = FieldProperty(schemas.ICognitoEmailConfiguration['from_address'])
+    reply_to_address = FieldProperty(schemas.ICognitoEmailConfiguration['reply_to_address'])
+    verification_message = FieldProperty(schemas.ICognitoEmailConfiguration['verification_message'])
+    verification_subject = FieldProperty(schemas.ICognitoEmailConfiguration['verification_subject'])
+
+@implementer(schemas.ICognitouserPoolPasswordPolicy)
+class CognitouserPoolPasswordPolicy(Named):
+    minimum_length = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['minimum_length'])
+    require_lowercase = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_lowercase'])
+    require_uppercase = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_uppercase'])
+    require_numbers = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_numbers'])
+    require_symbols = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_symbols'])
+
 @implementer(schemas.ICognitoUserPool)
 class CognitoUserPool(Resource):
     app_clients = FieldProperty(schemas.ICognitoUserPool['app_clients'])
+    account_recovery = FieldProperty(schemas.ICognitoUserPool['account_recovery'])
     auto_verified_attributes = FieldProperty(schemas.ICognitoUserPool['auto_verified_attributes'])
+    email = FieldProperty(schemas.ICognitoUserPool['email'])
     mfa = FieldProperty(schemas.ICognitoUserPool['mfa'])
+    mfa_methods = FieldProperty(schemas.ICognitoUserPool['mfa_methods'])
     schema = FieldProperty(schemas.ICognitoUserPool['schema'])
+    user_creation = FieldProperty(schemas.ICognitoUserPool['user_creation'])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
@@ -2262,34 +2292,122 @@ class CognitoUserPool(Resource):
         self.schema = []
 
     @property
+    def account_recovery_cfn(self):
+        if self.account_recovery == None:
+            return []
+        values = []
+        count = 1
+        for option in self.account_recovery.split(','):
+            option = option.strip().lower()
+            values.append({
+                'Name': option,
+                'Priority': count,
+            })
+            count += 1
+        return { 'RecoveryMechanisms': values }
+
+    @property
     def auto_verified_attributes_cfn(self):
         values = []
-        for choice in self.auto_verified_attributes.split(','):
-            values.append(choice.lower())
+        for option in self.auto_verified_attributes.split(','):
+            values.append(option.strip().lower())
         return values
+
+    @property
+    def admin_create_user_config_cfn(self):
+        if self.user_creation == None:
+            return None
+        cfn_export_dict = {
+            "AllowAdminCreateUserOnly" : self.user_creation.admin_only,
+            "UnusedAccountValidityDays" : self.user_creation.unused_account_validity_in_days,
+        }
+        if self.user_creation.invite_message_templates != None:
+            imt = self.user_creation.invite_message_templates
+            imt_dict = {}
+            if imt.email_message != None:
+                imt_dict['EmailMessage'] = imt.email_message
+            if imt.email_subject != None:
+                imt_dict['EmailSubject'] = imt.email_subject
+            if imt.sms_message != None:
+                imt_dict['SMSMessage'] = imt.sms_message
+            if imt_dict:
+                cfn_export_dict['InviteMessageTemplate'] = imt_dict
+        return cfn_export_dict
 
     @property
     def mfa_cfn(self):
         return self.mfa.upper()
 
     @property
+    def email_configuration_cfn(self):
+        if self.email == None:
+            return None
+        email_dict = {}
+        if self.email.from_address != None:
+            email_dict['From']= self.email.from_address
+        if self.email.reply_to_address != None:
+            email_dict['ReplyToEmailAddress'] = self.email.reply_to_address
+        if email_dict:
+            return email_dict
+        return None
+
+    @property
     def schema_cfn(self):
         return [schema_attr.cfn_export_dict for schema_attr in self.schema]
 
+    @property
+    def enabled_mfas_cfn(self):
+        mfas = []
+        for method in self.mfa_methods:
+            if method == 'sms':
+                mfas.append('SMS_MFA')
+            elif method == 'software_token':
+                mfas.append('SOFTWARE_TOKEN_MFA')
+        return mfas
+
+    @property
+    def policies_cfn(self):
+        if self.password == None:
+            return None
+        pass_dict = {}
+        if self.password.minimum_length != None:
+            pass_dict['MinimumLength'] = self.password.minimum_length
+        if self.password.require_lowercase != None:
+            pass_dict['RequireLowercase'] = self.password.require_lowercase
+        if self.password.require_numbers != None:
+            pass_dict['RequireNumbers'] = self.password.require_numbers
+        if self.password.require_symbols != None:
+            pass_dict['RequireSymbols'] = self.password.require_symbols
+        if self.password.require_uppercase != None:
+            pass_dict['RequireUppercase'] = self.password.require_uppercase
+        if pass_dict:
+            return {'PasswordPolicy': pass_dict}
+        return None
+
+    @property
+    def email_verification_message_cfn(self):
+        if self.email and self.email.verification_message != None:
+            return self.email.verification_message
+
+    @property
+    def email_verification_subject_cfn(self):
+        if self.email and self.email.verification_subject != None:
+            return self.email.verification_subject
+
     troposphere_props = troposphere.cognito.UserPool.props
     cfn_mapping = {
-        # 'AccountRecoverySetting': (AccountRecoverySetting, False),
-        # 'AdminCreateUserConfig': (AdminCreateUserConfig, False),
+        'AccountRecoverySetting': 'account_recovery_cfn',
+        'AdminCreateUserConfig': 'admin_create_user_config_cfn',
         # 'AliasAttributes': ([basestring], False),
         'AutoVerifiedAttributes': 'auto_verified_attributes_cfn',
         # 'DeviceConfiguration': (DeviceConfiguration, False),
-        # 'EmailConfiguration': (EmailConfiguration, False),
-        # 'EmailVerificationMessage': (basestring, False),
-        # 'EmailVerificationSubject': (basestring, False),
-        # 'EnabledMfas': ([basestring], False),
+        'EmailConfiguration': 'email_configuration_cfn',
+        'EmailVerificationMessage': 'email_verification_message_cfn',
+        'EmailVerificationSubject': 'email_verification_subject_cfn',
+        'EnabledMfas': 'enabled_mfas_cfn',
         # 'LambdaConfig': (LambdaConfig, False),
         'MfaConfiguration': 'mfa_cfn',
-        # 'Policies': (Policies, False),
+        'Policies': 'policies_cfn',
         'Schema': 'schema_cfn',
         # 'SmsAuthenticationMessage': (basestring, False),
         # 'SmsConfiguration': (SmsConfiguration, False),

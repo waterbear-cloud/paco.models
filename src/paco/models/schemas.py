@@ -3957,12 +3957,133 @@ def isValidAutoVerifiedAttributes(value):
             raise InvalidAutoVerifiedAttributes(f"{choice} is not a valid value.")
     return True
 
+class InvalidAccountRecovery(zope.schema.ValidationError):
+    __doc__ = "Must be only 'admin_only', 'verified_email', 'verified_phone_number', 'verified_phone_number,verified_email' or 'verified_email,verified_phone_number."
+
+def isValidAccountRecovery(value):
+    choices = value.split(',')
+    if len(choices) == 1:
+        choice = choices[0]
+        choice = choice.lower()
+        if choice.strip() not in ('admin_only', 'verified_email', 'verified_phone_number'):
+            raise InvalidAutoVerifiedAttributes(f"{choice} is not a valid value.")
+    elif len(choices) == 2:
+        for choice in choices:
+            choice = choice.lower()
+            if choice.strip() not in ('verified_email', 'verified_phone_number'):
+                raise InvalidAutoVerifiedAttributes(f"{choice} is not a valid value.")
+    elif len(choices) > 2:
+        raise InvalidAutoVerifiedAttributes("Maximum of two values.")
+    return True
+
+class ICognitoInviteMessageTemplates(INamed):
+    email_subject = zope.schema.TextLine(
+        title="Email Subject",
+        min_length=1,
+        max_length=140,
+        required=False,
+    )
+    email_message = zope.schema.Text(
+        title="Email Message",
+        min_length=6,
+        max_length=20000,
+        required=False,
+    )
+    sms_message = zope.schema.TextLine(
+        title="SMS Message",
+        min_length=6,
+        max_length=140,
+        required=False,
+    )
+
+class ICognitoUserCreation(INamed):
+    admin_only = zope.schema.Bool(
+        title="Allow only Admin to create users",
+        required=False,
+        default=False,
+    )
+    unused_account_validity_in_days = zope.schema.Int(
+        title="Unused Account Validity in Days",
+        min=0,
+        max=365,
+        required=False,
+        default=7,
+    )
+    invite_message_templates = zope.schema.Object(
+        title="Invite Message Templates",
+        schema=ICognitoInviteMessageTemplates,
+        required=False,
+    )
+
+class ICognitoEmailConfiguration(INamed):
+    from_address = zope.schema.TextLine(
+        title="From Email Address",
+        required=False,
+        constraint=isValidEmail,
+    )
+    reply_to_address = zope.schema.TextLine(
+        title="Reply To Email Address",
+        required=False,
+        constraint=isValidEmail,
+    )
+    verification_message = zope.schema.TextLine(
+        title="Verification Message",
+        required=False,
+    )
+    verification_subject = zope.schema.TextLine(
+        title="Verification Subject",
+        required=False,
+    )
+
+class ICognitouserPoolPasswordPolicy(INamed):
+    minimum_length = zope.schema.Int(
+        title="Minimum Length",
+        min=6,
+        max=99,
+    )
+    require_lowercase = zope.schema.Bool(
+        title="Require Lowercase",
+        default=True,
+        required=False,
+    )
+    require_uppercase = zope.schema.Bool(
+        title="Require Uppercase",
+        default=True,
+        required=False,
+    )
+    require_numbers = zope.schema.Bool(
+        title="Require Numbers",
+        default=True,
+        required=False,
+    )
+    require_symbols = zope.schema.Bool(
+        title="Require Symbols",
+        default=True,
+        required=False,
+    )
+
 class ICognitoUserPool(IResource):
     auto_verified_attributes = zope.schema.TextLine(
         title="Auto Verified Attributes",
         description="Can be either 'email', 'phone_number' or 'email,phone_number'",
         required=False,
         constraint=isValidAutoVerifiedAttributes,
+    )
+    account_recovery = zope.schema.TextLine(
+        title="Account Recovery Options (in order of priority)",
+        description="Can be either 'admin_only', 'verified_email', 'verified_phone_number', 'verified_phone_number,verified_email' or 'verified_email,verified_phone_number'",
+        required=False,
+        constraint=isValidAccountRecovery,
+    )
+    app_clients = zope.schema.Object(
+        title="App Clients",
+        schema=ICognitoUserPoolClients,
+        required=False,
+    )
+    email = zope.schema.Object(
+        title="Email Configuration",
+        schema=ICognitoEmailConfiguration,
+        required=False,
     )
     mfa = zope.schema.Choice(
         title="MFA Configuration",
@@ -3971,15 +4092,30 @@ class ICognitoUserPool(IResource):
         vocabulary=vocabulary.cognito_mfa_configuration,
         default='off',
     )
+    mfa_methods = zope.schema.List(
+        title="Enabled MFA methods",
+        description="List of 'sms' or 'software_token'",
+        required=False,
+        default=[],
+        value_type=zope.schema.Choice(
+            title="MFA method",
+            vocabulary=vocabulary.cognito_mfa_methods,
+        )
+    )
+    password = zope.schema.Object(
+        title="Password Configuration",
+        required=False,
+        schema=ICognitouserPoolPasswordPolicy,
+    )
     schema = zope.schema.List(
         title="Schema Attributes",
         description="",
         value_type=zope.schema.Object(ICognitoUserPoolSchemaAttribute),
         default=[],
     )
-    app_clients = zope.schema.Object(
-        title="App Clients",
-        schema=ICognitoUserPoolClients,
+    user_creation = zope.schema.Object(
+        title="User Creation",
+        schema=ICognitoUserCreation,
         required=False,
     )
 

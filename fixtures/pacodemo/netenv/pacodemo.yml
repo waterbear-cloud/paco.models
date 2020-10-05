@@ -198,8 +198,8 @@ applications:
                 identity_providers:
                   - cognito
             ui_customizations:
-              logo_file: ./path/to-my-image.png
-              css_file: ./path/to-my-css.css
+              css_file: ./assets/cognito-css.css
+            #   logo_file: ./path/to-my-image.png
 
           ident:
             type: CognitoIdentityPool

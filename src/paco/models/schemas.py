@@ -2,7 +2,7 @@ from zope.interface import Interface, Attribute, invariant, Invalid, classImplem
 from zope.interface.common.mapping import IMapping
 from paco.models import vocabulary
 from paco.models import gen_vocabulary
-from paco.models.references import PacoReference, FileReference, StringFileReference, YAMLFileReference
+from paco.models.references import PacoReference, FileReference, StringFileReference, BinaryFileReference, YAMLFileReference
 import json
 import re
 import ipaddress
@@ -747,6 +747,9 @@ class IFileReference(Interface):
 class IStringFileReference(IFileReference):
     pass
 
+class IBinaryFileReference(IFileReference):
+    pass
+
 class IYAMLFileReference(IFileReference):
     pass
 
@@ -765,6 +768,7 @@ classImplements(LocalPath, ILocalPath)
 classImplements(PacoReference, IPacoReference)
 classImplements(FileReference, IFileReference)
 classImplements(StringFileReference, IStringFileReference)
+classImplements(BinaryFileReference, IBinaryFileReference)
 classImplements(YAMLFileReference, IYAMLFileReference)
 
 
@@ -3899,6 +3903,18 @@ class ICognitoUserPoolSchemaAttribute(IParent):
         required=False,
     )
 
+class ICognitoUICustomizations(INamed):
+    logo_file = BinaryFileReference(
+        title="""File path to an image.""",
+        description="Must be a PNG or JPEG and max 100 Kb.",
+        required=False,
+    )
+    css_file = StringFileReference(
+        title="""File path to a CSS file.""",
+        description="Contents must be valid CSS that applies to the Cognito Hosted UI.",
+        required=False,
+    )
+
 class ICognitoUserPoolClient(INamed):
     allowed_oauth_flows = zope.schema.List(
         title="Allowed OAuth Flows",
@@ -4112,6 +4128,11 @@ class ICognitoUserPool(IResource):
         description="",
         value_type=zope.schema.Object(ICognitoUserPoolSchemaAttribute),
         default=[],
+    )
+    ui_customizations = zope.schema.Object(
+        title="UI Customizations",
+        required=False,
+        schema=ICognitoUICustomizations,
     )
     user_creation = zope.schema.Object(
         title="User Creation",

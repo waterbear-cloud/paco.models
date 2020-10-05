@@ -56,7 +56,7 @@ class FileReference():
     pass
 
 class StringFileReference(FileReference, zope.schema.Text):
-    """Path to a file on the filesystem"""
+    """Path to a string file on the filesystem"""
 
     def constraint(self, value):
         """
@@ -66,6 +66,15 @@ class StringFileReference(FileReference, zope.schema.Text):
         # ToDo: how to get the PACO_HOME and change to that directory from here?
         #path = pathlib.Path(value)
         #return path.exists()
+
+class BinaryFileReference(FileReference, zope.schema.Bytes):
+    """Path to a binary file on the filesystem"""
+
+    def constraint(self, value):
+        """
+        Validate that the path resolves to a file on the filesystem
+        """
+        return True
 
 class YAMLFileReference(FileReference, zope.schema.Object):
     """Path to a YAML file"""

@@ -197,6 +197,10 @@ applications:
                 domain_name: some-test-example
                 identity_providers:
                   - cognito
+            ui_customizations:
+              logo_file: ./path/to-my-image.png
+              css_file: ./path/to-my-css.css
+
           ident:
             type: CognitoIdentityPool
             order: 20

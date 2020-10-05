@@ -2204,6 +2204,11 @@ class CognitoUserPoolSchemaAttribute(Parent):
         'Required': 'required',
     }
 
+@implementer(schemas.ICognitoUICustomizations)
+class CognitoUICustomizations(Named):
+    logo_file = FieldProperty(schemas.ICognitoUICustomizations['logo_file'])
+    css_file = FieldProperty(schemas.ICognitoUICustomizations['css_file'])
+
 @implementer(schemas.ICognitoUserPoolClient)
 class CognitoUserPoolClient(Named):
     allowed_oauth_flows = FieldProperty(schemas.ICognitoUserPoolClient['allowed_oauth_flows'])

@@ -52,7 +52,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
-    CognitouserPoolPasswordPolicy
+    CognitouserPoolPasswordPolicy, CognitoUICustomizations
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -297,6 +297,7 @@ SUB_TYPES_CLASS_MAP = {
         'email': ('direct_obj', CognitoEmailConfiguration),
         'password': ('direct_obj', CognitouserPoolPasswordPolicy),
         'schema': ('obj_list', CognitoUserPoolSchemaAttribute),
+        'ui_customizations': ('direct_obj', CognitoUICustomizations),
         'user_creation': ('direct_obj', CognitoUserCreation),
     },
     CognitoUserCreation: {
@@ -838,6 +839,8 @@ def cast_to_schema(obj, fieldname, value, fields=None):
         return value
     elif schemas.IStringFileReference.providedBy(field):
         return value
+    elif schemas.IBinaryFileReference.providedBy(field):
+        return value
     elif isinstance(field, (zope.schema.TextLine, zope.schema.Text)) and type(value) != str:
         # YAML loads 'field: 404' as an Int where the field could be Text or TextLine
         # You can force a string with "field: '404'" but this removes the need to do that.
@@ -911,11 +914,15 @@ Verify that '{}' has the correct indentation in the config file.
                         base_path = os.sep.join(path.parts[:-1])[1:]
                     else:
                         base_path = None
+                    is_binary = False
+                    if schemas.IBinaryFileReference.providedBy(field):
+                        is_binary = True
                     # Load as a YAML - parse !Sub, !Join and other CloudFormation Functions
-                    value = load_string_from_path(
+                    value = load_data_from_path(
                         value,
                         base_path=base_path,
-                        is_yaml=schemas.IYAMLFileReference.providedBy(field)
+                        is_yaml=schemas.IYAMLFileReference.providedBy(field),
+                        is_binary=is_binary,
                     )
                 elif schemas.ILocalPath.providedBy(field) and value:
                     # expand local path if it's a relative path
@@ -1364,8 +1371,8 @@ def instantiate_deployment_pipeline_stages(name, stages_class, value, parent, re
             stage_obj[action_name] = action_obj
     return stages_obj
 
-def load_string_from_path(path, base_path=None, is_yaml=False):
-    """Reads file contents from a path and returns a string.
+def load_data_from_path(path, base_path=None, is_yaml=False, is_binary=False):
+    """Reads file contents from a path and returns a string or binary data.
     If is_yaml is True then it will load it as a YAML file.
     """
     if not base_path.endswith(os.sep):
@@ -1376,6 +1383,8 @@ def load_string_from_path(path, base_path=None, is_yaml=False):
     if path.is_file():
         if is_yaml:
             return read_yaml_file(path)
+        if is_binary:
+            return path.read_bytes()
         else:
             return path.read_text()
     else:

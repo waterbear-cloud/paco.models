@@ -10,6 +10,8 @@ Changelog for paco.models
 
 ### Added
 
+- New `IBinaryFileReference` to load binary files.
+
 - CloudFront LambdaFunctionAssociation support and Lambda@Edge initial support.
 
 - Initial Cognito support with resource types for `ICognitoUserPool` and `ICognitoIdentityPool`.

@@ -4,7 +4,13 @@ Changelog for paco.models
 7.5.1 (unreleased)
 ------------------
 
+### Fixed
+
+ - `add_stack_hooks` can be called before or **after** template initialization and be registred.
+
 ### Added
+
+- CloudFront LambdaFunctionAssociation support and Lambda@Edge initial support.
 
 - Initial Cognito support with resource types for `ICognitoUserPool` and `ICognitoIdentityPool`.
 

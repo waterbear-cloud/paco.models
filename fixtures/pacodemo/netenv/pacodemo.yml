@@ -1081,6 +1081,9 @@ applications:
             enabled: true
             order: 1
             description: 'notification service'
+            edge:
+              enabled: true
+              auto_publish_version: true
             code:
               s3_bucket: paco.ref resource.s3.buckets.bucketland
               s3_key: 'notification-0.1.0.zip'

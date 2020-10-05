@@ -371,7 +371,14 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
         # class attributes are shared, create an instance attribute
         if self._stack_hooks == None:
             self._stack_hooks = []
-        self._stack_hooks.append(stack_hooks)
+
+        # If the Stack has already been initialized, add hooks to it
+        # ToDo: duck typing as paco.models can depend upon paco.stack - create Interface for IStack?
+        if hasattr(self, 'stack') and hasattr(self.stack, 'add_hooks'):
+            self.stack.add_hooks(stack_hooks)
+        # Before initialization the hooks are set as a private attribute and added during initialization
+        else:
+            self._stack_hooks.append(stack_hooks)
 
     # Resource Name methods
 

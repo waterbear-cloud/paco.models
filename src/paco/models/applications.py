@@ -1255,6 +1255,10 @@ class LambdaVpcConfig(Named):
     segments = FieldProperty(schemas.ILambdaVpcConfig['segments'])
     security_groups = FieldProperty(schemas.ILambdaVpcConfig['security_groups'])
 
+@implementer(schemas.ILambdaAtEdgeConfiguration)
+class LambdaAtEdgeConfiguration(Named, Enablable):
+    auto_publish_version = FieldProperty(schemas.ILambdaAtEdgeConfiguration['auto_publish_version'])
+
 @implementer(schemas.ILambda)
 class Lambda(ApplicationResource, Monitorable):
     """
@@ -1263,6 +1267,7 @@ class Lambda(ApplicationResource, Monitorable):
     title ="Lambda"
     description = FieldProperty(schemas.ILambda['description'])
     code = FieldProperty(schemas.ILambda['code'])
+    edge = FieldProperty(schemas.ILambda['edge'])
     environment = FieldProperty(schemas.ILambda['environment'])
     iam_role = FieldProperty(schemas.ILambda['iam_role'])
     handler = FieldProperty(schemas.ILambda['handler'])
@@ -1344,6 +1349,12 @@ class CloudFrontForwardedValues(Named):
         super().__init__(name, parent)
         #self.cookies = CloudFrontCookies('cookies', self)
         #self.headers = []
+
+@implementer(schemas.ICloudFrontLambdaFunctionAssocation)
+class CloudFrontLambdaFunctionAssocation(Named):
+    event_type = FieldProperty(schemas.ICloudFrontLambdaFunctionAssocation['event_type'])
+    include_body = FieldProperty(schemas.ICloudFrontLambdaFunctionAssocation['include_body'])
+    lambda_function = FieldProperty(schemas.ICloudFrontLambdaFunctionAssocation['lambda_function'])
 
 @implementer(schemas.ICloudFrontDefaultCacheBehavior)
 class CloudFrontDefaultCacheBehavior(Named):
@@ -2203,6 +2214,9 @@ class CognitoUserPoolClient(Named):
     identity_providers = FieldProperty(schemas.ICognitoUserPoolClient['identity_providers'])
     logout_urls = FieldProperty(schemas.ICognitoUserPoolClient['logout_urls'])
 
+    def resolve_ref(self, ref):
+        return self.__parent__.__parent__.stack
+
     @property
     def allowed_oauth_flows_userpool_client_cfn(self):
         "AllowedOAuthFlowsUserPoolClient is True if any OAuth configuration is set"
@@ -2290,6 +2304,9 @@ class CognitoUserPool(Resource):
         super().__init__(name, __parent__)
         self.app_clients = CognitoUserPoolClients('app_clients', self)
         self.schema = []
+
+    def resolve_ref(self, ref):
+        return self.stack
 
     @property
     def account_recovery_cfn(self):

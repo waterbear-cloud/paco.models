@@ -26,9 +26,10 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
     AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
-    LambdaFunctionCode, LambdaVariable, SNSTopic, SNSTopicSubscription, \
+    LambdaFunctionCode, LambdaVariable, LambdaAtEdgeConfiguration, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
+    CloudFrontLambdaFunctionAssocation, \
     RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, RDSDBClusterEventNotifications, RDSDBInstanceEventNotifications, \
     RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
@@ -445,11 +446,13 @@ SUB_TYPES_CLASS_MAP = {
     },
     CloudFrontDefaultCacheBehavior: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
-        'forwarded_values': ('direct_obj', CloudFrontForwardedValues)
+        'forwarded_values': ('direct_obj', CloudFrontForwardedValues),
+        'lambda_function_associations': ('obj_list', CloudFrontLambdaFunctionAssocation),
     },
     CloudFrontCacheBehavior: {
         'allowed_methods': ('str_list', zope.schema.TextLine),
-        'forwarded_values': ('direct_obj', CloudFrontForwardedValues)
+        'forwarded_values': ('direct_obj', CloudFrontForwardedValues),
+        'lambda_function_associations': ('obj_list', CloudFrontLambdaFunctionAssocation),
     },
     CloudFrontForwardedValues: {
         'cookies': ('direct_obj', CloudFrontCookies),
@@ -659,11 +662,12 @@ SUB_TYPES_CLASS_MAP = {
         'principal': ('direct_obj', Principal)
     },
     Lambda: {
+        'edge': ('direct_obj', LambdaAtEdgeConfiguration),
         'environment': ('direct_obj', LambdaEnvironment),
         'code': ('direct_obj', LambdaFunctionCode),
         'iam_role': ('direct_obj', Role),
         'monitoring': ('direct_obj', MonitorConfig),
-        'vpc_config': ('direct_obj', LambdaVpcConfig)
+        'vpc_config': ('direct_obj', LambdaVpcConfig),
     },
     LambdaVpcConfig: {
         'security_groups': ('str_list', PacoReference),

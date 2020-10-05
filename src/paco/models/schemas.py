@@ -6822,6 +6822,12 @@ class ILambdaVpcConfig(IVPCConfiguration):
 Lambda Environment
     """
 
+class ILambdaAtEdgeConfiguration(INamed, IEnablable):
+    auto_publish_version = zope.schema.TextLine(
+        title="Automatically publish a Version. Update this name to publish a new Version.",
+        required=False,
+    )
+
 class ILambda(IResource, ICloudWatchLogRetention, IMonitorable):
     """
 Lambda Functions allow you to run code without provisioning servers and only
@@ -6923,6 +6929,11 @@ The code for the Lambda function can be specified in one of three ways in the ``
         title="A description of the function.",
         required=True,
     )
+    edge = zope.schema.Object(
+        title="Lambda@Edge configuration",
+        required=False,
+        schema=ILambdaAtEdgeConfiguration,
+    )
     environment = zope.schema.Object(
         title="Lambda Function Environment",
         schema=ILambdaEnvironment,
@@ -6969,14 +6980,6 @@ The code for the Lambda function can be specified in one of three ways in the ``
         # dotnetcore1.0 | dotnetcore2.1 | go1.x | java8 | nodejs10.x | nodejs8.10 | provided | python2.7 | python3.6 | python3.7 | ruby2.5
         default='python3.7',
     )
-    # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.
-    timeout = zope.schema.Int(
-        title="Max function execution time in seconds.",
-        description="Must be between 0 and 900 seconds.",
-        min=0,
-        max=900,
-        required=False,
-    )
     sdb_cache = zope.schema.Bool(
         title="SDB Cache Domain",
         required=False,
@@ -6988,6 +6991,13 @@ The code for the Lambda function can be specified in one of three ways in the ``
             str_ok=True,
             schema_constraint='ISNSTopic'
         ),
+        required=False,
+    )
+    timeout = zope.schema.Int(
+        title="The amount of time that Lambda allows a function to run before stopping it.",
+        min=0,
+        max=900,
+        default=3,
         required=False,
     )
     vpc_config = zope.schema.Object(
@@ -7758,6 +7768,24 @@ class ICloudFrontForwardedValues(INamed):
         required=False
     )
 
+class ICloudFrontLambdaFunctionAssocation(INamed):
+    event_type = zope.schema.Choice(
+        title="Event Type",
+        description="Must be one of 'origin-request', 'origin-response', 'viewer-request' or 'viewer-response'",
+        required=True,
+        vocabulary=vocabulary.cloudfront_event_types,
+    )
+    include_body = zope.schema.Bool(
+        title="Include Body",
+        required=False,
+        default=False,
+    )
+    lambda_function = PacoReference(
+        title="Lambda Function",
+        required=True,
+        schema_constraint='ILambda',
+    )
+
 class ICloudFrontDefaultCacheBehavior(INamed):
     allowed_methods = zope.schema.List(
         title="List of Allowed HTTP Methods",
@@ -7771,6 +7799,11 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         default=[ 'GET', 'HEAD', 'OPTIONS' ],
         required=False
     )
+    compress = zope.schema.Bool(
+        title="Compress certain files automatically",
+        required=False,
+        default=False
+    )
     # These default, Max, Min, and Default TTL values specifically configure
     # Cloudfront to use the Origin's cache-control header values when they
     # exist. Changing these values will force Cloudfront to modify any
@@ -7778,6 +7811,16 @@ class ICloudFrontDefaultCacheBehavior(INamed):
     default_ttl = zope.schema.Int(
         title="Default TTL",
         default=86400
+    )
+    forwarded_values = zope.schema.Object(
+        title="Forwarded Values",
+        schema=ICloudFrontForwardedValues,
+        required=False
+    )
+    lambda_function_associations = zope.schema.List(
+        title="Lambda Function Associations",
+        required=False,
+        value_type=zope.schema.Object(ICloudFrontLambdaFunctionAssocation),
     )
     max_ttl = zope.schema.Int(
         title="Maximum TTL",
@@ -7795,16 +7838,6 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         title="Viewer Protocol Policy",
         constraint = isValidCFViewerProtocolPolicy,
         default='redirect-to-https'
-    )
-    forwarded_values = zope.schema.Object(
-        title="Forwarded Values",
-        schema=ICloudFrontForwardedValues,
-        required=False
-    )
-    compress = zope.schema.Bool(
-        title="Compress certain files automatically",
-        required=False,
-        default=False
     )
 
 class ICloudFrontCacheBehavior(ICloudFrontDefaultCacheBehavior):
@@ -7868,7 +7901,7 @@ class ICloudFrontCustomOriginConfig(INamed):
     ssl_protocols = zope.schema.List(
         title="List of SSL Protocols",
         value_type=zope.schema.TextLine(),
-        constraint = isValidCFSSLProtocol,
+        constraint=isValidCFSSLProtocol,
         required=True,
     )
     read_timeout = zope.schema.Int(

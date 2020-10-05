@@ -118,6 +118,10 @@ cognito_mfa_methods = SimpleVocabulary.fromValues([
 	"sms", "software_token",
 ])
 
+cloudfront_event_types = SimpleVocabulary.fromValues([
+	"origin-request", "origin-response", "viewer-request", "viewer-response",
+])
+
 ssm_document_types = SimpleVocabulary.fromValues([
     'ApplicationConfigurationSchema'
     'Automation',

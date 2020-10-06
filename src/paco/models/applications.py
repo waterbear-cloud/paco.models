@@ -2432,7 +2432,7 @@ class CognitoUserPool(Resource):
         'Policies': 'policies_cfn',
         'Schema': 'schema_cfn',
         # 'SmsAuthenticationMessage': (basestring, False),
-        # 'SmsConfiguration': (SmsConfiguration, False),
+        # 'SmsConfiguration': computed in template
         # 'SmsVerificationMessage': (basestring, False),
         # 'UserPoolAddOns': (UserPoolAddOns, False),
         # 'UserPoolName': (basestring, False),

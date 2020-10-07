@@ -9319,7 +9319,7 @@ class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
 CodeBuild DeploymentPipeline Build Stage
     """
     taggedValue('contains', 'mixed')
-    buildspec = zope.schema.TextLine(
+    buildspec = zope.schema.Text(
         title="buildspec.yml filename",
         required=False,
     )

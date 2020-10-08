@@ -10,6 +10,9 @@ Changelog for paco.models
 
 ### Added
 
+- loader has a `validate_local_paths` to allow loading the model from a CI/CD or other environments
+  that may not have local paths available.
+
 - New `IBinaryFileReference` to load binary files.
 
 - CloudFront LambdaFunctionAssociation support and Lambda@Edge initial support.

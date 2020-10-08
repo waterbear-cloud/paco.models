@@ -918,12 +918,16 @@ Verify that '{}' has the correct indentation in the config file.
                     if schemas.IBinaryFileReference.providedBy(field):
                         is_binary = True
                     # Load as a YAML - parse !Sub, !Join and other CloudFormation Functions
-                    value = load_data_from_path(
-                        value,
-                        base_path=base_path,
-                        is_yaml=schemas.IYAMLFileReference.providedBy(field),
-                        is_binary=is_binary,
-                    )
+                    try:
+                        value = load_data_from_path(
+                            value,
+                            base_path=base_path,
+                            is_yaml=schemas.IYAMLFileReference.providedBy(field),
+                            is_binary=is_binary,
+                        )
+                    except InvalidPacoProjectFile as err:
+                        if ModelLoader.validate_local_paths == True:
+                            raise err
                 elif schemas.ILocalPath.providedBy(field) and value:
                     # expand local path if it's a relative path
                     orig_value = value
@@ -1423,9 +1427,11 @@ class ModelLoader():
     """
     Loads YAML config files into paco.models instances
     """
+    validate_local_paths = True
 
-    def __init__(self, config_folder, config_processor=None, warn=None):
+    def __init__(self, config_folder, config_processor=None, warn=None, validate_local_paths=True):
         self.warn = warn
+        self.__class__.validate_local_paths = validate_local_paths
         self.config_folder = pathlib.Path(config_folder)
         self.config_subdirs = {
             "monitor": self.instantiate_monitor_config,

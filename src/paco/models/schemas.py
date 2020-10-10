@@ -1839,7 +1839,7 @@ Container for `SNSTopic`_ objects.
     """
     taggedValue('contains', 'ISNSTopic')
 
-class ISNS(INamed, IMapping):
+class ISNS(INamed):
     """
 AWS Simple Notification Systems (SNS)
     """
@@ -4051,7 +4051,7 @@ class ICognitoEmailConfiguration(INamed):
         required=False,
     )
 
-class ICognitouserPoolPasswordPolicy(INamed):
+class ICognitoUserPoolPasswordPolicy(INamed):
     minimum_length = zope.schema.Int(
         title="Minimum Length",
         min=6,
@@ -4079,6 +4079,83 @@ class ICognitouserPoolPasswordPolicy(INamed):
     )
 
 class ICognitoUserPool(IResource):
+    """
+Amazon Cognito lets you add user sign-up, sign-in, and access control to your web and mobile apps.
+
+The ``CognitoUserPool`` resource type is a user directory in Amazon Cognito. With a user pool,
+users can sign in to your web or mobile app through Amazon Cognito.
+
+.. sidebar:: Prescribed Automation
+
+    ``mfa``: If this is ``on`` or ``optional`` then an IAM Role will be created to allow sending SMS reset codes.
+    If you are supporting SMS with Cognito, then you will also need to manually create an AWS Support ticket to
+    raise the accounts limit of SMS spending beyond the default of $1/month.
+
+.. code-block:: yaml
+    :caption: Example CognituUserPool YAML
+
+    type: CognitoUserPool
+    order: 10
+    enabled: true
+    auto_verified_attributes: email
+    mfa: 'optional'
+    mfa_methods:
+     - software_token
+     - sms
+    account_recovery: verified_email
+    password:
+      minimum_length: 12
+      require_lowercase: true
+      require_uppercase: true
+      require_numbers: false
+      require_symbols: false
+    email:
+      reply_to_address: reply-to@example.com
+    user_creation:
+      admin_only: true
+      unused_account_validity_in_days: 7
+      invite_message_templates:
+        email_subject: 'Invite to the App!'
+        email_message: >
+          <p>You've had an account created for you on the app.</p>
+          <p><b>Username:</b> {username}</p>
+          <p><b>Temporary password:</b> {####}</p>
+          <p>Please login and set a secure password. This request will expire in 7 days.</p>
+    schema:
+      - attribute_name: email
+        attribute_data_type: string
+        mutable: false
+        required: true
+      - attribute_name: name
+        attribute_data_type: string
+        mutable: true
+        required: true
+      - attribute_name: phone_number
+        attribute_data_type: string
+        mutable: true
+        required: false
+    ui_customizations:
+      logo_file: './images/logo.png'
+      css_file: './images/cognito.css'
+    app_clients:
+      web:
+        generate_secret: false
+        callback_urls:
+          - https://example.com
+          - https://example.com/parseauth
+          - https://example.com/refreshauth
+        logout_urls:
+          - https://example.com/signout
+        allowed_oauth_flows:
+            - code
+        allowed_oauth_scopes:
+            - email
+            - openid
+        domain_name: exampledomain
+        identity_providers:
+          - cognito
+
+    """
     auto_verified_attributes = zope.schema.TextLine(
         title="Auto Verified Attributes",
         description="Can be either 'email', 'phone_number' or 'email,phone_number'",
@@ -4121,7 +4198,7 @@ class ICognitoUserPool(IResource):
     password = zope.schema.Object(
         title="Password Configuration",
         required=False,
-        schema=ICognitouserPoolPasswordPolicy,
+        schema=ICognitoUserPoolPasswordPolicy,
     )
     schema = zope.schema.List(
         title="Schema Attributes",
@@ -4141,6 +4218,8 @@ class ICognitoUserPool(IResource):
     )
 
 class ICognitoIdentityProvider(IParent):
+    """
+    """
     userpool_client = PacoReference(
         title="Identity Provider",
         schema_constraint='ICognitoUserPoolClient',
@@ -4153,6 +4232,46 @@ class ICognitoIdentityProvider(IParent):
     )
 
 class ICognitoIdentityPool(IResource):
+    """
+The ``CognitoIdentityPool`` resource type grants authorization of Cognito User Pool users to resources.
+
+.. code-block:: yaml
+    :caption: Example CognituIdentityPool YAML
+
+    type: CognitoIdentityPool
+    order: 20
+    enabled: true
+    allow_unauthenticated_identities: true
+    identity_providers:
+     - userpool_client: paco.ref netenv.mynet.applications.myapp.groups.cognito.resources.cup.app_clients.web
+       serverside_token_check: false
+    unauthenticated_role:
+      enabled: true
+      policies:
+        - name: CognitoSyncAll
+          statement:
+            - effect: Allow
+              action:
+                - "cognito-sync:*"
+              resource:
+                - '*'
+    authenticated_role:
+      enabled: true
+      policies:
+        - name: ViewDescribe
+          statement:
+            - effect: Allow
+              action:
+                - "cognito-sync:*"
+                - "cognito-identity:*"
+              resource:
+                - '*'
+            - effect: Allow
+              action:
+                - "lambda:InvokeFunction"
+              resource:
+                - '*'
+    """
     allow_unauthenticated_identities = zope.schema.Bool(
         title="Allow Unauthenticated Identities",
         description="",
@@ -5609,7 +5728,8 @@ class IECSTaskDefinitionSecret(IParent):
     value_from = PacoReference(
         title="Paco reference to Secrets manager",
         required=True,
-        str_ok=True
+        str_ok=True,
+        schema_constraint='ISecretsManagerSecret',
     )
 
 class IECSContainerDependency(IParent):
@@ -6065,7 +6185,7 @@ class IECSTargetTrackingScalingPolicy(INamed, IEnablable):
     )
 
 class IECSTargetTrackingScalingPolicies(INamed, IMapping):
-    "Container for `IECSTargetTrackingScalingPolicy`_ objects."
+    "Container for `ECSTargetTrackingScalingPolicy`_ objects."
     taggedValue('contains', 'IECSTargetTrackingScalingPolicy')
 
 
@@ -9228,6 +9348,7 @@ This Action is triggered whenever a new image is pushed to an Amazon ECR reposit
         title="An ECRRepository ref or the name of the an ECR repository.",
         required=True,
         str_ok=True,
+        schema_constraint='IECRRepository',
     )
     image_tag = zope.schema.TextLine(
         title='The name of the tag used for the image.',
@@ -9366,8 +9487,9 @@ CodeBuild DeploymentPipeline Build Stage
         title='List of PacoReferences to Secrets Manager secrets',
         required=False,
         value_type=PacoReference(
-            title="Secret Manager Secret"
-        )
+            title="Secret Manager Secret",
+            schema_constraint='ISecretsManagerSecret',
+        ),
     )
     timeout_mins = zope.schema.Int(
         title='Timeout in Minutes',

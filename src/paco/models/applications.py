@@ -2286,13 +2286,13 @@ class CognitoEmailConfiguration(Named):
     verification_message = FieldProperty(schemas.ICognitoEmailConfiguration['verification_message'])
     verification_subject = FieldProperty(schemas.ICognitoEmailConfiguration['verification_subject'])
 
-@implementer(schemas.ICognitouserPoolPasswordPolicy)
+@implementer(schemas.ICognitoUserPoolPasswordPolicy)
 class CognitouserPoolPasswordPolicy(Named):
-    minimum_length = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['minimum_length'])
-    require_lowercase = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_lowercase'])
-    require_uppercase = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_uppercase'])
-    require_numbers = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_numbers'])
-    require_symbols = FieldProperty(schemas.ICognitouserPoolPasswordPolicy['require_symbols'])
+    minimum_length = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['minimum_length'])
+    require_lowercase = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_lowercase'])
+    require_uppercase = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_uppercase'])
+    require_numbers = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_numbers'])
+    require_symbols = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_symbols'])
 
 @implementer(schemas.ICognitoUserPool)
 class CognitoUserPool(Resource):

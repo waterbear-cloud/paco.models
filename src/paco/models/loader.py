@@ -1395,6 +1395,17 @@ def load_data_from_path(path, base_path=None, is_yaml=False, is_binary=False):
         # ToDo: better error help
         raise InvalidPacoProjectFile("File does not exist at filesystem path {}".format(path))
 
+def load_yaml(contents):
+    """
+    Loads YAML with Troposphere Constructors and restores previous constructors after loading
+    """
+    yaml = ModelYAML(typ="safe", pure=True)
+    yaml.default_flow_sytle = False
+    yaml.add_troposphere_constructors()
+    data = yaml.load(contents)
+    yaml.restore_existing_constructors()
+    return data
+
 def read_yaml_file(path):
     """
     Same as the ModelLoader method, but available outside that class.

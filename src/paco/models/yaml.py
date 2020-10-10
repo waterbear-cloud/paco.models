@@ -2,6 +2,7 @@
 import ruamel.yaml
 import troposphere
 from ruamel.yaml.compat import StringIO
+from paco.models.exceptions import TroposphereConversionError
 
 
 yaml_str_tag = 'tag:yaml.org,2002:str'
@@ -45,8 +46,8 @@ def convert_yaml_node_to_troposphere(node):
 def troposphere_constructor(loader, node):
     return convert_yaml_node_to_troposphere(node)
 
-def troposphere_representer(loader, node):
-    return export_troposphere_to_yaml_node(node)
+# def troposphere_representer(loader, node):
+#     return export_troposphere_to_yaml_node(node)
 
 cfn_tags = [
     '!Ref',

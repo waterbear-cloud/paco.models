@@ -1218,7 +1218,7 @@ class AWSCertificateManager(ApplicationResource):
             return self.domain_name
         if ref.parts[-2] == 'resources':
             return self
-        return ref.resource.resolve_ref_obj.resolve_ref(ref)
+        return ref.resource.stack
 
 @implementer(schemas.ILambdaVariable)
 class LambdaVariable(Parent):

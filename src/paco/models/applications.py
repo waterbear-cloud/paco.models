@@ -2287,7 +2287,7 @@ class CognitoEmailConfiguration(Named):
     verification_subject = FieldProperty(schemas.ICognitoEmailConfiguration['verification_subject'])
 
 @implementer(schemas.ICognitoUserPoolPasswordPolicy)
-class CognitouserPoolPasswordPolicy(Named):
+class CognitoUserPoolPasswordPolicy(Named):
     minimum_length = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['minimum_length'])
     require_lowercase = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_lowercase'])
     require_uppercase = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_uppercase'])

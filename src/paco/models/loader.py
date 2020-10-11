@@ -52,7 +52,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
-    CognitouserPoolPasswordPolicy, CognitoUICustomizations
+    CognitoUserPoolPasswordPolicy, CognitoUICustomizations
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -295,7 +295,7 @@ SUB_TYPES_CLASS_MAP = {
     CognitoUserPool: {
         'app_clients': ('container', (CognitoUserPoolClients, CognitoUserPoolClient)),
         'email': ('direct_obj', CognitoEmailConfiguration),
-        'password': ('direct_obj', CognitouserPoolPasswordPolicy),
+        'password': ('direct_obj', CognitoUserPoolPasswordPolicy),
         'schema': ('obj_list', CognitoUserPoolSchemaAttribute),
         'ui_customizations': ('direct_obj', CognitoUICustomizations),
         'user_creation': ('direct_obj', CognitoUserCreation),
@@ -938,8 +938,9 @@ Verify that '{}' has the correct indentation in the config file.
                         value = base_path + os.sep + value
                     local_path = Path(value)
                     if not local_path.is_dir() and not local_path.is_file():
-                        # ToDo: this error gets trapped and re-thrown as an AttributeError?
-                        raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
+                        if ModelLoader.validate_local_paths == True:
+                            # ToDo: this error gets trapped and re-thrown as an AttributeError?
+                            raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
                 elif type(field) == type(schemas.CommaList()):
                     # CommaList: Parse comma separated list into python list()
                     value = []

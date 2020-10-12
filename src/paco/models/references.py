@@ -281,8 +281,7 @@ def raise_invalid_reference(ref, obj, name):
     the name that failed the next look-up.
     """
     raise InvalidPacoReference("""
-Invalid Paco reference:
-{}
+Reference: {}
 
 Reference look-up failed at '{}' trying to find name '{}'.
 """.format(ref.raw, obj.paco_ref_parts, name))

@@ -3311,7 +3311,7 @@ class ISSMResource(INamed):
 
 # Networking
 
-class IAWSCertificateManager(IResource):
+class IACM(IResource):
     domain_name = zope.schema.TextLine(
         title="Domain Name",
         description="",
@@ -3448,7 +3448,7 @@ class IListener(IParent, IPortProtocol):
         title="List of SSL certificate References",
         value_type=PacoReference(
             title="SSL Certificate Reference",
-            schema_constraint='IAWSCertificateManager'
+            schema_constraint='IACM'
         ),
         required=False,
     )
@@ -3486,7 +3486,7 @@ class IDNS(IParent):
     ssl_certificate = PacoReference(
         title="SSL certificate Reference",
         required=False,
-        schema_constraint='IAWSCertificateManager'
+        schema_constraint='IACM'
     )
     ttl = zope.schema.Int(
         title="TTL",
@@ -8070,7 +8070,7 @@ class ICloudFrontViewerCertificate(INamed):
     certificate = PacoReference(
         title="Certificate Reference",
         required=False,
-        schema_constraint='IAWSCertificateManager'
+        schema_constraint='IACM'
     )
     ssl_supported_method = zope.schema.TextLine(
         title="SSL Supported Method",

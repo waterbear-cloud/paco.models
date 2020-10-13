@@ -7,6 +7,7 @@ from paco.models.base import Parent, Named, Resource, ApplicationResource, md5su
 from paco.models.metrics import Monitorable
 from paco.models.locations import get_parent_by_interface
 from paco.models.formatter import smart_join
+from paco.models.exceptions import InvalidModelObject
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
@@ -131,19 +132,29 @@ class IoTPolicy(ApplicationResource):
 
     def get_aws_name(self):
         "Name of the IoT Policy in AWS"
+        # NetworkEnvironment or Service name
+        name_list = []
         ne = get_parent_by_interface(self, schemas.INetworkEnvironment)
+        if ne == None:
+            service = get_parent_by_interface(self, schemas.IService)
+            if service == None:
+                raise InvalidModelObject("""Unable to find an INetworkEnvironment or IService model object.""")
+            name_list.append('Service')
+            name_list.append(service.name)
+        else:
+            name_list.append('ne')
+            name_list.append(ne.name)
+
+        # Environment name or Blank if one does not exist
         env = get_parent_by_interface(self, schemas.IEnvironment)
+        if env != None:
+            name_list.append(env.name)
+        name_list.append('app')
         app = get_parent_by_interface(self, schemas.IApplication)
+        name_list.append(app.name)
         group = get_parent_by_interface(self, schemas.IResourceGroup)
-        name_list = [
-            'ne',
-            ne.name,
-            env.name,
-            'app',
-            app.name,
-            group.name,
-            self.name,
-        ]
+        name_list.append(group.name)
+        name_list.append(self.name)
         aws_name = smart_join('-', name_list)
         aws_name = aws_name.replace('_', '-').lower()
 

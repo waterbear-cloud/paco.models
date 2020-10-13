@@ -8,6 +8,8 @@ Changelog for paco.models
 
  - `add_stack_hooks` can be called before or **after** template initialization and be registred.
 
+ - IoTPolicy now works with Services.
+
 ### Added
 
 - loader has a `validate_local_paths` to allow loading the model from a CI/CD or other environments
@@ -33,6 +35,10 @@ Changelog for paco.models
   ECR Repository permissions.
 
 - Added a `add_stack_hooks` to `paco.models.base.Resource`.
+
+### Changed
+
+- Renamed `IAWSCertificateManager` to `IACM` so that it matches it's Resource Type name.
 
 
 7.5.0 (2020-09-17)

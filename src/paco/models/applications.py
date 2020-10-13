@@ -1211,6 +1211,7 @@ class ACM(ApplicationResource):
     subject_alternative_names = FieldProperty(schemas.IACM['subject_alternative_names'])
     external_resource = FieldProperty(schemas.IACM['external_resource'])
     private_ca = FieldProperty(schemas.IACM['private_ca'])
+    region = FieldProperty(schemas.IACM['region'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'domain_name':

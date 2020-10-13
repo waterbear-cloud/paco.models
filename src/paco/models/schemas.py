@@ -3337,6 +3337,12 @@ class IACM(IResource):
         default=None,
         required=False,
     )
+    region = zope.schema.TextLine(
+        title="AWS Region",
+        description='Must be a valid AWS Region name',
+        constraint = isValidAWSRegionNameOrNone,
+        required=False,
+    )
 
 class IPortProtocol(Interface):
     """Port and Protocol"""

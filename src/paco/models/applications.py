@@ -1264,7 +1264,6 @@ class Lambda(ApplicationResource, Monitorable):
     """
     Lambda Function resource
     """
-    title ="Lambda"
     description = FieldProperty(schemas.ILambda['description'])
     code = FieldProperty(schemas.ILambda['code'])
     edge = FieldProperty(schemas.ILambda['edge'])
@@ -1280,6 +1279,10 @@ class Lambda(ApplicationResource, Monitorable):
     layers = FieldProperty(schemas.ILambda['layers'])
     sns_topics = FieldProperty(schemas.ILambda['sns_topics'])
     vpc_config = FieldProperty(schemas.ILambda['vpc_config'])
+
+    @property
+    def title(self):
+        return self.description
 
     def add_environment_variable(self, name, value):
         """Adds a Name-Value pair to the environment field.

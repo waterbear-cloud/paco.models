@@ -25,7 +25,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
-    AWSCertificateManager, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
+    ACM, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, LambdaAtEdgeConfiguration, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
@@ -138,7 +138,7 @@ IAM_USER_PERMISSIONS_CLASS_MAP = {
 }
 
 RESOURCES_CLASS_MAP = {
-    'ACM': AWSCertificateManager,
+    'ACM': ACM,
     'ApiGatewayRestApi': ApiGatewayRestApi,
     'ASG': ASG,
     'DBParameterGroup': DBParameterGroup,

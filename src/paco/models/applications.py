@@ -2,7 +2,6 @@
 All things Application Engine.
 """
 
-from os import confstr_names
 from troposphere.cognito import CognitoIdentityProvider
 from paco.models import loader
 from paco.models import schemas
@@ -12,7 +11,7 @@ from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
 from paco.models.metrics import Monitorable, AlarmNotifications, MonitorConfig
-from paco.models.vocabulary import application_group_types, aws_regions
+from paco.models.vocabulary import application_group_types
 from paco.models.logging import CloudWatchLogRetention
 from paco.models.iam import Role
 from zope.interface import implementer
@@ -1205,13 +1204,14 @@ class LBApplication(ApplicationResource):
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
 
-@implementer(schemas.IAWSCertificateManager)
-class AWSCertificateManager(ApplicationResource):
+@implementer(schemas.IACM)
+class ACM(ApplicationResource):
     title = 'Certificate Manager'
-    domain_name = FieldProperty(schemas.IAWSCertificateManager['domain_name'])
-    subject_alternative_names = FieldProperty(schemas.IAWSCertificateManager['subject_alternative_names'])
-    external_resource = FieldProperty(schemas.IAWSCertificateManager['external_resource'])
-    private_ca = FieldProperty(schemas.IAWSCertificateManager['private_ca'])
+    domain_name = FieldProperty(schemas.IACM['domain_name'])
+    subject_alternative_names = FieldProperty(schemas.IACM['subject_alternative_names'])
+    external_resource = FieldProperty(schemas.IACM['external_resource'])
+    private_ca = FieldProperty(schemas.IACM['private_ca'])
+    region = FieldProperty(schemas.IACM['region'])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'domain_name':
@@ -1264,7 +1264,6 @@ class Lambda(ApplicationResource, Monitorable):
     """
     Lambda Function resource
     """
-    title ="Lambda"
     description = FieldProperty(schemas.ILambda['description'])
     code = FieldProperty(schemas.ILambda['code'])
     edge = FieldProperty(schemas.ILambda['edge'])

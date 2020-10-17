@@ -7203,7 +7203,7 @@ The code for the Lambda function can be specified in one of three ways in the ``
     runtime = zope.schema.TextLine(
         title="Runtime environment",
         required=True,
-        # dotnetcore1.0 | dotnetcore2.1 | go1.x | java8 | nodejs10.x | nodejs8.10 | provided | python2.7 | python3.6 | python3.7 | ruby2.5
+        # dotnetcore2.1 | dotnetcore3.1 | go1.x | java11 | java8 | java8.al2 | nodejs10.x | nodejs12.x | provided | provided.al2 | python2.7 | python3.6 | python3.7 | python3.8 | ruby2.5 | ruby2.7
         default='python3.7',
     )
     sdb_cache = zope.schema.Bool(

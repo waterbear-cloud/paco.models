@@ -6,11 +6,16 @@ Changelog for paco.models
 
 ### Fixed
 
+ - Cross-account netenv refs are properly detected and don't get munged.
+
  - `add_stack_hooks` can be called before or **after** template initialization and be registred.
 
  - IoTPolicy now works with Services.
 
 ### Added
+
+- New method `Project.get_all_resources_by_type()` which depends upon a Project resource registry which
+  contains a dict of all application resources grouped by type. Easily query across applications!
 
 - loader has a `validate_local_paths` to allow loading the model from a CI/CD or other environments
   that may not have local paths available.

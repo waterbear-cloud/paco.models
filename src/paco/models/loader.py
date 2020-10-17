@@ -87,6 +87,7 @@ from paco.models.base import get_all_fields, most_specialized_interfaces, NameVa
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference, PacoReference
 from paco.models.references import is_ref, get_model_obj_from_ref
+from paco.models.schemas import INetworkEnvironment, INetworkEnvironments
 from paco.models.vocabulary import aws_regions
 from paco.models.yaml import ModelYAML
 from paco.models import schemas
@@ -847,7 +848,7 @@ def cast_to_schema(obj, fieldname, value, fields=None):
         value = str(value)
     return value
 
-def instantiate_container(container, klass, config, config_folder=None, lookup_config=None, read_file_path=''):
+def instantiate_container(container, klass, config, config_folder=None, lookup_config=None, read_file_path='', resource_registry=None):
     """
     Iterates through a config dictionary and creates an object of klass
     for each one and applies config to populate attributes
@@ -860,10 +861,18 @@ def instantiate_container(container, klass, config, config_folder=None, lookup_c
             config[name],
             config_folder,
             lookup_config,
-            read_file_path
+            read_file_path,
+            resource_registry,
         )
 
-def apply_attributes_from_config(obj, config, config_folder=None, lookup_config=None, read_file_path=''):
+def apply_attributes_from_config(
+    obj,
+    config,
+    config_folder=None,
+    lookup_config=None,
+    read_file_path='',
+    resource_registry=None,
+):
     """
     Iterates through the field an object's schema has
     and applies the values from configuration.
@@ -975,7 +984,8 @@ Verify that '{}' has the correct indentation in the config file.
                                     value,
                                     config_folder,
                                     lookup_config,
-                                    read_file_path
+                                    read_file_path,
+                                    resource_registry=resource_registry,
                                 )
                                 setattr(obj, name, value)
                             else:
@@ -1055,7 +1065,8 @@ def sub_types_loader(
     lookup_config=None,
     read_file_path='',
     sub_type=None,
-    sub_class=None
+    sub_class=None,
+    resource_registry=None,
 ):
     """
     Load sub types
@@ -1073,13 +1084,13 @@ def sub_types_loader(
                 sub_obj = sub_class(obj)
             else:
                 sub_obj = sub_class()
-            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
+            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path, resource_registry)
             sub_dict[sub_key] = sub_obj
         return sub_dict
 
     elif sub_type == 'obj_raw_config':
         sub_obj = sub_class(name, obj)
-        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
+        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path, resource_registry)
         sub_obj.raw_config = value
         return sub_obj
 
@@ -1091,7 +1102,7 @@ def sub_types_loader(
             sub_obj = object_class(sub_key, container)
             # allow for containers with objects that are only a name and have no fields
             if sub_value != None:
-                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
+                apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path, resource_registry)
             container[sub_key] = sub_obj
         return container
 
@@ -1108,14 +1119,6 @@ Invalid config type: '{}'.
 
 Configuration section:
 {}""".format(read_file_path, name, type(config), config))
-                raise InvalidPacoProjectFile("""
-Error in file at {}
-Type of '{}' does not exist for '{}'
-
-Configuration section:
-{}
-""".format(read_file_path, config['type'], name, config))
-
             try:
                 klass = class_mapping[config['type']]
             except KeyError:
@@ -1133,15 +1136,22 @@ Type of '{}' does not exist for '{}'
 Configuration section:
 {}
 """.format(read_file_path, config['type'], name, config))
+
             sub_obj = klass(name, container)
             apply_attributes_from_config(
                 sub_obj,
                 config,
                 config_folder,
                 lookup_config,
-                read_file_path
+                read_file_path,
+                resource_registry,
             )
             container[name] = sub_obj
+            # add ApplicationResource to the resource registry
+            if resource_registry != None:
+                if config['type'] not in resource_registry:
+                    resource_registry[config['type']] = {}
+                resource_registry[config['type']][sub_obj.paco_ref_parts] = sub_obj
         return container
 
     elif sub_type == 'twolevel_container':
@@ -1164,7 +1174,7 @@ Configuration section:
                     container[first_key].notifications = notifications
                 else:
                     second_obj = second_object_class(second_key, container[first_key])
-                    apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
+                    apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path, resource_registry)
                     container[first_key][second_key] = second_obj
         return container
 
@@ -1179,14 +1189,14 @@ Configuration section:
             container[first_key] = first_obj
             for second_key, second_value in first_value.items():
                 second_obj = second_object_class(second_key, container[first_key])
-                apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path)
+                apply_attributes_from_config(second_obj, second_value, config_folder, lookup_config, read_file_path, resource_registry)
                 container[first_key][second_key] = second_obj
                 for third_key, third_value in second_value.items():
                     if 'type' in third_value and third_value['type'] == 'LogAlarm':
                         third_obj = CloudWatchLogAlarm(third_key, container[first_key][second_key])
                     else:
                         third_obj = CloudWatchAlarm(third_key, container[first_key][second_key])
-                    apply_attributes_from_config(third_obj, third_value, config_folder, lookup_config, read_file_path)
+                    apply_attributes_from_config(third_obj, third_value, config_folder, lookup_config, read_file_path, resource_registry)
                     container[first_key][second_key][third_key] = third_obj
         return container
 
@@ -1197,7 +1207,7 @@ Configuration section:
             sub_obj = sub_class(obj)
         else:
             sub_obj = sub_class()
-        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path)
+        apply_attributes_from_config(sub_obj, value, config_folder, lookup_config, read_file_path, resource_registry)
         return sub_obj
 
     elif sub_type == 'dynamic_dict':
@@ -1224,7 +1234,7 @@ Configuration section:
                 sub_obj = sub_class(obj)
             else:
                 sub_obj = sub_class()
-            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path)
+            apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path, resource_registry)
             sub_list.append(sub_obj)
         return sub_list
 
@@ -1254,7 +1264,13 @@ Configuration section:
         log_sets = CloudWatchLogSets('log_sets', obj)
         for log_set_name in value.keys():
             log_set = CloudWatchLogSet(log_set_name, log_sets)
-            apply_attributes_from_config(log_set, merged_config[log_set_name], config_folder, read_file_path=read_file_path)
+            apply_attributes_from_config(
+                log_set,
+                merged_config[log_set_name],
+                config_folder,
+                read_file_path=read_file_path,
+                resource_registry=resource_registry,
+            )
             log_sets[log_set_name] = log_set
         return log_sets
 
@@ -1282,7 +1298,13 @@ Configuration section:
                     alarm = CloudWatchLogAlarm(alarm_name, alarm_set)
                 else:
                     alarm = CloudWatchAlarm(alarm_name, alarm_set)
-                apply_attributes_from_config(alarm, alarm_config, config_folder, read_file_path=read_file_path)
+                apply_attributes_from_config(
+                    alarm,
+                    alarm_config,
+                    config_folder,
+                    read_file_path=read_file_path,
+                    resource_registry=resource_registry,
+                )
                 alarm_set[alarm_name] = alarm
             alarm_sets[alarm_set_name] = alarm_set
 
@@ -1672,7 +1694,13 @@ Duplicate key \"{}\" found on line {} at column {}.
         and save in the object hierarchy
         """
         obj = klass(name, parent)
-        apply_attributes_from_config(obj, config, self.config_folder, read_file_path=self.read_file_path)
+        apply_attributes_from_config(
+            obj,
+            config,
+            self.config_folder,
+            read_file_path=self.read_file_path,
+            resource_registry=self.project.resource_registry
+        )
         parent[name] = obj
         return obj
 
@@ -1706,10 +1734,8 @@ Duplicate key \"{}\" found on line {} at column {}.
                     break
             rep_1_idx = dollar_idx
             rep_2_idx = paco_ref.find("}", rep_1_idx, end_str_idx)+1
-            netenv_ref_idx = paco_ref.find(
-                "paco.ref netenv.", rep_1_idx, rep_2_idx)
+            netenv_ref_idx = paco_ref.find("paco.ref netenv.", rep_1_idx, rep_2_idx)
             if netenv_ref_idx != -1:
-
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = paco_ref[sub_ref_idx:sub_ref_end_idx]
@@ -1724,23 +1750,42 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         return paco_ref
 
-    def insert_env_ref_str(self, paco_ref, env_id, region, application=None):
-        """Inserts the environment name and region name into an paco.ref netenv reference"""
-        netenv_ref_idx = paco_ref.find("paco.ref netenv.")
-        if netenv_ref_idx == -1:
+    def insert_env_ref_str(self, paco_ref, env_name, region, application=None):
+        """
+Inserts the Environment Name and Region Name into a paco.ref netenv type reference
+
+For example, if an Environment/EnvironmentRegion is in dev.eu-central-1 then the ref:
+
+  paco.ref netenv.mynet.applications
+     expands to --> paco.ref netenv.mynet.dev.eu-central-1.applications
+
+  paco.ref netenv.mynet.secrets_manager
+     expands to --> paco.ref netenv.mynet.dev.eu-central-1.secrets_manager
+
+You can have refs to other netenvs, but they must root to a specific environment and region:
+If from the netenv.mynet you have the ref, then it is left as-is:
+
+  paco.ref netenv.serverless.tools.eu-central-1.applications
+  paco.ref netenv.serverless.prod.us-west-2.secrets_manager
+
+Caveat: You can not have an environment named 'applications'.
+        """
+        # only applies to netenv refs
+        if paco_ref.find("paco.ref netenv.") == -1:
             return paco_ref
-
         if paco_ref.startswith("paco.sub "):
-            return self.insert_env_ref_paco_sub(paco_ref, env_id, region, application)
+            return self.insert_env_ref_paco_sub(paco_ref, env_name, region, application)
 
-        netenv_ref_raw = paco_ref
-        sub_ref_len = len(netenv_ref_raw)
-        netenv_ref = netenv_ref_raw[0:sub_ref_len]
-        ref = Reference(netenv_ref)
-        if ref.type == 'netenv' and ref.parts[2] == env_id and ref.parts[3] == region:
+        ref = Reference(paco_ref)
+
+        # if the env_name and region match then skip
+        # e.g. paco.ref netenv.mynet.dev.us-west-2.applications matches env_name=dev, region=us-west-2
+        if ref.parts[2] == env_name and ref.parts[3] == region:
             return paco_ref
 
         # Update application names to reflect unique app name for applications with unique suffixes
+        # e.g paco.ref netenv.mynet.applications.app{dog}
+        # ToDo: an environment can not be named 'applications' or it conflicts with ref replacement
         if ref.parts[2] == 'applications':
             # only needs to apply to non-unique applications
             app_name = ref.parts[3]
@@ -1752,19 +1797,27 @@ Duplicate key \"{}\" found on line {} at column {}.
                 # ToDo: look at application._suffix
 
                 # If the appname has a {} appended, then avoid replacing as we
-                # are explicitly signally we want to reference the base application.
+                # are explicitly signaling we want to reference the base application.
                 if app_name.endswith('{}') == True:
                     ref.parts[3] = ref.parts[3][:-2]
                 elif application.name.startswith(app_name) and application.name != app_name:
-
                     ref.parts[3] = application.name
 
-        # Ignore if the environment and region are already specified
+        # Skip if the environment and region are already specified
         if ref.parts[2] in self.project['netenv'][ref.parts[1]].keys():
             if ref.parts[3] in self.project['netenv'][ref.parts[1]][ref.parts[2]].keys():
                 return paco_ref
 
-        ref.parts.insert(2, env_id)
+        # Skip if it's a cross-netenv ref
+        # Can not consult the model here for cross-netenv refs, as other netenvs may not yet be loaded
+        # so instead compare the current netenv.name against the ref's netenv.name
+        if application != None:
+            netenv = get_parent_by_interface(application, schemas.INetworkEnvironment)
+            if netenv.name != ref.parts[1]:
+                return paco_ref
+
+        # Insert the <env_name>.<region> into the ref and return
+        ref.parts.insert(2, env_name)
         ref.parts.insert(3, region)
         new_ref_parts = '.'.join(ref.parts)
         new_ref = ' '.join(['paco.ref', new_ref_parts])
@@ -1772,10 +1825,6 @@ Duplicate key \"{}\" found on line {} at column {}.
 
     def normalize_environment_refs(self, env_config, env_name, env_region):
         """
-        Resolves all references
-        A reference is a string that refers to another value in the model. The original
-        reference string is stored as '_ref_<attribute>' while the resolved reference is
-        stored in the attribute.
         Inserts the Environment and Region into any paco.ref netenv.references.
         """
         value = None
@@ -1840,14 +1889,15 @@ Duplicate key \"{}\" found on line {} at column {}.
                 self.project,
                 config,
                 self.config_folder,
-                read_file_path=self.read_file_path
+                read_file_path=self.read_file_path,
+                resource_registry=self.project.resource_registry,
             )
         elif name == '.credentials':
             apply_attributes_from_config(
                 self.project['credentials'],
                 config,
                 self.config_folder,
-                read_file_path=self.read_file_path
+                read_file_path=self.read_file_path,
             )
 
     def extend_base_schemas(self):
@@ -1947,7 +1997,7 @@ Duplicate key \"{}\" found on line {} at column {}.
             name,
             self.project['accounts'],
             Account,
-            config
+            config,
         )
         self.project['accounts'][name]._read_file_path = pathlib.Path(read_file_path)
 
@@ -1980,7 +2030,7 @@ Duplicate key \"{}\" found on line {} at column {}.
             config_folder=self.config_folder,
             read_file_path=self.read_file_path,
             sub_type='twolevel_container',
-            sub_class=(CodeCommit, CodeCommitRepositoryGroup, CodeCommitRepository)
+            sub_class=(CodeCommit, CodeCommitRepositoryGroup, CodeCommitRepository),
         )
         codecommit.gen_repo_by_account()
         return codecommit
@@ -2138,7 +2188,8 @@ Duplicate key \"{}\" found on line {} at column {}.
                 item_config,
                 self.config_folder,
                 lookup_config=self.monitor_config,
-                read_file_path=self.read_file_path
+                read_file_path=self.read_file_path,
+                resource_registry=self.project.resource_registry,
             )
 
     def instantiate_backup_vaults(
@@ -2193,7 +2244,8 @@ Duplicate key \"{}\" found on line {} at column {}.
             vaults_config,
             config_folder=self.config_folder,
             lookup_config=self.monitor_config,
-            read_file_path=self.read_file_path
+            read_file_path=self.read_file_path,
+            resource_registry=self.project.resource_registry,
         )
 
     def instantiate_secrets_manager(
@@ -2254,7 +2306,8 @@ Duplicate key \"{}\" found on line {} at column {}.
                         secret_config,
                         self.config_folder,
                         lookup_config=self.monitor_config,
-                        read_file_path=self.read_file_path
+                        read_file_path=self.read_file_path,
+                        resource_registry=self.project.resource_registry,
                     )
                     secrets_group[secret_name] = secret
                 secrets_app[group_name] = secrets_group
@@ -2329,7 +2382,13 @@ Duplicate key \"{}\" found on line {} at column {}.
                         )
                         if 'network' in env_reg_config:
                             net_config = merge(net_config, env_reg_config['network'])
-                    apply_attributes_from_config(network, net_config, self.config_folder, read_file_path=self.read_file_path)
+                    apply_attributes_from_config(
+                        network,
+                        net_config,
+                        self.config_folder,
+                        read_file_path=self.read_file_path,
+                        resource_registry=self.project.resource_registry,
+                    )
 
                     # Applications
                     self.instantiate_applications(

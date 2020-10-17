@@ -50,6 +50,7 @@ class Project(Named, dict):
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
         self.legacy_flags = []
+        self.resource_registry = {}
 
         # Version Control
         self.version_control = VersionControl('version_control', self)
@@ -102,6 +103,16 @@ class Project(Named, dict):
         # CloudWatch Logging
         self.monitor.cw_logging = paco.models.logging.CloudWatchLogging('cw_logging', self.resource)
 
+    def get_all_resources_by_type(self, resource_type):
+        """
+        Every resource of a given type across ALL Applications.
+        Should include NetEnv Apps and Service Apps or any Resource loaded in an Application
+        """
+        if resource_type not in self.resource_registry:
+            return []
+        return [
+            resource for resource in self.resource_registry[resource_type].values()
+        ]
 
     def find_object_from_cli(self, controller_type, component_name=None, config_name=None):
         found = None

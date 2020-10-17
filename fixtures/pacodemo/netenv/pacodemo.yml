@@ -1033,6 +1033,11 @@ applications:
             order: 1
             enabled: true
             body_file_location: 'swagger/pet-store.json'
+            cognito_authorizers:
+              cognito:
+                identity_source: 'Authorization'
+                user_pools:
+                  - paco.ref netenv.pacodemo.applications.app.groups.auth.resources.userpool
 
       bastion:
         type: Bastion

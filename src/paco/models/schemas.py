@@ -1,8 +1,9 @@
+from zope import schema
 from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue
 from zope.interface.common.mapping import IMapping
 from paco.models import vocabulary
 from paco.models import gen_vocabulary
-from paco.models.references import PacoReference, FileReference, StringFileReference, BinaryFileReference, YAMLFileReference
+from paco.models.reftypes import PacoReference, FileReference, StringFileReference, BinaryFileReference, YAMLFileReference
 import json
 import re
 import ipaddress
@@ -7234,6 +7235,23 @@ The code for the Lambda function can be specified in one of three ways in the ``
 
 # API Gateway
 
+class IApiGatewayCognitoAuthorizers(INamed, IMapping):
+    "Container for `ApiGatewayAuthorizer`_ objects."
+    taggedValue('contains', 'IApiGatewayCognitoAuthorizer')
+
+class IApiGatewayCognitoAuthorizer(INamed):
+    identity_source = zope.schema.TextLine(
+        title="Identity Source",
+        required=True,
+    )
+    user_pools = zope.schema.List(
+        title="Cognito User Pools",
+        required=True,
+        value_type=PacoReference(
+            schema_constraint='ICognitoUserPool'
+        ),
+    )
+
 class IApiGatewayMethodMethodResponseModel(Interface):
     content_type = zope.schema.TextLine(
         title="Content Type",
@@ -7345,6 +7363,12 @@ class IApiGatewayMethod(IResource):
         description="Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
         constraint = isValidApiGatewayAuthorizationType,
         required=True,
+    )
+    # ToDo: invariant for this
+    authorizer = zope.schema.TextLine(
+        title="Authorizer",
+        description="Must be tan authorizer type and authorizer name in this API Gateway, seperated by a . char. For example, 'cognito_authorizers.cognito'.",
+        required=False,
     )
     http_method = zope.schema.TextLine(
         title="HTTP Method",
@@ -7459,9 +7483,15 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     models:
       emptyjson:
         content_type: 'application/json'
+    cognito_authorizers:
+      cognito:
+        identity_source: 'Authorization'
+        user_pools:
+          - paco.ref netenv.mynet.applications.app.groups.cognito.resources.userpool
     methods:
       get:
         http_method: GET
+        authorizer: cognito_authorizers.cognito
         integration:
           integration_type: AWS
           integration_lambda: paco.ref netenv.mynet.applications.app.groups.restapi.resources.mylambda
@@ -7512,6 +7542,12 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         if count > 1:
             raise Invalid("Only one of body, body_file_location or body_s3_location can be set.")
 
+    cognito_authorizers = zope.schema.Object(
+        title="Authorizors",
+        description="",
+        required=False,
+        schema=IApiGatewayCognitoAuthorizers,
+    )
     api_key_source_type = zope.schema.TextLine(
         title="API Key Source Type",
         description="Must be one of 'HEADER' to read the API key from the X-API-Key header of a request or 'AUTHORIZER' to read the API key from the UsageIdentifierKey from a Lambda authorizer.",

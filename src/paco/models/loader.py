@@ -66,7 +66,7 @@ from paco.models.resources import S3Resource, S3Buckets, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
     ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
     ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
-    ApiGatewayMethodIntegrationResponse, \
+    ApiGatewayMethodIntegrationResponse, ApiGatewayCognitoAuthorizer, ApiGatewayCognitoAuthorizers, \
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
@@ -85,7 +85,8 @@ from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, RoleDefaultEnabled, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
-from paco.models.references import Reference, PacoReference
+from paco.models.references import Reference
+from paco.models.reftypes import PacoReference
 from paco.models.references import is_ref, get_model_obj_from_ref
 from paco.models.schemas import INetworkEnvironment, INetworkEnvironments
 from paco.models.vocabulary import aws_regions
@@ -380,6 +381,7 @@ SUB_TYPES_CLASS_MAP = {
         'stages': ('deployment_pipeline_stages', CodePipelineStages),
     },
     ApiGatewayRestApi: {
+        'cognito_authorizers': ('container', (ApiGatewayCognitoAuthorizers, ApiGatewayCognitoAuthorizer)),
         'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
         'models': ('container', (ApiGatewayModels, ApiGatewayModel)),
         'resources': ('container', (ApiGatewayResources, ApiGatewayResource)),

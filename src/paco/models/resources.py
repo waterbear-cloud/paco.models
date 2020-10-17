@@ -2,11 +2,10 @@
 All things Resources.
 """
 
-import json
 import troposphere.apigateway
 import troposphere.route53
-from paco.models.base import Enablable, Parent, Named, CFNExport, Deployable, Regionalized, Resource, ApplicationResource, AccountRegions
-from paco.models.metrics import Monitorable, SNSTopics
+from paco.models.base import Enablable, Parent, Named, CFNExport, Deployable, HasStack, Resource, ApplicationResource, AccountRegions
+from paco.models.metrics import SNSTopics
 from paco.models import references
 from paco.models import schemas
 from zope.interface import implementer
@@ -92,6 +91,15 @@ class ApiGatewayMethodIntegration(Parent, CFNExport):
         #"Uri": computed in the template,
     }
 
+@implementer(schemas.IApiGatewayCognitoAuthorizers)
+class ApiGatewayCognitoAuthorizers(Named, dict):
+    pass
+
+@implementer(schemas.IApiGatewayCognitoAuthorizer)
+class ApiGatewayCognitoAuthorizer(Named):
+    identity_source = FieldProperty(schemas.IApiGatewayCognitoAuthorizer['identity_source'])
+    user_pools = FieldProperty(schemas.IApiGatewayCognitoAuthorizer['user_pools'])
+
 @implementer(schemas.IApiGatewayMethodMethodResponseModel)
 class ApiGatewayMethodMethodResponseModel():
     content_type = FieldProperty(schemas.IApiGatewayMethodMethodResponseModel['content_type'])
@@ -105,6 +113,7 @@ class ApiGatewayMethodMethodResponse():
 @implementer(schemas.IApiGatewayMethod)
 class ApiGatewayMethod(Resource):
     type = "ApiGatewayMethod"
+    authorizer = FieldProperty(schemas.IApiGatewayMethod['authorizer'])
     resource_name = FieldProperty(schemas.IApiGatewayMethod['resource_name'])
     http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
     request_parameters = FieldProperty(schemas.IApiGatewayMethod['request_parameters'])
@@ -185,7 +194,7 @@ class ApiGatewayStage(Resource):
     }
 
 @implementer(schemas.IApiGatewayRestApi)
-class ApiGatewayRestApi(ApplicationResource):
+class ApiGatewayRestApi(ApplicationResource, HasStack):
     title = "API Gateway REST API"
     type = "ApiGatewayRestApi"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
@@ -193,6 +202,7 @@ class ApiGatewayRestApi(ApplicationResource):
     body_file_location = FieldProperty(schemas.IApiGatewayRestApi['body_file_location'])
     body_s3_location = FieldProperty(schemas.IApiGatewayRestApi['body_s3_location'])
     clone_from = FieldProperty(schemas.IApiGatewayRestApi['clone_from'])
+    cognito_authorizers = FieldProperty(schemas.IApiGatewayRestApi['cognito_authorizers'])
     description = FieldProperty(schemas.IApiGatewayRestApi['description'])
     endpoint_configuration = FieldProperty(schemas.IApiGatewayRestApi['endpoint_configuration'])
     fail_on_warnings = FieldProperty(schemas.IApiGatewayRestApi['fail_on_warnings'])

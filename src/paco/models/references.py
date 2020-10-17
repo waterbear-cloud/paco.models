@@ -3,16 +3,13 @@ Paco References
 """
 
 from paco.models import vocabulary, schemas
+from paco.models.locations import get_parent_by_interface
 from paco.models.exceptions import InvalidPacoReference
 from ruamel.yaml.compat import StringIO
-from zope.schema.interfaces import ITextLine
-from zope.interface import implementer, Interface
 from operator import itemgetter
 import importlib
-import os
 import pathlib
 import ruamel.yaml
-import zope.schema
 
 
 ami_cache = {}
@@ -26,16 +23,6 @@ class YAML(ruamel.yaml.YAML):
         ruamel.yaml.YAML.dump(self, data, stream, **kw)
         if dumps:
             return stream.getvalue()
-
-
-class InvalidPacoReferenceString(zope.schema.ValidationError):
-    __doc__ = 'PacoReference must be of type (string)'
-
-class InvalidPacoReferenceStartsWith(zope.schema.ValidationError):
-    __doc__ = "PacoReference must begin with 'paco.ref'"
-
-class InvalidPacoReferenceRefType(zope.schema.ValidationError):
-    __doc__ = "PacoReference 'paco.ref must begin with: netenv | resource | accounts | function | service"
 
 def is_ref(paco_ref, raise_enabled=False):
     """Determines if the string value is a Paco reference"""
@@ -51,68 +38,6 @@ def is_ref(paco_ref, raise_enabled=False):
             return True
     if raise_enabled: raise InvalidPacoReferenceRefType
     return False
-
-class FileReference():
-    pass
-
-class StringFileReference(FileReference, zope.schema.Text):
-    """Path to a string file on the filesystem"""
-
-    def constraint(self, value):
-        """
-        Validate that the path resolves to a file on the filesystem
-        """
-        return True
-        # ToDo: how to get the PACO_HOME and change to that directory from here?
-        #path = pathlib.Path(value)
-        #return path.exists()
-
-class BinaryFileReference(FileReference, zope.schema.Bytes):
-    """Path to a binary file on the filesystem"""
-
-    def constraint(self, value):
-        """
-        Validate that the path resolves to a file on the filesystem
-        """
-        return True
-
-class YAMLFileReference(FileReference, zope.schema.Object):
-    """Path to a YAML file"""
-
-    def __init__(self, **kw):
-        self.schema = Interface
-        self.validate_invariants = kw.pop('validate_invariants', True)
-        super(zope.schema.Object, self).__init__(**kw)
-
-class PacoReference(zope.schema.Text):
-
-    def __init__(self, *args, **kwargs):
-        self.str_ok = False
-        self.schema_constraint = ''
-        if 'str_ok' in kwargs.keys():
-            self.str_ok = kwargs['str_ok']
-            del kwargs['str_ok']
-        # schema_constraint is a string name of an ISchema
-        # if a Schema is passed, it is converted to a string
-        if 'schema_constraint' in kwargs.keys():
-            self.schema_constraint = kwargs['schema_constraint']
-            if hasattr(self.schema_constraint, '__name__'):
-                self.schema_constraint = self.schema_constraint.__name__
-            del kwargs['schema_constraint']
-        super().__init__(*args, **kwargs)
-
-    def constraint(self, value):
-        """
-        Limit text to the format 'word.ref chars_here.more-chars.finalchars100'
-        """
-        if self.str_ok and is_ref(value) == False:
-            if isinstance(value, str) == False:
-                raise InvalidPacoReferenceString
-                #return False
-            return True
-
-        return is_ref(value, raise_enabled=True)
-
 
 class Reference():
     """
@@ -138,13 +63,22 @@ class Reference():
 
         if self.type == 'netenv' or self.type == 'service':
             # paco.ref service.describe.<account>.<region>.myapp
+            # pace.ref netenv.dev.<account>.<region>.applications
             # do not try to find region for short environment refs like 'paco.ref netenv.mynet.prod'
             if len(self.parts) > 3:
                 if self.parts[3] in vocabulary.aws_regions.keys():
                     self.region = self.parts[3]
         if is_ref(self.raw) == False:
             print("Invalid Paco reference: %s" % (value))
-            #raise StackException(PacoErrorCode.Unknown)
+
+    def get_account(self, project, resource):
+        "Account object this reference belongs to"
+        if self.type == 'service':
+            return project.accounts[self.parts[2]]
+        elif self.type == 'netenv':
+            env_reg = get_parent_by_interface(resource, schemas.IEnvironmentRegion)
+            return get_model_obj_from_ref(env_reg.network.aws_account, project)
+        return None
 
     @property
     def last_part(self):
@@ -280,6 +214,7 @@ def raise_invalid_reference(ref, obj, name):
     an obj that was the last model traversed too,
     the name that failed the next look-up.
     """
+    # breakpoint()
     raise InvalidPacoReference("""
 Reference: {}
 

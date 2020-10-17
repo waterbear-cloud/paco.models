@@ -353,16 +353,19 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
     order = FieldProperty(schemas.IResource['order'])
     change_protected = FieldProperty(schemas.IResource['change_protected'])
 
-    def resolve_ref(self, ref):
-        return self.resolve_ref_obj.resolve_ref(ref)
-
     def get_account(self):
         """
         Return the Account object that this resource is provisioned to
         """
-        env_reg = get_parent_by_interface(self, schemas.IEnvironmentRegion)
+        region = get_parent_by_interface(self, schemas.IRegionContainer)
         project = get_parent_by_interface(self, schemas.IProject)
-        return get_model_obj_from_ref(env_reg.network.aws_account, project)
+        # NetEnv accounts
+        if schemas.IEnvironmentRegion.providedBy(region):
+            return get_model_obj_from_ref(region.network.aws_account, project)
+        # Service accounts
+        else:
+            account_cont = get_parent_by_interface(self, schemas.IAccountContainer)
+            return project.accounts[account_cont.name]
 
     def add_stack_hooks(self, stack_hooks):
         """
@@ -552,6 +555,17 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
             camel_case=camel_case
         )
 
+class Stack():
+    "Unit of provisionable cloud resources"
+
+class HasStack():
+    "Resource that has a Stack associated with it"
+    stack = None
+
+    def resolve_ref(self, ref):
+        if self.stack == None:
+            return Stack()
+        return self.stack
 
 @implementer(schemas.IApplicationResource)
 class ApplicationResource(Resource):

@@ -7352,8 +7352,9 @@ class IApiGatewayMethod(IResource):
         constraint = isValidHttpMethod,
         required=False,
     )
-    resource_id = zope.schema.TextLine(
-        title="Resource Id",
+    # ToDo: invariant to validate resource_name
+    resource_name = zope.schema.TextLine(
+        title="Resource Name",
         required=False,
     )
     integration = zope.schema.Object(

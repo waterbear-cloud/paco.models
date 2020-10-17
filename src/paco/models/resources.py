@@ -105,7 +105,7 @@ class ApiGatewayMethodMethodResponse():
 @implementer(schemas.IApiGatewayMethod)
 class ApiGatewayMethod(Resource):
     type = "ApiGatewayMethod"
-    resource_id = FieldProperty(schemas.IApiGatewayMethod['resource_id'])
+    resource_name = FieldProperty(schemas.IApiGatewayMethod['resource_name'])
     http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])
     request_parameters = FieldProperty(schemas.IApiGatewayMethod['request_parameters'])
     method_responses = FieldProperty(schemas.IApiGatewayMethod['method_responses'])

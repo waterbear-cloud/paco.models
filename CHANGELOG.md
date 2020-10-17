@@ -43,6 +43,9 @@ Changelog for paco.models
 
 ### Changed
 
+- Renamed `IApiGatewayMethod` for ApiGatewayRestApi from `resource_id` to `resource_name`
+  to better reflect the name matches the resources of the gatewway.
+
 - Renamed `IAWSCertificateManager` to `IACM` so that it matches it's Resource Type name.
 
 

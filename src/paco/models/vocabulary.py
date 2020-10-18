@@ -98,6 +98,10 @@ ecs_launch_types = SimpleVocabulary.fromValues([
 	"EC2", "Fargate",
 ])
 
+apigateway_pass_through_behaviors = SimpleVocabulary.fromValues([
+	"WHEN_NO_MATCH", "NEVER", "WHEN_NO_TEMPLATES",
+])
+
 cognito_mfa_configuration = SimpleVocabulary.fromValues([
 	"off", "on", "optional",
 ])

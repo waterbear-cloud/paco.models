@@ -59,11 +59,13 @@ class ApiGatewayMethodIntegrationResponse(CFNExport):
 
 @implementer(schemas.IApiGatewayMethodIntegration)
 class ApiGatewayMethodIntegration(Parent, CFNExport):
-    integration_responses = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_responses'])
-    request_parameters = FieldProperty(schemas.IApiGatewayMethodIntegration['request_parameters'])
     integration_http_method = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_http_method'])
-    integration_type = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_type'])
     integration_lambda = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_lambda'])
+    integration_responses = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_responses'])
+    integration_type = FieldProperty(schemas.IApiGatewayMethodIntegration['integration_type'])
+    pass_through_behavior = FieldProperty(schemas.IApiGatewayMethodIntegration['pass_through_behavior'])
+    request_parameters = FieldProperty(schemas.IApiGatewayMethodIntegration['request_parameters'])
+    request_templates = FieldProperty(schemas.IApiGatewayMethodIntegration['request_templates'])
     uri = FieldProperty(schemas.IApiGatewayMethodIntegration['uri'])
 
     @property
@@ -80,8 +82,8 @@ class ApiGatewayMethodIntegration(Parent, CFNExport):
         #"ConnectionId": (basestring, False),
         #"ConnectionType": (basestring, False),
         #"ContentHandling": (basestring, False),
-        #"PassthroughBehavior": (basestring, False),
-        #"RequestTemplates": (dict, False),
+        "PassthroughBehavior": 'pass_through_behavior',
+        "RequestTemplates": 'request_templates',
         #"TimeoutInMillis": (integer_range(50, 29000), False),
         "IntegrationResponses": 'integration_responses_cfn',
         "IntegrationHttpMethod": 'integration_http_method',
@@ -109,10 +111,12 @@ class ApiGatewayMethodMethodResponseModel():
 class ApiGatewayMethodMethodResponse():
     status_code = FieldProperty(schemas.IApiGatewayMethodMethodResponse['status_code'])
     response_models = FieldProperty(schemas.IApiGatewayMethodMethodResponse['response_models'])
+    response_parameters = FieldProperty(schemas.IApiGatewayMethodMethodResponse['response_parameters'])
 
 @implementer(schemas.IApiGatewayMethod)
 class ApiGatewayMethod(Resource):
     type = "ApiGatewayMethod"
+    authorization_type = FieldProperty(schemas.IApiGatewayMethod['authorization_type'])
     authorizer = FieldProperty(schemas.IApiGatewayMethod['authorizer'])
     resource_name = FieldProperty(schemas.IApiGatewayMethod['resource_name'])
     http_method = FieldProperty(schemas.IApiGatewayMethod['http_method'])

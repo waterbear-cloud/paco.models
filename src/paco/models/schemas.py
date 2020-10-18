@@ -7276,6 +7276,11 @@ with a content type as the key and a Model Paco name as the value.""",
         value_type=zope.schema.Object(title="Response Model", schema=IApiGatewayMethodMethodResponseModel),
         required=False,
     )
+    response_parameters = zope.schema.Dict(
+        title="Response Parameters",
+        required=False,
+        default={},
+    )
 
 class IApiGatewayMethodIntegrationResponse(Interface):
     content_handling = zope.schema.TextLine(
@@ -7350,6 +7355,16 @@ their destination in the request.
         required=False,
         schema_constraint='ILambda'
     )
+    pass_through_behavior = zope.schema.Choice(
+        title="Pass Through Behaviour",
+        vocabulary=vocabulary.apigateway_pass_through_behaviors,
+        required=False,
+    )
+    request_templates = zope.schema.Dict(
+        title="Request Templates",
+        required=False,
+        default={},
+    )
     uri = zope.schema.TextLine(
         title="Integration URI",
         required=False,
@@ -7358,11 +7373,13 @@ their destination in the request.
 
 class IApiGatewayMethod(IResource):
     "API Gateway Method"
+    # ToDo: deprecate - this can be deduced by the authorizers
     authorization_type = zope.schema.TextLine(
         title="Authorization Type",
         description="Must be one of NONE, AWS_IAM, CUSTOM or COGNITO_USER_POOLS",
-        constraint = isValidApiGatewayAuthorizationType,
-        required=True,
+        constraint=isValidApiGatewayAuthorizationType,
+        default='NONE',
+        required=False,
     )
     # ToDo: invariant for this
     authorizer = zope.schema.TextLine(

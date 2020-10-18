@@ -24,6 +24,17 @@ class YAML(ruamel.yaml.YAML):
         if dumps:
             return stream.getvalue()
 
+# ToDo: this is duplicated between reftypes and references
+import zope.schema
+class InvalidPacoReferenceString(zope.schema.ValidationError):
+    __doc__ = 'PacoReference must be of type (string)'
+
+class InvalidPacoReferenceStartsWith(zope.schema.ValidationError):
+    __doc__ = "PacoReference must begin with 'paco.ref'"
+
+class InvalidPacoReferenceRefType(zope.schema.ValidationError):
+    __doc__ = "PacoReference 'paco.ref must begin with: netenv | resource | accounts | function | service"
+
 def is_ref(paco_ref, raise_enabled=False):
     """Determines if the string value is a Paco reference"""
     if type(paco_ref) != type(str()):

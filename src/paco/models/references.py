@@ -225,7 +225,6 @@ def raise_invalid_reference(ref, obj, name):
     an obj that was the last model traversed too,
     the name that failed the next look-up.
     """
-    # breakpoint()
     raise InvalidPacoReference("""
 Reference: {}
 

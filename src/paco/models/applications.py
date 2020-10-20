@@ -426,6 +426,9 @@ class EBS(ApplicationResource):
     availability_zone = FieldProperty(schemas.IEBS['availability_zone'])
     volume_type = FieldProperty(schemas.IEBS['volume_type'])
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IEC2LaunchOptions)
 class EC2LaunchOptions(Named):
     title = "EC2 Launch Options"

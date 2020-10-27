@@ -758,6 +758,7 @@ class ECSContainerDefinition(Named):
     start_timeout = FieldProperty(schemas.IECSContainerDefinition['start_timeout'])
     stop_timeout = FieldProperty(schemas.IECSContainerDefinition['stop_timeout'])
     secrets = FieldProperty(schemas.IECSContainerDefinition['secrets'])
+    setting_groups = FieldProperty(schemas.IECSContainerDefinition['setting_groups'])
     ulimits = FieldProperty(schemas.IECSContainerDefinition['ulimits'])
     user = FieldProperty(schemas.IECSContainerDefinition['user'])
     volumes_from = FieldProperty(schemas.IECSContainerDefinition['volumes_from'])
@@ -770,6 +771,7 @@ class ECSContainerDefinition(Named):
         self.mount_points = []
         self.environment = []
         self.secrets = []
+        self.setting_groups = []
         self.depends_on = []
         self.dns_search_domains = []
         self.dns_servers = []
@@ -855,7 +857,7 @@ class ECSContainerDefinition(Named):
         # 'RepositoryCredentials': (RepositoryCredentials, False),
         # 'ResourceRequirements': ([ResourceRequirement], False),
         # 'ServiceRegistries': ([ServiceRegistry], False)
-        'Secrets': 'secrets_mappings_cfn',
+        # 'Secrets': computed in the template
         'StartTimeout': 'start_timeout',
         'StopTimeout': 'stop_timeout',
         # 'SystemControls': ([SystemControl], False),
@@ -1076,13 +1078,29 @@ class ServicesMonitorConfig(MonitorConfig):
 
     enabled = property(__get_enabled, __set_enabled)
 
+@implementer(schemas.IECSSettingsGroup)
+class ECSSettingsGroup(Named):
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.secrets = []
+        self.environment = []
+
+    secrets = FieldProperty(schemas.IECSSettingsGroup['secrets'])
+    environment = FieldProperty(schemas.IECSSettingsGroup['environment'])
+
+@implementer(schemas.IECSSettingsGroups)
+class ECSSettingsGroups(Named, dict):
+    pass
+
 @implementer(schemas.IECSServices)
 class ECSServices(Resource, Monitorable):
     cluster = FieldProperty(schemas.IECSServices['cluster'])
+    setting_groups = FieldProperty(schemas.IECSServices['setting_groups'])
     services = FieldProperty(schemas.IECSServices['services'])
-    task_definitions = FieldProperty(schemas.IECSServices['task_definitions'])
     service_discovery_namespace_name = FieldProperty(schemas.IECSServices['service_discovery_namespace_name'])
     secrets_manager_access = FieldProperty(schemas.IECSServices['secrets_manager_access'])
+    task_definitions = FieldProperty(schemas.IECSServices['task_definitions'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -2306,6 +2324,7 @@ class CognitoUserPool(Resource):
     mfa_methods = FieldProperty(schemas.ICognitoUserPool['mfa_methods'])
     schema = FieldProperty(schemas.ICognitoUserPool['schema'])
     user_creation = FieldProperty(schemas.ICognitoUserPool['user_creation'])
+    ui_customizations = FieldProperty(schemas.ICognitoUserPool['ui_customizations'])
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)

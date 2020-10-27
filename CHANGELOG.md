@@ -14,6 +14,10 @@ Changelog for paco.models
 
 ### Added
 
+- `IECSServices` has `setting_groups` field.
+
+- `IApiGatewayResource` has `child_resources` and `enable_cors` fields.
+
 - New method `Project.get_all_resources_by_type()` which depends upon a Project resource registry which
   contains a dict of all application resources grouped by type. Easily query across applications!
 

@@ -93,6 +93,8 @@ secrets_manager:
     app:
       github_access_token:
         enabled: true
+  one:
+    two:
 
 backup_vaults:
   myapp:
@@ -315,6 +317,18 @@ applications:
             enabled: true
             order: 40
             cluster: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_cluster
+            setting_groups:
+              app_pool:
+                secrets:
+                  - name: TWO_SECRET
+                    value_from: paco.ref netenv.pacodemo.secrets_manager.one.two.hi
+                  - name: THREE_SECRET
+                    value_from: paco.ref netenv.pacodemo.secrets_manager.one.two.hello
+                environment:
+                  - name: UP
+                    value: 'up'
+                  - name: DOWN
+                    value: 'down'
             task_definitions:
               hello_fargate:
                 fargate_compatibile: true
@@ -335,7 +349,6 @@ applications:
                       - container_port: 80
                         host_port: 0
                         protocol: tcp
-
               hello_web:
                 container_definitions:
                   base:
@@ -383,6 +396,18 @@ applications:
                         name: cpu
                     user: www-data
                     working_directory: /var/www
+                    setting_groups:
+                      - app_pool
+                    secrets:
+                      - name: ONE_SECRET
+                        value_from: paco.ref netenv.pacodemo.secrets_manager.one.two.extra
+                      - name: TWO_SECRET
+                        value_from: paco.ref netenv.pacodemo.secrets_manager.one.two.another
+                    environment:
+                      - name: HELLO
+                        value: 'hello'
+                      - name: GREETINGS
+                        value: 'greetings'
             services:
               fargate_app:
                 launch_type: Fargate
@@ -1033,6 +1058,53 @@ applications:
             order: 1
             enabled: true
             body_file_location: 'swagger/pet-store.json'
+            resources:
+              idle:
+                path_part: '/idle'
+                enable_cors: true
+                child_resources:
+                  view:
+                    path_part: '{view}'
+                    child_resources:
+                      one:
+                        path_part: 'one'
+                      two:
+                        path_part: 'two'
+              describe:
+                path_part: 'describe'
+            methods:
+              idleGET:
+                http_method: GET
+                authorizer: cognito_authorizers.cognito
+                resource_name: 'idle'
+                integration:
+                  integration_type: AWS_PROXY
+                  integration_lambda: paco.ref netenv.pacodemo.applications.iotapp.groups.app.resources.iotfunc
+                  integration_responses:
+                    - status_code: '200'
+                      response_templates:
+                        'application/json': ''
+                method_responses:
+                  - status_code: '200'
+                    response_models:
+                      - content_type: 'application/json'
+                        model_name: 'emptyjson'
+              idleviewGET:
+                http_method: GET
+                authorizer: cognito_authorizers.cognito
+                resource_name: 'idle.view'
+                integration:
+                  integration_type: AWS_PROXY
+                  integration_lambda: paco.ref netenv.pacodemo.applications.iotapp.groups.app.resources.iotfunc
+                  integration_responses:
+                    - status_code: '200'
+                      response_templates:
+                        'application/json': ''
+                method_responses:
+                  - status_code: '200'
+                    response_models:
+                      - content_type: 'application/json'
+                        model_name: 'emptyjson'
             cognito_authorizers:
               cognito:
                 identity_source: 'Authorization'

@@ -128,6 +128,14 @@ class ApiGatewayMethod(Resource):
     def integration_cfn(self):
         return self.integration.cfn_export_dict
 
+    def get_resource(self):
+        resource = None
+        node = get_parent_by_interface(self, schemas.IApiGatewayRestApi).resources
+        for part in self.resource_name.split('.'):
+            resource = node[part]
+            node = resource.child_resources
+        return resource
+
     troposphere_props = troposphere.apigateway.Method.props
     cfn_mapping = {
         #"ApiKeyRequired": (bool, False),
@@ -169,16 +177,27 @@ class ApiGatewayResources(Named, dict):
     pass
 
 @implementer(schemas.IApiGatewayResource)
-class ApiGatewayResource(Resource):
+class ApiGatewayResource(Named, dict):
     type = "ApiGatewayResource"
-    parent_id = FieldProperty(schemas.IApiGatewayResource['parent_id'])
     path_part = FieldProperty(schemas.IApiGatewayResource['path_part'])
+    enable_cors = FieldProperty(schemas.IApiGatewayResource['enable_cors'])
+    # child_resources is not a FieldProperty as it's set during recursion
+
+    @property
+    def nested_name(self):
+        parent = self
+        parts = []
+        while not schemas.IApiGatewayRestApi.providedBy(parent):
+            parts.append(parent.name)
+            parent = parent.__parent__.__parent__
+        parts.reverse()
+        return '.'.join(parts)
 
     troposphere_props = troposphere.apigateway.Resource.props
     cfn_mapping = {
-        # ParentId needs to be computed from the CFNTemplate to inject the Resource's Logical Id into it
+        # ParentId: computed in template
         "PathPart": 'path_part',
-        # "RestApiId": 'rest_api_id' - Computed to CFNTemplate Logical Id
+        # "RestApiId": computed in template
     }
 
 @implementer(schemas.IApiGatewayStages)

@@ -1,5 +1,5 @@
 from zope import schema
-from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue
+from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue, implementer
 from zope.interface.common.mapping import IMapping
 from paco.models import vocabulary
 from paco.models import gen_vocabulary
@@ -5735,7 +5735,7 @@ class IECSTaskDefinitionSecret(IParent):
     value_from = PacoReference(
         title="Paco reference to Secrets manager",
         required=True,
-        str_ok=True,
+        str_ok=False,
         schema_constraint='ISecretsManagerSecret',
     )
 
@@ -5976,6 +5976,12 @@ class IECSContainerDefinition(INamed):
         title='List of name, value_from pairs to secret manager Paco references.',
         value_type=zope.schema.Object(IECSTaskDefinitionSecret),
         required=False
+    )
+    setting_groups = zope.schema.List(
+        title='List of names of setting_groups.',
+        value_type=zope.schema.TextLine(),
+        required=False,
+        default=[],
     )
     ulimits =zope.schema.List(
         title="List of ulimits to set in the container. This parameter maps to 'Ulimits' in Docker",
@@ -6303,6 +6309,24 @@ The ``ECSCluster`` resource type creates an Amazon Elastic Container Service (Am
 
 """
 
+class IECSSettingsGroups(INamed, IMapping):
+    "Container for `ECSSettingsGroup`_ objects."
+    taggedValue('contains', 'IECSSettingsGroup')
+
+class IECSSettingsGroup(INamed):
+    secrets = zope.schema.List(
+        title='List of name, value_from pairs to secret manager Paco references.',
+        value_type=zope.schema.Object(IECSTaskDefinitionSecret),
+        required=False,
+        default=[]
+    )
+    environment = zope.schema.List(
+        title='List of environment name value pairs.',
+        value_type=zope.schema.Object(INameValuePair),
+        required=False,
+        default=[],
+    )
+
 class IECSServices(IResource, IMonitorable):
     """
 The ``ECSServices`` resource type creates one or more ECS Services and their TaskDefinitions
@@ -6382,6 +6406,12 @@ that can run in an `ECSCluster`_.
         required=True,
         str_ok=False,
         schema_constraint='IECSCluster'
+    )
+    setting_groups = zope.schema.Object(
+        title="Setting Groups",
+        description="",
+        schema=IECSSettingsGroups,
+        required=False
     )
     task_definitions = zope.schema.Object(
         title="Task Definitions",
@@ -7435,21 +7465,6 @@ class IApiGatewayModel(IResource):
         required=False,
     )
 
-class IApiGatewayResource(IResource):
-    parent_id = zope.schema.TextLine(
-        title="Id of the parent resource. Default is 'RootResourceId' for a resource without a parent.",
-        default="RootResourceId",
-        required=False,
-    )
-    path_part = zope.schema.TextLine(
-        title="Path Part",
-        required=True,
-    )
-    rest_api_id = zope.schema.TextLine(
-        title="Name of the API Gateway REST API this resource belongs to.",
-        readonly = True,
-    )
-
 class IApiGatewayStage(IResource):
     "API Gateway Stage"
     deployment_id = zope.schema.TextLine(
@@ -7476,6 +7491,30 @@ class IApiGatewayMethods(INamed, IMapping):
 class IApiGatewayResources(INamed, IMapping):
     "Container for `ApiGatewayResource`_ objects."
     taggedValue('contains', 'IApiGatewayResource')
+
+class IRecursiveContainer(Interface):
+    pass
+
+@implementer(IApiGatewayResources, IRecursiveContainer)
+class MockApiGatewayResources(dict):
+    pass
+
+class IApiGatewayResource(INamed, IMapping):
+    path_part = zope.schema.TextLine(
+        title="Path Part",
+        required=True,
+    )
+    child_resources = zope.schema.Object(
+        title="Child Api Gateway Resources",
+        schema=IApiGatewayResources,
+        required=False,
+        missing_value=MockApiGatewayResources(),
+    )
+    enable_cors = zope.schema.Bool(
+        title="Enable CORS",
+        required=False,
+        default=False,
+    )
 
 class IApiGatewayStages(INamed, IMapping):
     "Container for `ApiGatewayStage`_ objects"

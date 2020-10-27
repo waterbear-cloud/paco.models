@@ -48,7 +48,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
     ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy, ServiceVPCConfiguration, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
-    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig,\
+    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig, \
+    ECSSettingsGroups, ECSSettingsGroup, \
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
@@ -192,9 +193,14 @@ SUB_TYPES_CLASS_MAP = {
         'monitoring': ('direct_obj', MonitorConfig),
     },
     ECSServices: {
+        'setting_groups': ('container', (ECSSettingsGroups, ECSSettingsGroup)),
         'task_definitions': ('container', (ECSTaskDefinitions, ECSTaskDefinition)),
         'services': ('container', (ECSServicesContainer, ECSService)),
         'monitoring': ('direct_obj', ServicesMonitorConfig),
+    },
+    ECSSettingsGroup: {
+        'secrets': ('obj_list', ECSTaskDefinitionSecret),
+        'environment': ('obj_list', NameValuePair),
     },
     ServiceVPCConfiguration: {
         'security_groups': ('str_list', PacoReference),
@@ -384,7 +390,7 @@ SUB_TYPES_CLASS_MAP = {
         'cognito_authorizers': ('container', (ApiGatewayCognitoAuthorizers, ApiGatewayCognitoAuthorizer)),
         'methods': ('container', (ApiGatewayMethods, ApiGatewayMethod)),
         'models': ('container', (ApiGatewayModels, ApiGatewayModel)),
-        'resources': ('container', (ApiGatewayResources, ApiGatewayResource)),
+        'resources': ('recursive_container', (ApiGatewayResources, ApiGatewayResource, 'child_resources')),
         'stages': ('container', (ApiGatewayStages, ApiGatewayStage)),
     },
     ApiGatewayMethodIntegration: {
@@ -897,6 +903,8 @@ Verify that '{}' has the correct indentation in the config file.
     for interface in most_specialized_interfaces(obj):
         fields = zope.schema.getFields(interface)
         for name, field in fields.items():
+            if schemas.IRecursiveContainer.providedBy(field.missing_value):
+                continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'backup_vaults':
                 continue
             if schemas.IEnvironmentDefault.providedBy(obj) and name == 'secrets_manager':
@@ -1106,6 +1114,37 @@ def sub_types_loader(
             if sub_value != None:
                 apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path, resource_registry)
             container[sub_key] = sub_obj
+        return container
+
+    elif sub_type == 'recursive_container':
+        container_class = sub_class[0]
+        object_class = sub_class[1]
+        child_fieldname = sub_class[2]
+        container = container_class(name, obj)
+
+        def load_recursive(node, container_class, value, child_fieldname, config_folder, lookup_config, read_file_path, resource_registry):
+            for sub_key, sub_value in value.items():
+                sub_obj = object_class(sub_key, node)
+                child_container = container_class(child_fieldname, sub_obj)
+                setattr(sub_obj, child_fieldname, child_container)
+                # allow for containers with objects that are only a name and have no fields
+                if sub_value != None:
+                    apply_attributes_from_config(sub_obj, sub_value, config_folder, lookup_config, read_file_path, resource_registry)
+                node[sub_key] = sub_obj
+                if child_fieldname in sub_value:
+                    # continue recursion to load child nodes
+                    child_container = getattr(sub_obj, child_fieldname)
+                    load_recursive(
+                        child_container,
+                        container_class,
+                        sub_value[child_fieldname],
+                        child_fieldname,
+                        config_folder,
+                        lookup_config,
+                        read_file_path,
+                        resource_registry
+                    )
+        load_recursive(container, container_class, value, child_fieldname, config_folder, lookup_config, read_file_path, resource_registry)
         return container
 
     elif sub_type == 'type_container':

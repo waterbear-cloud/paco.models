@@ -352,14 +352,21 @@ class Testpacodemo(BaseTestModelLoader):
         cluster = demo_env['applications']['app'].groups['container'].resources['ecs_cluster']
         assert schemas.IECSCluster.providedBy(cluster)
         ecs_service_config = demo_env['applications']['app'].groups['container'].resources['ecs_services']
+
+        assert ecs_service_config.setting_groups['app_pool'].secrets[0].name, 'TWO_SECRET'
+        assert ecs_service_config.setting_groups['app_pool'].environment[1].value, 'down'
+
         simple_app_service = ecs_service_config.services['simple_app']
         assert ecs_service_config.services['simple_app'].desired_count, 2
         assert ecs_service_config.services['simple_app'].load_balancers[0].container_name, 'hello'
-        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].cpu, 10
-        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].depends_on[0].condition, 'START'
-        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].health_check.retries, 5
-        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].ulimits[0].hard_limit, 1000
-        assert ecs_service_config.task_definitions['hello_web'].container_definitions['hello'].user, 'www-data'
+        hello_def = ecs_service_config.task_definitions['hello_web'].container_definitions['hello']
+        assert hello_def.cpu, 10
+        assert hello_def.depends_on[0].condition, 'START'
+        assert hello_def.health_check.retries, 5
+        assert hello_def.ulimits[0].hard_limit, 1000
+        assert hello_def.user, 'www-data'
+        assert hello_def.secrets[0].value_from, 'paco.ref netenv.pacodemo.secrets_manager.one.two.another'
+        assert hello_def.environment[0].name, 'hello'
 
         assert simple_app_service.target_tracking_scaling_policies['memory'].scale_in_cooldown, 300
         assert simple_app_service.target_tracking_scaling_policies['cpu'].predefined_metric, 'ECSServiceAverageCPUUtilization'
@@ -418,8 +425,12 @@ class Testpacodemo(BaseTestModelLoader):
 
     def test_api_gateway_rest_api(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
-        api_gra = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
-        assert len(api_gra.body_file_location) > 1
+        api = demo_env['applications']['app'].groups['restapi'].resources['api_gateway_rest_api']
+        assert len(api.body_file_location) > 1
+        api.resources['idle'].path_part, '/idle'
+        api.resources['idle'].child_resources['view'].path_part, '{view}'
+        api.resources['idle'].child_resources['view'].child_resources['one'].path_part, 'one'
+        api.resources['idle'].child_resources['view'].child_resources['two'].path_part, 'two'
 
     def test_health_checks(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

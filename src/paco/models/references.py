@@ -136,6 +136,47 @@ class Reference():
     def get_model_obj(self, project):
         return get_model_obj_from_ref(self, project)
 
+    def secret_base_ref(self):
+        """
+Secret Manager Secrets can be a ref to the Secret:
+
+  paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.mydb
+
+Or they can be a ref to a JSON field within the Secret value:
+
+  paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.mydb.myjsonfield
+
+Either ref type can also specify the ARN of the Secret:
+
+  paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.mydb.arn
+  paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.mydb.myjsonfield.arn
+
+Return only the base ref and strip the final part that specifies the JSON Field from the ref.
+For all of the above examples, this would return:
+
+  paco.ref netenv.mynet.secrets_manager.myapp.mygroup.mydb
+
+        """
+        new_ref_obj = self
+        if self.type == 'netenv':
+            # remove final .arn but allow for a secret named 'arn'
+            #   paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.arn
+            #   paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.arn.arn
+            #   paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.arn.myjson
+            #   paco.ref netenv.mynet.dev.eu-central-1.secrets_manager.myapp.mygroup.arn.myjson.arn
+            if len(self.parts) == 7:
+                pass
+            elif len(self.parts) > 7:
+                new_ref = self.parts[:8]
+                new_ref = '.'.join(new_ref)
+                new_ref_obj = Reference(f'paco.ref {new_ref}')
+            else:
+                raise InvalidPacoReference("Not a valid Secret ref")
+        else:
+            # ToDo: support Service Secrets
+            raise NotImplemented('Only netenv ref types supported for Secrets')
+        return new_ref_obj
+
 def get_model_obj_from_ref(ref, project, referring_obj=None):
     """Resolves the reference to the model object it refers to.
     ref can be either a string or a Reference object.

@@ -172,9 +172,16 @@ For all of the above examples, this would return:
                 new_ref_obj = Reference(f'paco.ref {new_ref}')
             else:
                 raise InvalidPacoReference("Not a valid Secret ref")
+        elif self.type == 'service':
+            # service.notification.secrets_manager.myapp.mygroup.mysecret
+            if len(self.parts) > 5:
+                new_ref = self.parts[:6]
+                new_ref = '.'.join(new_ref)
+                new_ref_obj = Reference(f'paco.ref {new_ref}')
+            else:
+                raise InvalidPacoReference("Not a valid Secret ref")
         else:
-            # ToDo: support Service Secrets
-            raise NotImplemented('Only netenv ref types supported for Secrets')
+            raise NotImplemented('What kind of Secret do you have?!?')
         return new_ref_obj
 
 def get_model_obj_from_ref(ref, project, referring_obj=None):

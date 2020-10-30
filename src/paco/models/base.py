@@ -195,6 +195,7 @@ class Named(Parent):
     """
     name = FieldProperty(schemas.INamed["name"])
     title = FieldProperty(schemas.INamed["title"])
+    _stack_hooks = None
 
     def __init__(self, name, __parent__):
         super().__init__(__parent__)
@@ -207,6 +208,22 @@ class Named(Parent):
         if len(self.title) > 0:
             return self.title
         return self.name
+
+    def add_stack_hooks(self, stack_hooks):
+        """
+        Add StackHooks to the Resource
+        """
+        # class attributes are shared, create an instance attribute
+        if self._stack_hooks == None:
+            self._stack_hooks = []
+
+        # If the Stack has already been initialized, add hooks to it
+        # ToDo: duck typing as paco.models can depend upon paco.stack - create Interface for IStack?
+        if hasattr(self, 'stack') and hasattr(self.stack, 'add_hooks'):
+            self.stack.add_hooks(stack_hooks)
+        # Before initialization the hooks are set as a private attribute and added during initialization
+        else:
+            self._stack_hooks.append(stack_hooks)
 
 
 @implementer(schemas.IName)
@@ -349,7 +366,6 @@ class Type():
 @implementer(schemas.IResource)
 class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
     "Resource"
-    _stack_hooks = None
     order = FieldProperty(schemas.IResource['order'])
     change_protected = FieldProperty(schemas.IResource['change_protected'])
 
@@ -366,22 +382,6 @@ class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
         else:
             account_cont = get_parent_by_interface(self, schemas.IAccountContainer)
             return project.accounts[account_cont.name]
-
-    def add_stack_hooks(self, stack_hooks):
-        """
-        Add StackHooks to the Resource
-        """
-        # class attributes are shared, create an instance attribute
-        if self._stack_hooks == None:
-            self._stack_hooks = []
-
-        # If the Stack has already been initialized, add hooks to it
-        # ToDo: duck typing as paco.models can depend upon paco.stack - create Interface for IStack?
-        if hasattr(self, 'stack') and hasattr(self.stack, 'add_hooks'):
-            self.stack.add_hooks(stack_hooks)
-        # Before initialization the hooks are set as a private attribute and added during initialization
-        else:
-            self._stack_hooks.append(stack_hooks)
 
     # Resource Name methods
 

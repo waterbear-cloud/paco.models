@@ -10,7 +10,6 @@ class EventTarget(Named):
 
 @implementer(schemas.IEventsRule)
 class EventsRule(ApplicationResource):
-    title = "CloudWatch Event Rule"
     description = FieldProperty(schemas.IEventsRule['description'])
     schedule_expression = FieldProperty(schemas.IEventsRule['schedule_expression'])
     enabled_state = FieldProperty(schemas.IEventsRule['enabled_state'])

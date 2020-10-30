@@ -214,7 +214,6 @@ class S3StaticWebsiteHosting(Parent, Deployable):
 
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
-    title = "S3Bucket"
     bucket_name = FieldProperty(schemas.IS3Bucket['bucket_name'])
     account = FieldProperty(schemas.IS3Bucket['account'])
     deletion_policy = FieldProperty(schemas.IS3Bucket['deletion_policy'])
@@ -368,12 +367,10 @@ class ApplicationS3Bucket(ApplicationResource, S3Bucket):
 
 @implementer(schemas.IASGLifecycleHooks)
 class ASGLifecycleHooks(Named, dict):
-    title = 'ASGLifecycleHooks'
     pass
 
 @implementer(schemas.IASGLifecycleHook)
 class ASGLifecycleHook(Named, Deployable):
-    title = 'ASGLifecycleHook'
     lifecycle_transition = FieldProperty(schemas.IASGLifecycleHook['lifecycle_transition'])
     notification_target_arn = FieldProperty(schemas.IASGLifecycleHook['notification_target_arn'])
     role_arn = FieldProperty(schemas.IASGLifecycleHook['role_arn'])
@@ -381,13 +378,11 @@ class ASGLifecycleHook(Named, Deployable):
 
 @implementer(schemas.IASGScalingPolicies)
 class ASGScalingPolicies(Named, dict):
-    title = "ASGSCalingPolices"
     pass
 
 
 @implementer(schemas.IASGScalingPolicy)
 class ASGScalingPolicy(Named, Deployable):
-    title = "ASGScalingPolicy"
     policy_type = FieldProperty(schemas.IASGScalingPolicy['policy_type'])
     adjustment_type = FieldProperty(schemas.IASGScalingPolicy['adjustment_type'])
     scaling_adjustment = FieldProperty(schemas.IASGScalingPolicy['scaling_adjustment'])
@@ -400,7 +395,6 @@ class ASGScalingPolicy(Named, Deployable):
 
 @implementer(schemas.IEIP)
 class EIP(ApplicationResource):
-    title = "Elastic IP"
     dns = FieldProperty(schemas.IEIP['dns'])
 
     def __init__(self, name, parent):
@@ -412,7 +406,6 @@ class EIP(ApplicationResource):
 
 @implementer(schemas.IEBSVolumeMount)
 class EBSVolumeMount(Parent, Deployable):
-    title = 'EBS Volume Mount Folder and Volume reference'
     folder = FieldProperty(schemas.IEBSVolumeMount['folder'])
     volume = FieldProperty(schemas.IEBSVolumeMount['volume'])
     device = FieldProperty(schemas.IEBSVolumeMount['device'])
@@ -420,7 +413,6 @@ class EBSVolumeMount(Parent, Deployable):
 
 @implementer(schemas.IEBS)
 class EBS(ApplicationResource):
-    title = "Elastic Block Store Volume"
     size_gib = FieldProperty(schemas.IEBS['size_gib'])
     snapshot_id = FieldProperty(schemas.IEBS['snapshot_id'])
     availability_zone = FieldProperty(schemas.IEBS['availability_zone'])
@@ -431,7 +423,6 @@ class EBS(ApplicationResource):
 
 @implementer(schemas.IEC2LaunchOptions)
 class EC2LaunchOptions(Named):
-    title = "EC2 Launch Options"
     ssm_agent = FieldProperty(schemas.IEC2LaunchOptions['ssm_agent'])
     ssm_expire_events_after_days = FieldProperty(schemas.IEC2LaunchOptions['ssm_expire_events_after_days'])
     update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
@@ -476,7 +467,6 @@ class BlockDeviceMapping(Parent):
 
 @implementer(schemas.IASGRollingUpdatePolicy)
 class ASGRollingUpdatePolicy(Named):
-    title = "RollingUpdatePolicy"
     enabled = FieldProperty(schemas.IASGRollingUpdatePolicy['enabled'])
     max_batch_size = FieldProperty(schemas.IASGRollingUpdatePolicy['max_batch_size'])
     min_instances_in_service = FieldProperty(schemas.IASGRollingUpdatePolicy['min_instances_in_service'])
@@ -511,7 +501,6 @@ class SSHAccess(Named):
 
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):
-    title = "AutoScalingGroup"
     cfn_init = FieldProperty(schemas.IASG['cfn_init'])
     desired_capacity = FieldProperty(schemas.IASG['desired_capacity'])
     desired_capacity_ignore_changes = FieldProperty(schemas.IASG['desired_capacity_ignore_changes'])
@@ -1136,7 +1125,6 @@ class ECRRepository(Resource):
 @implementer(schemas.IEC2)
 class EC2(ApplicationResource):
     "EC2"
-    title = "EC2"
 
 
 @implementer(schemas.IPortProtocol)
@@ -1210,7 +1198,6 @@ class DNS(Named, Parent):
 
 @implementer(schemas.ILBApplication)
 class LBApplication(ApplicationResource):
-    title = "Application ELB"
     target_groups = FieldProperty(schemas.ILBApplication['target_groups'])
     listeners = FieldProperty(schemas.ILBApplication['listeners'])
     dns = FieldProperty(schemas.ILBApplication['dns'])
@@ -1227,7 +1214,6 @@ class LBApplication(ApplicationResource):
 
 @implementer(schemas.IACM)
 class ACM(ApplicationResource):
-    title = 'Certificate Manager'
     domain_name = FieldProperty(schemas.IACM['domain_name'])
     subject_alternative_names = FieldProperty(schemas.IACM['subject_alternative_names'])
     external_resource = FieldProperty(schemas.IACM['external_resource'])
@@ -1326,7 +1312,6 @@ class SNSTopicSubscription(Parent):
 
 @implementer(schemas.ISNSTopic)
 class SNSTopic(Enablable, Resource):
-    title = "SNSTopic"
     type = "SNSTopic"
     display_name = FieldProperty(schemas.ISNSTopic['display_name'])
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
@@ -1420,7 +1405,6 @@ class CloudFrontOrigin(Named):
 
 @implementer(schemas.ICloudFrontFactory)
 class CloudFrontFactory(Named):
-    title = 'CloudFront Factory'
     domain_aliases = FieldProperty(schemas.ICloudFrontFactory['domain_aliases'])
     viewer_certificate = FieldProperty(schemas.ICloudFrontFactory['viewer_certificate'])
 
@@ -1433,7 +1417,6 @@ class CloudFrontFactory(Named):
 
 @implementer(schemas.ICloudFront)
 class CloudFront(ApplicationResource, Deployable, Monitorable):
-    title = "CloudFront"
     domain_aliases = FieldProperty(schemas.ICloudFront['domain_aliases'])
     default_root_object = FieldProperty(schemas.ICloudFront['default_root_object'])
     default_cache_behavior = FieldProperty(schemas.ICloudFront['default_cache_behavior'])
@@ -1463,7 +1446,6 @@ class DBParameters(dict):
 
 @implementer(schemas.IDBParameterGroup)
 class DBParameterGroup(ApplicationResource):
-    title = "RDS DB Parameter Group"
     description = FieldProperty(schemas.IDBParameterGroup['description'])
     family = FieldProperty(schemas.IDBParameterGroup['family'])
 
@@ -1476,7 +1458,7 @@ class DBParameterGroup(ApplicationResource):
 
 @implementer(schemas.IDBClusterParameterGroup)
 class DBClusterParameterGroup(DBParameterGroup):
-    title = "RDS DB Cluster Parameter Group"
+    pass
 
 @implementer(schemas.IRDSDBClusterEventNotifications)
 class RDSDBClusterEventNotifications(Named):
@@ -1497,7 +1479,6 @@ class RDSOptionConfiguration():
 
 @implementer(schemas.IRDS)
 class RDS(ApplicationResource, Monitorable):
-    title = "RDS"
     backup_preferred_window = FieldProperty(schemas.IRDS['backup_preferred_window'])
     backup_retention_period = FieldProperty(schemas.IRDS['backup_retention_period'])
     cloudwatch_logs_export = FieldProperty(schemas.IRDS['cloudwatch_logs_exports'])
@@ -1575,7 +1556,6 @@ class RDSMultiAZ(RDSInstance):
 
 @implementer(schemas.IRDSMysql)
 class RDSPostgresql(RDSMultiAZ):
-    title = "RDS Postgresql"
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -1583,7 +1563,6 @@ class RDSPostgresql(RDSMultiAZ):
 
 @implementer(schemas.IRDSMysql)
 class RDSMysql(RDSMultiAZ):
-    title = "RDS Mysql"
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -1642,7 +1621,6 @@ class RDSClusterInstances(Named, dict):
 
 @implementer(schemas.IRDSAurora)
 class RDSAurora(RDS):
-    title = 'RDS Aurora'
     availability_zones = FieldProperty(schemas.IRDSAurora['availability_zones'])
     backtrack_window_in_seconds = FieldProperty(schemas.IRDSAurora['backtrack_window_in_seconds'])
     cluster_parameter_group = FieldProperty(schemas.IRDSAurora['cluster_parameter_group'])
@@ -1728,7 +1706,6 @@ class RDSPostgresqlAurora(RDSAurora):
 
 @implementer(schemas.IElastiCache)
 class ElastiCache():
-    title = "ElastiCache"
     description = FieldProperty(schemas.IElastiCache['description'])
     engine = FieldProperty(schemas.IElastiCache['engine'])
     engine_version = FieldProperty(schemas.IElastiCache['engine_version'])
@@ -1747,7 +1724,6 @@ class ElastiCache():
 
 @implementer(schemas.IElastiCacheRedis)
 class ElastiCacheRedis(ApplicationResource, ElastiCache, Monitorable):
-    title = "ElastiCache Redis"
     cache_parameter_group_family = FieldProperty(schemas.IElastiCacheRedis['cache_parameter_group_family'])
     snapshot_retention_limit_days = FieldProperty(schemas.IElastiCacheRedis['snapshot_retention_limit_days'])
     snapshot_window = FieldProperty(schemas.IElastiCacheRedis['snapshot_window'])
@@ -1859,7 +1835,6 @@ class ElasticsearchCluster(CFNExport):
 
 @implementer(schemas.IElasticsearchDomain)
 class ElasticsearchDomain(ApplicationResource, Monitorable):
-    title = "Elasticsearch Domain"
     type = "ElasticsearchDomain"
     access_policies_json = FieldProperty(schemas.IElasticsearchDomain['access_policies_json'])
     advanced_options = FieldProperty(schemas.IElasticsearchDomain['advanced_options'])
@@ -1922,32 +1897,27 @@ class DeploymentPipelineStageAction(Named, Enablable, dict):
 
 @implementer(schemas.IDeploymentPipelineSourceCodeCommit)
 class DeploymentPipelineSourceCodeCommit(DeploymentPipelineStageAction):
-    title = 'CodeCommit.Source'
     codecommit_repository = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['codecommit_repository'])
     deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceCodeCommit['deployment_branch_name'])
 
 @implementer(schemas.IDeploymentPipelineLambdaInvoke)
 class DeploymentPipelineLambdaInvoke(DeploymentPipelineStageAction):
-    title = 'Lambda.Invoke'
     target_lambda = FieldProperty(schemas.IDeploymentPipelineLambdaInvoke['target_lambda'])
     user_parameters = FieldProperty(schemas.IDeploymentPipelineLambdaInvoke['user_parameters'])
 
 @implementer(schemas.IDeploymentPipelinePacoCreateThenDeployImage)
 class DeploymentPipelinePacoCreateThenDeployImage(DeploymentPipelineStageAction):
-    title = 'Paco.CreateThenDeployImage'
     resource_name = FieldProperty(schemas.IDeploymentPipelinePacoCreateThenDeployImage['resource_name'])
 
 
 @implementer(schemas.IDeploymentPipelineSourceECR)
 class DeploymentPipelineSourceECR(DeploymentPipelineStageAction):
-    title = 'ECR.Source'
     repository = FieldProperty(schemas.IDeploymentPipelineSourceECR['repository'])
     image_tag = FieldProperty(schemas.IDeploymentPipelineSourceECR['image_tag'])
 
 
 @implementer(schemas.IDeploymentPipelineSourceGitHub)
 class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
-    title = 'GitHub.Source'
     deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['deployment_branch_name'])
     github_owner = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_owner'])
     github_repository = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_repository'])
@@ -1961,7 +1931,6 @@ class ECRRepositoryPermission(Parent):
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
-    title = 'CodeBuild.Build'
     buildspec = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['buildspec'])
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
@@ -1986,7 +1955,6 @@ class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):
         super().__init__(name, parent)
         self.input_artifacts = []
 
-    title = 'S3.Deploy'
     bucket = FieldProperty(schemas.IDeploymentPipelineDeployS3['bucket'])
     extract = FieldProperty(schemas.IDeploymentPipelineDeployS3['extract'])
     object_key = FieldProperty(schemas.IDeploymentPipelineDeployS3['object_key'])
@@ -1995,7 +1963,6 @@ class DeploymentPipelineDeployS3(DeploymentPipelineStageAction):
 
 @implementer(schemas.IDeploymentPipelineManualApproval)
 class DeploymentPipelineManualApproval(DeploymentPipelineStageAction):
-    title = 'ManualApproval'
     manual_approval_notification_email = FieldProperty(schemas.IDeploymentPipelineManualApproval['manual_approval_notification_email'])
 
     def __init__(self, name, parent):
@@ -2004,14 +1971,12 @@ class DeploymentPipelineManualApproval(DeploymentPipelineStageAction):
 
 @implementer(schemas.ICodeDeployMinimumHealthyHosts)
 class CodeDeployMinimumHealthyHosts(Named):
-    title = 'CodeDeployMinimumHealthyHosts'
     type = FieldProperty(schemas.ICodeDeployMinimumHealthyHosts['type'])
     value = FieldProperty(schemas.ICodeDeployMinimumHealthyHosts['value'])
 
 
 @implementer(schemas.IDeploymentPipelineDeployCodeDeploy)
 class DeploymentPipelineDeployCodeDeploy(DeploymentPipelineStageAction):
-    title = 'CodeDeploy.Deploy'
     auto_scaling_group = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['auto_scaling_group'])
     auto_rollback_enabled = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['auto_rollback_enabled'])
     minimum_healthy_hosts = FieldProperty(schemas.IDeploymentPipelineDeployCodeDeploy['minimum_healthy_hosts'])
@@ -2023,7 +1988,6 @@ class DeploymentPipelineDeployCodeDeploy(DeploymentPipelineStageAction):
 
 @implementer(schemas.IDeploymentPipelineDeployECS)
 class DeploymentPipelineDeployECS(DeploymentPipelineStageAction):
-    title = 'ECS.Deploy'
     cluster = FieldProperty(schemas.IDeploymentPipelineDeployECS['cluster'])
     service = FieldProperty(schemas.IDeploymentPipelineDeployECS['service'])
 
@@ -2049,7 +2013,6 @@ class CodePipelineStages(Named, dict):
 
 @implementer(schemas.IDeploymentPipeline)
 class DeploymentPipeline(ApplicationResource):
-    title = "DeploymentPipeline"
     configuration = FieldProperty(schemas.IDeploymentPipeline['configuration'])
     source = FieldProperty(schemas.IDeploymentPipeline['source'])
     build = FieldProperty(schemas.IDeploymentPipeline['build'])
@@ -2063,13 +2026,11 @@ class DeploymentPipeline(ApplicationResource):
 
 @implementer(schemas.IEFSMount)
 class EFSMount(Resource):
-    title = 'EFS Mount Folder and Target'
     folder = FieldProperty(schemas.IEFSMount['folder'])
     target = FieldProperty(schemas.IEFSMount['target'])
 
 @implementer(schemas.IEFS)
 class EFS(ApplicationResource):
-    title = 'EFS'
     encrypted = FieldProperty(schemas.IEFS['encrypted'])
     security_groups = FieldProperty(schemas.IEFS['security_groups'])
     segment = FieldProperty(schemas.IEFS['segment'])
@@ -2129,7 +2090,6 @@ class SecretsManagerApplication(Named, dict):
 @implementer(schemas.ISecretsManager)
 class SecretsManager(Named, dict):
     """Secrets Manager"""
-
 
 @implementer(schemas.IDeploymentGroupS3Location)
 class DeploymentGroupS3Location(Parent):

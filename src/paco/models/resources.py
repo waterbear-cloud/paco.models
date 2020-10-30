@@ -218,7 +218,6 @@ class ApiGatewayStage(Resource):
 
 @implementer(schemas.IApiGatewayRestApi)
 class ApiGatewayRestApi(ApplicationResource, HasStack):
-    title = "API Gateway REST API"
     type = "ApiGatewayRestApi"
     api_key_source_type = FieldProperty(schemas.IApiGatewayRestApi['api_key_source_type'])
     binary_media_types = FieldProperty(schemas.IApiGatewayRestApi['binary_media_types'])
@@ -373,7 +372,6 @@ class Route53HostedZone(Named, Deployable):
 @implementer(schemas.IRoute53Resource)
 class Route53Resource(Named):
     name = 'route53'
-    title = 'Route53'
     hosted_zones = FieldProperty(schemas.IRoute53Resource["hosted_zones"])
 
     def __init__(self, name, parent, config_dict):
@@ -730,7 +728,6 @@ class SSMDocument(Resource):
 @implementer(schemas.ISSMResource)
 class SSMResource(Named):
     name = 'ssm'
-    title = 'SSM'
     ssm_documents = FieldProperty(schemas.ISSMResource["ssm_documents"])
 
     def __init__(self, name, parent):

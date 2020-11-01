@@ -1204,7 +1204,7 @@ environments:
           notifications:
             team_bob:
               groups:
-              - jim_is_the_new_bob
+                - jim_is_the_new_bob
               classification: 'performance'
           monitoring:
             enabled: true

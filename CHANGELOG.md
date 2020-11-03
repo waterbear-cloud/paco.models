@@ -14,6 +14,8 @@ Changelog for paco.models
 
 ### Added
 
+- Path fields that go to a local path can now use `~/` to expand to the home directory path.
+
 - `IECSServices` has `setting_groups` field.
 
 - `IApiGatewayResource` has `child_resources` and `enable_cors` fields.

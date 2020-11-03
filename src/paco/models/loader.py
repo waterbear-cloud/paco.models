@@ -951,6 +951,9 @@ Verify that '{}' has the correct indentation in the config file.
                     # expand local path if it's a relative path
                     orig_value = value
                     if not value.startswith(os.sep):
+                        if value.startswith(f'~{os.sep}'):
+                            home = str(Path.home())
+                            value = home + value[1:]
                         # set it to the containing directory of the file
                         path = Path(read_file_path)
                         base_path = os.sep.join(path.parts[:-1])[1:]

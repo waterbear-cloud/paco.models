@@ -39,6 +39,7 @@ class SharedState(Named):
         self.paco_work_bucket = PacoWorkBucket('paco_work_bucket', self)
 
     paco_work_bucket = FieldProperty(schemas.ISharedState["paco_work_bucket"])
+    cloudformation_region = FieldProperty(schemas.ISharedState["cloudformation_region"])
 
 @implementer(IProject)
 class Project(Named, dict):

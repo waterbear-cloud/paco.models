@@ -2645,6 +2645,11 @@ class IPacoWorkBucket(INamed):
     )
 
 class ISharedState(INamed):
+    cloudformation_region = zope.schema.TextLine(
+        title="AWS Region",
+        required=False,
+        constraint=isValidAWSRegionNameOrNone,
+    )
     paco_work_bucket = zope.schema.Object(
         title="Paco work bucket",
         description="",

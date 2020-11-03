@@ -65,9 +65,10 @@ from paco.models.resources import S3Resource, S3Buckets, \
     CodeCommit, CodeCommitRepository, CodeCommitRepositoryGroup, CodeCommitUser, CodeCommitUsers, \
     CloudTrailResource, CloudTrails, CloudTrail, \
     ApiGatewayRestApi, ApiGatewayMethods, ApiGatewayMethod, ApiGatewayStages, ApiGatewayStage, \
-    ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, \
+    ApiGatewayResources, ApiGatewayResource, ApiGatewayModels, ApiGatewayModel, ApiGatewayDNS, \
     ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
     ApiGatewayMethodIntegrationResponse, ApiGatewayCognitoAuthorizer, ApiGatewayCognitoAuthorizers, \
+    ApiGatewayBasePathMapping, \
     IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
@@ -392,7 +393,10 @@ SUB_TYPES_CLASS_MAP = {
         'models': ('container', (ApiGatewayModels, ApiGatewayModel)),
         'resources': ('recursive_container', (ApiGatewayResources, ApiGatewayResource, 'child_resources')),
         'stages': ('container', (ApiGatewayStages, ApiGatewayStage)),
-        'dns': ('obj_list', DNS),
+        'dns': ('obj_list', ApiGatewayDNS),
+    },
+    ApiGatewayDNS: {
+        'base_path_mappings': ('obj_list', ApiGatewayBasePathMapping),
     },
     ApiGatewayMethodIntegration: {
         'integration_responses': ('obj_list', ApiGatewayMethodIntegrationResponse),

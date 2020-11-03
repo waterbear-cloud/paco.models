@@ -12,6 +12,7 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 from paco.models import loader
 from paco.models.locations import get_parent_by_interface
+from paco.models.applications import DNS
 from paco.models.references import Reference
 from paco.models import references
 
@@ -35,6 +36,16 @@ class SNS(Named, dict):
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.IApiGatewayBasePathMapping)
+class ApiGatewayBasePathMapping(Parent):
+    base_path = FieldProperty(schemas.IApiGatewayBasePathMapping['base_path'])
+    stage = FieldProperty(schemas.IApiGatewayBasePathMapping['stage'])
+
+@implementer(schemas.IApiGatewayDNS)
+class ApiGatewayDNS(DNS):
+    base_path_mappings = FieldProperty(schemas.IApiGatewayDNS['base_path_mappings'])
+    ssl_certificate = FieldProperty(schemas.IApiGatewayDNS['ssl_certificate'])
 
 @implementer(schemas.IApiGatewayMethods)
 class ApiGatewayMethods(Named, dict):

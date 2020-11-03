@@ -3499,7 +3499,6 @@ class IDNS(IParent):
         title="SSL certificate Reference",
         required=False,
         schema_constraint='IACM',
-        str_ok=True, # Sometimes it's hard to get SSL Certificate and the Arn is used directly (only in ApiGatewayRestApi ATM)
     )
     ttl = zope.schema.Int(
         title="TTL",
@@ -7271,6 +7270,31 @@ The code for the Lambda function can be specified in one of three ways in the ``
 
 # API Gateway
 
+class IApiGatewayBasePathMapping(IParent):
+    base_path = zope.schema.TextLine(
+        title="Base Path",
+        required=False,
+        default='',
+    )
+    stage = zope.schema.TextLine(
+        title="Stage",
+        description="The name of stage in this ApiGateway",
+        required=True,
+    )
+
+class IApiGatewayDNS(IDNS):
+    base_path_mappings = zope.schema.List(
+        title="Base Path Mappings",
+        required=False,
+        default=[],
+    )
+    ssl_certificate = PacoReference(
+        title="SSL certificate Reference",
+        required=False,
+        schema_constraint='IACM',
+        str_ok=True, # Sometimes it's hard to get SSL Certificate and the Arn is used directly (only in ApiGatewayRestApi ATM)
+    )
+
 class IApiGatewayCognitoAuthorizers(INamed, IMapping):
     "Container for `ApiGatewayAuthorizer`_ objects."
     taggedValue('contains', 'IApiGatewayCognitoAuthorizer')
@@ -7528,9 +7552,7 @@ class IApiGatewayStages(INamed, IMapping):
 
 class IApiGatewayRestApi(IResource):
     """
-An Api Gateway Rest API resource.
-
-Intended to allow provisioning of all API Gateway REST API resources (currently only parital field support).
+An ApiGateway Rest API resource.
 
 .. code-block:: yaml
     :caption: API Gateway REST API example
@@ -7550,6 +7572,13 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
         identity_source: 'Authorization'
         user_pools:
           - paco.ref netenv.mynet.applications.app.groups.cognito.resources.userpool
+    dns:
+      - domain_name: api.example.com
+        hosted_zone: paco.ref resource.route53.example_com
+        ssl_certificate:  arn:aws:acm:us-east-1:*******:certificate/********
+        base_path_mappings:
+            - base_path: ''
+              stage: 'prod'
     methods:
       get:
         http_method: GET
@@ -7650,7 +7679,7 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     )
     dns = zope.schema.List(
         title="DNS domains to create to resolve to the ApiGateway Endpoint",
-        value_type=zope.schema.Object(IDNS),
+        value_type=zope.schema.Object(IApiGatewayDNS),
         required=False
     )
     endpoint_configuration = zope.schema.List(

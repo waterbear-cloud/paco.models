@@ -563,8 +563,6 @@ class HasStack():
     stack = None
 
     def resolve_ref(self, ref):
-        if self.stack == None:
-            return Stack()
         return self.stack
 
 @implementer(schemas.IApplicationResource)

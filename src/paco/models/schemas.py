@@ -3498,7 +3498,8 @@ class IDNS(IParent):
     ssl_certificate = PacoReference(
         title="SSL certificate Reference",
         required=False,
-        schema_constraint='IACM'
+        schema_constraint='IACM',
+        str_ok=True, # Sometimes it's hard to get SSL Certificate and the Arn is used directly (only in ApiGatewayRestApi ATM)
     )
     ttl = zope.schema.Int(
         title="TTL",
@@ -7646,6 +7647,11 @@ Intended to allow provisioning of all API Gateway REST API resources (currently 
     description=zope.schema.Text(
         title="Description of the RestApi resource.",
         required=False,
+    )
+    dns = zope.schema.List(
+        title="DNS domains to create to resolve to the ApiGateway Endpoint",
+        value_type=zope.schema.Object(IDNS),
+        required=False
     )
     endpoint_configuration = zope.schema.List(
         title="Endpoint configuration. A list of the endpoint types of the API. Use this field when creating an API. When importing an existing API, specify the endpoint configuration types using the `parameters` field.",

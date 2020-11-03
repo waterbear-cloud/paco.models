@@ -392,6 +392,7 @@ SUB_TYPES_CLASS_MAP = {
         'models': ('container', (ApiGatewayModels, ApiGatewayModel)),
         'resources': ('recursive_container', (ApiGatewayResources, ApiGatewayResource, 'child_resources')),
         'stages': ('container', (ApiGatewayStages, ApiGatewayStage)),
+        'dns': ('obj_list', DNS),
     },
     ApiGatewayMethodIntegration: {
         'integration_responses': ('obj_list', ApiGatewayMethodIntegrationResponse),

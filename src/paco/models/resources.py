@@ -226,6 +226,7 @@ class ApiGatewayRestApi(ApplicationResource, HasStack):
     clone_from = FieldProperty(schemas.IApiGatewayRestApi['clone_from'])
     cognito_authorizers = FieldProperty(schemas.IApiGatewayRestApi['cognito_authorizers'])
     description = FieldProperty(schemas.IApiGatewayRestApi['description'])
+    dns = FieldProperty(schemas.IApiGatewayRestApi['dns'])
     endpoint_configuration = FieldProperty(schemas.IApiGatewayRestApi['endpoint_configuration'])
     fail_on_warnings = FieldProperty(schemas.IApiGatewayRestApi['fail_on_warnings'])
     minimum_compression_size = FieldProperty(schemas.IApiGatewayRestApi['minimum_compression_size'])

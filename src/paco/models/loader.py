@@ -954,10 +954,11 @@ Verify that '{}' has the correct indentation in the config file.
                         if value.startswith(f'~{os.sep}'):
                             home = str(Path.home())
                             value = home + value[1:]
-                        # set it to the containing directory of the file
-                        path = Path(read_file_path)
-                        base_path = os.sep.join(path.parts[:-1])[1:]
-                        value = base_path + os.sep + value
+                        else:
+                            # set it to the containing directory of the file
+                            path = Path(read_file_path)
+                            base_path = os.sep.join(path.parts[:-1])[1:]
+                            value = base_path + os.sep + value
                     local_path = Path(value)
                     if not local_path.is_dir() and not local_path.is_file():
                         if ModelLoader.validate_local_paths == True:

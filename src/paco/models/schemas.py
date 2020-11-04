@@ -1,4 +1,3 @@
-from zope import schema
 from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue, implementer
 from zope.interface.common.mapping import IMapping
 from paco.models import vocabulary
@@ -4090,6 +4089,58 @@ class ICognitoUserPoolPasswordPolicy(INamed):
         required=False,
     )
 
+class ICognitoLambdaTriggers(IParent):
+    create_auth_challenge = PacoReference(
+        title='CreateAuthChallenge Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    custom_message = PacoReference(
+        title='CustomMessage Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    define_auth_challenge = PacoReference(
+        title='DefineAuthChallenge Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    post_authentication = PacoReference(
+        title='PostAuthentication Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    post_confirmation = PacoReference(
+        title='PostConfirmation Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    pre_authentication = PacoReference(
+        title='PreAuthentication Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    pre_sign_up = PacoReference(
+        title='PreSignUp Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    pre_token_generation = PacoReference(
+        title='PreTokenGeneration Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    user_migration = PacoReference(
+        title='UserMigration Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+    verify_auth_challenge_response = PacoReference(
+        title='VerifyAuthChallengeResponse Lambda trigger',
+        required=False,
+        schema_constraint='ILambda'
+    )
+
 class ICognitoUserPool(IResource):
     """
 Amazon Cognito lets you add user sign-up, sign-in, and access control to your web and mobile apps.
@@ -4133,6 +4184,8 @@ users can sign in to your web or mobile app through Amazon Cognito.
           <p><b>Username:</b> {username}</p>
           <p><b>Temporary password:</b> {####}</p>
           <p>Please login and set a secure password. This request will expire in 7 days.</p>
+    lambda_triggers:
+      pre_sign_up: paco.ref netenv.mynet.applications.app.groups.serverless.resources.mylambda
     schema:
       - attribute_name: email
         attribute_data_type: string
@@ -4188,6 +4241,11 @@ users can sign in to your web or mobile app through Amazon Cognito.
     email = zope.schema.Object(
         title="Email Configuration",
         schema=ICognitoEmailConfiguration,
+        required=False,
+    )
+    lambda_triggers = zope.schema.Object(
+        title="Lambda Triggers",
+        schema=ICognitoLambdaTriggers,
         required=False,
     )
     mfa = zope.schema.Choice(

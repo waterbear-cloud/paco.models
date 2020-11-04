@@ -53,7 +53,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
-    CognitoUserPoolPasswordPolicy, CognitoUICustomizations
+    CognitoUserPoolPasswordPolicy, CognitoUICustomizations, CognitoLambdaTriggers
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -304,6 +304,7 @@ SUB_TYPES_CLASS_MAP = {
     CognitoUserPool: {
         'app_clients': ('container', (CognitoUserPoolClients, CognitoUserPoolClient)),
         'email': ('direct_obj', CognitoEmailConfiguration),
+        'lambda_triggers': ('direct_obj', CognitoLambdaTriggers),
         'password': ('direct_obj', CognitoUserPoolPasswordPolicy),
         'schema': ('obj_list', CognitoUserPoolSchemaAttribute),
         'ui_customizations': ('direct_obj', CognitoUICustomizations),
@@ -962,12 +963,22 @@ Verify that '{}' has the correct indentation in the config file.
                         else:
                             # set it to the containing directory of the file
                             path = Path(read_file_path)
-                            base_path = os.sep.join(path.parts[:-1])[1:]
+                            # if the read_file_path is a directoy, use it as-is
+                            if path.is_dir():
+                                base_path = str(path)
+                            # otherwise assume the read_file_path is a file in a directory, e.g.
+                            # /some/path/netenv/mynet.yaml --> /some/path/netenv/
+                            else:
+                                base_path = os.sep.join(path.parts[:-1])[1:]
+                            # allow for ./ to indicate local path
+                            if value.startswith('.' + os.sep):
+                                value = value[2:]
                             value = base_path + os.sep + value
                     local_path = Path(value)
                     if not local_path.is_dir() and not local_path.is_file():
                         if ModelLoader.validate_local_paths == True:
                             # ToDo: this error gets trapped and re-thrown as an AttributeError?
+                            breakpoint()
                             raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
                 elif type(field) == type(schemas.CommaList()):
                     # CommaList: Parse comma separated list into python list()

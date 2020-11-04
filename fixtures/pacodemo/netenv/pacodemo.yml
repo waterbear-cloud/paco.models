@@ -148,6 +148,8 @@ applications:
             enabled: true
             auto_verified_attributes: email,phone_number
             account_recovery: verified_email, verified_phone_number
+            lambda_triggers:
+              pre_sign_up: paco.ref netenv.pacodemo.applications.iotapp.groups.app.resources.iotfunc
             user_creation:
               admin_only: true
               unused_account_validity_in_days: 7

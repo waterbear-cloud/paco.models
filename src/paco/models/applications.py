@@ -2,7 +2,6 @@
 All things Application Engine.
 """
 
-from troposphere.cognito import CognitoIdentityProvider
 from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Enablable, Regionalized, Resource, ApplicationResource, \
@@ -2274,12 +2273,26 @@ class CognitoUserPoolPasswordPolicy(Named):
     require_numbers = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_numbers'])
     require_symbols = FieldProperty(schemas.ICognitoUserPoolPasswordPolicy['require_symbols'])
 
+@implementer(schemas.ICognitoLambdaTriggers)
+class CognitoLambdaTriggers(Parent):
+    create_auth_challenge = FieldProperty(schemas.ICognitoLambdaTriggers['create_auth_challenge'])
+    custom_message = FieldProperty(schemas.ICognitoLambdaTriggers['custom_message'])
+    define_auth_challenge = FieldProperty(schemas.ICognitoLambdaTriggers['define_auth_challenge'])
+    post_authentication = FieldProperty(schemas.ICognitoLambdaTriggers['post_authentication'])
+    post_confirmation = FieldProperty(schemas.ICognitoLambdaTriggers['post_confirmation'])
+    pre_authentication = FieldProperty(schemas.ICognitoLambdaTriggers['pre_authentication'])
+    pre_sign_up = FieldProperty(schemas.ICognitoLambdaTriggers['pre_sign_up'])
+    pre_token_generation = FieldProperty(schemas.ICognitoLambdaTriggers['pre_token_generation'])
+    user_migration = FieldProperty(schemas.ICognitoLambdaTriggers['user_migration'])
+    verify_auth_challenge_response = FieldProperty(schemas.ICognitoLambdaTriggers['verify_auth_challenge_response'])
+
 @implementer(schemas.ICognitoUserPool)
 class CognitoUserPool(Resource):
     app_clients = FieldProperty(schemas.ICognitoUserPool['app_clients'])
     account_recovery = FieldProperty(schemas.ICognitoUserPool['account_recovery'])
     auto_verified_attributes = FieldProperty(schemas.ICognitoUserPool['auto_verified_attributes'])
     email = FieldProperty(schemas.ICognitoUserPool['email'])
+    lambda_triggers = FieldProperty(schemas.ICognitoUserPool['lambda_triggers'])
     mfa = FieldProperty(schemas.ICognitoUserPool['mfa'])
     mfa_methods = FieldProperty(schemas.ICognitoUserPool['mfa_methods'])
     schema = FieldProperty(schemas.ICognitoUserPool['schema'])
@@ -2408,7 +2421,7 @@ class CognitoUserPool(Resource):
         'EmailVerificationMessage': 'email_verification_message_cfn',
         'EmailVerificationSubject': 'email_verification_subject_cfn',
         'EnabledMfas': 'enabled_mfas_cfn',
-        # 'LambdaConfig': (LambdaConfig, False),
+        # 'LambdaConfig': computed in template
         'MfaConfiguration': 'mfa_cfn',
         'Policies': 'policies_cfn',
         'Schema': 'schema_cfn',

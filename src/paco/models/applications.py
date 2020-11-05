@@ -6,7 +6,7 @@ from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Enablable, Regionalized, Resource, ApplicationResource, \
     AccountRef, DNSEnablable, CFNExport, md5sum
-from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject
+from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject, InvalidPacoProjectFile
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
 from paco.models.metrics import Monitorable, AlarmNotifications, MonitorConfig
@@ -213,6 +213,7 @@ class S3StaticWebsiteHosting(Parent, Deployable):
 
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
+    add_paco_suffix = FieldProperty(schemas.IS3Bucket['add_paco_suffix'])
     bucket_name = FieldProperty(schemas.IS3Bucket['bucket_name'])
     account = FieldProperty(schemas.IS3Bucket['account'])
     deletion_policy = FieldProperty(schemas.IS3Bucket['deletion_policy'])
@@ -264,6 +265,15 @@ class S3Bucket(Resource, Deployable):
         if self.external_resource == True:
             return self.bucket_name
 
+        bucket_name_suffix = self.bucket_name_suffix
+        if self.add_paco_suffix == True:
+            project = get_parent_by_interface(self, schemas.IProject)
+            if project.s3bucket_hash == None:
+                raise InvalidPacoProjectFile(
+                    f"Bucket {self.paco_ref_parts} declares 'add_paco_suffix: true' but 's3bucket_hash' is not set in project.yaml."
+                )
+            bucket_name_suffix = project.s3bucket_hash
+
         ne = get_parent_by_interface(self, schemas.INetworkEnvironment)
         service = get_parent_by_interface(self, schemas.IService)
         app = get_parent_by_interface(self, schemas.IApplication)
@@ -271,7 +281,7 @@ class S3Bucket(Resource, Deployable):
         bucket_name_list_standard = [
                 self.bucket_name_prefix,
                 self.bucket_name,
-                self.bucket_name_suffix,
+                bucket_name_suffix,
                 self.region_short_name
             ]
         if schemas.IResource.providedBy(self.__parent__):
@@ -313,7 +323,7 @@ class S3Bucket(Resource, Deployable):
         # Custom buckets are created with internal API calls e.g. EC2 LaunchMangaer, CloudTrail
         # They rely on bucket_name_prefix and bucket_name_suffix attributes being set on the S3Bucket object
         else:
-            if self.bucket_name_prefix == None or self.bucket_name_suffix == None:
+            if self.bucket_name_prefix == None or bucket_name_suffix == None:
                 raise InvalidPacoBucket("""Custom named bucket requires a bucket_name_prefix and bucket_name_suffix attributes to be set.
 
 {}""".format(get_formatted_model_context(self)))
@@ -321,11 +331,10 @@ class S3Bucket(Resource, Deployable):
                 self.bucket_name_prefix,
                 self.name,
                 self.bucket_name,
-                self.bucket_name_suffix
+                bucket_name_suffix
             ])
 
         bucket_name = smart_join('-', bucket_name_list)
-
         bucket_name = bucket_name.replace('_', '-').lower()
 
         # If the generated bucket name is > 63 chars, then prefix a hash of the bucket

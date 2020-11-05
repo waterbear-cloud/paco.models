@@ -2322,6 +2322,7 @@ it is still possible to override this to use other accouns and regions if desire
     cloudfront_origin: false
     external_resource: false
     versioning: false
+    add_paco_suffix: true
     policy:
       - principal:
           Service: iotanalytics.amazonaws.com
@@ -2345,6 +2346,11 @@ it is still possible to override this to use other accouns and regions if desire
           - ''
 
 """
+    add_paco_suffix = zope.schema.Bool(
+        title="Add the Paco s3bucket_hash suffix to the bucket name",
+        required=False,
+        default=False,
+    )
     bucket_name = zope.schema.TextLine(
         title="Bucket Name",
         description="A short unique name to assign the bucket.",

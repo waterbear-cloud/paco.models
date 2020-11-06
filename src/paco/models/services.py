@@ -24,9 +24,15 @@ def list_enabled_services(paco_home):
             services_dir_name = 'Services'
         services_dir = paco_home / services_dir_name
         fname = None
-        if (services_dir / f'{entry_point.name}.yml').is_file():
-            fname = entry_point.name + '.yml'
-        elif (services_dir / f'{entry_point.name}.yaml').is_file():
+        servicename_lower = entry_point.name.lower()
+        servicename_capitalize = servicename_lower.capitalize()
+        if (services_dir / f'{servicename_lower}.yml').is_file():
+            fname = servicename_lower + '.yml'
+        elif (services_dir / f'{servicename_capitalize}.yml').is_file():
+            fname = servicename_capitalize + '.yml'
+        elif (services_dir / f'{servicename_lower}.yaml').is_file():
+            fname = entry_point.name + '.yaml'
+        elif (services_dir / f'{servicename_capitalize}.yaml').is_file():
             fname = entry_point.name + '.yaml'
         if fname:
             module = entry_point.load()

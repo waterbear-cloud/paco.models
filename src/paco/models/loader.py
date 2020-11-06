@@ -1973,25 +1973,18 @@ Caveat: You can not have an environment named 'applications'.
         Load Services
         These are loaded from an entry point named 'paco.service'.
         The entry point name will match a filename at:
-          <PacoProject>/service/<EntryPointName>(.yml|.yaml)
+          <PacoProject>/(S|s)ervice(|s)/<EntryPointName>(.yml|.yaml)
         """
         service_plugins = paco.models.services.list_enabled_services(self.config_folder)
-        services_dir_name = 'service'
-        # Legacy directory name
-        if os.path.isdir(self.config_folder /'Services'):
-            services_dir_name = 'Services'
-        services_dir = self.config_folder / services_dir_name
         for service_info in service_plugins.values():
-            config = self.read_yaml(services_dir_name, service_info['filename'])
+            config = self.read_yaml(service_info['yaml_path'])
             service = service_info['module'].load_service_model(
                 config,
                 self.project,
                 self.monitor_config,
-                read_file_path=services_dir / service_info['filename']
+                read_file_path=service_info['yaml_path']
             )
             self.project['service'][service_info['name']] = service
-
-        return
 
     def instantiate_monitor_config(self, name, config, read_file_path):
         """

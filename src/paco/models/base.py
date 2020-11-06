@@ -5,7 +5,7 @@ from paco.models.locations import get_parent_by_interface
 from functools import partial
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
-from paco.models.references import Reference, get_model_obj_from_ref
+from paco.models.references import get_model_obj_from_ref
 import json
 import hashlib
 import troposphere
@@ -13,6 +13,50 @@ import troposphere.ecs
 import zope.schema
 import zope.schema.interfaces
 
+
+def match_allowed_paco_filenames(paco_home, sub_dirname, filename):
+    """
+    Return the Path to a Paco-named file if it can match filename to one a lower-case
+    or capitalize case otherwise return None:
+
+    Lower-case sub_dirname:
+
+     * paco_home / {sub_dirname} / {filename}.yaml <-- lower-case
+     * paco_home / {sub_dirname} / {Filename}.yaml <-- capitalize
+     * paco_home / {sub_dirname} / {filename}.yml <-- .yml extension
+     * paco_home / {sub_dirname} / {Filename}.yml <-- .yml extension
+
+    Capitalized sub_dirname:
+
+     * paco_home / {Sub_dirname} / {filename}.yaml <-- lower-case
+     * paco_home / {Sub_dirname} / {Filename}.yaml <-- capitalize
+     * paco_home / {Sub_dirname} / {filename}.yml <-- .yml extension
+     * paco_home / {Sub_dirname} / {Filename}.yml <-- .yml extension
+
+    """
+    def match(paco_home, sub_dirname, filename):
+        path = paco_home / sub_dirname / f'{filename}.yml'
+        if path.is_file():
+            return path
+        path = paco_home / sub_dirname / f'{filename}.yaml'
+        if path.is_file():
+            return path
+        filename = filename.capitalize()
+        path = paco_home / sub_dirname / f'{filename}.yml'
+        if path.is_file():
+            return path
+        path = paco_home / sub_dirname / f'{filename}.yaml'
+        if path.is_file():
+            return path
+
+    filename = filename.lower()
+    sub_dirname = sub_dirname.lower()
+    path = match(paco_home, sub_dirname, filename)
+    if path == None:
+        sub_dirname = sub_dirname.capitalize()
+        path = match(paco_home, sub_dirname, filename)
+
+    return path
 
 def interface_seen(seen, iface):
     """Return True if interface already is seen.

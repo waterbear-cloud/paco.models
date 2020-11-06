@@ -53,6 +53,9 @@ Changelog for paco.models
 
 ### Changed
 
+- YAML file loading now accounts for case-sensitive filesystems, but allowing for directory names and
+  filenames to either be lower-case or capitalized.
+
 - Renamed `IApiGatewayMethod` for ApiGatewayRestApi from `resource_id` to `resource_name`
   to better reflect the name matches the resources of the gatewway.
 

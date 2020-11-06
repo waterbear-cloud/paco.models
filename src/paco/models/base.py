@@ -14,10 +14,15 @@ import zope.schema
 import zope.schema.interfaces
 
 
-def match_allowed_paco_filenames(paco_home, sub_dirname, filename):
+def match_allowed_paco_filenames(paco_home, sub_dirname, filename=None):
     """
-    Return the Path to a Paco-named file if it can match filename to one a lower-case
+    Return the Path to a Paco-named directory or file if it can match filename to one a lower-case
     or capitalize case otherwise return None:
+
+    Directory:
+
+      * paco_home / {sub_dirname}
+      * paco_home / {Sub_dirname}
 
     Lower-case sub_dirname:
 
@@ -34,7 +39,7 @@ def match_allowed_paco_filenames(paco_home, sub_dirname, filename):
      * paco_home / {Sub_dirname} / {Filename}.yml <-- .yml extension
 
     """
-    def match(paco_home, sub_dirname, filename):
+    def filename_match(paco_home, sub_dirname, filename):
         path = paco_home / sub_dirname / f'{filename}.yml'
         if path.is_file():
             return path
@@ -49,12 +54,23 @@ def match_allowed_paco_filenames(paco_home, sub_dirname, filename):
         if path.is_file():
             return path
 
-    filename = filename.lower()
     sub_dirname = sub_dirname.lower()
-    path = match(paco_home, sub_dirname, filename)
+    if filename == None:
+        path = paco_home / sub_dirname
+        if path.is_dir():
+            return path
+        sub_dirname = sub_dirname.capitalize()
+        path = paco_home / sub_dirname
+        if path.is_dir():
+            return path
+        else:
+            return None
+
+    filename = filename.lower()
+    path = filename_match(paco_home, sub_dirname, filename)
     if path == None:
         sub_dirname = sub_dirname.capitalize()
-        path = match(paco_home, sub_dirname, filename)
+        path = filename_match(paco_home, sub_dirname, filename)
 
     return path
 

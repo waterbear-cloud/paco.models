@@ -22,7 +22,7 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
 from paco.models.project import VersionControl, Project, SharedState, PacoWorkBucket
 from paco.models.applications import Application, PinpointApplication, ResourceGroups, ResourceGroup, \
     ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, IAMUserResource, \
-    Resource, Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
+    Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
     ACM, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
@@ -39,7 +39,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceECR, \
     DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
-    EBS, EBSVolumeMount, SecretsManager, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
+    EBS, EBSVolumeMount, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
     DBParameterGroup, DBClusterParameterGroup, DBParameters, \
     CodeDeployApplication, CodeDeployDeploymentGroups, CodeDeployDeploymentGroup, DeploymentGroupS3Location, \
@@ -69,7 +69,7 @@ from paco.models.resources import S3Resource, S3Buckets, \
     ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
     ApiGatewayMethodIntegrationResponse, ApiGatewayCognitoAuthorizer, ApiGatewayCognitoAuthorizers, \
     ApiGatewayBasePathMapping, \
-    IAMResource, IAMUser, IAMUsers, IAMUserPermission, IAMUserPermissions, IAMUserProgrammaticAccess, \
+    IAMResource, IAMUser, IAMUsers, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
     IAMUserPermissionDeploymentPipelines, IAMUserPermissionDeploymentPipelineResource, \
@@ -85,12 +85,12 @@ from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceT
     BackupPlans, BackupVault
 from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, RoleDefaultEnabled, Policy, AssumeRolePolicy, Statement, Principal
-from paco.models.base import get_all_fields, most_specialized_interfaces, NameValuePair, RegionContainer, AccountRegions
+from paco.models.base import get_all_fields, match_allowed_paco_filenames, most_specialized_interfaces, \
+    NameValuePair, RegionContainer, AccountRegions
 from paco.models.accounts import Account, AdminIAMUser
 from paco.models.references import Reference
 from paco.models.reftypes import PacoReference
 from paco.models.references import is_ref, get_model_obj_from_ref
-from paco.models.schemas import INetworkEnvironment, INetworkEnvironments
 from paco.models.vocabulary import aws_regions
 from paco.models.yaml import ModelYAML
 from paco.models import schemas
@@ -1523,25 +1523,10 @@ class ModelLoader():
     """
     validate_local_paths = True
 
-    def __init__(self, config_folder, config_processor=None, warn=None, validate_local_paths=True):
+    def __init__(self, config_folder, warn=None, validate_local_paths=True):
         self.warn = warn
         self.__class__.validate_local_paths = validate_local_paths
         self.config_folder = pathlib.Path(config_folder)
-        self.config_subdirs = {
-            "monitor": self.instantiate_monitor_config,
-            "accounts": self.instantiate_accounts,
-            "resource": self.instantiate_resources,
-            "netenv": self.instantiate_network_environments,
-        }
-        # Legacy directory names
-        if os.path.isdir(self.config_folder / 'NetworkEnvironments'):
-            self.config_subdirs = {
-                "MonitorConfig": self.instantiate_monitor_config,
-                "Accounts": self.instantiate_accounts,
-                "NetworkEnvironments": self.instantiate_network_environments,
-                "Resources": self.instantiate_resources,
-            }
-        self.config_processor = config_processor
         self.project = None
 
     def read_yaml_file(self, path):
@@ -1556,30 +1541,11 @@ Duplicate key \"{}\" found on line {} at column {}.
 """.format(self.read_file_path, duplicate_key, exc.context_mark.line, exc.context_mark.column))
         return data
 
-    def read_yaml(self, sub_dir='', fname=''):
-        """Read a YAML file"""
-        # default is to load root project.yaml
-        if sub_dir == '':
-            path = self.config_folder / fname
-        else:
-            path = self.config_folder / sub_dir / fname
+    def read_yaml(self, path):
+        """Read a YAML file and update the read_file_path"""
         logger.debug("Loading YAML: %s" % (path))
-
-        # Credential files must be secured. This seems hacky, is there a better way?
-        if fname == '.credentials.yaml':
-            cred_stat = os.stat(path)
-            oct_perm = oct(cred_stat.st_mode)
-            #if oct_perm != '0o100400':
-            #    raise PermissionError('Credentials file permissions are too relaxed. Run: chmod 0400 %s' % (path))
-
-        # Validate Configuration
-        if self.config_processor != None:
-            self.config_processor(sub_dir, fname)
-
         # everytime a file is read, update read_file_path to assist with debugging messages
         self.read_file_path = path
-
-        # read the YAML!
         return self.read_yaml_file(path)
 
     def load_all(self):
@@ -1617,22 +1583,57 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         self.extend_base_schemas()
 
-        self.instantiate_project('project', self.read_yaml('', 'project.yaml'))
+        # Create root Project object
+        project_config = self.read_yaml(self.config_folder / 'project.yaml')
+        self.project = Project(project_config['name'], None)
+        self.project['home'] = self.config_folder
+        apply_attributes_from_config(
+            self.project,
+            project_config,
+            self.config_folder,
+            read_file_path=self.read_file_path,
+            resource_registry=self.project.resource_registry,
+        )
         self.project.paco_project_version = '{}.{}'.format(paco_project_version[0], paco_project_version[1])
 
+        # Add credentials object to the Project
         if os.path.isfile(self.config_folder / '.credentials.yaml'):
-            self.instantiate_project('.credentials', self.read_yaml('', '.credentials.yaml'))
+            credentials_config = self.read_yaml(self.config_folder / '.credentials.yaml')
+            apply_attributes_from_config(
+                self.project['credentials'],
+                credentials_config,
+                self.config_folder,
+                read_file_path=self.read_file_path,
+            )
+
+        # Load config for every sub-directory (except service)
+        self.config_subdirs = {
+            "monitor": self.instantiate_monitor_config,
+            "accounts": self.instantiate_accounts,
+            "resource": self.instantiate_resources,
+            "netenv": self.instantiate_network_environments,
+        }
+        # Legacy directory names
+        if os.path.isdir(self.config_folder / 'NetworkEnvironments'):
+            self.config_subdirs = {
+                "MonitorConfig": self.instantiate_monitor_config,
+                "Accounts": self.instantiate_accounts,
+                "NetworkEnvironments": self.instantiate_network_environments,
+                "Resources": self.instantiate_resources,
+            }
         for subdir, instantiate_method in self.config_subdirs.items():
-            subpath = self.config_folder / subdir
-            if subpath.exists():
-                for fname in os.listdir(subpath):
+            dir_path = match_allowed_paco_filenames(self.config_folder, subdir)
+            if dir_path != None:
+                for fname in os.listdir(dir_path):
                     if fname.endswith('.yml') or fname.endswith('.yaml'):
                         if fname.endswith('.yml'):
                             name = fname[:-4]
                         elif fname.endswith('.yaml'):
                             name = fname[:-5]
-                        config = self.read_yaml(subdir, fname)
+                        config = self.read_yaml(dir_path / fname)
                         instantiate_method(name, config, os.path.join(subdir, fname))
+
+        # Load Services
         self.instantiate_services()
         self.load_core_monitoring()
         # not yet ready for prime-time
@@ -1940,25 +1941,6 @@ Caveat: You can not have an environment named 'applications'.
                             new_dict[key] = value
                         if modified == True:
                             setattr(model, attr_name, new_dict)
-
-    def instantiate_project(self, name, config):
-        if name == 'project':
-            self.project = Project(config['name'], None)
-            self.project['home'] = self.config_folder
-            apply_attributes_from_config(
-                self.project,
-                config,
-                self.config_folder,
-                read_file_path=self.read_file_path,
-                resource_registry=self.project.resource_registry,
-            )
-        elif name == '.credentials':
-            apply_attributes_from_config(
-                self.project['credentials'],
-                config,
-                self.config_folder,
-                read_file_path=self.read_file_path,
-            )
 
     def extend_base_schemas(self):
         """

@@ -61,6 +61,8 @@ Changelog for paco.models
 
 - Renamed `IAWSCertificateManager` to `IACM` so that it matches it's Resource Type name.
 
+- ApiGatewayRestApi doesn't supply a name in it's CloudFormation export
+
 
 7.5.0 (2020-09-17)
 ------------------

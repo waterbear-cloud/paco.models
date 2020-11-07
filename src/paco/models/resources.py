@@ -277,7 +277,7 @@ class ApiGatewayRestApi(ApplicationResource, HasStack):
         "BinaryMediaTypes": 'binary_media_types',
         "CloneFrom": 'clone_from',
         "Description": 'description',
-        "Name": 'name',
+        # "Name": supplied by CloudFormation
         "Body": 'body',
         "FailOnWarnings": 'fail_on_warnings',
         "EndpointConfiguration": ("endpoint_configuration", "endpoint_configuration_cfn"),

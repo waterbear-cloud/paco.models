@@ -432,6 +432,7 @@ class EBS(ApplicationResource):
 @implementer(schemas.IEC2LaunchOptions)
 class EC2LaunchOptions(Named):
     ssm_agent = FieldProperty(schemas.IEC2LaunchOptions['ssm_agent'])
+    codedeploy_agent = FieldProperty(schemas.IEC2LaunchOptions['ssm_agent'])
     ssm_expire_events_after_days = FieldProperty(schemas.IEC2LaunchOptions['ssm_expire_events_after_days'])
     update_packages = FieldProperty(schemas.IEC2LaunchOptions['update_packages'])
     cfn_init_config_sets = FieldProperty(schemas.IEC2LaunchOptions['cfn_init_config_sets'])

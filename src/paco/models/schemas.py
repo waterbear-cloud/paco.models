@@ -5059,6 +5059,11 @@ EC2 Launch Options
         constraint = isValidCloudWatchLogRetention,
         required=False,
     )
+    codedeploy_agent = zope.schema.Bool(
+        title='Install CodeDeploy Agent',
+        required=False,
+        default=False
+    )
 
 class IBlockDevice(IParent):
     delete_on_termination = zope.schema.Bool(

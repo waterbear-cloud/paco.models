@@ -4,7 +4,9 @@ Changelog for paco.models
 7.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Added `codedeploy_agent` to field to `EC2LaunchOptions`.
 
 
 7.6.0 (2020-11-07)

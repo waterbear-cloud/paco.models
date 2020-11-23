@@ -4,7 +4,9 @@ Changelog for paco.models
 7.6.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Fixed
+
+- ListenerRules for `IListener` for load balancers is now a container with a `name`.
 
 
 7.6.1 (2020-11-12)

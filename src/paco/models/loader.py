@@ -25,7 +25,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
-    ACM, ListenerRule, Lambda, LambdaEnvironment, LambdaVpcConfig, \
+    ACM, ListenerRule, ListenerRules, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, LambdaAtEdgeConfiguration, SNSTopic, SNSTopicSubscription, \
     CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
@@ -541,7 +541,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     Listener: {
         'redirect': ('direct_obj', PortProtocol),
-        'rules': ('named_obj', ListenerRule)
+        'rules': ('container', (ListenerRules, ListenerRule))
     },
     EC2: {
         'security_groups': ('str_list', PacoReference)

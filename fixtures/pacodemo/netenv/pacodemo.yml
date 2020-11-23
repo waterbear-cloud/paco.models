@@ -671,7 +671,7 @@ applications:
             subject_alternative_names:
               - '*.pacodemo.waterbear.cloud'
           alb:
-            type: LBApplication # LBClassic | LBNetwork | LBApplication
+            type: LBApplication
             enabled: true
             order: 2
             target_groups:
@@ -698,6 +698,13 @@ applications:
                 ssl_certificates:
                   - paco.ref netenv.pacodemo.applications.app.groups.site.resources.cert
                 target_group: app
+                rules:
+                  app_forward:
+                    enabled: true
+                    rule_type: forward
+                    host: 'example.com'
+                    target_group: app
+                    priority: 1
             dns:
               - hosted_zone: paco.ref resource.route53.pacodemo
                 domain_name: pacodemo.waterbear.cloud

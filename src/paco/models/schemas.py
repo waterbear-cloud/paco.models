@@ -3411,7 +3411,14 @@ class ITargetGroup(IPortProtocol, IResource):
         required=False,
     )
 
-class IListenerRule(IDeployable):
+class IListenerRules(INamed, IMapping):
+    """
+Container for `ListenerRule`_ objects.
+    """
+    taggedValue('contains', 'IListenerRule')
+
+
+class IListenerRule(INamed, IDeployable):
     rule_type = zope.schema.TextLine(
         title="Type of Rule",
         required=False,
@@ -3480,11 +3487,10 @@ class IListener(IParent, IPortProtocol):
         default="",
         required=False
     )
-    rules = zope.schema.Dict(
+    rules = zope.schema.Object(
         title="Container of listener rules",
-        value_type=zope.schema.Object(IListenerRule),
+        schema=IListenerRules,
         required=False,
-        default=None
     )
 
 class IDNS(IParent):

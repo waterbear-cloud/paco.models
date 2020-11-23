@@ -1162,8 +1162,12 @@ class TargetGroup(Resource, PortProtocol):
             return self
         return self.resolve_ref_obj.resolve_ref(ref)
 
+@implementer(schemas.IListenerRules)
+class ListenerRules(Named, dict):
+    pass
+
 @implementer(schemas.IListenerRule)
-class ListenerRule(Deployable):
+class ListenerRule(Named, Deployable):
     rule_type = FieldProperty(schemas.IListenerRule['rule_type'])
     priority = FieldProperty(schemas.IListenerRule['priority'])
     host = FieldProperty(schemas.IListenerRule['host'])

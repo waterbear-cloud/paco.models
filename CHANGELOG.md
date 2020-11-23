@@ -8,6 +8,10 @@ Changelog for paco.models
 
 - ListenerRules for `IListener` for load balancers is now a container with a `name`.
 
+- CloudFrontOrigins for `ICloudFront` is now a container with a `name`.
+
+- CloudFrontFactories for `ICloudFront` is now a container with a `name`.
+
 
 7.6.1 (2020-11-12)
 ------------------

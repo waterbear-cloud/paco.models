@@ -27,7 +27,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
     ACM, ListenerRule, ListenerRules, Lambda, LambdaEnvironment, LambdaVpcConfig, \
     LambdaFunctionCode, LambdaVariable, LambdaAtEdgeConfiguration, SNSTopic, SNSTopicSubscription, \
-    CloudFront, CloudFrontFactory, CloudFrontCustomErrorResponse, CloudFrontOrigin, CloudFrontCustomOriginConfig, \
+    CloudFront, CloudFrontFactory, CloudFrontFactories, CloudFrontCustomErrorResponse, \
+    CloudFrontOrigin, CloudFrontOrigins, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
     CloudFrontLambdaFunctionAssocation, \
     RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, RDSDBClusterEventNotifications, RDSDBInstanceEventNotifications, \
@@ -455,9 +456,9 @@ SUB_TYPES_CLASS_MAP = {
         'cache_behaviors': ('obj_list', CloudFrontCacheBehavior),
         'domain_aliases': ('obj_list', DNS),
         'custom_error_responses': ('obj_list', CloudFrontCustomErrorResponse),
-        'origins': ('named_obj', CloudFrontOrigin),
+        'origins': ('container', (CloudFrontOrigins, CloudFrontOrigin)),
         'viewer_certificate': ('direct_obj', CloudFrontViewerCertificate),
-        'factory': ('named_obj', CloudFrontFactory),
+        'factory': ('container', (CloudFrontFactories, CloudFrontFactory)),
         'monitoring': ('direct_obj', MonitorConfig),
     },
     CloudFrontDefaultCacheBehavior: {
@@ -655,7 +656,6 @@ SUB_TYPES_CLASS_MAP = {
     # IAM
     IAM: {
         'roles': ('direct_obj', Role)
-        #'policies': ('named_obj', ManagedPolicies)
     },
     Role: {
         'policies': ('obj_list', Policy),

@@ -1406,6 +1406,10 @@ class CloudFrontCustomErrorResponse():
     response_code = FieldProperty(schemas.ICloudFrontCustomErrorResponse['response_code'])
     response_page_path = FieldProperty(schemas.ICloudFrontCustomErrorResponse['response_page_path'])
 
+@implementer(schemas.ICloudFrontOrigins)
+class CloudFrontOrigins(Named, dict):
+    pass
+
 @implementer(schemas.ICloudFrontOrigin)
 class CloudFrontOrigin(Named):
     s3_bucket = FieldProperty(schemas.ICloudFrontOrigin['s3_bucket'])
@@ -1415,6 +1419,10 @@ class CloudFrontOrigin(Named):
     def resolve_ref(self, ref):
         if ref.parts[-2] == 'origins':
             return ref.last_part
+
+@implementer(schemas.ICloudFrontFactories)
+class CloudFrontFactories(Named, dict):
+    pass
 
 @implementer(schemas.ICloudFrontFactory)
 class CloudFrontFactory(Named):

@@ -8353,6 +8353,13 @@ class ICloudFrontCustomOriginConfig(INamed):
         required=False,
     )
 
+class ICloudFrontOrigins(INamed, IMapping):
+    """
+Container for `CloudFrontOrigin`_ objects.
+    """
+    taggedValue('contains', 'ICloudFrontOrigin')
+
+
 class ICloudFrontOrigin(INamed):
     """
 CloudFront Origin Configuration
@@ -8373,6 +8380,12 @@ CloudFront Origin Configuration
         schema=ICloudFrontCustomOriginConfig,
         required=False,
     )
+
+class ICloudFrontFactories(INamed, IMapping):
+    """
+Container for `ICloudFrontFactory`_ objects.
+    """
+    taggedValue('contains', 'ICloudFrontFactory')
 
 class ICloudFrontFactory(INamed):
     """CloudFront Factory"""
@@ -8428,19 +8441,18 @@ CloudFront CDN Configuration
         default=None,
         required=False,
     )
-    origins = zope.schema.Dict(
+    origins = zope.schema.Object(
         title="Map of Origins",
-        value_type=zope.schema.Object(ICloudFrontOrigin),
+        schema=ICloudFrontOrigins,
         required=False,
     )
     webacl_id = zope.schema.TextLine(
         title="WAF WebACLId",
         required=False,
     )
-    factory = zope.schema.Dict(
+    factory = zope.schema.Object(
         title="CloudFront Factory",
-        value_type=zope.schema.Object(ICloudFrontFactory),
-        default=None,
+        schema=ICloudFrontFactories,
         required=False,
     )
 

@@ -785,7 +785,11 @@ class INameValuePair(IParent):
         schema_constraint='Interface'
     )
 
-class IAdminIAMUser(IDeployable):
+class IAdminIAMUsers(INamed, IMapping):
+    "A container for AdminIAMUser objects"
+    taggedValue('contains', 'IAdminIAMUser')
+
+class IAdminIAMUser(INamed, IDeployable):
     """An AWS Account Administerator IAM User"""
     username = zope.schema.TextLine(
         title="IAM Username",
@@ -874,9 +878,9 @@ child accounts.
         required=False,
         description='Each string in the list must contain only digits.'
     )
-    admin_iam_users = zope.schema.Dict(
+    admin_iam_users = zope.schema.Object(
         title="Admin IAM Users",
-        value_type=zope.schema.Object(IAdminIAMUser),
+        schema=IAdminIAMUsers,
         required=False,
     )
 
@@ -8140,7 +8144,7 @@ A CloudTrail can be used to set-up a multi-account CloudTrail that sends logs fr
         required=False,
     )
     s3_bucket_account = PacoReference(
-        title="Account which will contain the S3 Bucket that the CloudTrails will be stored in",
+        title="Account which will contain the S3 Bucket where the CloudTrail is stored.",
         description='Must be an paco.ref to an account',
         required=True,
         schema_constraint='IAccount'

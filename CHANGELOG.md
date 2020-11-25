@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Fixed
 
+- AdminIAMUsers for `IAccount` is now a container with a `name`.
+
 - ListenerRules for `IListener` for load balancers is now a container with a `name`.
 
 - CloudFrontOrigins for `ICloudFront` is now a container with a `name`.

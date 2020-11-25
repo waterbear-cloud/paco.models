@@ -7,12 +7,12 @@ from paco.models.exceptions import InvalidPacoReference
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
+@implementer(schemas.IAdminIAMUsers)
+class AdminIAMUsers(Named, dict):
+    pass
+
 @implementer(schemas.IAdminIAMUser)
-class AdminIAMUser(Deployable):
-    """
-    Object attrs:
-        -
-    """
+class AdminIAMUser(Named, Deployable):
     username = FieldProperty(schemas.IAdminIAMUser["username"])
 
 @implementer(schemas.IAccounts)

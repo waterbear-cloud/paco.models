@@ -88,7 +88,7 @@ from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, RoleDefaultEnabled, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, match_allowed_paco_filenames, most_specialized_interfaces, \
     NameValuePair, RegionContainer, AccountRegions
-from paco.models.accounts import Account, AdminIAMUser
+from paco.models.accounts import Account, AdminIAMUsers, AdminIAMUser
 from paco.models.references import Reference
 from paco.models.reftypes import PacoReference
 from paco.models.references import is_ref, get_model_obj_from_ref
@@ -698,7 +698,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     # Accounts
     Account: {
-        'admin_iam_users': ('named_obj', AdminIAMUser)
+        'admin_iam_users': ('container', (AdminIAMUsers, AdminIAMUser))
     },
     Route53RecordSet: {
         'values': ('str_list', zope.schema.TextLine)

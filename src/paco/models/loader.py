@@ -83,7 +83,7 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
     CloudFormationConfiguration, CloudFormationInit, CloudFormationParameters, CloudFormationInitServiceCollection, \
     CloudFormationInitService
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
-    BackupPlans, BackupVault
+    BackupPlans, BackupVault, BackupPlanCopyActionResourceType
 from paco.models.events import EventsRule, EventTarget
 from paco.models.iam import IAM, ManagedPolicy, Role, RoleDefaultEnabled, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, match_allowed_paco_filenames, most_specialized_interfaces, \
@@ -324,6 +324,9 @@ SUB_TYPES_CLASS_MAP = {
     BackupPlan: {
         'plan_rules': ('obj_list', BackupPlanRule),
         'selections': ('obj_list', BackupPlanSelection)
+    },
+    BackupPlanRule: {
+        'copy_actions': ('obj_list', BackupPlanCopyActionResourceType),
     },
     BackupPlanSelection: {
         'tags': ('obj_list', BackupSelectionConditionResourceType)

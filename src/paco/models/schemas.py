@@ -10348,6 +10348,24 @@ AWS Elastic File System (EFS) resource.
 
 # AWS Backup
 
+class IBackupPlanCopyActionResourceType(IParent):
+    destination_vault = zope.schema.TextLine(
+        title="Destination Value Arn",
+        description="Valid Backup Vault Arn",
+        required=True,
+    )
+    lifecycle_delete_after_days = zope.schema.Int(
+        title="Delete after days",
+        required=False,
+        min=1
+    )
+    lifecycle_move_to_cold_storage_after_days = zope.schema.Int(
+        title="Move to cold storage after days",
+        description="If Delete after days value is set, this value must be smaller",
+        required=False,
+        min=1
+    )
+
 class IBackupPlanRule(INamed):
     schedule_expression = zope.schema.TextLine(
         title="Schedule Expression",
@@ -10364,6 +10382,12 @@ class IBackupPlanRule(INamed):
         description="If Delete after days value is set, this value must be smaller",
         required=False,
         min=1
+    )
+    copy_actions = zope.schema.List(
+        title="Copy actions",
+        required=False,
+        value_type=zope.schema.Object(IBackupPlanCopyActionResourceType),
+        default=[],
     )
 
 class IBackupSelectionConditionResourceType(IParent):

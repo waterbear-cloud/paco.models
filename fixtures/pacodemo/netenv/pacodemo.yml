@@ -111,6 +111,11 @@ backup_vaults:
             schedule_expression: cron(0 7 ? * * *)
             lifecycle_delete_after_days: 7
             lifecycle_move_to_cold_storage_after_days: 5
+            copy_actions:
+              - destination_vault: arn:aws:backup:ca-central-1:123456789012:backup-vault:MyVault
+                lifecycle_delete_after_days: 28
+              - destination_vault: arn:aws:backup:ca-central-1:123456789012:backup-vault:YourVault
+                lifecycle_delete_after_days: 100
         selections:
           - title: EBS Daily Backups Selection
             tags:

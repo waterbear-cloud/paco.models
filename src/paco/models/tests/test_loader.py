@@ -3,11 +3,9 @@ import paco.models.networks
 import paco.models.loader
 import os
 import troposphere
-import inspect
 import unittest
 from paco.models import load_project_from_yaml, schemas
 from paco.models.project import Project
-from paco.models.networks import SecurityGroup
 
 def fixtures_path():
     # find the project root directory
@@ -471,6 +469,9 @@ class Testpacodemo(BaseTestModelLoader):
         myvault = vaults['myapp']
         assert myvault.title == "All data for MyApp (myapp) application"
         assert myvault.plans['ebs_daily'].plan_rules[0].schedule_expression == 'cron(0 7 ? * * *)'
+
+        assert myvault.plans['ebs_daily'].plan_rules[0].copy_actions[0].destination_vault.startswith('arn:aws:backup')
+        assert myvault.plans['ebs_daily'].plan_rules[0].copy_actions[1].lifecycle_delete_after_days == 100
 
     # dashboard_file is not reading correctly? disable for now
     def test_dashboard(self):

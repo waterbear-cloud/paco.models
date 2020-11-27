@@ -7,13 +7,18 @@ from paco.models import schemas
 from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 
+@implementer(schemas.IBackupPlanCopyActionResourceType)
+class BackupPlanCopyActionResourceType(Parent):
+    destination_vault = FieldProperty(schemas.IBackupPlanCopyActionResourceType['destination_vault'])
+    lifecycle_delete_after_days = FieldProperty(schemas.IBackupPlanCopyActionResourceType['lifecycle_delete_after_days'])
+    lifecycle_move_to_cold_storage_after_days = FieldProperty(schemas.IBackupPlanCopyActionResourceType['lifecycle_move_to_cold_storage_after_days'])
 
 @implementer(schemas.IBackupPlanRule)
 class BackupPlanRule(Named):
     lifecycle_delete_after_days = FieldProperty(schemas.IBackupPlanRule['lifecycle_delete_after_days'])
     lifecycle_move_to_cold_storage_after_days = FieldProperty(schemas.IBackupPlanRule['lifecycle_move_to_cold_storage_after_days'])
     schedule_expression = FieldProperty(schemas.IBackupPlanRule['schedule_expression'])
-
+    copy_actions = FieldProperty(schemas.IBackupPlanRule['copy_actions'])
 
 @implementer(schemas.IBackupSelectionConditionResourceType)
 class BackupSelectionConditionResourceType(Parent):

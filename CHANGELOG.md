@@ -4,6 +4,10 @@ Changelog for paco.models
 7.6.2 (unreleased)
 ------------------
 
+### Added
+
+- `IBackupPlan` has new `copy_actions` field.
+
 ### Fixed
 
 - AdminIAMUsers for `IAccount` is now a container with a `name`.

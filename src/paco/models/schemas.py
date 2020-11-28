@@ -36,6 +36,23 @@ def isValidStringConditionOperator(value):
         raise InvalidStringConditionOperator
     return True
 
+class InvalidAwsCondition(zope.schema.ValidationError):
+    __doc__ = 'Must be a valid AWS Condition'
+
+def isValidAwsCondition(value):
+    # empty Condition is valid
+    if len(value.keys()) == 0:
+        return True
+    for key in value.keys():
+        condition = key
+        if condition.find(':') != -1:
+            qualifier, condition = condition.split(':')
+            if qualifier not in ('ForAnyValue', 'ForAllValues'):
+                raise(InvalidAwsCondition(f'Condition qualifier is not valid for condition {key}'))
+        if condition not in vocabulary.aws_policy_condition_strings:
+            raise(InvalidAwsCondition(f'Condition is not a valid AWS Condition: {condition}'))
+    return True
+
 class InvalidBackupNotification(zope.schema.ValidationError):
     __doc__ = 'Backup Vault notification event must be one of: BACKUP_JOB_STARTED, BACKUP_JOB_COMPLETED, RESTORE_JOB_STARTED, RESTORE_JOB_COMPLETED, RECOVERY_POINT_MODIFIED.'
 
@@ -2217,7 +2234,7 @@ S3 Bucket Policy
         description='Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
         default={},
         required=False,
-        # ToDo: Use awacs to add a constraint to check for valid conditions
+        constraint=isValidAwsCondition,
     )
     # ToDo: validate principal using awacs
     # ToDo: validate that only one principal type is supplied, as that is all that is currently supported by paco.cftemplates.s3.py
@@ -2339,6 +2356,15 @@ it is still possible to override this to use other accouns and regions if desire
         resource_suffix:
           - '/*'
           - ''
+        condition:
+          StringEquals:
+            s3:x-amz-acl:
+              "public-read"
+          IpAddress:
+            "aws:SourceIp": "192.0.2.0/24"
+          NotIpAddress:
+            "aws:SourceIp": "192.0.2.188/32"
+
       - aws:
           - paco.sub '${paco.ref netenv.mynet.applications.app.groups.site.resources.demo.instance_iam_role.arn}'
         effect: 'Allow'
@@ -3666,7 +3692,7 @@ class IStatement(INamed):
         description='Each Key is the Condition name and the Value must be a dictionary of request filters. e.g. { "StringEquals" : { "aws:username" : "johndoe" }}',
         default={},
         required=False,
-        # ToDo: Use awacs to add a constraint to check for valid conditions
+        constraint=isValidAwsCondition,
     )
     effect = zope.schema.Choice(
         title="Effect",
@@ -9485,6 +9511,10 @@ have delegate IAM Roles in other accounts that they are allowed to assume.
                   - 'polly:*'
                 resource:
                   - '*'
+                condition:
+                  StringEquals:
+                    aws:username:
+                      "yourusername"
 
     """
     account = PacoReference(

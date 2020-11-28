@@ -6,6 +6,35 @@ https://docs.plone.org/develop/plone/forms/vocabularies.html
 
 from zope.schema.vocabulary import SimpleVocabulary
 
+aws_policy_condition_strings = [
+    "ArnEquals",
+    "ArnNotEquals",
+    "ArnLike",
+    "ArnNotLike",
+    "Bool",
+    "DateEquals",
+    "DateNotEquals",
+    "DateLessThan",
+    "DateLessThanEquals",
+    "DateGreaterThan",
+    "DateGreaterThanEquals",
+    "IpAddress",
+    "NotIpAddress",
+    "Null",
+    "NumericEquals",
+    "NumericNotEquals",
+    "NumericLessThan",
+    "NumericLessThanEquals",
+    "NumericGreaterThan",
+    "NumericGreaterThanEquals",
+    "StringEquals",
+    "StringNotEquals",
+    "StringEqualsIgnoreCase",
+    "StringNotEqualsIgnoreCase",
+    "StringLike",
+    "StringNotLike",
+]
+
 aws_config_delivery_frequencies = SimpleVocabulary.fromValues([
  'One_Hour', 'Six_Hours', 'Three_Hours', 'Twelve_Hours','TwentyFour_Hours',
 ])

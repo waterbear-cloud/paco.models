@@ -6,7 +6,10 @@ Changelog for paco.models
 
 ### Added
 
+- Constraint for `IS3BucketPolicy` and `IStatement` for the `condition` field to check for valid AWS Constraint.
+
 - `IBackupPlan` has new `copy_actions` field.
+
 
 ### Fixed
 

@@ -234,6 +234,7 @@ class S3Bucket(Resource, Deployable):
         policy_obj = S3BucketPolicy()
         loader.apply_attributes_from_config(policy_obj, policy_dict)
         self.policy.append(policy_obj)
+        return policy_obj
 
     def set_account(self, account_ref):
         setattr(self, 'account', account_ref)

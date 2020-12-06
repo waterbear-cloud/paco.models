@@ -2096,7 +2096,6 @@ class SecretsManagerSecret(Named, Deployable):
 
     def __init__(self, name, __parent__):
         super().__init__(name, __parent__)
-        self.generate_secret_string = GenerateSecretString(self)
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)

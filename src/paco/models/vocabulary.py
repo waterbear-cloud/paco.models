@@ -57,6 +57,23 @@ log_levels = SimpleVocabulary.fromValues([
 	'debug',
 ])
 
+dynamodb_attribute_types = SimpleVocabulary.fromValues([
+	'S',
+	'N',
+	'B',
+])
+
+dynamodb_key_types = SimpleVocabulary.fromValues([
+	'HASH',
+	'RANGE',
+])
+
+dynamodb_project_types = SimpleVocabulary.fromValues([
+	'ALL',
+	'INCLUDE',
+	'KEYS_ONLY',
+])
+
 ecr_permissions = SimpleVocabulary.fromValues([
 	'Push',
 	'Pull',

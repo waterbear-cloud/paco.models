@@ -54,7 +54,9 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
-    CognitoUserPoolPasswordPolicy, CognitoUICustomizations, CognitoLambdaTriggers
+    CognitoUserPoolPasswordPolicy, CognitoUICustomizations, CognitoLambdaTriggers, \
+    DynamoDB, DynamoDBAttributeDefinition, DynamoDBGlobalSecondaryIndex, DynamoDBKeySchema, \
+    DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -165,6 +167,7 @@ RESOURCES_CLASS_MAP = {
     'ElastiCacheRedis': ElastiCacheRedis,
     'ElasticsearchDomain': ElasticsearchDomain,
     'EventsRule': EventsRule,
+    'DynamoDB': DynamoDB,
     'IAMUser': IAMUserResource,
     'IoTPolicy': IoTPolicy,
     'IoTTopicRule': IoTTopicRule,
@@ -233,6 +236,22 @@ SUB_TYPES_CLASS_MAP = {
     },
     ECRRepository: {
         'repository_policy': ('direct_obj', Policy)
+    },
+    DynamoDB: {
+        'default_provisioned_throughput': ('direct_obj', DynamoDBProvisionedThroughput),
+        'tables': ('container', (DynamoDBTables, DynamoDBTable))
+    },
+    DynamoDBTable: {
+        'attribute_definitions': ('obj_list', DynamoDBAttributeDefinition),
+        'key_schema': ('obj_list', DynamoDBKeySchema),
+        'global_secondary_indexes': ('obj_list', DynamoDBGlobalSecondaryIndex),
+        'provisioned_throughput': ('direct_obj', DynamoDBProvisionedThroughput),
+        'target_tracking_scaling_policy': ('direct_obj', DynamoDBTargetTrackingScalingPolicy),
+    },
+    DynamoDBGlobalSecondaryIndex: {
+        'key_schema': ('obj_list', DynamoDBKeySchema),
+        'projection': ('direct_obj', DynamoDBProjection),
+        'provisioned_throughput': ('direct_obj', DynamoDBProvisionedThroughput),
     },
     PinpointApplication: {
         'sms_channel': ('direct_obj', PinpointSMSChannel),

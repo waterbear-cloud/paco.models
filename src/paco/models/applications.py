@@ -2174,6 +2174,59 @@ class PinpointApplication(ApplicationResource):
     sms_channel = FieldProperty(schemas.IPinpointApplication['sms_channel'])
     email_channel = FieldProperty(schemas.IPinpointApplication['email_channel'])
 
+# DynamoDB
+
+@implementer(schemas.IDynamoDBProvisionedThroughput)
+class DynamoDBProvisionedThroughput(Named):
+    read_capacity_units = FieldProperty(schemas.IDynamoDBProvisionedThroughput['read_capacity_units'])
+    write_capacity_units = FieldProperty(schemas.IDynamoDBProvisionedThroughput['write_capacity_units'])
+
+@implementer(schemas.IDynamoDBTables)
+class DynamoDBTables(Named, dict):
+    pass
+
+@implementer(schemas.IDynamoDBAttributeDefinition)
+class DynamoDBAttributeDefinition(Parent):
+    name = FieldProperty(schemas.IDynamoDBAttributeDefinition['name'])
+    type = FieldProperty(schemas.IDynamoDBAttributeDefinition['type'])
+
+@implementer(schemas.IDynamoDBKeySchema)
+class DynamoDBKeySchema(Parent):
+    name = FieldProperty(schemas.IDynamoDBKeySchema['name'])
+    type = FieldProperty(schemas.IDynamoDBKeySchema['type'])
+
+@implementer(schemas.IDynamoDBProjection)
+class DynamoDBProjection(Parent):
+    type = FieldProperty(schemas.IDynamoDBProjection['type'])
+
+@implementer(schemas.IDynamoDBGlobalSecondaryIndex)
+class DynamoDBGlobalSecondaryIndex(Parent):
+    index_name = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['index_name'])
+    key_schema = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['key_schema'])
+    projection = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['projection'])
+    provisioned_throughput = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['provisioned_throughput'])
+
+@implementer(schemas.IDynamoDBTargetTrackingScalingPolicy)
+class DynamoDBTargetTrackingScalingPolicy(Parent):
+    max_capacity = FieldProperty(schemas.IDynamoDBTargetTrackingScalingPolicy['max_capacity'])
+    min_capacity = FieldProperty(schemas.IDynamoDBTargetTrackingScalingPolicy['min_capacity'])
+    target_value = FieldProperty(schemas.IDynamoDBTargetTrackingScalingPolicy['target_value'])
+    scale_in_cooldown = FieldProperty(schemas.IDynamoDBTargetTrackingScalingPolicy['scale_in_cooldown'])
+    scale_out_cooldown = FieldProperty(schemas.IDynamoDBTargetTrackingScalingPolicy['scale_out_cooldown'])
+
+@implementer(schemas.IDynamoDBTable)
+class DynamoDBTable(Named, dict):
+    attribute_definitions = FieldProperty(schemas.IDynamoDBTable['attribute_definitions'])
+    key_schema = FieldProperty(schemas.IDynamoDBTable['key_schema'])
+    global_secondary_indexes = FieldProperty(schemas.IDynamoDBTable['global_secondary_indexes'])
+    provisioned_throughput = FieldProperty(schemas.IDynamoDBTable['provisioned_throughput'])
+    target_tracking_scaling_policy = FieldProperty(schemas.IDynamoDBTable['target_tracking_scaling_policy'])
+
+@implementer(schemas.IDynamoDB)
+class DynamoDB(ApplicationResource):
+    default_provisioned_throughput = FieldProperty(schemas.IDynamoDB['default_provisioned_throughput'])
+    tables = FieldProperty(schemas.IDynamoDB['tables'])
+
 # Cognito
 
 @implementer(schemas.ICognitoUserPoolSchemaAttribute)

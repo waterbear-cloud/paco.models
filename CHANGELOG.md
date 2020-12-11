@@ -10,6 +10,7 @@ Changelog for paco.models
 
 - `IBackupPlan` has new `copy_actions` field.
 
+- Initial schemas for DynamoDB.
 
 ### Fixed
 

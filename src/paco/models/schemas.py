@@ -1,3 +1,4 @@
+from sys import maxsize
 from zope.interface import Interface, Attribute, invariant, Invalid, classImplements, taggedValue, implementer
 from zope.interface.common.mapping import IMapping
 from paco.models import vocabulary
@@ -8554,6 +8555,210 @@ Currently AWS Pinpoint only supports general configuration suitable for sending 
         title="Email Channel",
         schema=IPinpointEmailChannel,
         required=False
+    )
+
+# DynamoDB
+
+class IDynamoDBProvisionedThroughput(INamed):
+    read_capacity_units = zope.schema.Int(
+        title="Read Capacity Units",
+        min=1,
+        required=True,
+    )
+    write_capacity_units = zope.schema.Int(
+        title="Write Capacity Units",
+        min=1,
+        required=True,
+    )
+
+class IDynamoDBTables(INamed, IMapping):
+    """
+Container for `IDynamoDBTable`_ objects.
+    """
+    taggedValue('contains', 'IDynamoDBTable')
+
+class IDynamoDBAttributeDefinition(IParent):
+    name = zope.schema.TextLine(
+        title="Attribute Name",
+    )
+    type = zope.schema.Choice(
+        title="Attribute Type",
+        description="Must be on one of S, N or B. (String, Number or Binary)",
+        vocabulary=vocabulary.dynamodb_attribute_types,
+    )
+
+class IDynamoDBKeySchema(IParent):
+    name = zope.schema.TextLine(
+        title="Attribute Name",
+    )
+    type = zope.schema.Choice(
+        title="Key Type",
+        description="Must be either HASH or RANGE.",
+        vocabulary=vocabulary.dynamodb_key_types,
+    )
+
+class IDynamoDBProjection(IParent):
+    type = zope.schema.Choice(
+        title="Projection Type",
+        description="Must be one of ALL, INCLUDE, KEYS_ONLY",
+        vocabulary=vocabulary.dynamodb_project_types
+    )
+
+class IDynamoDBGlobalSecondaryIndex(IParent):
+    index_name = zope.schema.TextLine(
+        title="Index Name",
+        min_length=3,
+        max_length=255,
+        # ToDo: constraint: [a-zA-Z0-9_.-]+
+    )
+    key_schema = zope.schema.List(
+        title="Key Schema",
+        required=True,
+        value_type=zope.schema.Object(IDynamoDBKeySchema),
+    )
+    projection = zope.schema.Object(
+        title="Projection",
+        required=True,
+        schema=IDynamoDBProjection,
+    )
+    provisioned_throughput = zope.schema.Object(
+        title="Provisioned Throughput",
+        required=False,
+        schema=IDynamoDBProvisionedThroughput,
+    )
+
+class IDynamoDBTargetTrackingScalingPolicy(IParent):
+    max_capacity = zope.schema.Int(
+        title="Maximum Capacity",
+    )
+    min_capacity = zope.schema.Int(
+        title="Maximum Capacity",
+    )
+    target_value= zope.schema.Float(
+        title="Target Value",
+    )
+    scale_in_cooldown = zope.schema.Int(
+        title="Scale-in cooldown in seconds",
+    )
+    scale_out_cooldown = zope.schema.Int(
+        title="Scale-out cooldown in seconds",
+    )
+
+class IDynamoDBTable(INamed, IMapping):
+    attribute_definitions = zope.schema.List(
+        title="Attribute Definitions",
+        value_type=zope.schema.Object(IDynamoDBAttributeDefinition),
+    )
+    key_schema = zope.schema.List(
+        title="Key Schema",
+        value_type=zope.schema.Object(IDynamoDBKeySchema),
+    )
+    global_secondary_indexes = zope.schema.List(
+        title="Global Secondary Indexes",
+        required=False,
+        default=[],
+        value_type=zope.schema.Object(IDynamoDBGlobalSecondaryIndex),
+    )
+    provisioned_throughput = zope.schema.Object(
+        title="Provisioned Throughput",
+        required=False,
+        schema=IDynamoDBProvisionedThroughput,
+    )
+    target_tracking_scaling_policy = zope.schema.Object(
+        title="Target Tracking Scaling Policy",
+        required=False,
+        schema=IDynamoDBTargetTrackingScalingPolicy,
+    )
+
+class IDynamoDB(IResource):
+    """
+DynamoDB is a NoSQL key-value and document database that delivers single-digit
+millisecond performance at any scale.
+
+.. sidebar:: Prescribed Automation
+
+    ``default_provisioned_throughput``: Provisioned throughput settings that will apply to all tables in this
+    DynamoDB resource that do not provide their own overridden values.
+
+    ``target_tracking_scaling_policy``: Creates a Scaling Role, an ApplicationAutoScaling ScalableTarget
+    for the DynamoDB table and an ApplicationAutoScaling ScalingPolicy to scale the target using the role.
+
+.. code-block:: yaml
+    :caption: example DynamoDB configuration
+
+    type: DynamoDB
+    order: 100
+    enabled: true
+    default_provisioned_throughput:
+      read_capacity_units: 5
+      write_capacity_units: 5
+    tables:
+      concert:
+        attribute_definitions:
+          - name: "ArtistId"
+            type: "S"
+          - name: "Concert"
+            type: "S"
+          - name: "TicketSales"
+            type: "S"
+        key_schema:
+          - name: "ArtistId"
+            type: "HASH"
+          - name: "Concert"
+            type: "RANGE"
+        global_secondary_indexes:
+          - index_name: "GSI"
+            key_schema:
+              - name: "TicketSales"
+                key_schema: "HASH"
+            projection:
+              type: "KEYS_ONLY"
+            provisioned_throughput:
+              read_capacity_units: 5
+              write_capacity_units: 5
+        provisioned_throughput:
+          read_capacity_units: 10
+          write_capacity_units: 10
+        target_tracking_scaling_policy:
+          max_capacity: 15
+          min_capacity: 5
+          target_value: 50.0
+          scale_in_cooldown: 60
+          scale_out_cooldown: 60
+      discography:
+        attribute_definitions:
+          - name: "ArtistId"
+            type: "S"
+          - name: "Album"
+            type: "S"
+          - name: "AlbumSales"
+            type: "S"
+        key_schema:
+          - name: "ArtistId"
+            type: "HASH"
+          - name: "Album"
+            type: "RANGE"
+        global_secondary_indexes:
+          - name: "GSI"
+            key_schema:
+              - name: "AlbumSales"
+                key_schema: "HASH"
+            projection:
+              type: "KEYS_ONLY"
+            provisioned_throughput:
+              read_capacity_units: 5
+              write_capacity_units: 5
+
+    """
+    default_provisioned_throughput = zope.schema.Object(
+        title="Default provision throughput. Applies to all Tables that belong to this DynamoDB resource.",
+        required=False,
+        schema=IDynamoDBProvisionedThroughput,
+    )
+    tables = zope.schema.Object(
+        title="DynamoDB Tables that belong to this DyanmoDB resource.",
+        required=True,
+        schema=IDynamoDBTables,
     )
 
 # RDS Schemas

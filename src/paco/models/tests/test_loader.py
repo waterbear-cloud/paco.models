@@ -481,6 +481,20 @@ class Testpacodemo(BaseTestModelLoader):
         assert dashboard.title == "Demo-Dashboard"
         assert 'WebAsg.name' in dashboard.variables
 
+    def test_dynamodb(self):
+        dynamodb = self.demo_app.groups['storage'].resources['dynamodb']
+        assert schemas.IDynamoDB.providedBy(dynamodb)
+        assert dynamodb.default_provisioned_throughput.read_capacity_units == 5
+        concert = dynamodb.tables['concert']
+        assert concert.attribute_definitions[0].name == 'ArtistId'
+        assert concert.key_schema[0].type == 'HASH'
+        assert concert.global_secondary_indexes[0].index_name == 'GSI'
+        assert concert.global_secondary_indexes[0].projection.type == 'KEYS_ONLY'
+        assert concert.provisioned_throughput.write_capacity_units == 10
+        assert concert.target_tracking_scaling_policy.min_capacity == 5
+        discography = dynamodb.tables['discography']
+        assert discography.attribute_definitions[1].type == 'S'
+
     def test_iotcore(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         iottopic = demo_env['applications']['app'].groups['iot'].resources['iottopic']

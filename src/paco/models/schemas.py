@@ -8649,6 +8649,11 @@ class IDynamoDBTable(INamed, IMapping):
         title="Attribute Definitions",
         value_type=zope.schema.Object(IDynamoDBAttributeDefinition),
     )
+    billing_mode = zope.schema.Choice(
+        title="Billing Mode",
+        required=False,
+        vocabulary=vocabulary.dynamodb_billing_modes
+    )
     key_schema = zope.schema.List(
         title="Key Schema",
         value_type=zope.schema.Object(IDynamoDBKeySchema),
@@ -8689,6 +8694,7 @@ millisecond performance at any scale.
     type: DynamoDB
     order: 100
     enabled: true
+    billing_mode: 'provisioned'
     default_provisioned_throughput:
       read_capacity_units: 5
       write_capacity_units: 5
@@ -8750,6 +8756,12 @@ millisecond performance at any scale.
               write_capacity_units: 5
 
     """
+    default_billing_mode = zope.schema.Choice(
+        title="Billing Mode",
+        required=False,
+        default='provisioned',
+        vocabulary=vocabulary.dynamodb_billing_modes
+    )
     default_provisioned_throughput = zope.schema.Object(
         title="Default provision throughput. Applies to all Tables that belong to this DynamoDB resource.",
         required=False,

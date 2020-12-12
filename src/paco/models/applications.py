@@ -17,6 +17,7 @@ from zope.interface import implementer
 from zope.schema.fieldproperty import FieldProperty
 import troposphere
 import troposphere.autoscaling
+import troposphere.dynamodb
 import troposphere.ecs
 import troposphere.elasticache
 import troposphere.elasticloadbalancingv2
@@ -2181,6 +2182,12 @@ class DynamoDBProvisionedThroughput(Named):
     read_capacity_units = FieldProperty(schemas.IDynamoDBProvisionedThroughput['read_capacity_units'])
     write_capacity_units = FieldProperty(schemas.IDynamoDBProvisionedThroughput['write_capacity_units'])
 
+    troposphere_props = troposphere.dynamodb.ProvisionedThroughput.props
+    cfn_mapping = {
+        "ReadCapacityUnits": 'read_capacity_units',
+        "WriteCapacityUnits": 'write_capacity_units',
+    }
+
 @implementer(schemas.IDynamoDBTables)
 class DynamoDBTables(Named, dict):
     pass
@@ -2190,14 +2197,32 @@ class DynamoDBAttributeDefinition(Parent):
     name = FieldProperty(schemas.IDynamoDBAttributeDefinition['name'])
     type = FieldProperty(schemas.IDynamoDBAttributeDefinition['type'])
 
+    troposphere_props = troposphere.dynamodb.AttributeDefinition.props
+    cfn_mapping = {
+        "AttributeName": 'name',
+        "AttributeType": 'type',
+    }
+
 @implementer(schemas.IDynamoDBKeySchema)
 class DynamoDBKeySchema(Parent):
     name = FieldProperty(schemas.IDynamoDBKeySchema['name'])
     type = FieldProperty(schemas.IDynamoDBKeySchema['type'])
 
+    troposphere_props = troposphere.dynamodb.KeySchema.props
+    cfn_mapping = {
+        "AttributeName": 'name',
+        "KeyType": 'type',
+    }
+
 @implementer(schemas.IDynamoDBProjection)
 class DynamoDBProjection(Parent):
     type = FieldProperty(schemas.IDynamoDBProjection['type'])
+
+    troposphere_props = troposphere.dynamodb.KeySchema.props
+    cfn_mapping = {
+        # "NonKeyAttributes": '',
+        "ProjectionType": 'type',
+    }
 
 @implementer(schemas.IDynamoDBGlobalSecondaryIndex)
 class DynamoDBGlobalSecondaryIndex(Parent):
@@ -2205,6 +2230,30 @@ class DynamoDBGlobalSecondaryIndex(Parent):
     key_schema = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['key_schema'])
     projection = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['projection'])
     provisioned_throughput = FieldProperty(schemas.IDynamoDBGlobalSecondaryIndex['provisioned_throughput'])
+
+    @property
+    def key_schema_cfn(self):
+        return [ key_schema.cfn_export_dict for key_schema in self.key_schema ]
+
+    @property
+    def projection_cfn(self):
+        if self.projection == None:
+            return None
+        return self.projection.cfn_export_dict
+
+    @property
+    def provisioned_throughput_cfn(self):
+        if self.provisioned_throughput == None:
+            return None
+        return self.provisioned_throughput.cfn_export_dict
+
+    troposphere_props = troposphere.dynamodb.GlobalSecondaryIndex.props
+    cfn_mapping = {
+        "IndexName": 'index_name',
+        "KeySchema": 'key_schema_cfn',
+        "Projection": 'projection_cfn',
+        "ProvisionedThroughput": 'provisioned_throughput_cfn',
+    }
 
 @implementer(schemas.IDynamoDBTargetTrackingScalingPolicy)
 class DynamoDBTargetTrackingScalingPolicy(Parent):
@@ -2217,13 +2266,70 @@ class DynamoDBTargetTrackingScalingPolicy(Parent):
 @implementer(schemas.IDynamoDBTable)
 class DynamoDBTable(Named, dict):
     attribute_definitions = FieldProperty(schemas.IDynamoDBTable['attribute_definitions'])
+    billing_mode = FieldProperty(schemas.IDynamoDBTable['billing_mode'])
     key_schema = FieldProperty(schemas.IDynamoDBTable['key_schema'])
     global_secondary_indexes = FieldProperty(schemas.IDynamoDBTable['global_secondary_indexes'])
     provisioned_throughput = FieldProperty(schemas.IDynamoDBTable['provisioned_throughput'])
     target_tracking_scaling_policy = FieldProperty(schemas.IDynamoDBTable['target_tracking_scaling_policy'])
 
+    @property
+    def get_billing_mode(self):
+        "Return default billing mode if not override locally"
+        if self.billing_mode == None:
+            dynamodb = get_parent_by_interface(self, schemas.IDynamoDB)
+            return dynamodb.default_billing_mode
+        return self.billing_mode
+
+    @property
+    def attribute_definitions_cfn(self):
+        return [ attr_def.cfn_export_dict for attr_def in self.attribute_definitions ]
+
+    @property
+    def global_secondary_indexes_cfn(self):
+        return [ gsi.cfn_export_dict for gsi in self.global_secondary_indexes ]
+
+    @property
+    def key_schema_cfn(self):
+        return [ key_schema.cfn_export_dict for key_schema in self.key_schema ]
+
+    @property
+    def provisioned_throughput_cfn(self):
+        """
+        None if billing mode is pay_per_request, otherwise local provisioned_throughput
+        if specified, otherwise default provisioned_throughput
+        """
+        if self.get_billing_mode == 'pay_per_request':
+            return None
+        if self.provisioned_throughput == None:
+            dynamodb = get_parent_by_interface(self, schemas.IDynamoDB)
+            return dynamodb.default_provisioned_throughput.cfn_export_dict
+        return self.provisioned_throughput.cfn_export_dict
+
+    @property
+    def billing_mode_cfn(self):
+        if self.billing_mode == 'pay_per_request':
+            return 'PAY_PER_REQUEST'
+        return 'PROVISIONED'
+
+    troposphere_props = troposphere.dynamodb.Table.props
+    cfn_mapping = {
+        'AttributeDefinitions': 'attribute_definitions_cfn',
+        'BillingMode': 'billing_mode_cfn',
+        'GlobalSecondaryIndexes': 'global_secondary_indexes_cfn',
+        'KeySchema': 'key_schema_cfn',
+        # 'LocalSecondaryIndexes': ([LocalSecondaryIndex], False),
+        # 'PointInTimeRecoverySpecification': (PointInTimeRecoverySpecification, False),
+        'ProvisionedThroughput': 'provisioned_throughput_cfn',
+        # 'SSESpecification': (SSESpecification, False),
+        # 'StreamSpecification': (StreamSpecification, False),
+        # 'TableName': generated by CloudFormation
+        # 'Tags': (Tags, False),
+        # 'TimeToLiveSpecification': (TimeToLiveSpecification, False),
+    }
+
 @implementer(schemas.IDynamoDB)
 class DynamoDB(ApplicationResource):
+    default_billing_mode = FieldProperty(schemas.IDynamoDB['default_billing_mode'])
     default_provisioned_throughput = FieldProperty(schemas.IDynamoDB['default_provisioned_throughput'])
     tables = FieldProperty(schemas.IDynamoDB['tables'])
 

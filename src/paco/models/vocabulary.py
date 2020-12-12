@@ -74,6 +74,11 @@ dynamodb_project_types = SimpleVocabulary.fromValues([
 	'KEYS_ONLY',
 ])
 
+dynamodb_billing_modes = SimpleVocabulary.fromValues([
+	'provisioned',
+	'pay_per_request',
+])
+
 ecr_permissions = SimpleVocabulary.fromValues([
 	'Push',
 	'Pull',

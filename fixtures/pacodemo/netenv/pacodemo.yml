@@ -1172,6 +1172,7 @@ applications:
             type: DynamoDB
             order: 100
             enabled: true
+            default_billing_mode: provisioned
             default_provisioned_throughput:
               read_capacity_units: 5
               write_capacity_units: 5
@@ -1209,6 +1210,7 @@ applications:
                   scale_in_cooldown: 60
                   scale_out_cooldown: 60
               discography:
+                billing_mode: 'pay_per_request'
                 attribute_definitions:
                   - name: "ArtistId"
                     type: "S"
@@ -1228,9 +1230,7 @@ applications:
                         type: "HASH"
                     projection:
                       type: "KEYS_ONLY"
-                    provisioned_throughput:
-                      read_capacity_units: 5
-                      write_capacity_units: 5
+
   notification:
     groups:
       lambda:

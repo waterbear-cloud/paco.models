@@ -260,6 +260,7 @@ class CloudWatchAlarm(Alarm):
 
         # Base alarm info - used for standalone alarms not part of an application
         description = {
+            "ref": self.paco_ref_parts,
             "project_name": project.name,
             "project_title": project.title,
             "account_name": self.account_name,

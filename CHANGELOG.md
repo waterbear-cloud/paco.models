@@ -6,6 +6,8 @@ Changelog for paco.models
 
 ### Added
 
+- AlarmDescription metadata now includes a 'ref' field, which is the paco.ref parts to the Alarm resource.
+
 - Constraint for `IS3BucketPolicy` and `IStatement` for the `condition` field to check for valid AWS Constraint.
 
 - `IBackupPlan` has new `copy_actions` field.

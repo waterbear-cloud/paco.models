@@ -179,17 +179,19 @@ class SimpleCloudWatchAlarm(Parent):
 class CloudWatchAlarm(Alarm):
     "CloudWatch Alarm"
     type = "Alarm"
-    metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
-    namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
-    dimensions = FieldProperty(schemas.ICloudWatchAlarm["dimensions"])
-    period = FieldProperty(schemas.ICloudWatchAlarm["period"])
-    evaluation_periods = FieldProperty(schemas.ICloudWatchAlarm["evaluation_periods"])
-    threshold = FieldProperty(schemas.ICloudWatchAlarm["threshold"])
     comparison_operator = FieldProperty(schemas.ICloudWatchAlarm["comparison_operator"])
-    statistic = FieldProperty(schemas.ICloudWatchAlarm["statistic"])
-    treat_missing_data = FieldProperty(schemas.ICloudWatchAlarm["treat_missing_data"])
-    extended_statistic = FieldProperty(schemas.ICloudWatchAlarm["extended_statistic"])
+    dimensions = FieldProperty(schemas.ICloudWatchAlarm["dimensions"])
+    enable_ok_actions = FieldProperty(schemas.ICloudWatchAlarm["enable_ok_actions"])
+    enable_insufficient_data_actions = FieldProperty(schemas.ICloudWatchAlarm["enable_insufficient_data_actions"])
     evaluate_low_sample_count_percentile = FieldProperty(schemas.ICloudWatchAlarm["evaluate_low_sample_count_percentile"])
+    evaluation_periods = FieldProperty(schemas.ICloudWatchAlarm["evaluation_periods"])
+    extended_statistic = FieldProperty(schemas.ICloudWatchAlarm["extended_statistic"])
+    namespace = FieldProperty(schemas.ICloudWatchAlarm["namespace"])
+    metric_name = FieldProperty(schemas.ICloudWatchAlarm["metric_name"])
+    period = FieldProperty(schemas.ICloudWatchAlarm["period"])
+    threshold = FieldProperty(schemas.ICloudWatchAlarm["threshold"])
+    treat_missing_data = FieldProperty(schemas.ICloudWatchAlarm["treat_missing_data"])
+    statistic = FieldProperty(schemas.ICloudWatchAlarm["statistic"])
 
     troposphere_props = troposphere.cloudwatch.Alarm.props
     cfn_mapping = {

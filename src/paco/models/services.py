@@ -6,7 +6,8 @@ import pkg_resources
 
 @implementer(schemas.IServices)
 class Services(Named, dict):
-    pass
+
+    enabled_services = []
 
 
 def list_enabled_services(paco_home):

@@ -1980,6 +1980,11 @@ Caveat: You can not have an environment named 'applications'.
           <PacoProject>/(S|s)ervice(|s)/<EntryPointName>(.yml|.yaml)
         """
         service_plugins = paco.models.services.list_enabled_services(self.config_folder)
+        # allow services to query for which services may be loaded later
+        enabled_services = []
+        for service_info in service_plugins.values():
+            enabled_services.append(service_info['name'])
+        self.project['service'].enabled_services = enabled_services
         for service_info in service_plugins.values():
             config = self.read_yaml(service_info['yaml_path'])
             service = service_info['module'].load_service_model(

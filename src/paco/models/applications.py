@@ -2217,10 +2217,11 @@ class DynamoDBKeySchema(Parent):
 @implementer(schemas.IDynamoDBProjection)
 class DynamoDBProjection(Parent):
     type = FieldProperty(schemas.IDynamoDBProjection['type'])
+    non_key_attributes = FieldProperty(schemas.IDynamoDBProjection['non_key_attributes'])
 
     troposphere_props = troposphere.dynamodb.KeySchema.props
     cfn_mapping = {
-        # "NonKeyAttributes": '',
+        "NonKeyAttributes": 'non_key_attributes',
         "ProjectionType": 'type',
     }
 

@@ -8603,6 +8603,14 @@ class IDynamoDBProjection(IParent):
         description="Must be one of ALL, INCLUDE, KEYS_ONLY",
         vocabulary=vocabulary.dynamodb_project_types
     )
+    non_key_attributes = zope.schema.List(
+        title="Non Key Attributes",
+        value_type=zope.schema.TextLine(
+            title="Non Key Attribute"
+        ),
+        required=False,
+        default=[],
+    )
 
 class IDynamoDBGlobalSecondaryIndex(IParent):
     index_name = zope.schema.TextLine(
@@ -8716,7 +8724,7 @@ millisecond performance at any scale.
           - index_name: "GSI"
             key_schema:
               - name: "TicketSales"
-                key_schema: "HASH"
+                type: "HASH"
             projection:
               type: "KEYS_ONLY"
             provisioned_throughput:

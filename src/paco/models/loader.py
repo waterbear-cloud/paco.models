@@ -22,7 +22,7 @@ from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDef
 from paco.models.project import VersionControl, Project, SharedState, PacoWorkBucket
 from paco.models.applications import Application, PinpointApplication, ResourceGroups, ResourceGroup, \
     ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, IAMUserResource, \
-    Resources, LBApplication, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
+    Resources, ApplicationLoadBalancer, NetworkLoadBalancer, TargetGroups, TargetGroup, Listeners, Listener, DNS, PortProtocol, EC2, \
     S3Bucket, ApplicationS3Bucket, S3NotificationConfiguration, S3LambdaConfiguration, \
     S3StaticWebsiteHosting, S3StaticWebsiteHostingRedirectRequests, S3BucketPolicy, \
     ACM, ListenerRule, ListenerRules, Lambda, LambdaEnvironment, LambdaVpcConfig, \
@@ -173,7 +173,8 @@ RESOURCES_CLASS_MAP = {
     'IoTTopicRule': IoTTopicRule,
     'IoTAnalyticsPipeline': IoTAnalyticsPipeline,
     'Lambda': Lambda,
-    'LBApplication': LBApplication,
+    'LBApplication': ApplicationLoadBalancer,
+    'LBNetwork': NetworkLoadBalancer,
     'ManagedPolicy': ManagedPolicy,
     'PinpointApplication': PinpointApplication,
     'RDS': RDS,
@@ -521,7 +522,14 @@ SUB_TYPES_CLASS_MAP = {
     CloudWatchLogAlarm: {
         'dimensions': ('obj_list', Dimension)
     },
-    LBApplication: {
+    ApplicationLoadBalancer: {
+        'target_groups': ('container', (TargetGroups, TargetGroup)),
+        'security_groups': ('str_list', PacoReference),
+        'listeners': ('container', (Listeners, Listener)),
+        'dns': ('obj_list', DNS),
+        'monitoring': ('direct_obj', MonitorConfig)
+    },
+    NetworkLoadBalancer: {
         'target_groups': ('container', (TargetGroups, TargetGroup)),
         'security_groups': ('str_list', PacoReference),
         'listeners': ('container', (Listeners, Listener)),

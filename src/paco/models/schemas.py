@@ -3548,7 +3548,61 @@ class IDNS(IParent):
         required=False
     )
 
-class ILBApplication(IResource, IMonitorable):
+class ILoadBalancer(IResource, IMonitorable):
+    "Base class for Load Balancers"
+    target_groups = zope.schema.Object(
+        title="Target Groups",
+        schema=ITargetGroups,
+        required=False,
+    )
+    listeners = zope.schema.Object(
+        title="Listeners",
+        schema=IListeners,
+        required=False,
+    )
+    dns = zope.schema.List(
+        title="List of DNS for the ALB",
+        value_type=zope.schema.Object(IDNS),
+        required=False,
+    )
+    scheme = zope.schema.Choice(
+        title="Scheme",
+        vocabulary=vocabulary.lb_scheme,
+        required=False,
+    )
+    security_groups = zope.schema.List(
+        title="Security Groups",
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='ISecurityGroup',
+        ),
+        required=False,
+    )
+    segment = zope.schema.TextLine(
+        title="Id of the segment stack",
+        required=False,
+    )
+    idle_timeout_secs = zope.schema.Int(
+        title='Idle timeout in seconds',
+        description='The idle timeout value, in seconds.',
+        default=60,
+        required=False,
+    )
+    enable_access_logs = zope.schema.Bool(
+        title="Write access logs to an S3 Bucket",
+        required=False
+    )
+    access_logs_bucket=PacoReference(
+        title="Bucket to store access logs in",
+        required=False,
+        schema_constraint='IS3Bucket'
+    )
+    access_logs_prefix = zope.schema.TextLine(
+        title="Access Logs S3 Bucket prefix",
+        required=False
+    )
+
+class IApplicationLoadBalancer(ILoadBalancer):
     """
 The ``LBApplication`` resource type creates an Application Load Balancer. Use load balancers to route traffic from
 the internet to your web servers.
@@ -3610,57 +3664,12 @@ to a target group, use the ``target_groups`` field on an ASG resource.
     segment: public
 
 """
-    target_groups = zope.schema.Object(
-        title="Target Groups",
-        schema=ITargetGroups,
-        required=False,
-    )
-    listeners = zope.schema.Object(
-        title="Listeners",
-        schema=IListeners,
-        required=False,
-    )
-    dns = zope.schema.List(
-        title="List of DNS for the ALB",
-        value_type=zope.schema.Object(IDNS),
-        required=False,
-    )
-    scheme = zope.schema.Choice(
-        title="Scheme",
-        vocabulary=vocabulary.lb_scheme,
-        required=False,
-    )
-    security_groups = zope.schema.List(
-        title="Security Groups",
-        value_type=PacoReference(
-            title="Paco reference",
-            schema_constraint='ISecurityGroup',
-        ),
-        required=False,
-    )
-    segment = zope.schema.TextLine(
-        title="Id of the segment stack",
-        required=False,
-    )
-    idle_timeout_secs = zope.schema.Int(
-        title='Idle timeout in seconds',
-        description='The idle timeout value, in seconds.',
-        default=60,
-        required=False,
-    )
-    enable_access_logs = zope.schema.Bool(
-        title="Write access logs to an S3 Bucket",
-        required=False
-    )
-    access_logs_bucket=PacoReference(
-        title="Bucket to store access logs in",
-        required=False,
-        schema_constraint='IS3Bucket'
-    )
-    access_logs_prefix = zope.schema.TextLine(
-        title="Access Logs S3 Bucket prefix",
-        required=False
-    )
+    pass
+
+class INetworkLoadBalancer(ILoadBalancer):
+    """
+    Network Load Balancer
+    """
 
 class IPrincipal(INamed):
     aws = zope.schema.List(
@@ -7931,7 +7940,7 @@ class IRoute53HealthCheck(IResource):
         title="Load Balancer Endpoint",
         str_ok=True,
         required=False,
-        schema_constraint='ILBApplication'
+        schema_constraint='ILoadBalancer'
     )
     latency_graphs = zope.schema.Bool(
         title="Measure latency and display CloudWatch graph in the AWS Console",

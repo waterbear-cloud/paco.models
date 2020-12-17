@@ -267,6 +267,7 @@ applications:
         order: 500
         enabled: true
         resources:
+
           alb:
             type: LBApplication
             enabled: true
@@ -675,6 +676,41 @@ applications:
             domain_name: pacodemo.waterbear.cloud
             subject_alternative_names:
               - '*.pacodemo.waterbear.cloud'
+          nlb:
+            type: LBNetwork
+            enabled: true
+            order: 5
+            target_groups:
+              app:
+                health_check_interval: 10
+                health_check_timeout: 10
+                healthy_threshold: 2
+                unhealthy_threshold: 2
+                port: 80
+                protocol: HTTP
+                health_check_http_code: 200
+                health_check_path: /
+                connection_drain_timeout: 300
+              farapp:
+                health_check_interval: 10
+                health_check_timeout: 10
+                healthy_threshold: 2
+                unhealthy_threshold: 2
+                port: 80
+                protocol: HTTP
+                health_check_http_code: 200
+                health_check_path: /
+                connection_drain_timeout: 300
+                target_type: ip
+            listeners:
+              http:
+                port: 80
+                protocol: HTTP
+                target_group: app
+            scheme: internet-facing
+            security_groups:
+              - paco.ref netenv.pacodemo.network.vpc.security_groups.app.lb
+            segment: public
           alb:
             type: LBApplication
             enabled: true

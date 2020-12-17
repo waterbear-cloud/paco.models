@@ -86,10 +86,19 @@ class Testpacodemo(BaseTestModelLoader):
     def test_lbapplication(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         alb = demo_env['applications']['app'].groups['site'].resources['alb']
-        assert schemas.ILBApplication.providedBy(alb)
+        assert schemas.ILoadBalancer.providedBy(alb)
         assert schemas.IListener.providedBy(alb.listeners['https'])
         assert alb.listeners['https'].rules['app_forward'].name == 'app_forward'
         assert alb.listeners['https'].rules['app_forward'].rule_type == 'forward'
+
+    def test_lbnetwork(self):
+        demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
+        nlb = demo_env['applications']['app'].groups['site'].resources['nlb']
+        assert schemas.INetworkLoadBalancer.providedBy(nlb)
+        # assert schemas.IListener.providedBy(alb.listeners['https'])
+        # assert alb.listeners['https'].rules['app_forward'].name == 'app_forward'
+        # assert alb.listeners['https'].rules['app_forward'].rule_type == 'forward'
+
 
     def test_asg(self):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']

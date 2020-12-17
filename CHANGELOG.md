@@ -4,6 +4,11 @@ Changelog for paco.models
 7.6.2 (unreleased)
 ------------------
 
+### Changed
+
+- Add support for Network Load Balaners. New `IloadBalancer` base class and `IApplicationLoadBalancer` and `INetworkLoadBalancer` classes.
+  The `LBApplication` class has been renamed to `ApplicationLoadBalancer`.
+
 ### Added
 
 - AlarmDescription metadata now includes a 'ref' field, which is the paco.ref parts to the Alarm resource.

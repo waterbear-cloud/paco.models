@@ -1211,21 +1211,29 @@ class DNS(Named, Parent):
             return self.ssl_certificate
         return ref.resource.resolve_ref_obj.resolve_ref(ref)
 
-@implementer(schemas.ILBApplication)
-class LBApplication(ApplicationResource):
-    target_groups = FieldProperty(schemas.ILBApplication['target_groups'])
-    listeners = FieldProperty(schemas.ILBApplication['listeners'])
-    dns = FieldProperty(schemas.ILBApplication['dns'])
-    scheme = FieldProperty(schemas.ILBApplication['scheme'])
-    security_groups = FieldProperty(schemas.ILBApplication['security_groups'])
-    segment = FieldProperty(schemas.ILBApplication['segment'])
-    idle_timeout_secs = FieldProperty(schemas.ILBApplication['idle_timeout_secs'])
-    enable_access_logs = FieldProperty(schemas.ILBApplication['enable_access_logs'])
-    access_logs_bucket = FieldProperty(schemas.ILBApplication['access_logs_bucket'])
-    access_logs_prefix = FieldProperty(schemas.ILBApplication['access_logs_prefix'])
+@implementer(schemas.ILoadBalancer)
+class LoadBalancer(ApplicationResource):
+    target_groups = FieldProperty(schemas.ILoadBalancer['target_groups'])
+    listeners = FieldProperty(schemas.ILoadBalancer['listeners'])
+    dns = FieldProperty(schemas.ILoadBalancer['dns'])
+    scheme = FieldProperty(schemas.ILoadBalancer['scheme'])
+    security_groups = FieldProperty(schemas.ILoadBalancer['security_groups'])
+    segment = FieldProperty(schemas.ILoadBalancer['segment'])
+    idle_timeout_secs = FieldProperty(schemas.ILoadBalancer['idle_timeout_secs'])
+    enable_access_logs = FieldProperty(schemas.ILoadBalancer['enable_access_logs'])
+    access_logs_bucket = FieldProperty(schemas.ILoadBalancer['access_logs_bucket'])
+    access_logs_prefix = FieldProperty(schemas.ILoadBalancer['access_logs_prefix'])
 
     def resolve_ref(self, ref):
         return self.resolve_ref_obj.resolve_ref(ref)
+
+@implementer(schemas.IApplicationLoadBalancer)
+class ApplicationLoadBalancer(LoadBalancer):
+    pass
+
+@implementer(schemas.INetworkLoadBalancer)
+class NetworkLoadBalancer(LoadBalancer):
+    pass
 
 @implementer(schemas.IACM)
 class ACM(ApplicationResource):

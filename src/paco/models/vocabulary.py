@@ -858,7 +858,10 @@ instance_size_info = {
 }
 
 target_group_protocol = SimpleVocabulary.fromValues(
-    ['HTTP','HTTPS']
+    ['HTTP','HTTPS', 'TCP']
+)
+target_group_health_check_protocol = SimpleVocabulary.fromValues(
+    ['HTTP','HTTPS', 'TCP']
 )
 
 target_group_target_types = SimpleVocabulary.fromValues(

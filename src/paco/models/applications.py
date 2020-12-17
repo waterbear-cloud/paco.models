@@ -1155,6 +1155,7 @@ class TargetGroup(Resource, PortProtocol):
     health_check_http_code = FieldProperty(schemas.ITargetGroup['health_check_http_code'])
     health_check_interval = FieldProperty(schemas.ITargetGroup['health_check_interval'])
     health_check_path = FieldProperty(schemas.ITargetGroup['health_check_path'])
+    health_check_protocol = FieldProperty(schemas.ITargetGroup['health_check_protocol'])
     health_check_timeout = FieldProperty(schemas.ITargetGroup['health_check_timeout'])
     target_type = FieldProperty(schemas.ITargetGroup['target_type'])
     unhealthy_threshold = FieldProperty(schemas.ITargetGroup['unhealthy_threshold'])

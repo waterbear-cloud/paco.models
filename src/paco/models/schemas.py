@@ -3427,6 +3427,12 @@ class ITargetGroup(IPortProtocol, IResource):
         default="/",
         required=False,
     )
+    health_check_protocol = zope.schema.Choice(
+        title="Protocol",
+        vocabulary=vocabulary.target_group_health_check_protocol,
+        required=False,
+        default="HTTP"
+    )
     health_check_timeout = zope.schema.Int(
         title="Health check timeout",
         required=False,

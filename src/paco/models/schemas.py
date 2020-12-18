@@ -3537,6 +3537,12 @@ class IDNS(IParent):
         str_ok=True,
         schema_constraint='IHostedZone'
     )
+    private_hosted_zone = PacoReference(
+        title="Hosted Zone Id",
+        required=False,
+        str_ok=True,
+        schema_constraint='IHostedZone'
+    )
     domain_name = PacoReference(
         title="Domain name",
         required=False,

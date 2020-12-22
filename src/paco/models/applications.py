@@ -1203,6 +1203,7 @@ class Listener(Named, PortProtocol):
 @implementer(schemas.IDNS)
 class DNS(Named, Parent):
     hosted_zone = FieldProperty(schemas.IDNS['hosted_zone'])
+    private_hosted_zone = FieldProperty(schemas.IDNS['private_hosted_zone'])
     domain_name = FieldProperty(schemas.IDNS['domain_name'])
     ssl_certificate = FieldProperty(schemas.IDNS['ssl_certificate'])
     ttl = FieldProperty(schemas.IDNS['ttl'])

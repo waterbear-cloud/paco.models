@@ -3674,7 +3674,56 @@ to a target group, use the ``target_groups`` field on an ASG resource.
 
 class INetworkLoadBalancer(ILoadBalancer):
     """
-    Network Load Balancer
+The ``LBNetwork`` resource type creates a Network Load Balancer. Use load balancers to route traffic from
+the internet to your web servers.
+
+.. sidebar:: Prescribed Automation
+
+    ``dns``: Creates Route 53 Record Sets that will resolve DNS records to the domain name of the load balancer.
+
+    ``enable_access_logs``: Set to True to turn on access logs for the load balancer, and will automatically create
+    an S3 Bucket with permissions for AWS to write to that bucket.
+
+    ``access_logs_bucket``: Name an existing S3 Bucket (in the same region) instead of automatically creating a new one.
+    Remember that if you supply your own S3 Bucket, you are responsible for ensuring that the bucket policy for
+    it grants AWS the `s3:PutObject` permission.
+
+.. code-block:: yaml
+    :caption: Example LBNetwork load balancer resource YAML
+
+    type: LBNetwork
+    enabled: true
+    enable_access_logs: true
+    target_groups:
+        api:
+            health_check_interval: 30
+            health_check_timeout: 10
+            healthy_threshold: 2
+            unhealthy_threshold: 2
+            port: 3000
+            protocol: HTTP
+            health_check_http_code: 200
+            health_check_path: /
+            connection_drain_timeout: 30
+    listeners:
+        http:
+            port: 80
+            protocol: HTTP
+            redirect:
+                port: 443
+                protocol: HTTPS
+        https:
+            port: 443
+            protocol: HTTPS
+            ssl_certificates:
+                - paco.ref netenv.app.applications.app.groups.certs.resources.root
+            target_group: api
+    dns:
+        - hosted_zone: paco.ref resource.route53.mynetenv
+          domain_name: api.example.com
+    scheme: internet-facing
+    segment: public
+
     """
 
 class IPrincipal(INamed):

@@ -4,8 +4,9 @@ Changelog for paco.models
 7.7.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- ReleasePhases for DeploymentPipeline CodeBuild actions.
 
 7.7.0 (2020-12-23)
 ------------------

@@ -1962,6 +1962,19 @@ class ECRRepositoryPermission(Parent):
     repository = FieldProperty(schemas.IECRRepositoryPermission['repository'])
     permission = FieldProperty(schemas.IECRRepositoryPermission['permission'])
 
+@implementer(schemas.IDeploymentPipelineBuildReleasePhase)
+class DeploymentPipelineBuildReleasePhase(Named):
+    commands = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhase['commands'])
+
+@implementer(schemas.IDeploymentPipelineBuildReleasePhaseCommand)
+class DeploymentPipelineBuildReleasePhaseCommand(Named):
+    service = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['service'])
+    command = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['command'])
+
+@implementer(schemas.IDeploymentPipelineBuildReleasePhases)
+class DeploymentPipelineBuildReleasePhases(Named, dict):
+    pass
+
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     buildspec = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['buildspec'])
@@ -1971,6 +1984,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     deployment_environment = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['deployment_environment'])
     ecr_repositories = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['ecr_repositories'])
     privileged_mode = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['privileged_mode'])
+    release_phase = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['release_phase'])
     role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
     secrets = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['secrets'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])

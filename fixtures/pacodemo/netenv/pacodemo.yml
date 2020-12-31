@@ -624,6 +624,19 @@ applications:
                   enabled: false
                   codecommit_repository: paco.ref resource.codecommit.aimdemo.app
                   deployment_branch_name: "dev"
+              build:
+                codebuild:
+                  type: CodeBuild.Build
+                  enabled: true
+                  deployment_environment: "master"
+                  codebuild_image: 'aws/codebuild/standard:4.0'
+                  codebuild_compute_type: BUILD_GENERAL1_MEDIUM
+                  release_phase:
+                    ecs:
+                      commands:
+                        - service: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_services.services.simple_app
+                          command: 'docker rake:deploy'
+
               invoke:
                 image_deploy:
                   type: Lambda.Invoke

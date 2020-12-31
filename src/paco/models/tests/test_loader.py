@@ -63,6 +63,12 @@ class Testpacodemo(BaseTestModelLoader):
         ecrpipe = self.project['netenv']['pacodemo']['demo']['us-west-2']['applications']['app'].groups['cicd'].resources['ecrpipe']
         assert ecrpipe.source['ecr'].type, 'ECR.Source'
 
+        # Test CodeBuild
+        codebuild = deploy_pipeline.stages['build']['codebuild']
+        ecs = codebuild.release_phase['ecs']
+        assert schemas.IDeploymentPipelineBuildReleasePhase(ecs)
+        assert ecs.commands[0].command, 'docker rake:deploy'
+
     def test_ne_vpc(self):
         vpc = self.project['netenv']['pacodemo']['demo']['us-west-2'].network.vpc
         assert vpc.enable_dns_support == True

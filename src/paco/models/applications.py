@@ -1964,16 +1964,12 @@ class ECRRepositoryPermission(Parent):
 
 @implementer(schemas.IDeploymentPipelineBuildReleasePhase)
 class DeploymentPipelineBuildReleasePhase(Named):
-    commands = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhase['commands'])
+    ecs = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhase['ecs'])
 
 @implementer(schemas.IDeploymentPipelineBuildReleasePhaseCommand)
 class DeploymentPipelineBuildReleasePhaseCommand(Named):
     service = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['service'])
     command = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['command'])
-
-@implementer(schemas.IDeploymentPipelineBuildReleasePhases)
-class DeploymentPipelineBuildReleasePhases(Named, dict):
-    pass
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):

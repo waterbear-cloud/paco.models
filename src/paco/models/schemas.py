@@ -10069,12 +10069,6 @@ class IECRRepositoryPermission(Interface):
         vocabulary=vocabulary.ecr_permissions,
     )
 
-class IDeploymentPipelineBuildReleasePhase(INamed):
-    """
-Release Phase
-    """
-    commands = zope.schema.List()
-
 class IDeploymentPipelineBuildReleasePhaseCommand(IParent):
     service = PacoReference(
         title="ECS Service",
@@ -10087,12 +10081,15 @@ class IDeploymentPipelineBuildReleasePhaseCommand(IParent):
         default="",
     )
 
-class IDeploymentPipelineBuildReleasePhases(INamed, IMapping):
+class IDeploymentPipelineBuildReleasePhase(INamed):
     """
-Container for `DeploymentPipelineBuildReleasePhase`_ objects.
+Release Phase
     """
-    taggedValue('contains', 'IDeploymentPipelineBuildReleasePhase')
-
+    ecs = zope.schema.List(
+        title="ECS Commands",
+        required=False,
+        value_type=zope.schema.Object(IDeploymentPipelineBuildReleasePhaseCommand)
+    )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
     """
@@ -10139,7 +10136,7 @@ CodeBuild DeploymentPipeline Build Stage
     )
     release_phase = zope.schema.Object(
         title="Release Phase",
-        schema=IDeploymentPipelineBuildReleasePhases,
+        schema=IDeploymentPipelineBuildReleasePhase,
         required=False
     )
     role_policies = zope.schema.List(

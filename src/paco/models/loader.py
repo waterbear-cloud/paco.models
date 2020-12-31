@@ -35,8 +35,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
-    ECRRepositoryPermission, DeploymentPipelineBuildReleasePhase, DeploymentPipelineBuildReleasePhases, \
-    DeploymentPipelineBuildReleasePhaseCommand, \
+    ECRRepositoryPermission, DeploymentPipelineBuildReleasePhase, DeploymentPipelineBuildReleasePhaseCommand, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceECR, \
     DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
@@ -402,10 +401,10 @@ SUB_TYPES_CLASS_MAP = {
         'ecr_repositories': ('obj_list', ECRRepositoryPermission),
         'role_policies': ('obj_list', Policy),
         'secrets': ('str_list', PacoReference),
-        'release_phase': ('container', (DeploymentPipelineBuildReleasePhases, DeploymentPipelineBuildReleasePhase)),
+        'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase),
     },
     DeploymentPipelineBuildReleasePhase: {
-        'commands': ('obj_list', DeploymentPipelineBuildReleasePhaseCommand),
+        'ecs': ('obj_list', DeploymentPipelineBuildReleasePhaseCommand),
     },
     DeploymentPipelineDeployCodeDeploy: {
         'minimum_healthy_hosts': ('direct_obj', CodeDeployMinimumHealthyHosts)

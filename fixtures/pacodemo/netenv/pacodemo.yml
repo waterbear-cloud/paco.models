@@ -633,9 +633,8 @@ applications:
                   codebuild_compute_type: BUILD_GENERAL1_MEDIUM
                   release_phase:
                     ecs:
-                      commands:
-                        - service: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_services.services.simple_app
-                          command: 'docker rake:deploy'
+                      - service: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_services.services.simple_app
+                        command: 'docker rake:deploy'
 
               invoke:
                 image_deploy:

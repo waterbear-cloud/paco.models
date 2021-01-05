@@ -3406,6 +3406,15 @@ Container for `TargetGroup`_ objects.
 
 class ITargetGroup(IPortProtocol, IResource):
     """Target Group"""
+
+    @invariant
+    def health_check_check(obj):
+        """
+        health_check_interval > health_check_timeout
+        """
+        if not obj.health_check_interval > obj.health_check_timeout:
+            raise Invalid('TargetGroup health_check_interval must be greater than health_check_timeout.')
+
     connection_drain_timeout = zope.schema.Int(
         title="Connection drain timeout",
         required=False,

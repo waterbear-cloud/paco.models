@@ -490,6 +490,10 @@ class ECSCapacityProvider(Named, Deployable):
     minimum_scaling_step_size = FieldProperty(schemas.IECSCapacityProvider['minimum_scaling_step_size'])
     maximum_scaling_step_size = FieldProperty(schemas.IECSCapacityProvider['maximum_scaling_step_size'])
 
+    def get_aws_name(self):
+        asg = self.__parent__.__parent__
+        return f"{asg.netenv_name}-{asg.env_name}-{asg.app_name}-{asg.group_name}-{asg.name}"
+
 @implementer(schemas.IECSASGConfiguration)
 class ECSASGConfiguration(Named):
     cluster = FieldProperty(schemas.IECSASGConfiguration['cluster'])
@@ -499,6 +503,12 @@ class ECSASGConfiguration(Named):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.capacity_provider = ECSCapacityProvider('capacity_provider', self)
+
+@implementer(schemas.IECSCapacityProviderStrategyItem)
+class ECSCapacityProviderStrategyItem(Parent):
+    base = FieldProperty(schemas.IECSCapacityProviderStrategyItem['base'])
+    provider = FieldProperty(schemas.IECSCapacityProviderStrategyItem['provider'])
+    weight = FieldProperty(schemas.IECSCapacityProviderStrategyItem['weight'])
 
 @implementer(schemas.ISSHAccess)
 class SSHAccess(Named):

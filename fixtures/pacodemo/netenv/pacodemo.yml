@@ -437,6 +437,10 @@ applications:
                 desired_count: 2
                 maximum_tasks: 4
                 suspend_scaling: false
+                capacity_providers:
+                  - provider: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_asg
+                    base: 1
+                    weight: 1
                 target_tracking_scaling_policies:
                   memory:
                     enabled: true

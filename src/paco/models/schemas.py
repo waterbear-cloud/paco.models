@@ -5314,6 +5314,24 @@ class IECSASGConfiguration(INamed):
         schema=IECSCapacityProvider,
     )
 
+class IECSCapacityProviderStrategyItem(IParent):
+    provider = PacoReference(
+        title='Capacity Provider',
+        required=True,
+        str_ok=False,
+        schema_constraint='IASG'
+    )
+    base = zope.schema.Int(
+        title="Base value designates how many tasks, at a minimum, to run on the specified capacity provider.",
+        min=0,
+        max=100000,
+    )
+    weight = zope.schema.Int(
+        title="Weight value designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.",
+        min=0,
+        max=1000,
+    )
+
 class ISSHAccess(INamed):
     @invariant
     def valid_users_groups(obj):
@@ -6417,6 +6435,12 @@ class IECSService(INamed, IMonitorable):
         min=0,
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
+    )
+    capacity_providers = zope.schema.List(
+        title="Capacity Providers",
+        required=False,
+        default=[],
+        value_type=zope.schema.Object(IECSCapacityProviderStrategyItem)
     )
     launch_type = zope.schema.Choice(
         title="Launch Type",

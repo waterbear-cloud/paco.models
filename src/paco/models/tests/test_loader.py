@@ -393,6 +393,10 @@ class Testpacodemo(BaseTestModelLoader):
         assert simple_app_service.target_tracking_scaling_policies['cpu'].predefined_metric, 'ECSServiceAverageCPUUtilization'
         assert simple_app_service.target_tracking_scaling_policies['cpu'].target, 70
 
+        # Capacity Providers
+        assert simple_app_service.capacity_providers[0].base, 1
+        assert simple_app_service.capacity_providers[0].weight, 1
+
     def test_cognito(self):
         auth_app = self.demo_app.groups['auth']
         userpool = auth_app.resources['userpool']

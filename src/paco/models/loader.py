@@ -49,8 +49,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     ECSLoadBalancer, ECSServicesContainer, ECSService, ECSCluster, ECSServices, PortMapping, ECSMountPoint, \
     ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy, ServiceVPCConfiguration, \
     ECSVolumesFrom, ECSVolume, ECSLogging, ECRRepository, ECSTaskDefinitionSecret, ECSContainerDependency, \
-    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ServicesMonitorConfig, \
-    ECSSettingsGroups, ECSSettingsGroup, \
+    DockerLabels, ECSHostEntry, ECSHealthCheck, ECSUlimit, ECSCapacityProvider, ECSCapacityProviderStrategyItem, \
+    ServicesMonitorConfig, ECSSettingsGroups, ECSSettingsGroup, \
     PinpointSMSChannel, PinpointEmailChannel, \
     CognitoUserPoolSchemaAttribute, CognitoUserPool, CognitoIdentityPool, CognitoUserPoolClients, CognitoUserPoolClient, \
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
@@ -217,6 +217,7 @@ SUB_TYPES_CLASS_MAP = {
         'target_tracking_scaling_policies': ('container', (ECSTargetTrackingScalingPolicies, ECSTargetTrackingScalingPolicy)),
         'monitoring': ('direct_obj', MonitorConfig),
         'vpc_config': ('direct_obj', ServiceVPCConfiguration),
+        'capacity_providers': ('obj_list', ECSCapacityProviderStrategyItem),
     },
     ECSTaskDefinition: {
         'container_definitions': ('container', (ECSContainerDefinitions, ECSContainerDefinition)),

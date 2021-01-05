@@ -274,7 +274,7 @@ applications:
             order: 10
             target_groups:
               app:
-                health_check_interval: 10
+                health_check_interval: 30
                 health_check_timeout: 10
                 healthy_threshold: 2
                 unhealthy_threshold: 2
@@ -284,7 +284,7 @@ applications:
                 health_check_path: /
                 connection_drain_timeout: 300
               farapp:
-                health_check_interval: 10
+                health_check_interval: 30
                 health_check_timeout: 10
                 healthy_threshold: 2
                 unhealthy_threshold: 2
@@ -702,7 +702,7 @@ applications:
             order: 5
             target_groups:
               app:
-                health_check_interval: 10
+                health_check_interval: 30
                 health_check_timeout: 10
                 healthy_threshold: 2
                 unhealthy_threshold: 2
@@ -712,7 +712,7 @@ applications:
                 health_check_path: /
                 connection_drain_timeout: 300
               farapp:
-                health_check_interval: 10
+                health_check_interval: 30
                 health_check_timeout: 10
                 healthy_threshold: 2
                 unhealthy_threshold: 2

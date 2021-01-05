@@ -6401,11 +6401,13 @@ class IECSCapacityProviderStrategyItem(IParent):
         title="Base value designates how many tasks, at a minimum, to run on the specified capacity provider.",
         min=0,
         max=100000,
+        required=False,
     )
     weight = zope.schema.Int(
         title="Weight value designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.",
         min=0,
         max=1000,
+        requried=False,
     )
 
 class IECSService(INamed, IMonitorable):

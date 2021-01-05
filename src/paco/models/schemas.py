@@ -6416,7 +6416,8 @@ class IECSCapacityProviderStrategyItem(IParent):
         title="Weight value designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.",
         min=0,
         max=1000,
-        required=False,
+        default=1,
+        required=True,
     )
 
 class IECSService(INamed, IMonitorable):

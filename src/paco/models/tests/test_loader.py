@@ -372,6 +372,7 @@ class Testpacodemo(BaseTestModelLoader):
         demo_env = self.project['netenv']['pacodemo']['demo']['us-west-2']
         cluster = demo_env['applications']['app'].groups['container'].resources['ecs_cluster']
         assert schemas.IECSCluster.providedBy(cluster)
+        assert cluster.capacity_providers[0].base, 1
         ecs_service_config = demo_env['applications']['app'].groups['container'].resources['ecs_services']
 
         assert ecs_service_config.setting_groups['app_pool'].secrets[0].name, 'TWO_SECRET'

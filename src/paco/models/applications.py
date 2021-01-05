@@ -1119,6 +1119,7 @@ class ECSServices(Resource, Monitorable):
 
 @implementer(schemas.IECSCluster)
 class ECSCluster(Resource, Monitorable):
+    capacity_providers = FieldProperty(schemas.IECSCluster['capacity_providers'])
 
     def resolve_ref(self, ref):
         return self.stack

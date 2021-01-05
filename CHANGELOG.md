@@ -6,8 +6,9 @@ Changelog for paco.models
 
 ### Added
 
-- ECS Service has a `capacity_providers` for ECS Capacity Providers.
+- ECS Service has a `capacity_providers` field for ECS Capacity Providers.
 
+- ECS Cluster has a `capacity_providers` field that is the default if no `launch_type` is specified.
 
 7.7.1 (2020-12-31)
 ------------------

@@ -197,6 +197,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     ECSCluster: {
         'monitoring': ('direct_obj', MonitorConfig),
+        'capacity_providers': ('obj_list', ECSCapacityProviderStrategyItem),
     },
     ECSServices: {
         'setting_groups': ('container', (ECSSettingsGroups, ECSSettingsGroup)),

@@ -5314,24 +5314,6 @@ class IECSASGConfiguration(INamed):
         schema=IECSCapacityProvider,
     )
 
-class IECSCapacityProviderStrategyItem(IParent):
-    provider = PacoReference(
-        title='Capacity Provider',
-        required=True,
-        str_ok=False,
-        schema_constraint='IASG'
-    )
-    base = zope.schema.Int(
-        title="Base value designates how many tasks, at a minimum, to run on the specified capacity provider.",
-        min=0,
-        max=100000,
-    )
-    weight = zope.schema.Int(
-        title="Weight value designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.",
-        min=0,
-        max=1000,
-    )
-
 class ISSHAccess(INamed):
     @invariant
     def valid_users_groups(obj):
@@ -6408,6 +6390,24 @@ class IServiceVPCConfiguration(IVPCConfiguration):
         required=False,
     )
 
+class IECSCapacityProviderStrategyItem(IParent):
+    provider = PacoReference(
+        title='Capacity Provider',
+        required=True,
+        str_ok=False,
+        schema_constraint='IASG'
+    )
+    base = zope.schema.Int(
+        title="Base value designates how many tasks, at a minimum, to run on the specified capacity provider.",
+        min=0,
+        max=100000,
+    )
+    weight = zope.schema.Int(
+        title="Weight value designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.",
+        min=0,
+        max=1000,
+    )
+
 class IECSService(INamed, IMonitorable):
     "ECS Service"
     deployment_controller = zope.schema.Choice(
@@ -6443,11 +6443,10 @@ class IECSService(INamed, IMonitorable):
         value_type=zope.schema.Object(IECSCapacityProviderStrategyItem)
     )
     launch_type = zope.schema.Choice(
-        title="Launch Type",
+        title="Launch Type. If this field is specified, then Capacity Providers will NOT be used.",
         description="Must be one of EC2 or Fargate",
         vocabulary=vocabulary.ecs_launch_types,
         required=False,
-        default='EC2',
     )
     minimum_tasks = zope.schema.Int(
         title="Minimum Tasks in service",
@@ -6500,6 +6499,8 @@ class IECSService(INamed, IMonitorable):
         required=False,
     )
 
+
+
 class IECSCluster(IResource, IMonitorable):
     """
 The ``ECSCluster`` resource type creates an Amazon Elastic Container Service (Amazon ECS) cluster.
@@ -6513,6 +6514,12 @@ The ``ECSCluster`` resource type creates an Amazon Elastic Container Service (Am
     order: 10
 
 """
+    capacity_providers = zope.schema.List(
+        title="Capacity Providers",
+        required=False,
+        default=[],
+        value_type=zope.schema.Object(IECSCapacityProviderStrategyItem)
+    )
 
 class IECSSettingsGroups(INamed, IMapping):
     "Container for `ECSSettingsGroup`_ objects."
@@ -6536,6 +6543,11 @@ class IECSServices(IResource, IMonitorable):
     """
 The ``ECSServices`` resource type creates one or more ECS Services and their TaskDefinitions
 that can run in an `ECSCluster`_.
+
+Services can launch tasks with a `launch_type` of `Fargate` or `EC2`. Capacity Providers allows
+tasks to scale a cluster up/down instead. If using Capacity Providers, use the `capacity_provider`
+field for the ECSService, or set a default Capacity Provider for the whole `ECSCluster`. If a Service
+is intended to use a Capacity Provider, then `launch_type` should NOT be set.
 
 .. code-block:: yaml
     :caption: example ECSServices configuration YAML

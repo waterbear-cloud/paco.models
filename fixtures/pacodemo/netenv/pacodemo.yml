@@ -307,6 +307,10 @@ applications:
             type: ECSCluster
             enabled: true
             order: 20
+            capacity_providers:
+              - provider: paco.ref netenv.pacodemo.applications.app.groups.container.resources.ecs_asg
+                base: 1
+                weight: 1
           ecs_asg:
             type: ASG
             order: 30

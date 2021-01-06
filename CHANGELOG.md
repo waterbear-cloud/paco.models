@@ -4,8 +4,9 @@ Changelog for paco.models
 7.7.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- ECS ASG Capacity Provider has a `managed_instance_protection` field.
 
 7.7.2 (2021-01-05)
 ------------------

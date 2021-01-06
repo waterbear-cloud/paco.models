@@ -5296,6 +5296,11 @@ class IECSCapacityProvider(INamed, IDeployable):
         required=False,
         default=1,
     )
+    managed_instance_protection = zope.schema.Bool(
+        title="Managed Instance Protection",
+        required=False,
+        default=False,
+    )
     maximum_scaling_step_size = zope.schema.Int(
         title="Maximum Scaling Step Size",
         min=1,

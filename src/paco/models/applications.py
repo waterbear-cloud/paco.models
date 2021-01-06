@@ -488,6 +488,7 @@ class ASGRollingUpdatePolicy(Named):
 class ECSCapacityProvider(Named, Deployable):
     target_capacity = FieldProperty(schemas.IECSCapacityProvider['target_capacity'])
     minimum_scaling_step_size = FieldProperty(schemas.IECSCapacityProvider['minimum_scaling_step_size'])
+    managed_instance_protection = FieldProperty(schemas.IECSCapacityProvider['managed_instance_protection'])
     maximum_scaling_step_size = FieldProperty(schemas.IECSCapacityProvider['maximum_scaling_step_size'])
 
     def get_aws_name(self):

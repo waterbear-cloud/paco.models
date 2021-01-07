@@ -4,8 +4,9 @@ Changelog for paco.models
 7.7.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Fixed
 
+- Fixed DynamoDB Table resolve_ref.
 
 7.7.3 (2021-01-05)
 ------------------

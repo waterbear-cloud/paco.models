@@ -2305,6 +2305,10 @@ class DynamoDBTable(Named, dict):
     provisioned_throughput = FieldProperty(schemas.IDynamoDBTable['provisioned_throughput'])
     target_tracking_scaling_policy = FieldProperty(schemas.IDynamoDBTable['target_tracking_scaling_policy'])
 
+    def resolve_ref(self, ref):
+        dynamodb = get_parent_by_interface(self, schemas.IDynamoDB)
+        return dynamodb.stack
+
     @property
     def get_billing_mode(self):
         "Return default billing mode if not override locally"

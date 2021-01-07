@@ -1,15 +1,17 @@
 import os.path
 import boto3
 import json
+import pathlib
 from operator import itemgetter
 
 
 def update_gen_vocabulary():
     gen_vocabulary_path = os.path.dirname(__file__) + os.sep + '..' + os.sep + 'models' + os.sep + 'gen_vocabulary.py'
+    gen_vocabulary_path_new = gen_vocabulary_path + '.new'
     print("Updating paco.models generated vocabulary")
     print(f"file path: {gen_vocabulary_path}")
     print()
-    with open(gen_vocabulary_path, 'w') as f:
+    with open(gen_vocabulary_path_new, 'w') as f:
         f.write("""# Generated file: do not edit
 # see README.md on how to run paco_update_gen_vocabulary to update this with the latest data from AWS
 
@@ -130,5 +132,5 @@ from zope.schema.vocabulary import SimpleVocabulary
         f.write(json.dumps(rds_engine_versions, indent=2))
         f.write("\n\n")
 
-
+    pathlib.Path(gen_vocabulary_path_new).rename(gen_vocabulary_path)
     print("Done!")

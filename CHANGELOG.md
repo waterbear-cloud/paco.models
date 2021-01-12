@@ -4,6 +4,10 @@ Changelog for paco.models
 7.7.4 (unreleased)
 ------------------
 
+### Changed
+
+- EC2 `launch_options.codedeploy_agent` was defaulting to True. It is now False by default.
+
 ### Fixed
 
 - Fixed DynamoDB Table resolve_ref.

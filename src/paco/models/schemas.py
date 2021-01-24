@@ -5362,6 +5362,28 @@ class ISSHAccess(INamed):
         default=[],
     )
 
+class IDeploymentPipelineBuildReleasePhaseCommand(IParent):
+    service = PacoReference(
+        title="ECS Service",
+        required=True,
+        schema_constraint='IECSService'
+    )
+    command = zope.schema.TextLine(
+        title="Command",
+        required=False,
+        default="",
+    )
+
+class IDeploymentPipelineBuildReleasePhase(INamed):
+    """
+Release Phase
+    """
+    ecs = zope.schema.List(
+        title="ECS Commands",
+        required=False,
+        value_type=zope.schema.Object(IDeploymentPipelineBuildReleasePhaseCommand)
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -5856,6 +5878,11 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         description="",
         schema=IASGRollingUpdatePolicy,
         required=True
+    )
+    release_phase = zope.schema.Object(
+        title="Release Phase",
+        schema=IDeploymentPipelineBuildReleasePhase,
+        required=False
     )
 
 # Containers
@@ -10120,28 +10147,6 @@ class IECRRepositoryPermission(Interface):
         description="Must be one of 'Push', 'Pull' or 'PushAndPull'",
         required=True,
         vocabulary=vocabulary.ecr_permissions,
-    )
-
-class IDeploymentPipelineBuildReleasePhaseCommand(IParent):
-    service = PacoReference(
-        title="ECS Service",
-        required=True,
-        schema_constraint='IECSService'
-    )
-    command = zope.schema.TextLine(
-        title="Command",
-        required=False,
-        default="",
-    )
-
-class IDeploymentPipelineBuildReleasePhase(INamed):
-    """
-Release Phase
-    """
-    ecs = zope.schema.List(
-        title="ECS Commands",
-        required=False,
-        value_type=zope.schema.Object(IDeploymentPipelineBuildReleasePhaseCommand)
     )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):

@@ -569,6 +569,7 @@ SUB_TYPES_CLASS_MAP = {
         'ecs': ('direct_obj', ECSASGConfiguration),
         'ssh_access': ('direct_obj', SSHAccess),
         'dns': ('obj_list', DNS),
+        'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase),
     },
     ECSASGConfiguration: {
         'capacity_provider': ('direct_obj', ECSCapacityProvider),

@@ -561,6 +561,7 @@ class ASG(ApplicationResource, Monitorable):
     launch_options = FieldProperty(schemas.IASG['launch_options'])
     block_device_mappings = FieldProperty(schemas.IASG['block_device_mappings'])
     rolling_update_policy = FieldProperty(schemas.IASG['rolling_update_policy'])
+    release_phase = FieldProperty(schemas.IASG['release_phase'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

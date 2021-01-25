@@ -56,7 +56,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     CognitoIdentityProvider, CognitoInviteMessageTemplates, CognitoUserCreation, CognitoEmailConfiguration, \
     CognitoUserPoolPasswordPolicy, CognitoUICustomizations, CognitoLambdaTriggers, \
     DynamoDB, DynamoDBAttributeDefinition, DynamoDBGlobalSecondaryIndex, DynamoDBKeySchema, \
-    DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy
+    DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy, \
+    ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -569,7 +570,18 @@ SUB_TYPES_CLASS_MAP = {
         'ecs': ('direct_obj', ECSASGConfiguration),
         'ssh_access': ('direct_obj', SSHAccess),
         'dns': ('obj_list', DNS),
-        'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase),
+        'script_manager': ('direct_obj', ScriptManager),
+    },
+    ScriptManager: {
+        'ecr_deploy': ('container', (ScriptManagerEcrDeploys, ScriptManagerEcrDeploy)),
+    },
+    ScriptManagerEcrDeploy: {
+        'repositories': ('obj_list', ScriptManagerECRDeployRepositories),
+        'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase)
+    },
+    ScriptManagerECRDeployRepositories: {
+        'source_repo': ('str_list', PacoReference),
+        'dest_repo': ('str_list', PacoReference),
     },
     ECSASGConfiguration: {
         'capacity_provider': ('direct_obj', ECSCapacityProvider),
@@ -1802,7 +1814,7 @@ Duplicate key \"{}\" found on line {} at column {}.
         parent[name] = obj
         return obj
 
-    def insert_env_ref_paco_sub(self, paco_ref, env_id, region, application):
+    def insert_env_ref_paco_sub(self, paco_ref, env_id, region, application, global_config):
         """
         paco.sub substition
         """
@@ -1837,7 +1849,7 @@ Duplicate key \"{}\" found on line {} at column {}.
                 sub_ref_idx = netenv_ref_idx
                 sub_ref_end_idx = sub_ref_idx+(rep_2_idx-sub_ref_idx-1)
                 sub_ref = paco_ref[sub_ref_idx:sub_ref_end_idx]
-                new_ref = self.insert_env_ref_str(sub_ref, env_id, region, application)
+                new_ref = self.insert_env_ref_str(sub_ref, env_id, region, application, global_config)
                 sub_var = paco_ref[sub_ref_idx:sub_ref_end_idx]
                 if sub_var == new_ref:
                     break
@@ -1848,7 +1860,7 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         return paco_ref
 
-    def insert_env_ref_str(self, paco_ref, env_name, region, application=None):
+    def insert_env_ref_str(self, paco_ref, env_name, region, application=None, global_config=None):
         """
 Inserts the Environment Name and Region Name into a paco.ref netenv type reference
 
@@ -1872,7 +1884,7 @@ Caveat: You can not have an environment named 'applications'.
         if paco_ref.find("paco.ref netenv.") == -1:
             return paco_ref
         if paco_ref.startswith("paco.sub "):
-            return self.insert_env_ref_paco_sub(paco_ref, env_name, region, application)
+            return self.insert_env_ref_paco_sub(paco_ref, env_name, region, application, global_config)
 
         ref = Reference(paco_ref)
 
@@ -1901,9 +1913,11 @@ Caveat: You can not have an environment named 'applications'.
                 elif application.name.startswith(app_name) and application.name != app_name:
                     ref.parts[3] = application.name
 
-        # Skip if the environment and region are already specified
-        if ref.parts[2] in self.project['netenv'][ref.parts[1]].keys():
-            if ref.parts[3] in self.project['netenv'][ref.parts[1]][ref.parts[2]].keys():
+
+        # Skip if the part for environment and region do not match a reserved name.
+        # This can be a ref to another environment that has not yet been loaded.
+        if ref.parts[2] in global_config['environments'].keys():
+            if ref.parts[3] in global_config['environments'][ref.parts[2]].keys():
                 return paco_ref
 
         # Skip if it's a cross-netenv ref
@@ -1921,7 +1935,7 @@ Caveat: You can not have an environment named 'applications'.
         new_ref = ' '.join(['paco.ref', new_ref_parts])
         return new_ref
 
-    def normalize_environment_refs(self, env_config, env_name, env_region):
+    def normalize_environment_refs(self, env_config, env_name, env_region, global_config):
         """
         Inserts the Environment and Region into any paco.ref netenv.references.
         """
@@ -1942,7 +1956,7 @@ Caveat: You can not have an environment named 'applications'.
                     value = getattr(model, attr_name)
                     if value != None and value.find('paco.ref netenv.') != -1:
                         application = get_parent_by_interface(model, schemas.IApplication)
-                        value = self.insert_env_ref_str(value, env_name, env_region, application)
+                        value = self.insert_env_ref_str(value, env_name, env_region, application, global_config)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:
                     new_list = []
@@ -1954,7 +1968,7 @@ Caveat: You can not have an environment named 'applications'.
                             if item.find('paco.ref netenv') != -1:
                             #if is_ref(item):
                                 application = get_parent_by_interface(model, schemas.IApplication)
-                                value = self.insert_env_ref_str(item, env_name, env_region, application)
+                                value = self.insert_env_ref_str(item, env_name, env_region, application, global_config)
                                 modified = True
                         else:
                             value = item
@@ -1971,7 +1985,7 @@ Caveat: You can not have an environment named 'applications'.
                             # Same as IList above, needs to search for 'paco.ref netenv'
                             if is_ref(item):
                                 application = get_parent_by_interface(model, schemas.IApplication)
-                                value = self.insert_env_ref_str(item, env_name, env_region, application)
+                                value = self.insert_env_ref_str(item, env_name, env_region, application, global_config)
                                 modified = True
                             else:
                                 value = item
@@ -2487,4 +2501,4 @@ Caveat: You can not have an environment named 'applications'.
                     )
                     if env_reg_name != 'default':
                         # Insert the environment and region into any Refs
-                        self.normalize_environment_refs(env_region, env_name, env_reg_name)
+                        self.normalize_environment_refs(env_region, env_name, env_reg_name, config)

@@ -521,6 +521,27 @@ class SSHAccess(Named):
         self.users = []
         self.groups = []
 
+@implementer(schemas.IScriptManagerECRDeployRepositories)
+class ScriptManagerECRDeployRepositories(Parent):
+    source_repo = FieldProperty(schemas.IScriptManagerECRDeployRepositories['source_repo'])
+    source_tag = FieldProperty(schemas.IScriptManagerECRDeployRepositories['source_tag'])
+    dest_repo = FieldProperty(schemas.IScriptManagerECRDeployRepositories['dest_repo'])
+    dest_tag = FieldProperty(schemas.IScriptManagerECRDeployRepositories['dest_tag'])
+    release_phase = FieldProperty(schemas.IScriptManagerECRDeployRepositories['release_phase'])
+
+@implementer(schemas.IScriptManagerEcrDeploy)
+class ScriptManagerEcrDeploy(Named):
+    repositories = FieldProperty(schemas.IScriptManagerEcrDeploy['repositories'])
+    release_phase = FieldProperty(schemas.IScriptManagerEcrDeploy['release_phase'])
+
+@implementer(schemas.IScriptManagerEcrDeploys)
+class ScriptManagerEcrDeploys(Named, dict):
+    pass
+
+@implementer(schemas.IScriptManager)
+class ScriptManager(Named):
+    ecr_deploy = FieldProperty(schemas.IScriptManager['ecr_deploy'])
+
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):
     cfn_init = FieldProperty(schemas.IASG['cfn_init'])
@@ -561,7 +582,7 @@ class ASG(ApplicationResource, Monitorable):
     launch_options = FieldProperty(schemas.IASG['launch_options'])
     block_device_mappings = FieldProperty(schemas.IASG['block_device_mappings'])
     rolling_update_policy = FieldProperty(schemas.IASG['rolling_update_policy'])
-    release_phase = FieldProperty(schemas.IASG['release_phase'])
+    script_manager = FieldProperty(schemas.IASG['script_manager'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -1134,6 +1155,7 @@ class ECRRepository(Resource):
     lifecycle_policy_text = FieldProperty(schemas.IECRRepository['lifecycle_policy_text'])
     repository_name = FieldProperty(schemas.IECRRepository['repository_name'])
     repository_policy = FieldProperty(schemas.IECRRepository['repository_policy'])
+    account = FieldProperty(schemas.IECRRepository['account'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -1980,7 +2002,7 @@ class DeploymentPipelineBuildReleasePhase(Named):
     ecs = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhase['ecs'])
 
 @implementer(schemas.IDeploymentPipelineBuildReleasePhaseCommand)
-class DeploymentPipelineBuildReleasePhaseCommand(Named):
+class DeploymentPipelineBuildReleasePhaseCommand(Parent):
     service = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['service'])
     command = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['command'])
 

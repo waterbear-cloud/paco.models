@@ -5384,6 +5384,77 @@ Release Phase
         value_type=zope.schema.Object(IDeploymentPipelineBuildReleasePhaseCommand)
     )
 
+class IScriptManagerECRDeployRepositories(IParent):
+    """
+Scritp Manager ECR Deploy Repository
+    """
+    source_tag = zope.schema.TextLine(
+        title="Source Deploy Tag",
+        required=False,
+        default="",
+    )
+
+    dest_tag = zope.schema.TextLine(
+        title="Destination eploy Tag",
+        required=False,
+        default="",
+    )
+
+    source_repo = PacoReference(
+        title="Source Repository",
+        required=False,
+        schema_constraint='IECRRepository'
+    )
+
+    dest_repo = PacoReference(
+        title="Destination Repository",
+        required=False,
+        schema_constraint='IECRRepository'
+    )
+
+    release_phase = zope.schema.Bool(
+        title="Release Phae",
+        description="",
+        default=False,
+        required=False,
+    )
+
+
+class IScriptManagerEcrDeploy(INamed):
+    """
+Script Manager ECR Deploy
+    """
+    repositories = zope.schema.List(
+        title="Source and Destination ECR Repositories",
+        required=False,
+        value_type=zope.schema.Object(
+            title="ECR Source Destination Repository",
+            schema=IScriptManagerECRDeployRepositories
+        ),
+    )
+
+    release_phase = zope.schema.Object(
+        title="Release Phase",
+        schema=IDeploymentPipelineBuildReleasePhase,
+        required=False
+    )
+
+class IScriptManagerEcrDeploys(INamed, IMapping):
+    """
+Script Manager ECR Deploy
+    """
+    taggedValue('contains', 'IScriptManagerEcrDeploy')
+
+class IScriptManager(INamed):
+    """
+EC2 Script Manager
+    """
+    ecr_deploy = zope.schema.Object(
+        title="ECS Commands",
+        required=False,
+        schema=IScriptManagerEcrDeploys
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -5879,9 +5950,9 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         schema=IASGRollingUpdatePolicy,
         required=True
     )
-    release_phase = zope.schema.Object(
-        title="Release Phase",
-        schema=IDeploymentPipelineBuildReleasePhase,
+    script_manager = zope.schema.Object(
+        title="Script Manager",
+        schema=IScriptManager,
         required=False
     )
 

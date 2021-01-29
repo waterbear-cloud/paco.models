@@ -1,7 +1,7 @@
 Changelog for paco.models
 =========================
 
-7.7.5 (unreleased)
+7.7.5 (2021-01-29)
 ------------------
 
 - Add `script_manager` to `IASG` for ECR Deployments.

@@ -118,10 +118,6 @@ class Alarm(Named, Regionalized, Deployable):
         This will by default be a list of SNS Topics that the alarm is subscribed to.
         However, if a plugin is registered, it will provide the actions instead.
         """
-        if not snstopics:
-            project = get_parent_by_interface(self, schemas.IProject)
-            snstopics = project['resource']['snstopics']
-
         # if a Service has registered a custom AlarmActions hook, call that instead
         if paco.models.registry.CW_ALARM_ACTIONS_HOOK != None:
             return paco.models.registry.CW_ALARM_ACTIONS_HOOK(self)

@@ -758,7 +758,5 @@ class GlobalResources(Named, dict):
         self.codecommit = self['codecommit']
         self['sns'] = SNS('sns', self)
         self.sns = self['sns']
-        self['snstopics'] = SNSTopics('snstopics', self)
-        self.snstopics = self['snstopics']
         self['iam'] = IAMResource('iam', self)
         self.iam = self['iam']

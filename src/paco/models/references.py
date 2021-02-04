@@ -207,7 +207,7 @@ def get_model_obj_from_ref(ref, project, referring_obj=None):
             message = f"\nCould not find next part: {ref.parts[part_idx]}\n"
             if referring_obj != None:
                 message += f"Object: {referring_obj.paco_ref_parts}\n"
-            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'snstopics', 's3', 'route53', 'resources']:
+            if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'sns', 's3', 'route53', 'resources']:
                 message += "Did you mean to run:\n"
                 message += "paco <command> resource.{}?\n".format(ref.ref)
             raise InvalidPacoReference(message)

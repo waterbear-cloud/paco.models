@@ -2056,26 +2056,6 @@ Caveat: You can not have an environment named 'applications'.
                 self.project['cw_logging'] = cw_logging
             self.monitor_config['logging'] = config
 
-    def instantiate_snstopics(self, config):
-        snstopics = SNSTopics('snstopics', self.project.resource)
-        if 'groups' in config:
-            # 'groups' gets duplicated and placed into a region_name key for every active region
-            groups_config = deepcopy_except_parent(config['groups'])
-            del config['groups']
-            apply_attributes_from_config(snstopics, config, read_file_path=self.read_file_path)
-            # load SNS Topics
-            for region_name in self.project.active_regions:
-                region = RegionContainer(region_name, snstopics)
-                snstopics[region_name] = region
-                for topicname, topic_config in groups_config.items():
-                    topic = SNSTopic(topicname, region)
-                    apply_attributes_from_config(topic, topic_config, read_file_path=self.read_file_path)
-                    region[topicname] = topic
-        else:
-            raise InvalidPacoProjectFile("resource/snstopics.yaml does not have a top-level `groups:`.")
-
-        return snstopics
-
     def instantiate_sns(self, config):
         obj = SNS('sns', self.project.resource)
         if config != None:

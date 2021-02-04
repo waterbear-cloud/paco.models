@@ -1,10 +1,10 @@
 Changelog for paco.models
 =========================
 
-7.7.6 (unreleased)
+7.7.6 (2021-02-03)
 ------------------
 
-- Nothing changed yet.
+- Add `external_resource` to `ICloudWatchLogGroup`.
 
 
 7.7.5 (2021-01-29)

@@ -340,23 +340,6 @@ class Testpacodemo(BaseTestModelLoader):
         alarm_five = alarm_set['CPUTotal-Low']
         assert alarm_five.notification_groups, ['santa']
 
-    def test_notification_groups(self):
-        groups = self.project['resource']['snstopics']
-        assert schemas.ISNSTopics.providedBy(groups)
-        assert groups.account, 'paco.ref accounts.master'
-        assert groups['us-west-2']['bobs_team'].subscriptions[0].endpoint, 'http://example.com/yes'
-        assert len(groups['us-west-2']['bobs_team'].subscriptions), 2
-        bob = groups['ca-central-1']['bob']
-        assert bob.subscriptions[0].protocol, 'http'
-        assert bob.subscriptions[0].endpoint, 'http://example.com/yes'
-        assert bob.subscriptions[1].endpoint, 'https://example.com/orno'
-        assert bob.subscriptions[2].endpoint, 'bob@example.com'
-        assert bob.subscriptions[3].endpoint, 'bob@example.com'
-        assert bob.subscriptions[4].endpoint, '555-555-5555'
-        assert bob.subscriptions[5].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
-        assert bob.subscriptions[6].endpoint, 'arn:aws:sqs:us-east-2:444455556666:queue1'
-        assert bob.subscriptions[7].endpoint, 'arn:aws:lambda:us-east-1:123456789012:function:my-function'
-
     def test_sns(self):
         sns = self.project['resource']['sns']
         assert len(sns.default_locations), 1

@@ -1665,6 +1665,8 @@ class RDSClusterInstance(BaseRDSClusterInstance):
     db_instance_type = FieldProperty(schemas.IRDSClusterInstance['db_instance_type'])
     enable_performance_insights = FieldProperty(schemas.IRDSClusterInstance['enable_performance_insights'])
     enhanced_monitoring_interval_in_seconds = FieldProperty(schemas.IRDSClusterInstance['enhanced_monitoring_interval_in_seconds'])
+    external_resource = FieldProperty(schemas.IRDSClusterInstance['external_resource'])
+    external_instance_name = FieldProperty(schemas.IRDSClusterInstance['external_instance_name'])
     parameter_group = FieldProperty(schemas.IRDSClusterInstance['parameter_group'])
     publicly_accessible = FieldProperty(schemas.IRDSClusterInstance['publicly_accessible'])
 

@@ -47,6 +47,7 @@ class CloudWatchLogGroups(Named, dict):
 
 @implementer(schemas.ICloudWatchLogGroup)
 class CloudWatchLogGroup(Named, CloudWatchLogRetention):
+    external_resource = FieldProperty(schemas.ICloudWatchLogGroup["external_resource"])
     metric_filters = FieldProperty(schemas.ICloudWatchLogGroup["metric_filters"])
     sources = FieldProperty(schemas.ICloudWatchLogGroup["sources"])
     log_group_name = FieldProperty(schemas.ICloudWatchLogGroup["log_group_name"])
@@ -63,6 +64,8 @@ class CloudWatchLogGroup(Named, CloudWatchLogRetention):
         return self.name
 
     def get_full_log_group_name(self):
+        if self.external_resource == True:
+            return self.log_group_name
         name = self.get_log_group_name()
         parent = get_parent_by_interface(self, schemas.ICloudWatchLogSet)
         if parent != None:

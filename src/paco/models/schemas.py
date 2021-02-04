@@ -2019,6 +2019,11 @@ class ICloudWatchLogGroup(INamed, ICloudWatchLogRetention):
     """
 A CloudWatchLogGroup is responsible for retention, access control and metric filters
     """
+    external_resource = zope.schema.Bool(
+        title='Boolean indicating whether the CloudWatch Log Group already exists or not',
+        default=False,
+        required=False,
+    )
     metric_filters = zope.schema.Object(
         title="Metric Filters",
         schema=IMetricFilters,
@@ -9345,6 +9350,15 @@ DB Instance that belongs to a DB Cluster.
         title="DB Instance Event Notifications",
         required=False,
         schema=IRDSDBInstanceEventNotifications,
+    )
+    external_resource = zope.schema.Bool(
+        title='Boolean indicating whether the DB Instance already exists or not',
+        default=False,
+        required=False,
+    )
+    external_instance_name = zope.schema.TextLine(
+        title='External resource instance name',
+        required=False,
     )
     parameter_group = PacoReference(
         title="DB Parameter Group",

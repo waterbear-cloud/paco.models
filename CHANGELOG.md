@@ -1,10 +1,18 @@
 Changelog for paco.models
 =========================
 
-7.7.7 (unreleased)
+7.8.1 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+7.8.0 (2021-02-04)
+------------------
+
+### Changed
+
+- The original deprecated `snstopics` resource has been removed and only the new `sns` resource remains.
 
 
 7.7.6 (2021-02-03)

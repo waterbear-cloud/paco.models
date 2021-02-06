@@ -397,6 +397,7 @@ class Regionalized():
 @implementer(schemas.IDNSEnablable)
 class DNSEnablable():
     dns_enabled = FieldProperty(schemas.IDNSEnablable['dns_enabled'])
+    force_dns_enabled = FieldProperty(schemas.IDNSEnablable['force_dns_enabled'])
 
     def is_dns_enabled(self):
         """
@@ -404,6 +405,8 @@ class DNSEnablable():
         Will walk up the tree, and if anything is set to "enabled: false"
         this will return False.
         """
+        if self.force_dns_enabled == True:
+            return True
         state = self.dns_enabled
         # if current resource is already "enabled: false" simlpy return that
         if not state: return False

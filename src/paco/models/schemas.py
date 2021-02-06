@@ -680,6 +680,11 @@ class IDNSEnablable(Interface):
         default=True,
         required=False,
     )
+    force_dns_enabled = zope.schema.Bool(
+        title='Boolean indicating whether to override dns_enabled deafult for a resource.',
+        default=False,
+        required=False,
+    )
 
 class CommaList(zope.schema.List):
     """Comma separated list of valeus"""

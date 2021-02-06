@@ -1,10 +1,10 @@
 Changelog for paco.models
 =========================
 
-7.8.1 (unreleased)
+7.8.1 (2021-02-05)
 ------------------
 
-- Nothing changed yet.
+- Add `force_dns_enabled` to `IDNSEnablable`.
 
 
 7.8.0 (2021-02-04)

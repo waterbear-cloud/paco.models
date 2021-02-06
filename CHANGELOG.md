@@ -1,6 +1,12 @@
 Changelog for paco.models
 =========================
 
+7.8.2 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 7.8.1 (2021-02-05)
 ------------------
 

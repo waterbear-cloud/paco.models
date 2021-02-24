@@ -479,10 +479,10 @@ def isValidCFSSLSupportedMethod(value):
     return True
 
 class InvalidCFMinimumProtocolVersion(zope.schema.ValidationError):
-    __doc__ = 'Mimimum SSL Protocol Version must be one of: SSLv3 | TLSv1 | TLSv1.1_2016 | TLSv1.2_2018 | TLSv1_2016'
+    __doc__ = 'Mimimum SSL Protocol Version must be one of: SSLv3 | TLSv1 | TLSv1_2016 | TLSv1.1_2016 | TLSv1.2_2018 | TLSv1.2_2019'
 
 def isValidCFMinimumProtocolVersion(value):
-    if value not in ('SSLv3', 'TLSv1', 'TLSv1.1_2016', 'TLSv1.2_2018', 'TLSv1_2016'):
+    if value not in ('SSLv3', 'TLSv1', 'TLSv1_2016', 'TLSv1.1_2016', 'TLSv1.2_2018', 'TLSv1.2_2019'):
         raise InvalidCFMinimumProtocolVersion
     return True
 
@@ -8495,6 +8495,10 @@ class ICloudFrontDefaultCacheBehavior(INamed):
         default=[ 'GET', 'HEAD', 'OPTIONS' ],
         required=False
     )
+    cache_policy_id = zope.schema.TextLine(
+        title="CloudFront Cache Policy IDs",
+        required=False
+    )
     compress = zope.schema.Bool(
         title="Compress certain files automatically",
         required=False,
@@ -8525,6 +8529,10 @@ class ICloudFrontDefaultCacheBehavior(INamed):
     min_ttl = zope.schema.Int(
         title="Minimum TTL",
         default=0
+    )
+    origin_request_policy_id = zope.schema.TextLine(
+        title="CloudFront Origin Request Policy IDs",
+        required=False
     )
     target_origin = PacoReference(
         title="Target Origin",

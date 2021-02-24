@@ -1425,9 +1425,11 @@ class CloudFrontLambdaFunctionAssocation(Named):
 class CloudFrontDefaultCacheBehavior(Named):
     allowed_methods = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['allowed_methods'])
     cached_methods = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['cached_methods'])
+    cache_policy_id = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['cache_policy_id'])
     default_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['default_ttl'])
     min_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['min_ttl'])
     max_ttl = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['max_ttl'])
+    origin_request_policy_id = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['origin_request_policy_id'])
     target_origin = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['target_origin'])
     viewer_protocol_policy = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['viewer_protocol_policy'])
     forwarded_values = FieldProperty(schemas.ICloudFrontDefaultCacheBehavior['forwarded_values'])

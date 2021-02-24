@@ -4,11 +4,15 @@ Changelog for paco.models
 7.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- New `cache_policy_id` and `origin_request_policy_id` fields to `ICloudFrontDefaultCacheBehavior` schema.
 
 
 7.8.1 (2021-02-05)
 ------------------
+
+### Added
 
 - Add `force_dns_enabled` to `IDNSEnablable`.
 

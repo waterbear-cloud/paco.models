@@ -849,10 +849,22 @@ instance_size_info = {
 		'memory': 16,
 		'network': 'High'
 	},
+	'c5.large': {
+		'cpu': 2,
+		'cpu_credits': None,
+		'memory': 4,
+		'network': 'Up to 10 Gbps'
+	},
 	'c5.xlarge': {
 		'cpu': 4,
 		'cpu_credits': None,
 		'memory': 8,
+		'network': 'Up to 10 Gbps'
+	},
+	'c5.2xlarge': {
+		'cpu': 8,
+		'cpu_credits': None,
+		'memory': 16,
 		'network': 'Up to 10 Gbps'
 	},
 }

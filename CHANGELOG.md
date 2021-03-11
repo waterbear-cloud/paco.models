@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.8.3 (unreleased)
+7.8.3 (2021-03-11)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Additional EC2 instance sizes.
 
 
 7.8.2 (2021-02-24)

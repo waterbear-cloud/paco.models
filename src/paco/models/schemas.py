@@ -794,6 +794,16 @@ classImplements(StringFileReference, IStringFileReference)
 classImplements(BinaryFileReference, IBinaryFileReference)
 classImplements(YAMLFileReference, IYAMLFileReference)
 
+class IImportFrom(Interface):
+    """
+Allows the resource to import its configuration from an alternate location
+"""
+    import_from = PacoReference(
+        title="Import paco config location",
+        required=False,
+        description="A path to a Paco Config to import",
+        str_ok=True
+    )
 
 class INameValuePair(IParent):
     """A Name/Value pair to use for RDS Option Group configuration"""
@@ -1020,7 +1030,7 @@ class IType(Interface):
         required=False,
     )
 
-class IResource(IType, INamed, IDeployable, IDNSEnablable):
+class IResource(IType, INamed, IDeployable, IDNSEnablable, IImportFrom):
     """Configuration for a cloud resource.
 Resources may represent a single physical resource in the cloud,
 or several closely related resources.
@@ -1090,7 +1100,7 @@ class IResources(INamed, IMapping):
     "A container of Resources to support an `Application`_."
     taggedValue('contains', 'mixed')
 
-class IResourceGroup(INamed, IDeployable, IDNSEnablable):
+class IResourceGroup(INamed, IDeployable, IDNSEnablable, IImportFrom):
     "A group of `Resources`_ to support an `Application`_."
     title=zope.schema.TextLine(
         title="Title",
@@ -3316,7 +3326,7 @@ Default values for an Environment's configuration
         schema=ISecretsManager
     )
 
-class IEnvironmentRegion(IEnvironmentDefault, IDeployable):
+class IEnvironmentRegion(IEnvironmentDefault, IDeployable, IImportFrom):
     """
 An actual provisioned Environment in a specific region.
 May contains overrides of the IEnvironmentDefault where needed.

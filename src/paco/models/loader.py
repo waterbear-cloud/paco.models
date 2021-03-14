@@ -2182,6 +2182,7 @@ Caveat: You can not have an environment named 'applications'.
         """
         if 'applications' not in env_region_config:
             return
+        global_config = self.process_import_from_applications(global_config)
         global_item_config = global_config['applications']
 
         if env_region_config['applications'] == None: return
@@ -2385,11 +2386,104 @@ Caveat: You can not have an environment named 'applications'.
 
             env_region.secrets_manager[app_name] = secrets_app # save
 
+    def normalize_import_from_refs(self, config, ref_pattern, ref_replace):
+        """ Used to replace self referencing paco.refs with the name of the
+        new block of yaml.
+        """
+        if isinstance(config, dict):
+            for k in config.keys():
+                config[k] = self.normalize_import_from_refs(config[k], ref_pattern, ref_replace)
+        elif isinstance(config, list):
+            new_list = []
+            for item in config:
+                new_list.append(self.normalize_import_from_refs(item, ref_pattern, ref_replace))
+            config = new_list
+        elif isinstance(config, str):
+            config = config.replace(ref_pattern, ref_replace)
+
+        return config
+
+    def import_from_ref(self, config,  import_from):
+        # Import from file or paco.ref
+        import_ref = Reference(import_from)
+        if import_ref.parts[0] != 'netenv':
+            raise
+        if import_ref.parts[2] != 'applications':
+            raise
+        ref_parts = import_ref.parts[2:]
+        import_dict = config
+        for part in ref_parts:
+            import_dict = import_dict[part]
+        return copy.deepcopy(import_dict)
+
+    def import_from_file(self, import_from):
+        import_path = self.read_file_path.parent / pathlib.Path(import_from.split('file://')[1])
+        import_config = read_yaml_file(import_path)
+        return import_config
+
+    def import_from_location(self, import_from, config):
+        if is_ref(import_from):
+            import_config = self.import_from_ref(config, import_from)
+        elif import_from.startswith('file://'):
+            import_config = self.import_from_file(import_from)
+        else:
+            raise
+
+        return import_config
+
+    def process_import_from_applications(self, config):
+        for app_name in config['applications'].keys():
+            app_config = config['applications'][app_name]
+            if app_config == None:
+                continue
+            for group_name in app_config['groups'].keys():
+                group_config = app_config['groups'][group_name]
+                if group_config == None:
+                    continue
+                if 'import_from' not in group_config.keys():
+                    continue
+                import_from = group_config['import_from']
+                import_config = self.import_from_location(import_from, config)
+                override_config = copy.deepcopy(app_config['groups'][group_name])
+                app_config['groups'][group_name] = merge(import_config, override_config)
+                if is_ref(import_from):
+                    app_idx = import_from.find(f'.applications.')
+                    ref_pattern = f'{import_from[app_idx:]}.'
+                    ref_replace = f'.applications.{app_name}.groups.{group_name}.'
+                    app_config['groups'][group_name] = self.normalize_import_from_refs(app_config['groups'][group_name], ref_pattern, ref_replace)
+
+        return config
+
+    def process_import_from_env_region(self, config):
+        """ Loads yaml from a reference location or file """
+        # Process Environments
+        for env_name in config['environments'].keys():
+            env_config = config['environments'][env_name]
+            for region_name in env_config.keys():
+                if region_name == 'title':
+                    continue
+                region_config = env_config[region_name]
+                if 'import_from' not in region_config.keys():
+                    continue
+                # Import from file or paco.ref
+                import_from = region_config['import_from']
+                import_config = self.import_from_location(import_from, config)
+                # Process any nested import_from's in the environments applications
+                import_config = self.process_import_from_applications(import_config)
+                env_config[region_name] = merge(region_config, import_config)
+
+        return config
+
+
     def instantiate_network_environments(self, name, config, read_file_path):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
-         # Network Environment
+        # Network Environment
         if config['network'] == None:
             raise InvalidPacoProjectFile("NetworkEnvironment {} has no network".format(name))
+
+        # Import yaml from different locations
+        config = self.process_import_from_env_region(config)
+
         net_env = self.create_apply_and_save(
             name,
             self.project['netenv'],

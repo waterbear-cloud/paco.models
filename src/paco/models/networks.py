@@ -4,7 +4,7 @@ All things network.
 
 import paco.models.applications
 import paco.models.iam
-from paco.models.base import Parent, Name, Named, Deployable
+from paco.models.base import Parent, Name, Named, Deployable, ImportFrom
 from paco.models import schemas
 from paco.models import vocabulary
 from zope.interface import implementer
@@ -68,7 +68,7 @@ class EnvironmentDefault(Named, dict):
 
 
 @implementer(schemas.IEnvironmentRegion)
-class EnvironmentRegion(EnvironmentDefault, Deployable, dict):
+class EnvironmentRegion(EnvironmentDefault, Deployable, dict, ImportFrom):
 
     @property
     def title_or_name(self):

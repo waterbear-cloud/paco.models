@@ -5,7 +5,7 @@ All things Application Engine.
 from paco.models import loader
 from paco.models import schemas
 from paco.models.base import Parent, Named, Deployable, Enablable, Regionalized, Resource, ApplicationResource, \
-    AccountRef, DNSEnablable, CFNExport, md5sum
+    AccountRef, DNSEnablable, CFNExport, md5sum, ImportFrom
 from paco.models.exceptions import InvalidPacoBucket, InvalidModelObject, InvalidPacoProjectFile
 from paco.models.formatter import get_formatted_model_context, smart_join
 from paco.models.locations import get_parent_by_interface
@@ -143,7 +143,7 @@ class ResourceGroups(Named, dict):
 
 
 @implementer(schemas.IResourceGroup)
-class ResourceGroup(Named, Deployable, DNSEnablable):
+class ResourceGroup(Named, Deployable, DNSEnablable, ImportFrom):
     resources = FieldProperty(schemas.IResourceGroup['resources'])
 
     def __init__(self, name, __parent__):

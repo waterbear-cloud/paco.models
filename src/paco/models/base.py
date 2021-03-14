@@ -422,12 +422,20 @@ class DNSEnablable():
         # walked right to the top and enabled is still true
         return True
 
+
+@implementer(schemas.IImportFrom)
+class ImportFrom():
+    """
+    Configuration that can be enabled/disabled
+    """
+    import_from = FieldProperty(schemas.IImportFrom["import_from"])
+
 @implementer(schemas.IType)
 class Type():
     type = FieldProperty(schemas.IType['type'])
 
 @implementer(schemas.IResource)
-class Resource(Type, Named, Deployable, Regionalized, DNSEnablable):
+class Resource(Type, Named, Deployable, Regionalized, DNSEnablable, ImportFrom):
     "Resource"
     order = FieldProperty(schemas.IResource['order'])
     change_protected = FieldProperty(schemas.IResource['change_protected'])

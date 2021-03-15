@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.8.4 (unreleased)
+7.8.4 (2021-03-15)
 ------------------
 
-- Nothing changed yet.
+### Added
+
+- Added ImportFrom functionality.
 
 
 7.8.3 (2021-03-11)

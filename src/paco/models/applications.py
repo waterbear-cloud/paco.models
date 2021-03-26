@@ -538,9 +538,18 @@ class ScriptManagerEcrDeploy(Named):
 class ScriptManagerEcrDeploys(Named, dict):
     pass
 
+@implementer(schemas.IScriptManagerEcs)
+class ScriptManagerEcs(Named):
+    cluster = FieldProperty(schemas.IScriptManagerEcs['cluster'])
+
+@implementer(schemas.IScriptManagerEcsGroup)
+class ScriptManagerEcsGroup(Named, dict):
+    pass
+
 @implementer(schemas.IScriptManager)
 class ScriptManager(Named):
     ecr_deploy = FieldProperty(schemas.IScriptManager['ecr_deploy'])
+    ecs = FieldProperty(schemas.IScriptManager['ecs'])
 
 @implementer(schemas.IASG)
 class ASG(ApplicationResource, Monitorable):

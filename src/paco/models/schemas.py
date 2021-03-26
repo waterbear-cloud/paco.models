@@ -5465,14 +5465,37 @@ Script Manager ECR Deploy
     """
     taggedValue('contains', 'IScriptManagerEcrDeploy')
 
+class IScriptManagerEcs(INamed):
+    """
+Script Manager ECS Tool
+    """
+    cluster = PacoReference(
+        title="Paco Reference to an ECS Cluster",
+        required=True,
+        str_ok=False,
+        schema_constraint='IECSCluster'
+    )
+
+
+class IScriptManagerEcsGroup(INamed, IMapping):
+    """
+Script Manager ECS Group
+    """
+    taggedValue('contains', 'IScriptManagerEcs')
+
 class IScriptManager(INamed):
     """
 EC2 Script Manager
     """
     ecr_deploy = zope.schema.Object(
-        title="ECS Commands",
+        title="ECR Deployment Script",
         required=False,
         schema=IScriptManagerEcrDeploys
+    )
+    ecs = zope.schema.Object(
+        title="ECS Tool",
+        required=False,
+        schema=IScriptManagerEcsGroup
     )
 
 class IASG(IResource, IMonitorable):

@@ -57,7 +57,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     CognitoUserPoolPasswordPolicy, CognitoUICustomizations, CognitoLambdaTriggers, \
     DynamoDB, DynamoDBAttributeDefinition, DynamoDBGlobalSecondaryIndex, DynamoDBKeySchema, \
     DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy, \
-    ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories
+    ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories, ScriptManagerEcsGroup, \
+    ScriptManagerEcs
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -574,6 +575,7 @@ SUB_TYPES_CLASS_MAP = {
     },
     ScriptManager: {
         'ecr_deploy': ('container', (ScriptManagerEcrDeploys, ScriptManagerEcrDeploy)),
+        'ecs': ('container', (ScriptManagerEcsGroup, ScriptManagerEcs))
     },
     ScriptManagerEcrDeploy: {
         'repositories': ('obj_list', ScriptManagerECRDeployRepositories),
@@ -1026,8 +1028,9 @@ Verify that '{}' has the correct indentation in the config file.
                     local_path = Path(value)
                     if not local_path.is_dir() and not local_path.is_file():
                         if ModelLoader.validate_local_paths == True:
+                            pass
                             # ToDo: this error gets trapped and re-thrown as an AttributeError?
-                            raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
+                            #raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
                 elif type(field) == type(schemas.CommaList()):
                     # CommaList: Parse comma separated list into python list()
                     value = []

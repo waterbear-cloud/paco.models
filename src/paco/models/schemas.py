@@ -3544,7 +3544,7 @@ class IListener(IParent, IPortProtocol):
     )
     ssl_policy = zope.schema.Choice(
         title="SSL Policy",
-        default="",
+        default="ELBSecurityPolicy-TLS-1-2-Ext-2018-06",
         vocabulary=vocabulary.lb_ssl_policy,
         required=False,
     )
@@ -8599,7 +8599,7 @@ class ICloudFrontViewerCertificate(INamed):
         title="Minimum SSL Protocol Version",
         constraint = isValidCFMinimumProtocolVersion,
         required=False,
-        default='TLSv1.1_2016'
+        default='TLSv1.2_2019'
     )
 
 class ICloudFrontCustomErrorResponse(Interface):

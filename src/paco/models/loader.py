@@ -1028,9 +1028,7 @@ Verify that '{}' has the correct indentation in the config file.
                     local_path = Path(value)
                     if not local_path.is_dir() and not local_path.is_file():
                         if ModelLoader.validate_local_paths == True:
-                            #pass
                             # ToDo: this error gets trapped and re-thrown as an AttributeError?
-                            breakpoint()
                             raise InvalidLocalPath(f"Could not find {orig_value} for {obj.paco_ref_parts}")
                 elif type(field) == type(schemas.CommaList()):
                     # CommaList: Parse comma separated list into python list()

@@ -87,6 +87,14 @@ def isValidDeploymentGroupBundleType(value):
         raise InvalidDeploymentGroupBundleType
     return True
 
+class InvalidNotificationRuleEventId(zope.schema.ValidationError):
+    __doc__ = 'Notification Rule Event ID is invalid. Must be one of: started, succeeded, resumed, canceled, failed, superseded'
+
+def isValidNotificationRuleEventId(value):
+    if value not in ('started', 'succeeded', 'resumed', 'canceled', 'failed', 'superseded'):
+        raise InvalidNotificationRuleEventId
+    return True
+
 class InvalidS3KeyPrefix(zope.schema.ValidationError):
     __doc__ = 'Not a valid S3 bucket prefix. Can not start or end with /.'
 
@@ -10430,7 +10438,6 @@ CodeDeploy Minimum Healthy Hosts
         required=False,
     )
 
-
 class IDeploymentPipelineDeployCodeDeploy(IDeploymentPipelineStageAction):
     """
 CodeDeploy DeploymentPipeline Deploy Stage
@@ -10516,7 +10523,7 @@ class ICodePipelineStages(INamed, IMapping):
     "Container for `CodePipelineStage`_ objects."
     taggedValue('contains', 'ICodePipelineStage')
 
-class IDeploymentPipeline(IResource):
+class IDeploymentPipeline(IResource, IMonitorable):
     """
 DeploymentPipeline creates AWS CodePipeline resources configured to act
 as CI/CDs to deploy code and assets to application resources. DeploymentPipelines allow you
@@ -10735,11 +10742,20 @@ DeploymentPipeline caveats - there are a few things to consider when creating pi
         schema=IDeploymentPipelineDeployStage,
         required=False,
     )
+    notification_events = zope.schema.List(
+        title="A list of pipeline execution notification event Ids",
+        required=True,
+        value_type=zope.schema.TextLine(
+            title="Notification event Id",
+            constraint=isValidNotificationRuleEventId
+        )
+    )
     stages = zope.schema.Object(
         title='Stages',
         schema=ICodePipelineStages,
         required=False,
     )
+
 
 class IDeploymentGroupS3Location(IParent):
     bucket = PacoReference(

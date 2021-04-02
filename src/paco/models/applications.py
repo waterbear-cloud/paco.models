@@ -2103,11 +2103,12 @@ class CodePipelineStages(Named, dict):
     pass
 
 @implementer(schemas.IDeploymentPipeline)
-class DeploymentPipeline(ApplicationResource):
+class DeploymentPipeline(ApplicationResource, Monitorable):
     configuration = FieldProperty(schemas.IDeploymentPipeline['configuration'])
     source = FieldProperty(schemas.IDeploymentPipeline['source'])
     build = FieldProperty(schemas.IDeploymentPipeline['build'])
     deploy = FieldProperty(schemas.IDeploymentPipeline['deploy'])
+    notification_events = FieldProperty(schemas.IDeploymentPipeline['notification_events'])
     stages = FieldProperty(schemas.IDeploymentPipeline['stages'])
 
     def resolve_ref(self, ref):

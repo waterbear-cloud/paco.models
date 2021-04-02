@@ -418,6 +418,7 @@ SUB_TYPES_CLASS_MAP = {
         'source': ('deployment_pipeline_stage', DeploymentPipelineSourceStage),
         'build': ('deployment_pipeline_stage', DeploymentPipelineBuildStage),
         'deploy': ('deployment_pipeline_stage', DeploymentPipelineDeployStage),
+        'monitoring': ('direct_obj', MonitorConfig),
         'stages': ('deployment_pipeline_stages', CodePipelineStages),
     },
     ApiGatewayRestApi: {

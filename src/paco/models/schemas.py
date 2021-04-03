@@ -1878,6 +1878,13 @@ Simple Notification Service (SNS) Topic resource.
         default=False,
     )
 
+    codestar_notification_access = zope.schema.Bool(
+        title="CodeStar Notifications access from topic account.",
+        description="",
+        required=False,
+        default=False,
+    )
+
 class ITopics(INamed, IMapping):
     """
 Container for `SNSTopic`_ objects.

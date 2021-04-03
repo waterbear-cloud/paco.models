@@ -1,11 +1,17 @@
 Changelog for paco.models
 =========================
 
-7.8.5 (unreleased)
+7.8.5 (2021-04-02)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- Added monitoring and notification_events to DeploymentPipeline
+- Added an ECS utility to the script manager for ASGs
+
+### Changed
+
+- Modified defaults for Load Balancer and CloudFront SSL security policy.
 
 7.8.4 (2021-03-15)
 ------------------

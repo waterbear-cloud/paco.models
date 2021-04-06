@@ -1,6 +1,13 @@
 Changelog for paco.models
 =========================
 
+7.8.6 (2021-04-06)
+------------------
+
+### Added
+
+- Added codestar_notification_access boolean to sns topics for access policy
+
 7.8.5 (2021-04-02)
 ------------------
 

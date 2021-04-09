@@ -196,6 +196,7 @@ class Parent(CFNExport):
         fields = get_all_fields(self)
         str_data = ''
         for name, obj in fields.items():
+            value = None
             if isinstance(obj, (str, zope.schema.TextLine, zope.schema.Text)):
                 value = getattr(self, name)
             if isinstance(obj, (int, float, zope.schema.Int, zope.schema.Float)):

@@ -265,8 +265,12 @@ class CloudWatchAlarm(Alarm):
             "alarm_name": self.name,
             "classification": self.classification,
             "severity": self.severity,
+            "notification_groups": self.notification_groups,
             "topic_arns": topic_arn_subs
         }
+
+        if paco.models.registry.CW_ALARM_DESCRIPTION_HOOK != None:
+            description = paco.models.registry.CW_ALARM_DESCRIPTION_HOOK(self, description)
 
         # conditional fields
         if self.description:

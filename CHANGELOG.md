@@ -1,11 +1,17 @@
 Changelog for paco.models
 =========================
 
-7.8.7 (unreleased)
+7.8.7 (2021-04-09)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- Added CW_ALARM_DESCRIPTION_HOOK to Paco registry
+- Added notification_groups field to CW Alarm descriptions
+
+### Fixed
+
+- Fixed exception for un-initialized value in Parent base class obj_hash method
 
 7.8.6 (2021-04-06)
 ------------------

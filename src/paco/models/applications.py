@@ -59,6 +59,9 @@ class ApplicationEngine(Named, Deployable, Regionalized, Monitorable):
 
         return group_config_list
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IApplication)
 class Application(ApplicationEngine, Regionalized):
     type = "App"
@@ -1869,6 +1872,8 @@ class ElastiCacheRedis(ApplicationResource, ElastiCache, Monitorable):
         # lower-case the name so that the Dimension name handles MiXeDCase.
         return result.lower()
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
 
 @implementer(schemas.IESAdvancedOptions)
 class ESAdvancedOptions(dict):

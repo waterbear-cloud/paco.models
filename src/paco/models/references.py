@@ -203,8 +203,8 @@ def get_model_obj_from_ref(ref, project, referring_obj=None):
             obj = next_obj
         else:
             message = f"\nCould not find model at {ref.raw}\n"
-            message = f"\nLook-up reached: {obj.paco_ref_parts}\n"
-            message = f"\nCould not find next part: {ref.parts[part_idx]}\n"
+            message += f"\nLook-up reached: {obj.paco_ref_parts}\n"
+            message += f"\nCould not find next part: {ref.parts[part_idx]}\n"
             if referring_obj != None:
                 message += f"Object: {referring_obj.paco_ref_parts}\n"
             if ref.parts[0] in ['iam', 'codecommit', 'ec2', 'sns', 's3', 'route53', 'resources']:

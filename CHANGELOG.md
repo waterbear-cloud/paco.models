@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.8.8 (unreleased)
+7.8.8 (2021-04-19)
 ------------------
 
-- Nothing changed yet.
+### Fixed
+
+-  Added resolve_ref to ApplicationEngine model object to fix some paco ref lookups.
 
 
 7.8.7 (2021-04-09)

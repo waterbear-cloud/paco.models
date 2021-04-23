@@ -498,6 +498,9 @@ class ECSCapacityProvider(Named, Deployable):
         asg = self.__parent__.__parent__
         return f"{asg.netenv_name}-{asg.env_name}-{asg.app_name}-{asg.group_name}-{asg.name}"
 
+    def resolve_ref(self, ref):
+        return self.resolve_ref_obj.resolve_ref(ref)
+
 @implementer(schemas.IECSASGConfiguration)
 class ECSASGConfiguration(Named):
     cluster = FieldProperty(schemas.IECSASGConfiguration['cluster'])
@@ -578,6 +581,7 @@ class ASG(ApplicationResource, Monitorable):
     segment = FieldProperty(schemas.IASG['segment'])
     termination_policies = FieldProperty(schemas.IASG['termination_policies'])
     security_groups = FieldProperty(schemas.IASG['security_groups'])
+    disable_target_groups = FieldProperty(schemas.IASG['disable_target_groups'])
     target_groups = FieldProperty(schemas.IASG['target_groups'])
     load_balancers = FieldProperty(schemas.IASG['load_balancers'])
     termination_policies = FieldProperty(schemas.IASG['termination_policies'])
@@ -1038,6 +1042,7 @@ class ECSService(Named, Monitorable):
     deployment_minimum_healthy_percent = FieldProperty(schemas.IECSService['deployment_minimum_healthy_percent'])
     deployment_maximum_percent = FieldProperty(schemas.IECSService['deployment_maximum_percent'])
     desired_count = FieldProperty(schemas.IECSService['desired_count'])
+    disable_service = FieldProperty(schemas.IECSService['disable_service'])
     minimum_tasks = FieldProperty(schemas.IECSService['minimum_tasks'])
     maximum_tasks = FieldProperty(schemas.IECSService['maximum_tasks'])
     suspend_scaling = FieldProperty(schemas.IECSService['suspend_scaling'])
@@ -1141,6 +1146,7 @@ class ECSSettingsGroups(Named, dict):
 @implementer(schemas.IECSServices)
 class ECSServices(Resource, Monitorable):
     cluster = FieldProperty(schemas.IECSServices['cluster'])
+    disable_services = FieldProperty(schemas.IECSServices['disable_services'])
     setting_groups = FieldProperty(schemas.IECSServices['setting_groups'])
     services = FieldProperty(schemas.IECSServices['services'])
     service_discovery_namespace_name = FieldProperty(schemas.IECSServices['service_discovery_namespace_name'])

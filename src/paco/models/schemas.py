@@ -5608,6 +5608,7 @@ for that ASG.
       min_instances_in_service: 1
       pause_time: PT3M
       wait_on_resource_signals: false
+    disable_target_groups: false
     target_groups:
       - paco.ref netenv.mynet.applications.app.groups.web.resources.alb.target_groups.cloud
     security_groups:
@@ -5971,6 +5972,11 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         description="",
         schema=ISSHAccess,
         required=False,
+    )
+    disable_target_groups = zope.schema.Bool(
+        title="Disable Target Groups",
+        required=False,
+        default=False,
     )
     target_groups = zope.schema.List(
         title="Target groups",
@@ -6609,6 +6615,11 @@ class IECSService(INamed, IMonitorable):
         required=False,
         # ToDo: constraint require if schedulingStrategy=REPLICA
     )
+    disable_service = zope.schema.Bool(
+        title="Disable the service and stop all tasks",
+        default=False,
+        required=False,
+    )
     capacity_providers = zope.schema.List(
         title="Capacity Providers",
         required=False,
@@ -6796,6 +6807,11 @@ is intended to use a Capacity Provider, then `launch_type` should NOT be set.
         required=True,
         str_ok=False,
         schema_constraint='IECSCluster'
+    )
+    disable_services = zope.schema.Bool(
+        title="Disable all services and stop all tasks",
+        default=False,
+        required=False,
     )
     setting_groups = zope.schema.Object(
         title="Setting Groups",

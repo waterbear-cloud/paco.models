@@ -1,11 +1,14 @@
 Changelog for paco.models
 =========================
 
-7.8.9 (unreleased)
+7.8.9 (2021-04-23)
 ------------------
 
-- Nothing changed yet.
+### Added
 
+- Added support to disable Target Groups on ASGs
+
+- Added support to disable services in ECSServices
 
 7.8.8 (2021-04-19)
 ------------------

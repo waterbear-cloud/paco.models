@@ -1973,6 +1973,7 @@ class ElasticsearchDomain(ApplicationResource, Monitorable):
 class DeploymentPipelineConfiguration(Named):
     artifacts_bucket = FieldProperty(schemas.IDeploymentPipelineConfiguration['artifacts_bucket'])
     account = FieldProperty(schemas.IDeploymentPipelineConfiguration['account'])
+    region = FieldProperty(schemas.IDeploymentPipelineConfiguration['region'])
 
     def resolve_ref(self, ref):
         value = getattr(self, ref.resource_ref, None)

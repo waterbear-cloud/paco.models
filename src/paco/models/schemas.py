@@ -10141,6 +10141,12 @@ Deployment Pipeline General Configuration
         required=False,
         schema_constraint=IAccount
     )
+    region = zope.schema.TextLine(
+        title="Region to provision the pipeline",
+        required=False,
+        description='Must be a valid AWS Region name',
+        constraint = isValidAWSRegionName
+    )
 
 class IDeploymentPipelineStageAction(INamed, IEnablable, IMapping):
     """

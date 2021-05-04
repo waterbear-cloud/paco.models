@@ -1,11 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.8.10 (unreleased)
+7.8.10 (2021-05-04)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+- Added region field to DeploymentPipeline configuration
 
 7.8.9 (2021-04-23)
 ------------------

@@ -512,6 +512,7 @@ class CodeCommit(Named, dict):
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
+        self.repo_by_account = {}
 
     def gen_repo_by_account(self):
         self.repo_by_account = {}

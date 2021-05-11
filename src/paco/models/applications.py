@@ -1671,6 +1671,7 @@ class RDSClusterDefaultInstance(BaseRDSClusterInstance):
     db_instance_type = FieldProperty(schemas.IRDSClusterDefaultInstance['db_instance_type'])
     enable_performance_insights = FieldProperty(schemas.IRDSClusterDefaultInstance['enable_performance_insights'])
     enhanced_monitoring_interval_in_seconds = FieldProperty(schemas.IRDSClusterDefaultInstance['enhanced_monitoring_interval_in_seconds'])
+    event_notifications = FieldProperty(schemas.IRDSClusterDefaultInstance['event_notifications'])
     parameter_group = FieldProperty(schemas.IRDSClusterDefaultInstance['parameter_group'])
     publicly_accessible = FieldProperty(schemas.IRDSClusterDefaultInstance['publicly_accessible'])
 

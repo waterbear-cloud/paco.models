@@ -1,11 +1,14 @@
 Changelog for paco.models
 =========================
 
-7.8.11 (unreleased)
+7.8.11 (2021-05-11)
 -------------------
 
-- Nothing changed yet.
+# Fixed
 
+- Fixed missing event_notifications field in RDSClusterDefaultInstance
+
+- Fixed uninitialized repo_by_account in CodeCommit model object.
 
 7.8.10 (2021-05-04)
 -------------------

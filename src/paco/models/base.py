@@ -195,11 +195,13 @@ class Parent(CFNExport):
     def obj_hash(self):
         fields = get_all_fields(self)
         str_data = ''
+        # if self.paco_ref.startswith('paco.ref netenv.loft47.staging.ca-central-1.applications') == True:
+        #     breakpoint()
         for name, obj in fields.items():
             value = None
             if isinstance(obj, (str, zope.schema.TextLine, zope.schema.Text)):
                 value = getattr(self, name)
-            if isinstance(obj, (int, float, zope.schema.Int, zope.schema.Float)):
+            if isinstance(obj, (int, float, zope.schema.Int, zope.schema.Float, bool, zope.schema.Bool)):
                 value = getattr(self, name)
                 value = str(value)
 

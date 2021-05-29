@@ -671,7 +671,7 @@ def isValidEBSVolumeType(value):
 
 # NAT Gateway
 class InvalidNATGatewayType(zope.schema.ValidationError):
-    __doc__ = 'NATGateay type must be one of: Managed | EC2'
+    __doc__ = 'NATGateway type must be one of: Managed | EC2'
 
 def IsValidNATGatewayType(value):
     if value not in ['Managed', 'EC2']:
@@ -3035,6 +3035,31 @@ VPC Peering
         required=True
     )
 
+class IVPCEndpoint(INamed, IDeployable):
+    """
+VPC Endpoint
+    """
+    service = zope.schema.TextLine(
+        title="Service Name",
+        description="VPC Endpoint Service Name",
+        required=True
+    )
+    segments = zope.schema.List(
+        title="VPC Segments to attach the endpoint",
+        description="",
+        value_type=zope.schema.TextLine(
+            title="Segment"
+        ),
+        required=False
+    )
+    security_group = PacoReference(
+        title="Security Group Reference",
+        required=True,
+        description="A Paco Reference to a SecurityGroup",
+        str_ok=True,
+        schema_constraint='ISecurityGroup'
+    )
+
 class INATGateways(INamed, IMapping):
     """Container for `NATGateway`_ objects."""
     taggedValue('contains', 'INATGateway')
@@ -3050,6 +3075,10 @@ class ISecurityGroups(INamed, IMapping):
 class ISecurityGroupSets(INamed, IMapping):
     """Container for `SecurityGroups`_ objects."""
     taggedValue('contains', 'ISecurityGroups')
+
+class IVPCEndpoints(INamed, IMapping):
+    """Container for `VPCEndpoint`_ objects."""
+    taggedValue('contains', 'IVPCEndpoint')
 
 class ISegments(INamed, IMapping):
     """Container for `Segment`_ objects."""
@@ -3120,6 +3149,13 @@ class IVPC(INamed, IDeployable):
         description="",
         schema=IVPCPeerings,
         required=True,
+    )
+    endpoints = zope.schema.Object(
+        title="VPC Endpoints",
+        description="",
+        schema=IVPCEndpoints,
+        default=None,
+        required=False,
     )
 
 class IVPCConfiguration(INamed):
@@ -3655,6 +3691,7 @@ class ILoadBalancer(IResource, IMonitorable):
     )
     access_logs_prefix = zope.schema.TextLine(
         title="Access Logs S3 Bucket prefix",
+        default="default",
         required=False
     )
 

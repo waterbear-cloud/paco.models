@@ -619,7 +619,7 @@ class ASG(ApplicationResource, Monitorable):
             return 'debian'
         elif self.instance_ami_type_generic in ('amazon','centos','redhat','suse'):
             return 'redhat'
-        elif self.instance_ami_type_generic in ('microsoft'):
+        elif self.instance_ami_type_generic in ('windows'):
             return 'microsoft'
         # undectected type?
         raise AttributeError(f'Can not determine instance_ami_type_family for {self.name} with type {self.instance_ami_type}')

@@ -18,7 +18,7 @@ from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, a
 from paco.models.networks import NetworkEnvironment, Environment, EnvironmentDefault, \
     EnvironmentRegion, Segment, Network, VPC, VPCPeering, VPCPeeringRoute, NATGateway, VPNGateway, \
     PrivateHostedZone, SecurityGroup, IngressRule, EgressRule, NATGateways, VPNGateways, Segments, \
-    VPCPeerings, SecurityGroupSets, SecurityGroups
+    VPCPeerings, SecurityGroupSets, SecurityGroups, VPCEndpoint, VPCEndpoints
 from paco.models.project import VersionControl, Project, SharedState, PacoWorkBucket
 from paco.models.applications import Application, PinpointApplication, ResourceGroups, ResourceGroup, \
     ASG, ECSASGConfiguration, SSHAccess, ElastiCacheRedis, IAMUserResource, \
@@ -683,6 +683,10 @@ SUB_TYPES_CLASS_MAP = {
         'segments': ('container', (Segments, Segment)),
         'security_groups': ('twolevel_container', (SecurityGroupSets, SecurityGroups, SecurityGroup)),
         'peering': ('container', (VPCPeerings, VPCPeering)),
+        'endpoints': ('container', (VPCEndpoints, VPCEndpoint)),
+    },
+    VPCEndpoint: {
+        'segments': ('str_list', zope.schema.TextLine)
     },
     PrivateHostedZone: {
         'vpc_associations': ('str_list', zope.schema.TextLine)
@@ -2437,7 +2441,7 @@ Caveat: You can not have an environment named 'applications'.
     def process_import_from_applications(self, config):
         for app_name in config['applications'].keys():
             app_config = config['applications'][app_name]
-            if app_config == None:
+            if app_config == None or app_config['groups'] == None:
                 continue
             for group_name in app_config['groups'].keys():
                 group_config = app_config['groups'][group_name]

@@ -135,6 +135,10 @@ class SecurityGroups(Named, dict):
 class SecurityGroupSets(Named, dict):
     pass
 
+@implementer(schemas.IVPCEndpoints)
+class VPCEndpoints(Named, dict):
+    pass
+
 @implementer(schemas.ISegments)
 class Segments(Named, dict):
     pass
@@ -164,6 +168,7 @@ class VPC(Named, Deployable):
     security_groups = FieldProperty(schemas.IVPC["security_groups"])
     segments = FieldProperty(schemas.IVPC["segments"])
     peering = FieldProperty(schemas.IVPC["peering"])
+    endpoints = FieldProperty(schemas.IVPC["endpoints"])
 
     def resolve_ref(self, ref):
         if ref.last_part == 'vpc':
@@ -255,6 +260,23 @@ class Segment(Named, Deployable):
     def resolve_ref(self, ref):
         if ref.resource_ref == 'az1_cidr':
             return self.az1_cidr
+        else:
+            stack = self.resolve_ref_obj.resolve_ref(ref)
+            if stack == None:
+                raise StackException(PacoErrorCode.Unknown)
+            else:
+                return stack
+        return None
+
+@implementer(schemas.IVPCEndpoint)
+class VPCEndpoint(Named, Deployable):
+    service = FieldProperty(schemas.IVPCEndpoint["service"])
+    segments = FieldProperty(schemas.IVPCEndpoint["segments"])
+    security_group = FieldProperty(schemas.IVPCEndpoint["security_group"])
+
+    def resolve_ref(self, ref):
+        if ref.resource_ref == 'service':
+            return self.service
         else:
             stack = self.resolve_ref_obj.resolve_ref(ref)
             if stack == None:

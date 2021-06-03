@@ -1112,7 +1112,6 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
     """
     Raise an InvalidPacoProjectFile error with helpful information
     """
-    breakpoint()
     try:
         field_context_name = exc.field.context.name
     except AttributeError:

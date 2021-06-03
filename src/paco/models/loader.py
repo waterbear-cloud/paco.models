@@ -31,8 +31,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     CloudFrontOrigin, CloudFrontOrigins, CloudFrontCustomOriginConfig, \
     CloudFrontDefaultCacheBehavior, CloudFrontCacheBehavior, CloudFrontForwardedValues, CloudFrontCookies, CloudFrontViewerCertificate, \
     CloudFrontLambdaFunctionAssocation, \
-    RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, RDSDBClusterEventNotifications, RDSDBInstanceEventNotifications, \
-    RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
+    RDS, RDSMysql, RDSMysqlAurora, RDSPostgresql, RDSPostgresqlAurora, RDSSQLServerExpress, RDSDBClusterEventNotifications, \
+    RDSDBInstanceEventNotifications, RDSOptionConfiguration, RDSClusterInstance, RDSClusterInstances, RDSClusterDefaultInstance, \
     DeploymentPipeline, DeploymentPipelineConfiguration, DeploymentPipelineSourceStage, DeploymentPipelineBuildStage, \
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     ECRRepositoryPermission, DeploymentPipelineBuildReleasePhase, DeploymentPipelineBuildReleasePhaseCommand, \
@@ -184,6 +184,7 @@ RESOURCES_CLASS_MAP = {
     'RDSMysqlAurora': RDSMysqlAurora,
     'RDSPostgresql': RDSPostgresql,
     'RDSPostgresqlAurora': RDSPostgresqlAurora,
+    'RDSSQLServerExpress': RDSSQLServerExpress,
     'Route53HealthCheck': Route53HealthCheck,
     'S3Bucket': ApplicationS3Bucket,
     'SNSTopic': SNSTopic,
@@ -477,6 +478,11 @@ SUB_TYPES_CLASS_MAP = {
         'option_configurations': ('obj_list', RDSOptionConfiguration),
         'security_groups': ('str_list', PacoReference),
         'dns': ('obj_list', DNS),
+        'monitoring': ('direct_obj', MonitorConfig)
+    },
+    RDSSQLServerExpress: {
+        'dns': ('obj_list', DNS),
+        'security_groups': ('str_list', PacoReference),
         'monitoring': ('direct_obj', MonitorConfig)
     },
     ElastiCacheRedis: {
@@ -1106,6 +1112,7 @@ def raise_invalid_schema_error(obj, name, value, read_file_path, exc):
     """
     Raise an InvalidPacoProjectFile error with helpful information
     """
+    breakpoint()
     try:
         field_context_name = exc.field.context.name
     except AttributeError:

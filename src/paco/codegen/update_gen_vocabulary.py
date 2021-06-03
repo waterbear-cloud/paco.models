@@ -119,7 +119,7 @@ from zope.schema.vocabulary import SimpleVocabulary
         client = boto3.client('rds', region_name='us-west-2')
         paginator = client.get_paginator('describe_db_engine_versions')
         rds_engine_versions = {}
-        for engine in ['postgres','mysql', 'aurora', 'aurora-mysql', 'aurora-postgresql']:
+        for engine in ['postgres','mysql', 'aurora', 'aurora-mysql', 'aurora-postgresql', 'sqlserver-ex']:
             rds_engine_versions[engine] = {}
             response_iterator = paginator.paginate(
                 Engine=engine

@@ -3559,6 +3559,10 @@ class IListenerRule(INamed, IDeployable):
         title="The host to redirect to",
         required=False,
     )
+    redirect_path = zope.schema.TextLine(
+        title="The path to redirect to",
+        required=False,
+    )
     # Forward Rule Variables
     target_group = zope.schema.TextLine(
         title="Target group name",
@@ -9336,6 +9340,9 @@ RDS DB Instance
         title="DB Storage Size in Gigabytes",
         required=False,
     )
+
+class IRDSSQLServerExpress(IRDSInstance):
+    """RDS for Microsoft SQLServer Express"""
 
 class IRDSMultiAZ(IRDSInstance):
     """

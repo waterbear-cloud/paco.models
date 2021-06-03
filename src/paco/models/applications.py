@@ -1228,6 +1228,7 @@ class ListenerRule(Named, Deployable):
     priority = FieldProperty(schemas.IListenerRule['priority'])
     host = FieldProperty(schemas.IListenerRule['host'])
     redirect_host = FieldProperty(schemas.IListenerRule['redirect_host'])
+    redirect_path = FieldProperty(schemas.IListenerRule['redirect_path'])
     target_group = FieldProperty(schemas.IListenerRule['target_group'])
     path_pattern = FieldProperty(schemas.IListenerRule['path_pattern'])
 
@@ -1656,6 +1657,15 @@ class RDSMysql(RDSMultiAZ):
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.engine = 'mysql'
+
+@implementer(schemas.IRDSInstance)
+class RDSSQLServerExpress(RDSInstance):
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.engine = 'sqlserver-ex'
+        self.port = 1433
+        self.license_model = 'license-included'
 
 class BaseRDSClusterInstance(Named, Enablable, Monitorable):
 

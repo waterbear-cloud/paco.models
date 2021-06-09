@@ -1,16 +1,28 @@
 Changelog for paco.models
 =========================
 
-7.8.12 (unreleased)
+7.8.12 (2021-06-08)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+    - Implemented SQLServerExpress RDS
+    - Added redirect_path to IListenerRules
+    - Updated generated Vocabulary
+    - Added 'windows' generic AMI type
+    - Added VPC Endpoints configuration
+    - Added elb account id map to vocabulary
+    - Added windows_2019 to ami_types vocabulary
+    - Added bool to base obj_hash() method.
+
+### Fixed
+
+    - Fixed exception in get_formatted_model_context when handling exceptions.
 
 7.8.11 (2021-05-11)
 -------------------
 
-# Fixed
+### Fixed
 
 - Fixed missing event_notifications field in RDSClusterDefaultInstance
 

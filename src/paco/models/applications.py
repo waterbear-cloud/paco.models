@@ -552,6 +552,11 @@ class ScriptManagerEcs(Named):
 class ScriptManagerEcsGroup(Named, dict):
     pass
 
+@implementer(schemas.IASGPatchManager)
+class ASGPatchManager(Named, Enablable):
+    operation = FieldProperty(schemas.IASGPatchManager['operation'])
+    schedule_expression = FieldProperty(schemas.IASGPatchManager['schedule_expression'])
+
 @implementer(schemas.IScriptManager)
 class ScriptManager(Named):
     ecr_deploy = FieldProperty(schemas.IScriptManager['ecr_deploy'])
@@ -599,6 +604,7 @@ class ASG(ApplicationResource, Monitorable):
     block_device_mappings = FieldProperty(schemas.IASG['block_device_mappings'])
     rolling_update_policy = FieldProperty(schemas.IASG['rolling_update_policy'])
     script_manager = FieldProperty(schemas.IASG['script_manager'])
+    patch_manager = FieldProperty(schemas.IASG['patch_manager'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

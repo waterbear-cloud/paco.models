@@ -575,6 +575,15 @@ def IsValidASGScalignPolicyType(value):
         raise InvalidASGScalignPolicyType
     return True
 
+# ASG Patch Manager Operation Type
+class InvalidIASGPatchManagerOperation(zope.schema.ValidationError):
+    __doc__ = 'operation must be one of: Scan | Install'
+
+def IsValidIASGPatchManagerOperation(value):
+    if value not in ('Install', 'Scan'):
+        raise InvalidIASGPatchManagerOperation
+    return True
+
 # ASG Scaling Policy Adjustment Type
 class InvalidASGScalingPolicyAdjustmentType(zope.schema.ValidationError):
     __doc__ = 'policy_type must be one of: ChangeInCapacity | ExactCapacity | PercentChangeInCapacity'
@@ -5554,6 +5563,22 @@ EC2 Script Manager
         schema=IScriptManagerEcsGroup
     )
 
+class IASGPatchManager(INamed, IEnablable):
+    """
+Auto Scaling Group SSM Patch Manager
+    """
+    operation = zope.schema.TextLine(
+        title='Operation: Scan | Install',
+        default='Install',
+        # Scan | Install
+        constraint=IsValidIASGPatchManagerOperation
+    )
+
+    schedule_expression = zope.schema.TextLine(
+        title="Schedule Expression",
+        required=False
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -5971,6 +5996,11 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         title="Minimum instances",
         description="",
         default=1,
+        required=False,
+    )
+    patch_manager = zope.schema.Object(
+        title='Patch Manager',
+        schema=IASGPatchManager,
         required=False,
     )
     scaling_policies = zope.schema.Object(

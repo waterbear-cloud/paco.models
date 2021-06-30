@@ -58,7 +58,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DynamoDB, DynamoDBAttributeDefinition, DynamoDBGlobalSecondaryIndex, DynamoDBKeySchema, \
     DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy, \
     ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories, ScriptManagerEcsGroup, \
-    ScriptManagerEcs
+    ScriptManagerEcs, ASGPatchManager
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -579,6 +579,7 @@ SUB_TYPES_CLASS_MAP = {
         'ssh_access': ('direct_obj', SSHAccess),
         'dns': ('obj_list', DNS),
         'script_manager': ('direct_obj', ScriptManager),
+        'patch_manager': ('direct_obj', ASGPatchManager),
     },
     ScriptManager: {
         'ecr_deploy': ('container', (ScriptManagerEcrDeploys, ScriptManagerEcrDeploy)),

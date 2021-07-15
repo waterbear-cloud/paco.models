@@ -5420,7 +5420,7 @@ class ISSHAccess(INamed):
         if len(obj.users) != 0 or len(obj.groups) != 0:
             project = get_parent_by_interface(obj, IProject)
             if 'ec2' not in project.resource:
-                raise Invalid("Must create a resrouce/ec2.yaml file to specify users and groups for SSH.")
+                raise Invalid("Must create a resource/ec2.yaml file to specify users and groups for SSH.")
             ec2_users = project.resource['ec2'].users
             ec2_groups = project.resource['ec2'].groups
             for user in obj.users:
@@ -10378,6 +10378,40 @@ Assign the secert to the ``github_access_token`` GitHub action field by using th
         default=True,
     )
 
+class IDeploymentPipelineSourceBitBucket(IDeploymentPipelineStageAction):
+    """BitBuket DeploymentPipeline Source Stage
+
+To configure a BitBucket source, first provision the deployment pipeline to create a CodeStart
+connection. Then navigate to the AWS Console to complete the connection setup.
+
+.. code-block:: yaml
+
+  pipeline:
+    type: DeploymentPipeline
+    stages:
+      source:
+        bitbucket:
+          type: BitBucket.Source
+          enabled: true
+          deployment_branch_name: "staging"
+          bitbucket_repository: example-app
+"""
+    taggedValue('contains', 'mixed')
+    deployment_branch_name = zope.schema.TextLine(
+        title="The name of the branch where source changes are to be detected.",
+        description="",
+        default="master",
+        required=False
+    )
+    bitbucket_owner = zope.schema.TextLine(
+        title='The name of the Bitbucket owner.',
+        required=True
+    )
+    bitbucket_repository = zope.schema.TextLine(
+        title='The name of the repository where source changes are to be detected.',
+        required=True
+    )
+
 class IECRRepositoryPermission(Interface):
     repository = PacoReference(
         title="ECR Repository",
@@ -10642,6 +10676,7 @@ The currently supported list of actions for each stage is:
       type: CodeCommit.Source
       type: ECR.Source
       type: GitHub.Source
+      type: BitBucket.Source
     build:
       type: CodeBuild.Build
     deploy:

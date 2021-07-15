@@ -1680,7 +1680,7 @@ class BaseRDSClusterInstance(Named, Enablable, Monitorable):
         return self.dbcluster.type
 
 @implementer(schemas.IRDSClusterDefaultInstance)
-class RDSClusterDefaultInstance(BaseRDSClusterInstance):
+class RDSClusterDefaultInstance(BaseRDSClusterInstance, Monitorable):
     allow_major_version_upgrade = FieldProperty(schemas.IRDSClusterDefaultInstance['allow_major_version_upgrade'])
     auto_minor_version_upgrade = FieldProperty(schemas.IRDSClusterDefaultInstance['auto_minor_version_upgrade'])
     availability_zone = FieldProperty(schemas.IRDSClusterDefaultInstance['availability_zone'])
@@ -2034,6 +2034,12 @@ class DeploymentPipelineSourceGitHub(DeploymentPipelineStageAction):
     github_repository = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_repository'])
     github_access_token = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['github_access_token'])
     poll_for_source_changes = FieldProperty(schemas.IDeploymentPipelineSourceGitHub['poll_for_source_changes'])
+
+@implementer(schemas.IDeploymentPipelineSourceBitBucket)
+class DeploymentPipelineSourceBitBucket(DeploymentPipelineStageAction):
+    deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['deployment_branch_name'])
+    bitbucket_owner = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['bitbucket_owner'])
+    bitbucket_repository = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['bitbucket_repository'])
 
 @implementer(schemas.IECRRepositoryPermission)
 class ECRRepositoryPermission(Parent):

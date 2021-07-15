@@ -37,8 +37,9 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DeploymentPipelineDeployStage, DeploymentPipelineSourceCodeCommit, DeploymentPipelineBuildCodeBuild, \
     ECRRepositoryPermission, DeploymentPipelineBuildReleasePhase, DeploymentPipelineBuildReleasePhaseCommand, \
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
-    DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceECR, \
-    DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, CodePipelineStage, CodePipelineStages, \
+    DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceBitBucket, \
+    DeploymentPipelineSourceECR, DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, \
+    CodePipelineStage, CodePipelineStages, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
@@ -129,6 +130,7 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
     'CodeCommit.Source': DeploymentPipelineSourceCodeCommit,
     'ECR.Source': DeploymentPipelineSourceECR,
     'GitHub.Source': DeploymentPipelineSourceGitHub,
+    'BitBucket.Source': DeploymentPipelineSourceBitBucket,
     'CodeBuild.Build': DeploymentPipelineBuildCodeBuild,
     'ManualApproval': DeploymentPipelineManualApproval,
     'CodeDeploy.Deploy': DeploymentPipelineDeployCodeDeploy,
@@ -449,7 +451,7 @@ SUB_TYPES_CLASS_MAP = {
     RDSMysqlAurora: {
         'cluster_event_notifications': ('direct_obj', RDSDBClusterEventNotifications),
         'db_instances': ('container', (RDSClusterInstances, RDSClusterInstance)),
-        'default_instance': ('direct_obj', RDSClusterInstance),
+        'default_instance': ('direct_obj', RDSClusterDefaultInstance),
         'dns': ('obj_list', DNS),
         'read_dns': ('obj_list', DNS),
     },
@@ -1085,7 +1087,7 @@ Verify that '{}' has the correct indentation in the config file.
                         else:
                             setattr(obj, name, deepcopy_except_parent(value))
                     except (ValidationError, AttributeError) as exc:
-                        raise_invalid_schema_error(obj, name, value, read_file_path, exc)
+                       raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object
     # don't validate credentials as sometimes it's left blank

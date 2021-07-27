@@ -5579,6 +5579,19 @@ Auto Scaling Group SSM Patch Manager
         required=False
     )
 
+class IECRRepositoryPermission(Interface):
+    repository = PacoReference(
+        title="ECR Repository",
+        required=True,
+        schema_constraint='IECRRepository',
+    )
+    permission = zope.schema.Choice(
+        title="Permission",
+        description="Must be one of 'Push', 'Pull' or 'PushAndPull'",
+        required=True,
+        vocabulary=vocabulary.ecr_permissions,
+    )
+
 class IASG(IResource, IMonitorable):
     """
 An AutoScalingGroup (ASG) contains a collection of Amazon EC2 instances that are treated as a
@@ -5895,6 +5908,12 @@ See the AWS documentation for more information on how `AutoScalingRollingUpdate 
         title='Elastic Block Store Volume Mounts',
         value_type= zope.schema.Object(IEBSVolumeMount),
         required=False,
+    )
+    ecr = zope.schema.List(
+        title="ECR Respository Permissions",
+        value_type=zope.schema.Object(IECRRepositoryPermission),
+        required=False,
+        default=[],
     )
     ecs = zope.schema.Object(
         title="ECS Configuration",
@@ -10412,18 +10431,6 @@ connection. Then navigate to the AWS Console to complete the connection setup.
         required=True
     )
 
-class IECRRepositoryPermission(Interface):
-    repository = PacoReference(
-        title="ECR Repository",
-        required=True,
-        schema_constraint='IECRRepository',
-    )
-    permission = zope.schema.Choice(
-        title="Permission",
-        description="Must be one of 'Push', 'Pull' or 'PushAndPull'",
-        required=True,
-        vocabulary=vocabulary.ecr_permissions,
-    )
 
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
     """

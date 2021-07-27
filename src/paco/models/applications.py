@@ -577,6 +577,7 @@ class ASG(ApplicationResource, Monitorable):
     health_check_grace_period_secs = FieldProperty(schemas.IASG['health_check_grace_period_secs'])
     eip = FieldProperty(schemas.IASG['eip'])
     ecs = FieldProperty(schemas.IASG['ecs'])
+    ecr = FieldProperty(schemas.IASG['ecr'])
     instance_iam_role = FieldProperty(schemas.IASG['instance_iam_role'])
     instance_ami = FieldProperty(schemas.IASG['instance_ami'])
     instance_ami_ignore_changes = FieldProperty(schemas.IASG['instance_ami_ignore_changes'])

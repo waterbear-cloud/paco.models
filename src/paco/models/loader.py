@@ -578,6 +578,7 @@ SUB_TYPES_CLASS_MAP = {
         'block_device_mappings': ('obj_list', BlockDeviceMapping),
         'rolling_update_policy': ('direct_obj', ASGRollingUpdatePolicy),
         'ecs': ('direct_obj', ECSASGConfiguration),
+        'ecr': ('obj_list', ECRRepositoryPermission),
         'ssh_access': ('direct_obj', SSHAccess),
         'dns': ('obj_list', DNS),
         'script_manager': ('direct_obj', ScriptManager),

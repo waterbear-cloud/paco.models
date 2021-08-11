@@ -840,7 +840,12 @@ def merge(base, override):
     if isinstance(base, list) and isinstance(override, list):
         return [merge(x, y) for x, y in itertools.zip_longest(base, override)]
 
-    return deepcopy_except_parent(base) if override is None else deepcopy_except_parent(override)
+    if override == None and isinstance(base, str):
+        # Return None if the base is also a string. This is necessary for
+        # removing fields when overriding configuration
+        return None
+    else:
+        return deepcopy_except_parent(base) if override is None else deepcopy_except_parent(override)
 
 def annotate_base_config(obj, override_config, base_config):
     """
@@ -1544,7 +1549,7 @@ def load_data_from_path(path, base_path=None, is_yaml=False, is_binary=False):
         # ToDo: better error help
         raise InvalidPacoProjectFile("File does not exist at filesystem path {}".format(path))
 
-def load_yaml(contents):
+def load_yaml (contents):
     """
     Loads YAML with Troposphere Constructors and restores previous constructors after loading
     """
@@ -1555,7 +1560,7 @@ def load_yaml(contents):
     yaml.restore_existing_constructors()
     return data
 
-def read_yaml_file(path):
+def read_yaml_file(path, replace_config=None):
     """
     Same as the ModelLoader method, but available outside that class.
     Used to load cfn-init files which are parsed with Sub and Join CFN parts.
@@ -1563,12 +1568,20 @@ def read_yaml_file(path):
     yaml = ModelYAML(typ="safe", pure=True)
     yaml.default_flow_sytle = False
     yaml.add_troposphere_constructors()
+
+    file_data = ""
     with open(path, 'r') as stream:
-        try:
-            data = yaml.load(stream)
-        except ruamel.yaml.composer.ComposerError as exc:
-            error = exc
-            raise InvalidPacoProjectFile("""Error in file at {}
+        for line in iter(stream.readline, ''):
+            file_data += line
+
+    if replace_config != None:
+        file_data = replace_config['function'](file_data, replace_config)
+
+    try:
+        data = yaml.load(file_data)
+    except ruamel.yaml.composer.ComposerError as exc:
+        error = exc
+        raise InvalidPacoProjectFile("""Error in file at {}
 
 YAML load error:
 
@@ -1595,7 +1608,24 @@ class ModelLoader():
         self.config_folder = pathlib.Path(config_folder)
         self.project = None
 
-    def read_yaml_file(self, path):
+    def read_yaml_file(self, path, replace_config=None):
+        file_data = ""
+        with open(path, 'r') as stream:
+            for line in iter(stream.readline, ''):
+                file_data += line
+
+        if replace_config != None:
+            file_data = replace_config['function'](file_data, replace_config)
+
+        try:
+            data = self.yaml.load(file_data)
+        except ruamel.yaml.constructor.DuplicateKeyError as exc:
+            duplicate_key = re.match('.*?\"(.*?)\".*', exc.problem).groups()[0]
+            raise InvalidPacoProjectFile("""Error in file at {}
+Duplicate key \"{}\" found on line {} at column {}.
+""".format(self.read_file_path, duplicate_key, exc.context_mark.line, exc.context_mark.column))
+        return data
+
         with open(path, 'r') as stream:
             try:
                 data = self.yaml.load(stream)
@@ -2433,16 +2463,16 @@ Caveat: You can not have an environment named 'applications'.
             import_dict = import_dict[part]
         return copy.deepcopy(import_dict)
 
-    def import_from_file(self, import_from):
+    def import_from_file(self, import_from, replace_config=None):
         import_path = self.read_file_path.parent / pathlib.Path(import_from.split('file://')[1])
-        import_config = read_yaml_file(import_path)
+        import_config = read_yaml_file(import_path, replace_config)
         return import_config
 
-    def import_from_location(self, import_from, config):
+    def import_from_location(self, import_from, config, replace_config=None):
         if is_ref(import_from):
             import_config = self.import_from_ref(config, import_from)
         elif import_from.startswith('file://'):
-            import_config = self.import_from_file(import_from)
+            import_config = self.import_from_file(import_from, replace_config)
         else:
             raise
 
@@ -2471,6 +2501,38 @@ Caveat: You can not have an environment named 'applications'.
 
         return config
 
+    def process_import_from_netenv_replace(self, yaml_str, replace_config):
+        new_str = yaml_str.replace(f'netenv.{replace_config["old_netenv_name"]}', f'netenv.{replace_config["new_netenv_name"]}')
+        return new_str
+
+    def process_import_from_netenv(self, new_netenv_name, config):
+        if 'import_from' not in config.keys():
+            return config
+        import_from = config['import_from']
+
+        file_split = import_from.split('file://')
+        if len(file_split) > 1:
+            full_name = file_split[1]
+            ext_split = full_name.split('.yaml')
+            if len(ext_split) == 1:
+                ext_split = full_name.split('.yml')
+            if len(ext_split) == 1:
+                raise InvalidPacoProjectFile(f"NetworkEnvironment import_from {import_from} file type not supported.")
+            netenv_name = ext_split[0]
+        else:
+            raise InvalidPacoProjectFile(f"NetworkEnvironment import_from {import_from} type not supported.")
+
+        replace_config = {
+            'function': self.process_import_from_netenv_replace,
+            'old_netenv_name': netenv_name,
+            'new_netenv_name': new_netenv_name
+        }
+
+        import_from_config = self.import_from_location(import_from, config, replace_config)
+        override_config = copy.deepcopy(config)
+        config = merge(import_from_config, override_config)
+        return config
+
     def process_import_from_env_region(self, config):
         """ Loads yaml from a reference location or file """
         # Process Environments
@@ -2497,8 +2559,8 @@ Caveat: You can not have an environment named 'applications'.
         # Network Environment
         if config['network'] == None:
             raise InvalidPacoProjectFile("NetworkEnvironment {} has no network".format(name))
-
         # Import yaml from different locations
+        config = self.process_import_from_netenv(name, config)
         config = self.process_import_from_env_region(config)
 
         net_env = self.create_apply_and_save(

@@ -9205,7 +9205,7 @@ DBCluster Parameter Group
     """
     pass
 
-class IRDSOptionConfiguration(Interface):
+class IRDSOptionConfiguration(IParent):
     """
 Option groups enable and configure features that are specific to a particular DB engine.
     """
@@ -9392,6 +9392,11 @@ RDS DB Instance
 
 class IRDSSQLServerExpress(IRDSInstance):
     """RDS for Microsoft SQLServer Express"""
+    backup_restore_bucket = PacoReference(
+        title="SQLServer Backup Restore Bucket ARN",
+        required=False,
+        schema_constraint=IS3Bucket
+    )
 
 class IRDSMultiAZ(IRDSInstance):
     """

@@ -1568,7 +1568,7 @@ class RDSDBInstanceEventNotifications(Named):
     event_categories = FieldProperty(schemas.IRDSDBInstanceEventNotifications['event_categories'])
 
 @implementer(schemas.IRDSOptionConfiguration)
-class RDSOptionConfiguration():
+class RDSOptionConfiguration(Parent):
     option_name = FieldProperty(schemas.IRDSOptionConfiguration['option_name'])
     option_settings = FieldProperty(schemas.IRDSOptionConfiguration['option_settings'])
     option_version = FieldProperty(schemas.IRDSOptionConfiguration['option_version'])
@@ -1665,8 +1665,9 @@ class RDSMysql(RDSMultiAZ):
         super().__init__(name, parent)
         self.engine = 'mysql'
 
-@implementer(schemas.IRDSInstance)
+@implementer(schemas.IRDSSQLServerExpress)
 class RDSSQLServerExpress(RDSInstance):
+    backup_restore_bucket = FieldProperty(schemas.IRDSSQLServerExpress['backup_restore_bucket'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)

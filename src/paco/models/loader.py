@@ -484,8 +484,9 @@ SUB_TYPES_CLASS_MAP = {
     },
     RDSSQLServerExpress: {
         'dns': ('obj_list', DNS),
-        'security_groups': ('str_list', PacoReference),
-        'monitoring': ('direct_obj', MonitorConfig)
+        'monitoring': ('direct_obj', MonitorConfig),
+        'option_configurations': ('obj_list', RDSOptionConfiguration),
+        'security_groups': ('str_list', PacoReference)
     },
     ElastiCacheRedis: {
         'security_groups': ('str_list', PacoReference),
@@ -2002,7 +2003,10 @@ Caveat: You can not have an environment named 'applications'.
                         attr_name = name
                     value = getattr(model, attr_name)
                     if value != None and value.find('paco.ref netenv.') != -1:
-                        application = get_parent_by_interface(model, schemas.IApplication)
+                        try:
+                            application = get_parent_by_interface(model, schemas.IApplication)
+                        except:
+                            breakpoint()
                         value = self.insert_env_ref_str(value, env_name, env_region, application, global_config)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:

@@ -2006,10 +2006,7 @@ Caveat: You can not have an environment named 'applications'.
                         attr_name = name
                     value = getattr(model, attr_name)
                     if value != None and value.find('paco.ref netenv.') != -1:
-                        try:
-                            application = get_parent_by_interface(model, schemas.IApplication)
-                        except:
-                            breakpoint()
+                        application = get_parent_by_interface(model, schemas.IApplication)
                         value = self.insert_env_ref_str(value, env_name, env_region, application, global_config)
                         setattr(model, attr_name, value)
                 elif zope.schema.interfaces.IList.providedBy(field) and field.readonly == False:

@@ -269,6 +269,17 @@ def isValidLegacyFlagList(value):
         isValidLegacyFlag(flag)
     return True
 
+
+
+class InvalidS3StorageClass(zope.schema.ValidationError):
+    __doc__ = 'S3 Storage Class must be one of: DEEP_ARCHIVE | GLACIER | INTELLIGENT_TIERING | ONEZONE_IA | OUTPOSTS | REDUCED_REDUNDANCY | STANDARD | STANDARD_IA'
+
+def isValidS3StorageClass(value):
+    # Allow for missing_value
+    if value not in ('DEEP_ARCHIVE', 'GLACIER', 'INTELLIGENT_TIERING', 'ONEZONE_IA', 'OUTPOSTS', 'REDUCED_REDUNDANCY', 'STANDARD', 'STANDARD_IA'):
+        raise InvalidS3StorageClass
+    return True
+
 class InvalidEmailAddress(zope.schema.ValidationError):
     __doc__ = 'Malformed email address'
 
@@ -2353,6 +2364,31 @@ class IS3StaticWebsiteHosting(IParent, IDeployable):
         required=False
     )
 
+class IS3ReplicationConfiguration(INamed, IDeployable):
+    """S3 Bucket Replication Rule Configuration"""
+
+    change_to_destination_owner = zope.schema.Bool(
+        title="Change destination object ownership to the destination owner",
+        required=False,
+        default=False
+    )
+    destination = PacoReference(
+        title="Paco reference to an S3 Bucket",
+        required=False,
+        str_ok=False,
+        schema_constraint='IS3Bucket'
+    )
+    storage_class = zope.schema.TextLine(
+        title="Storage Class",
+        required=False,
+        constraint=isValidS3StorageClass
+    )
+
+
+class IS3ReplicationConfigurations(INamed, IMapping):
+    "Container for `S3ReplicationConfiguration`_ objects."
+    taggedValue('contains', 'IS3ReplicationConfiguration')
+
 class IS3Bucket(IResource, IDeployable):
     """S3Bucket is an object storage resource in the Amazon S3 service.
 
@@ -2477,6 +2513,12 @@ it is still possible to override this to use other accouns and regions if desire
         title="Static website hosting configuration.",
         required=False,
         schema=IS3StaticWebsiteHosting
+    )
+    replication = zope.schema.Object(
+        title="Replication configuration.",
+        required=False,
+        default=None,
+        schema=IS3ReplicationConfigurations
     )
 
 class IApplicationS3Bucket(IApplicationResource, IS3Bucket):

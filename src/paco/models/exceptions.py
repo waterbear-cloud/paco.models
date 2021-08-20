@@ -45,3 +45,6 @@ class AlarmDescriptionExtensionConflict(Exception):
 
 class LoaderRegistrationError(Exception):
     title = "Loader Registration conflict"
+
+class MissingSNSTopics(Exception):
+    title = "Missing SNS Topic"

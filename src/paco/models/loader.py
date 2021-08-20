@@ -59,7 +59,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DynamoDB, DynamoDBAttributeDefinition, DynamoDBGlobalSecondaryIndex, DynamoDBKeySchema, \
     DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy, \
     ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories, ScriptManagerEcsGroup, \
-    ScriptManagerEcs, ASGPatchManager
+    ScriptManagerEcs, ASGPatchManager, S3ReplicationConfigurations, S3ReplicationConfiguration
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -625,7 +625,10 @@ SUB_TYPES_CLASS_MAP = {
         'policy': ('obj_list', S3BucketPolicy),
         'notifications': ('direct_obj', S3NotificationConfiguration),
         'static_website_hosting': ('direct_obj', S3StaticWebsiteHosting),
+        'replication': ('container', (S3ReplicationConfigurations, S3ReplicationConfiguration))
     },
+    # S3ReplicationConfiguration: {
+    # },
     S3StaticWebsiteHosting: {
         'redirect_requests': ('direct_obj', S3StaticWebsiteHostingRedirectRequests)
     },

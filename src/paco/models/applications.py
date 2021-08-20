@@ -215,6 +215,19 @@ class S3StaticWebsiteHostingRedirectRequests(Parent):
 class S3StaticWebsiteHosting(Parent, Deployable):
     redirect_requests = FieldProperty(schemas.IS3StaticWebsiteHosting['redirect_requests'])
 
+@implementer(schemas.IS3ReplicationConfigurations)
+class S3ReplicationConfigurations(Named, dict):
+    pass
+
+@implementer(schemas.IS3ReplicationConfiguration)
+class S3ReplicationConfiguration(Named, Deployable):
+    change_to_destination_owner = FieldProperty(schemas.IS3ReplicationConfiguration['change_to_destination_owner'])
+    destination = FieldProperty(schemas.IS3ReplicationConfiguration['destination'])
+    storage_class = FieldProperty(schemas.IS3ReplicationConfiguration['storage_class'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+
 @implementer(schemas.IS3Bucket)
 class S3Bucket(Resource, Deployable):
     add_paco_suffix = FieldProperty(schemas.IS3Bucket['add_paco_suffix'])
@@ -227,12 +240,14 @@ class S3Bucket(Resource, Deployable):
     external_resource = FieldProperty(schemas.IS3Bucket['external_resource'])
     versioning = FieldProperty(schemas.IS3Bucket['versioning'])
     notifications = FieldProperty(schemas.IS3Bucket['notifications'])
+    replication = FieldProperty(schemas.IS3Bucket['replication'])
     bucket_name_prefix = None
     bucket_name_suffix = None
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
         self.policy = []
+        self.replication = S3ReplicationConfigurations('replication', self)
 
     def add_policy(self, policy_dict):
         policy_obj = S3BucketPolicy()

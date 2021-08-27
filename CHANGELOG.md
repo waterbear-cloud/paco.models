@@ -1,10 +1,28 @@
 Changelog for paco.models
 =========================
 
-7.8.13 (unreleased)
+7.8.13 (2021-08-26)
 -------------------
 
-- Nothing changed yet.
+### Added
+
+- Added bucket_owner_preferred boolean to S3Bucket resources
+
+- Implemented S3 Replication Configuration for destination buckets
+
+- Added a backup_restore_bucket RDS Option field to RDSSQLServerExpress resource.
+
+- Added import_from support for netenvs
+
+- Added ECR Repository field to IASG for automated permissions.
+
+- Adding BitBucket support to deployment pipelines.
+
+- Added IASGPatchManager for automated Windows patching
+
+### Fixed
+
+- Fixed RDSClusterDefaultInstance monitorability
 
 
 7.8.12 (2021-06-08)
@@ -12,14 +30,21 @@ Changelog for paco.models
 
 ### Added
 
-    - Implemented SQLServerExpress RDS
-    - Added redirect_path to IListenerRules
-    - Updated generated Vocabulary
-    - Added 'windows' generic AMI type
-    - Added VPC Endpoints configuration
-    - Added elb account id map to vocabulary
-    - Added windows_2019 to ami_types vocabulary
-    - Added bool to base obj_hash() method.
+- Implemented SQLServerExpress RDS
+
+- Added redirect_path to IListenerRules
+
+- Updated generated Vocabulary
+
+- Added 'windows' generic AMI type
+
+- Added VPC Endpoints configuration
+
+- Added elb account id map to vocabulary
+
+- Added windows_2019 to ami_types vocabulary
+
+- Added bool to base obj_hash() method.
 
 ### Fixed
 

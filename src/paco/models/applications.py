@@ -241,6 +241,7 @@ class S3Bucket(Resource, Deployable):
     versioning = FieldProperty(schemas.IS3Bucket['versioning'])
     notifications = FieldProperty(schemas.IS3Bucket['notifications'])
     replication = FieldProperty(schemas.IS3Bucket['replication'])
+    bucket_owner_preferred = FieldProperty(schemas.IS3Bucket['bucket_owner_preferred'])
     bucket_name_prefix = None
     bucket_name_suffix = None
 

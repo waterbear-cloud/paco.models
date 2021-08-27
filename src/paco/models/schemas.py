@@ -2520,6 +2520,11 @@ it is still possible to override this to use other accouns and regions if desire
         default=None,
         schema=IS3ReplicationConfigurations
     )
+    bucket_owner_preferred = zope.schema.Bool(
+        title="Bucket Owner Preferred Boolean.",
+        default=False,
+        required=False,
+    )
 
 class IApplicationS3Bucket(IApplicationResource, IS3Bucket):
     """An S3 Bucket specific to an application."""

@@ -2770,3 +2770,55 @@ class CognitoIdentityPool(Resource):
         # 'SamlProviderARNs': ([basestring], False),
         # 'SupportedLoginProviders': (dict, False),
     }
+
+@implementer(schemas.IWAFIPSet)
+class WAFIPSet(Named, Deployable):
+    addresses = FieldProperty(schemas.IWAFIPSet['addresses'])
+    description = FieldProperty(schemas.IWAFIPSet['description'])
+    ip_address_version = FieldProperty(schemas.IWAFIPSet['ip_address_version'])
+    scope = FieldProperty(schemas.IWAFIPSet['scope'])
+
+@implementer(schemas.IWAFWebACLRuleManagedRuleGroup)
+class WAFWebACLRuleManagedRuleGroup(Named, Deployable):
+    rule_name = FieldProperty(schemas.IWAFWebACLRuleManagedRuleGroup['rule_name'])
+    vendor = FieldProperty(schemas.IWAFWebACLRuleManagedRuleGroup['vendor'])
+
+@implementer(schemas.IWAFWebACLRuleStatement)
+class WAFWebACLRuleStatement(Named, Deployable):
+    managed_rule_group = FieldProperty(schemas.IWAFWebACLRuleStatement['managed_rule_group'])
+    ip_set_reference = FieldProperty(schemas.IWAFWebACLRuleStatement['ip_set_reference'])
+
+@implementer(schemas.IWAFWebACLVisibilityConfig)
+class WAFWebACLVisibilityConfig(Named):
+    cloudwatch_metrics_enabled = FieldProperty(schemas.IWAFWebACLVisibilityConfig['cloudwatch_metrics_enabled'])
+    metric_name = FieldProperty(schemas.IWAFWebACLVisibilityConfig['metric_name'])
+    sample_requests_enabled = FieldProperty(schemas.IWAFWebACLVisibilityConfig['sample_requests_enabled'])
+
+@implementer(schemas.IWAFWebACLCustomResponse)
+class WAFWebACLCustomResponse(Named):
+    response_code = FieldProperty(schemas.IWAFWebACLCustomResponse['response_code'])
+@implementer(schemas.IWAFWebACLRuleActionBlock)
+class WAFWebACLRuleActionBlock(Named):
+    custom_response = FieldProperty(schemas.IWAFWebACLRuleActionBlock['custom_response'])
+
+@implementer(schemas.IWAFWebACLRuleAction)
+class WAFWebACLRuleAction(Named):
+    block = FieldProperty(schemas.IWAFWebACLRuleAction['block'])
+
+@implementer(schemas.IWAFWebACLRule)
+class WAFWebACLRule(Named, Deployable):
+    statement = FieldProperty(schemas.IWAFWebACLRule['statement'])
+    visibility_config = FieldProperty(schemas.IWAFWebACLRule['visibility_config'])
+    action = FieldProperty(schemas.IWAFWebACLRule['action'])
+
+@implementer(schemas.IWAFWebACLRules)
+class WAFWebACLRules(Named, dict):
+    pass
+
+@implementer(schemas.IWAFWebACL)
+class WAFWebACL(Resource):
+    #default_action = FieldProperty(schemas.IWAFWebACL['default_action'])
+    rules = FieldProperty(schemas.IWAFWebACL['rules'])
+    scope = FieldProperty(schemas.IWAFWebACL['scope'])
+    visibility_config = FieldProperty(schemas.IWAFWebACL['visibility_config'])
+

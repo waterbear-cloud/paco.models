@@ -48,3 +48,6 @@ class LoaderRegistrationError(Exception):
 
 class MissingSNSTopics(Exception):
     title = "Missing SNS Topic"
+
+class InvalidSubType(Exception):
+    title = "The sub_type for the object is invalid"

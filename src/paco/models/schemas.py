@@ -29,6 +29,21 @@ def isListOfLayerARNs(value):
                 raise InvalidLayerARNList
     return True
 
+class InvalidWAFScope(zope.schema.ValidationError):
+    __doc__ = 'Scope must be one of: CLOUDFRONT | REGIONAL'
+
+def isValidWAFScope(value):
+    if value not in ('CLOUDFRONT', 'REGIONAL'):
+        raise InvalidWAFScope
+    return True
+class InvalidIPAddressVersion(zope.schema.ValidationError):
+    __doc__ = 'IP address version must be one of: IPV4 | IPV6'
+
+def isValidIPAddressVersion(value):
+    if value not in ('IPV4', 'IPv6'):
+        raise InvalidIPAddressVersion
+    return True
+
 class InvalidStringConditionOperator(zope.schema.ValidationError):
     __doc__ = 'String Condition operator must be one of: StringEquals, StringNotEquals, StringEqualsIgnoreCase, StringNotEqualsIgnoreCase, StringLike, StringNotLike.',
 
@@ -362,6 +377,14 @@ def isValidCloudWatchLogRetention(value):
     if value == '': return True
     if value not in vocabulary.cloudwatch_log_retention:
         raise InvalidCloudWatchLogRetention
+    return True
+
+class InvalidCloudWatchMetricName(zope.schema.ValidationError):
+    __doc__ = 'Metric name must be less than 255 characters.'
+
+def isValidCloudWatchMetricName(value):
+    if len(value) > 255:
+        raise InvalidCloudWatchMetricName
     return True
 
 class InvalidCidrIpv4(zope.schema.ValidationError):
@@ -8634,6 +8657,177 @@ Global CloudTrail configuration
         required=False,
     )
 
+class IWAFIPSet(IResource):
+    """Web Application Firewall IP Set"""
+    addresses = zope.schema.List(
+        title="IP Address CIDRs",
+        value_type=zope.schema.TextLine(),
+        required=False
+    )
+    description = zope.schema.TextLine(
+        title="IPSet Description",
+        required=False,
+    )
+
+    ip_address_version = zope.schema.TextLine(
+        title="IP Address Version",
+        required=False,
+        constraint=isValidIPAddressVersion
+    )
+    scope = zope.schema.TextLine(
+        title="Scope: CLOUDFRONT | REGIONAL",
+        required=False,
+        constraint=isValidWAFScope
+    )
+
+class IWAFWebACLRuleManagedRuleGroup(INamed, IDeployable):
+    """
+WAF Web ACL Rule ManagedRuleGroup Configuration
+    """
+    rule_name = zope.schema.TextLine(
+        title="Managed Rule Name",
+        #constraint = isValidWAFWebACLRuleManagedRuleGroupName,
+        required=True
+    )
+    vendor = zope.schema.TextLine(
+        title="Managed Rule Vendor",
+        #constraint = isValidWAFWebACLRuleManagedRuleGroupVendor,
+        required=True
+    )
+
+# class IWAFWebACLRuleActionAllow(INamed):
+#     """
+# WAF Web ACL Rule Action Allow Configuration
+#     """
+
+class IWAFWebACLCustomResponse(INamed):
+    """
+WAF Web ACL Custom Response Configuration
+    """
+    response_code = zope.schema.Int(
+        title="Response Code",
+        required=True,
+        min=200,
+        max=600,
+        default=503
+    )
+
+class IWAFWebACLRuleActionBlock(INamed):
+    """
+WAF Web ACL Rule Action Block Configuration
+    """
+    custom_response = zope.schema.Object(
+        title="WAF Web ACL Custom Response.",
+        required=True,
+        default=None,
+        schema=IWAFWebACLCustomResponse
+    )
+
+class IWAFWebACLRuleAction(INamed):
+    """
+WAF Web ACL Rule Action Configuration
+    """
+    # allow = zope.schema.Object(
+    #     title="WAF Web ACL Rule Allow Action.",
+    #     required=False,
+    #     default=None,
+    #     schema=IWAFWebACLRuleActionAllow
+    # )
+    block = zope.schema.Object(
+        title="WAF Web ACL Rule Block Action.",
+        required=False,
+        default=None,
+        schema=IWAFWebACLRuleActionBlock
+    )
+
+
+class IWAFWebACLRuleStatement(INamed):
+    """
+WAF Web ACL Rule Statement Configuration
+    """
+    managed_rule_group = zope.schema.Object(
+        title="WAF Web ACL Rule Statement.",
+        required=False,
+        default=None,
+        schema=IWAFWebACLRuleManagedRuleGroup
+    )
+    ip_set_reference = PacoReference(
+        title="WAF WebACL IPSet Reference",
+        required=False,
+        schema_constraint='IWAFIPSet',
+    )
+
+
+class IWAFWebACLVisibilityConfig(INamed):
+    """
+WAF Web ACL Rule Statement Configuration
+    """
+    cloudwatch_metrics_enabled = zope.schema.Bool(
+        title="Collect CloudWatch metrics boolean",
+        default=False,
+        required=False
+    )
+    metric_name = zope.schema.TextLine(
+        title="Default Action",
+        constraint = isValidCloudWatchMetricName,
+        default='',
+        required=False
+    )
+    sample_requests_enabled = zope.schema.Bool(
+        title="Collect sample requests for WAF boolean",
+        default=False,
+        required=False
+    )
+
+class IWAFWebACLRule(INamed, IDeployable):
+    """WAF Web ACL Rule Configuration"""
+    statement = zope.schema.Object(
+        title="WAF Web ACL Rule Statement.",
+        required=True,
+        default=None,
+        schema=IWAFWebACLRuleStatement
+    )
+    visibility_config = zope.schema.Object(
+        title="WAF Web ACL Rule Statement.",
+        required=True,
+        default=None,
+        schema=IWAFWebACLVisibilityConfig
+    )
+    action = zope.schema.Object(
+        title="WAF Web ACL Rule Action.",
+        required=False,
+        schema=IWAFWebACLRuleAction
+    )
+
+class IWAFWebACLRules(INamed, IMapping):
+    "Container for `IWAFWebACLRule`_ objects."
+    taggedValue('contains', 'IWAFWebACLRule')
+
+class IWAFWebACL(IResource):
+    """Web Application Firewall Web ACL"""
+    # default_action = zope.schema.TextLine(
+    #     title="Default Action",
+    #     constraint = isValidWAFWebACLDefaultAction,
+    #     default='Deny',
+    #     required=False
+    # )
+    rules = zope.schema.Object(
+        title="WAF Web ACL Rules.",
+        required=False,
+        schema=IWAFWebACLRules
+    )
+    scope = zope.schema.TextLine(
+        title="Scope: CLOUDFRONT | REGIONAL",
+        required=False,
+        constraint=isValidWAFScope
+    )
+    visibility_config = zope.schema.Object(
+        title="WAF Web ACL Rule Statement.",
+        required=True,
+        default=None,
+        schema=IWAFWebACLVisibilityConfig
+    )
+
 class ICloudFrontCookies(INamed):
     forward = zope.schema.TextLine(
         title="Cookies Forward Action",
@@ -8917,9 +9111,11 @@ CloudFront CDN Configuration
         schema=ICloudFrontOrigins,
         required=False,
     )
-    webacl_id = zope.schema.TextLine(
+    webacl_id = PacoReference(
         title="WAF WebACLId",
+        str_ok=True,
         required=False,
+        schema_constraint='IWAFWebACL'
     )
     factory = zope.schema.Object(
         title="CloudFront Factory",

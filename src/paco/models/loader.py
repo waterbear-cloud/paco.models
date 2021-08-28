@@ -10,7 +10,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference, InvalidAlarmConfiguration
+    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference, InvalidAlarmConfiguration, InvalidSubType
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, AlarmSetsContainer, SNSTopics, Dimension, \
@@ -59,7 +59,9 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DynamoDB, DynamoDBAttributeDefinition, DynamoDBGlobalSecondaryIndex, DynamoDBKeySchema, \
     DynamoDBProjection, DynamoDBProvisionedThroughput, DynamoDBTable, DynamoDBTables, DynamoDBTargetTrackingScalingPolicy, \
     ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories, ScriptManagerEcsGroup, \
-    ScriptManagerEcs, ASGPatchManager, S3ReplicationConfigurations, S3ReplicationConfiguration
+    ScriptManagerEcs, ASGPatchManager, S3ReplicationConfigurations, S3ReplicationConfiguration, \
+    WAFWebACLRuleManagedRuleGroup, WAFIPSet, WAFWebACLVisibilityConfig, WAFWebACLRuleStatement, WAFWebACLRule, WAFWebACL, WAFWebACLRules, \
+    WAFWebACLRuleAction, WAFWebACLRuleActionBlock, WAFWebACLCustomResponse
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -190,6 +192,8 @@ RESOURCES_CLASS_MAP = {
     'Route53HealthCheck': Route53HealthCheck,
     'S3Bucket': ApplicationS3Bucket,
     'SNSTopic': SNSTopic,
+    'WAFWebACL': WAFWebACL,
+    'WAFIPSet': WAFIPSet
 }
 
 SUB_TYPES_CLASS_MAP = {
@@ -813,6 +817,29 @@ SUB_TYPES_CLASS_MAP = {
     # Secrets Manager
     SecretsManagerSecret: {
         'generate_secret_string': ('direct_obj', GenerateSecretString)
+    },
+    # WAF
+    WAFWebACL: {
+        'rules': ('container', (WAFWebACLRules, WAFWebACLRule)),
+        'visibility_config': ('direct_obj', WAFWebACLVisibilityConfig)
+    },
+    WAFWebACLRule: {
+        'statement': ('direct_obj', WAFWebACLRuleStatement),
+        'visibility_config': ('direct_obj', WAFWebACLVisibilityConfig),
+        'action': ('direct_obj', WAFWebACLRuleAction)
+    },
+    WAFWebACLRuleStatement: {
+        'managed_rule_group': ('direct_obj', WAFWebACLRuleManagedRuleGroup),
+        'ip_set_reference': ('direct_obj', WAFWebACLRuleManagedRuleGroup)
+    },
+    WAFIPSet: {
+        'addresses': ('str_list', zope.schema.TextLine)
+    },
+    WAFWebACLRuleAction: {
+        'block': ('direct_obj', WAFWebACLRuleActionBlock)
+    },
+    WAFWebACLRuleActionBlock: {
+        'custom_response': ('direct_obj', WAFWebACLCustomResponse)
     }
 }
 
@@ -1097,7 +1124,8 @@ Verify that '{}' has the correct indentation in the config file.
                         else:
                             setattr(obj, name, deepcopy_except_parent(value))
                     except (ValidationError, AttributeError) as exc:
-                       raise_invalid_schema_error(obj, name, value, read_file_path, exc)
+                        breakpoint()
+                        raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object
     # don't validate credentials as sometimes it's left blank
@@ -1490,6 +1518,8 @@ Configuration section:
         return instantiate_deployment_pipeline_stage(name, sub_class, value, obj, read_file_path)
     elif sub_type == 'deployment_pipeline_stages':
         return instantiate_deployment_pipeline_stages(name, sub_class, value, obj, read_file_path)
+    else:
+        raise InvalidSubType(f"Unknown sub_type: {sub_type}")
 
 def instantiate_notifications(value, obj, read_file_path):
     notifications = AlarmNotifications('notifications', obj)

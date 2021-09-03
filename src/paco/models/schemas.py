@@ -3592,6 +3592,11 @@ class ITargetGroup(IPortProtocol, IResource):
         required=False,
         default="HTTP"
     )
+    health_check_port = zope.schema.TextLine(
+        title="Heath check port",
+        required=False,
+        default='traffic-port'
+    )
     health_check_timeout = zope.schema.Int(
         title="Health check timeout",
         required=False,

@@ -1232,9 +1232,14 @@ class TargetGroup(Resource, PortProtocol):
     health_check_interval = FieldProperty(schemas.ITargetGroup['health_check_interval'])
     health_check_path = FieldProperty(schemas.ITargetGroup['health_check_path'])
     health_check_protocol = FieldProperty(schemas.ITargetGroup['health_check_protocol'])
+    health_check_port = FieldProperty(schemas.ITargetGroup['health_check_port'])
     health_check_timeout = FieldProperty(schemas.ITargetGroup['health_check_timeout'])
     target_type = FieldProperty(schemas.ITargetGroup['target_type'])
     unhealthy_threshold = FieldProperty(schemas.ITargetGroup['unhealthy_threshold'])
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.enabled = True
 
     def resolve_ref(self, ref):
         if ref.ref.endswith('.target_groups.'+self.name):

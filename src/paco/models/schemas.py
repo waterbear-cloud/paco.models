@@ -355,10 +355,10 @@ def isValidRoute53HealthCheckType(value):
     return True
 
 class InvalidRoute53RecordSetTypeError(zope.schema.ValidationError):
-    __doc__ = 'Route53 RecordSet "type" be one of: A | MX | CNAME | Alias | SRV | TXT | NS | SOA'
+    __doc__ = 'Route53 RecordSet "type" be one of: A | MX | CNAME | Alias | SRV | TXT | NS | SOA | SPF'
 
 def isValidRoute53RecordSetType(value):
-    if value not in ('A', 'MX', 'CNAME', 'Alias', 'SRV', 'TXT', 'NS', 'SOA'):
+    if value not in ('A', 'MX', 'CNAME', 'Alias', 'SRV', 'TXT', 'NS', 'SOA', 'SPF'):
         raise InvalidRoute53RecordSetTypeError
     return True
 
@@ -3001,7 +3001,7 @@ class INATGateway(INamed, IDeployable):
     ec2_instance_type = zope.schema.TextLine(
         title="EC2 Instance Type",
         required=False,
-        default='t2.nano'
+        default='t3.nano'
     )
 
 class IVPNGateway(INamed, IDeployable):

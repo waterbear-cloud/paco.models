@@ -1124,7 +1124,6 @@ Verify that '{}' has the correct indentation in the config file.
                         else:
                             setattr(obj, name, deepcopy_except_parent(value))
                     except (ValidationError, AttributeError) as exc:
-                        breakpoint()
                         raise_invalid_schema_error(obj, name, value, read_file_path, exc)
 
     # validate the object

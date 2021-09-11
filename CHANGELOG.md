@@ -1,11 +1,22 @@
 Changelog for paco.models
 =========================
 
-7.8.14 (unreleased)
+7.8.14 (2021-09-10)
 -------------------
 
-- Nothing changed yet.
+# Changed
 
+- Updated generated vocabulary
+
+# Added
+
+- Added Security Groups service hooks to the registry
+
+- Added SPF Route53 RecordSet type to validation
+
+- Added HealthCheckPort to load balancers
+
+- Added WAFv2 WebACL Resource
 
 7.8.13 (2021-08-26)
 -------------------

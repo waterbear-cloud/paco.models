@@ -1,5 +1,6 @@
+source ~/.local/paco-venv/bin/activate
+source ../.wb_service_aws
 export PS1="(paco.models) \h \W$ "
 export PROMPT="(paco.models) %~ %# "
 export PATH=${buildout:bin-directory}:$PATH
-export AWS_PROFILE=pacomodels
 

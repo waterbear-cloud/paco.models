@@ -2170,10 +2170,26 @@ Caveat: You can not have an environment named 'applications'.
             apply_attributes_from_config(obj, config, self.config_folder)
         return obj
 
+    def process_import_from_codecommit(self, config):
+        for group_name in config.keys():
+            group_config = config[group_name]
+            for repo_name in group_config.keys():
+                repo_config = group_config[repo_name]
+                if 'import_from' not in repo_config.keys():
+                    continue
+                import_from = repo_config['import_from']
+                del repo_config['import_from']
+                import_config = self.import_from_location(import_from, config)
+                override_config = copy.deepcopy(group_config[repo_name])
+                group_config[repo_name] = merge(import_config, override_config)
+
+        return config
+
     def instantiate_codecommit(self, config):
         """Instantiate resource/codecommit.yaml"""
         if config == None:
             return
+        config = self.process_import_from_codecommit(config)
         codecommit = sub_types_loader(
             self.project.resource,
             'codecommit',

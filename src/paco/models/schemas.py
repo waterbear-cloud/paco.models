@@ -521,10 +521,10 @@ def isValidCFSSLSupportedMethod(value):
     return True
 
 class InvalidCFMinimumProtocolVersion(zope.schema.ValidationError):
-    __doc__ = 'Mimimum SSL Protocol Version must be one of: SSLv3 | TLSv1 | TLSv1_2016 | TLSv1.1_2016 | TLSv1.2_2018 | TLSv1.2_2019'
+    __doc__ = 'Mimimum SSL Protocol Version must be one of: SSLv3 | TLSv1 | TLSv1_2016 | TLSv1.1_2016 | TLSv1.2_2018 | TLSv1.2_2019 | TLSv1.2_2021'
 
 def isValidCFMinimumProtocolVersion(value):
-    if value not in ('SSLv3', 'TLSv1', 'TLSv1_2016', 'TLSv1.1_2016', 'TLSv1.2_2018', 'TLSv1.2_2019'):
+    if value not in ('SSLv3', 'TLSv1', 'TLSv1_2016', 'TLSv1.1_2016', 'TLSv1.2_2018', 'TLSv1.2_2019', 'TLSv1.2_2021'):
         raise InvalidCFMinimumProtocolVersion
     return True
 

@@ -1789,7 +1789,7 @@ class RDSAurora(RDS):
     cfn_mapping = {
         # 'AssociatedRoles': not yet implmented
         # 'AvailabilityZones': computed in template
-        'BacktrackWindow': 'backtrack_cfn',
+        #'BacktrackWindow': 'backtrack_cfn',
         'BackupRetentionPeriod': 'backup_retention_period',
         'DatabaseName': 'database_name',
         # 'DBClusterIdentifier': computed in template

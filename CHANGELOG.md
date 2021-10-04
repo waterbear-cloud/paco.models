@@ -1,20 +1,23 @@
 Changelog for paco.models
 =========================
 
-7.8.15 (unreleased)
+7.8.15 (2021-10-04)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+  - Added import_from logic for CodeCommit
+
+  - Added TLSv1.2_2021 minimum cloudfront protocol version
 
 7.8.14 (2021-09-10)
 -------------------
 
-# Changed
+### Changed
 
 - Updated generated vocabulary
 
-# Added
+### Added
 
 - Added Security Groups service hooks to the registry
 

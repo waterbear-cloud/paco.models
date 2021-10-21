@@ -924,6 +924,7 @@ ami_types = [
     'ubuntu_16_snap', # Instances created from Ubuntu Server 16.04 AMIs identified with 20180627, SSM Agent is pre-installed using Snap packages
     'ubuntu_17',
     'ubuntu_18',
+	'ubuntu_18_cis',
     'ubuntu_19',
     'ubuntu_20',
     'microsoft',

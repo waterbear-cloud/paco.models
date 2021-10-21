@@ -355,10 +355,11 @@ def isValidRoute53HealthCheckType(value):
     return True
 
 class InvalidRoute53RecordSetTypeError(zope.schema.ValidationError):
-    __doc__ = 'Route53 RecordSet "type" be one of: A | MX | CNAME | Alias | SRV | TXT | NS | SOA | SPF'
+    __doc__ = 'Route53 RecordSet "type" be one of: A | MX | CNAME | Alias | SRV | TXT | NS | SOA | SPF | AAAA'
 
 def isValidRoute53RecordSetType(value):
-    if value not in ('A', 'MX', 'CNAME', 'Alias', 'SRV', 'TXT', 'NS', 'SOA', 'SPF'):
+    if value not in ('A', 'MX', 'CNAME', 'Alias', 'SRV', 'TXT', 'NS', 'SOA', 'SPF', 'AAAA'):
+        breakpoint()
         raise InvalidRoute53RecordSetTypeError
     return True
 

@@ -588,7 +588,7 @@ class InvalidPacoDeploymentPipelinePermissionPolicy(zope.schema.ValidationError)
 def isPacoDeploymentPipelinePermissionPolicyValid(value):
     values = value.replace(' ', '').split(',')
     for item in values:
-        if item not in ('RetryStages', 'ReadOnly'):
+        if item not in ('RetryStages', 'ReadOnly', 'ManualApproval'):
             raise InvalidPacoDeploymentPipelinePermissionPolicy
     return True
 

@@ -670,6 +670,12 @@ class IAMUserPermissionDeploymentPipelineResource(Parent):
     permission = FieldProperty(schemas.IIAMUserPermissionDeploymentPipelineResource['permission'])
     console_access_enabled = FieldProperty(schemas.IIAMUserPermissionDeploymentPipelineResource['console_access_enabled'])
 
+
+@implementer(schemas.IIAMUserPermissionSystemsManagerSession)
+class IAMUserPermissionSystemsManagerSession(IAMUserPermission):
+    resources = FieldProperty(schemas.IIAMUserPermissionSystemsManagerSession['resources'])
+    accounts = FieldProperty(schemas.IIAMUserPermissionSystemsManagerSession['accounts'])
+
 @implementer(schemas.IIAMUserPermissionCodeBuild)
 class IAMUserPermissionCodeBuild(IAMUserPermission):
     resources = FieldProperty(schemas.IIAMUserPermissionCodeBuild['resources'])

@@ -80,7 +80,7 @@ from paco.models.resources import S3Resource, S3Buckets, \
     IAMResource, IAMUser, IAMUsers, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
-    IAMUserPermissionDeploymentPipelines, IAMUserPermissionDeploymentPipelineResource, \
+    IAMUserPermissionDeploymentPipelines, IAMUserPermissionDeploymentPipelineResource, IAMUserPermissionSystemsManagerSession, \
     SSMResource, SSMDocuments, SSMDocument, ConfigResource, Config, \
     SNS, Topics
 from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigurations, CloudFormationInitVersionedPackageSet, \
@@ -143,11 +143,12 @@ DEPLOYMENT_PIPELINE_STAGE_ACTION_CLASS_MAP = {
 }
 
 IAM_USER_PERMISSIONS_CLASS_MAP = {
+    'Administrator': IAMUserPermissionAdministrator,
     'DeploymentPipelines': IAMUserPermissionDeploymentPipelines,
     'CodeBuild': IAMUserPermissionCodeBuild,
     'CodeCommit': IAMUserPermissionCodeCommit,
-    'Administrator': IAMUserPermissionAdministrator,
-    'CustomPolicy': IAMUserPermissionCustomPolicy
+    'CustomPolicy': IAMUserPermissionCustomPolicy,
+    'SystemsManagerSession': IAMUserPermissionSystemsManagerSession
 }
 
 RESOURCES_CLASS_MAP = {

@@ -10329,6 +10329,23 @@ CodeBuild IAM User Permission
         required=False
     )
 
+class IIAMUserPermissionSystemsManagerSession(IIAMUserPermission):
+    """
+Session Manager Session Permissions
+    """
+    accounts = CommaList(
+        title='Comma separated list of Paco AWS account names this user has access to',
+        required=False,
+    )
+    resources = zope.schema.List(
+        title='List of Paco References to grant permissions for',
+        value_type=PacoReference(
+            title="Paco reference",
+            schema_constraint='Interface',
+        ),
+        required=False
+    )
+
 class IIAMUserPermissionCustomPolicy(IIAMUserPermission):
     """
 Custom IAM User Permission

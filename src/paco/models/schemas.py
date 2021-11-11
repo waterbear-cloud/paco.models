@@ -7798,6 +7798,10 @@ The code for the Lambda function can be specified in one of three ways in the ``
         default=128,
         required=False,
     )
+    region = zope.schema.TextLine(
+        title="AWS Region",
+        required=False,
+    )
     reserved_concurrent_executions = zope.schema.Int(
         title="Reserved Concurrent Executions",
         default=0,

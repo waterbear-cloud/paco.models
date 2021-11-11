@@ -1385,6 +1385,7 @@ class Lambda(ApplicationResource, Monitorable):
     iam_role = FieldProperty(schemas.ILambda['iam_role'])
     handler = FieldProperty(schemas.ILambda['handler'])
     memory_size = FieldProperty(schemas.ILambda['memory_size'])
+    region = FieldProperty(schemas.ILambda['region'])
     reserved_concurrent_executions = FieldProperty(schemas.ILambda['reserved_concurrent_executions'])
     runtime = FieldProperty(schemas.ILambda['runtime'])
     # The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.

@@ -250,7 +250,13 @@ cloudwatch = {
 	},
 	'ASG': {
 		'dimension': 'AutoScalingGroupName',
-		'namespace': 'AWS/AutoScaling'
+		'namespace': 'AWS/AutoScaling',
+		'namespace_by_metric_name': {
+			'StatusCheckFailed': 'AWS/EC2',
+			'CPUUtilization': 'AWS/EC2',
+			'swap_used_percent': 'CWAgent',
+			'disk_used_percent': 'CWAgent'
+		}
 	},
 	'CloudFront': {
 		'dimension': 'DistributionId',

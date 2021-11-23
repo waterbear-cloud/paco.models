@@ -1,20 +1,35 @@
 Changelog for paco.models
 =========================
 
-7.8.16 (unreleased)
+7.8.16 (2021-11-23)
 -------------------
 
-- Nothing changed yet.
+### Changed
 
+- Modified IECSService's deployment_minimum_healthy_percent minimum from 1 to 0.
+
+### Added
+
+- Added namespace by metric vocabulary lookup to automate ASG namespaces for CWAgent and AWS/EC2
+
+- Added region to ILambda resource.
+
+- Implemented SystemsManagerSession IAM delegates policy
+
+- Added ManualApproval to isPacoDeploymentPipelinePermissionPolicyValid for IAM permissions.
+
+- Added AAAA to Route53 Record set types
+
+- Added ubuntu_18_cis ami_type to vocabulary
 
 7.8.15 (2021-10-04)
 -------------------
 
 ### Added
 
-  - Added import_from logic for CodeCommit
+- Added import_from logic for CodeCommit
 
-  - Added TLSv1.2_2021 minimum cloudfront protocol version
+- Added TLSv1.2_2021 minimum cloudfront protocol version
 
 7.8.14 (2021-09-10)
 -------------------

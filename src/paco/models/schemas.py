@@ -6764,7 +6764,7 @@ class IECSService(INamed, IMonitorable):
     )
     deployment_minimum_healthy_percent = zope.schema.Int(
         title="Deployment Minimum Healthy Percent",
-        min=1,
+        min=0,
         max=100,
         required=False,
         default=100,

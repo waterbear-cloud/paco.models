@@ -39,7 +39,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceBitBucket, \
     DeploymentPipelineSourceECR, DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, \
-    CodePipelineStage, CodePipelineStages, \
+    CodePipelineStage, CodePipelineStages, CodeBuildSource, CodeBuildSourceGitHub, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
@@ -413,7 +413,11 @@ SUB_TYPES_CLASS_MAP = {
         'ecr_repositories': ('obj_list', ECRRepositoryPermission),
         'role_policies': ('obj_list', Policy),
         'secrets': ('str_list', PacoReference),
+        'source': ('direct_obj', CodeBuildSource),
         'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase),
+    },
+    CodeBuildSource: {
+        'github': ('direct_obj', CodeBuildSourceGitHub)
     },
     DeploymentPipelineBuildReleasePhase: {
         'ecs': ('obj_list', DeploymentPipelineBuildReleasePhaseCommand),

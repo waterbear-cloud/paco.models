@@ -2012,8 +2012,9 @@ class ElasticsearchDomain(ApplicationResource, Monitorable):
 
 @implementer(schemas.IDeploymentPipelineConfiguration)
 class DeploymentPipelineConfiguration(Named):
-    artifacts_bucket = FieldProperty(schemas.IDeploymentPipelineConfiguration['artifacts_bucket'])
     account = FieldProperty(schemas.IDeploymentPipelineConfiguration['account'])
+    artifacts_bucket = FieldProperty(schemas.IDeploymentPipelineConfiguration['artifacts_bucket'])
+    disable_codepipeline = FieldProperty(schemas.IDeploymentPipelineConfiguration['disable_codepipeline'])
     region = FieldProperty(schemas.IDeploymentPipelineConfiguration['region'])
 
     def resolve_ref(self, ref):
@@ -2079,18 +2080,30 @@ class DeploymentPipelineBuildReleasePhaseCommand(Parent):
     service = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['service'])
     command = FieldProperty(schemas.IDeploymentPipelineBuildReleasePhaseCommand['command'])
 
+
+@implementer(schemas.ICodeBuildSourceGitHub)
+class CodeBuildSourceGitHub(Deployable):
+    location = FieldProperty(schemas.ICodeBuildSourceGitHub['location'])
+    report_build_status = FieldProperty(schemas.ICodeBuildSourceGitHub['report_build_status'])
+
+@implementer(schemas.ICodeBuildSource)
+class CodeBuildSource(Parent):
+    github = FieldProperty(schemas.ICodeBuildSource['github'])
+
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     buildspec = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['buildspec'])
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])
     codecommit_repo_users = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codecommit_repo_users'])
+    concurrent_build_limit = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['concurrent_build_limit'])
     deployment_environment = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['deployment_environment'])
     ecr_repositories = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['ecr_repositories'])
     privileged_mode = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['privileged_mode'])
     release_phase = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['release_phase'])
     role_policies = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['role_policies'])
     secrets = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['secrets'])
+    source = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['source'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
 
     def __init__(self, name, parent):

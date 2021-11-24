@@ -10498,16 +10498,21 @@ class IDeploymentPipelineConfiguration(INamed):
     """
 Deployment Pipeline General Configuration
     """
+    account = PacoReference(
+        title="The account where Pipeline tools will be provisioned.",
+        required=False,
+        schema_constraint=IAccount
+    )
     artifacts_bucket = PacoReference(
         title="Artifacts S3 Bucket Reference",
         description="",
         required=False,
         schema_constraint=IS3Bucket,
     )
-    account = PacoReference(
-        title="The account where Pipeline tools will be provisioned.",
+    disable_codepipeline = zope.schema.Bool(
+        title='Provision stage resources only.',
         required=False,
-        schema_constraint=IAccount
+        default=False,
     )
     region = zope.schema.TextLine(
         title="Region to provision the pipeline",
@@ -10707,6 +10712,28 @@ connection. Then navigate to the AWS Console to complete the connection setup.
     )
 
 
+class ICodeBuildSourceGitHub(IDeployable):
+    """CodeBuild GitHub Source Configuration"""
+
+    location = zope.schema.TextLine(
+        title='CodeBuild GitHub Source Location',
+        required=True,
+    )
+
+    report_build_status = zope.schema.Bool(
+        title='Report Build Status',
+        default=False,
+        required=False
+    )
+class ICodeBuildSource(Interface):
+    """CodeBuild Source Configuration"""
+
+    github = zope.schema.Object(
+        title="CodeBuild GitHub Source Configuration",
+        schema=ICodeBuildSourceGitHub,
+        required=False
+    )
+
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
     """
 CodeBuild DeploymentPipeline Build Stage
@@ -10715,6 +10742,7 @@ CodeBuild DeploymentPipeline Build Stage
     buildspec = zope.schema.Text(
         title="buildspec.yml filename",
         required=False,
+        default='buildspec.yml'
     )
     codebuild_image = zope.schema.TextLine(
         title='CodeBuild Docker Image',
@@ -10733,6 +10761,14 @@ CodeBuild DeploymentPipeline Build Stage
             schema_constraint='ICodeCommitUser'
         )
     )
+    concurrent_build_limit = zope.schema.Int(
+        title='The maximum number of concurrent builds that are allowed.',
+        min=0,
+        max=1000,
+        default=0,
+        required=False,
+    )
+
     deployment_environment = zope.schema.TextLine(
         title="Deployment Environment",
         description="",
@@ -10768,6 +10804,12 @@ CodeBuild DeploymentPipeline Build Stage
             schema_constraint='ISecretsManagerSecret',
         ),
     )
+    source = zope.schema.Object(
+        title="CodeBuild Source Configuration",
+        schema=ICodeBuildSource,
+        required=False
+    )
+
     timeout_mins = zope.schema.Int(
         title='Timeout in Minutes',
         min=5,

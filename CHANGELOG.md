@@ -1,11 +1,14 @@
 Changelog for paco.models
 =========================
 
-7.8.17 (unreleased)
+7.8.17 (2021-11-24)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+- Added 'disable_codepipeline' to IDeploymentPipelineConfiguration to allow stage resource to be build independently.
+
+- Added CodeBuild GitHub source configuration
 
 7.8.16 (2021-11-23)
 -------------------

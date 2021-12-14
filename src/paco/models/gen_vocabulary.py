@@ -7,6 +7,38 @@ ami_ids = {
   "us-east-2": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-08e0b00e3616220d8",
+        "CreationDate": "2021-12-09T19:17:48.000Z"
+      },
+      {
+        "ImageId": "ami-086e001f1a73d208c",
+        "CreationDate": "2021-11-18T23:58:56.000Z"
+      },
+      {
+        "ImageId": "ami-0adc4758ea76442e2",
+        "CreationDate": "2021-11-12T00:20:02.000Z"
+      },
+      {
+        "ImageId": "ami-0102692edc680b5b0",
+        "CreationDate": "2021-11-04T17:12:03.000Z"
+      },
+      {
+        "ImageId": "ami-023ef2526f4bf79c9",
+        "CreationDate": "2021-10-22T03:39:56.000Z"
+      },
+      {
+        "ImageId": "ami-0a4cbf3bd47ef1bc9",
+        "CreationDate": "2021-10-14T22:58:59.000Z"
+      },
+      {
+        "ImageId": "ami-0c38a2329ed4dae9a",
+        "CreationDate": "2021-10-05T17:41:49.000Z"
+      },
+      {
+        "ImageId": "ami-0dcd3f3bc942819cf",
+        "CreationDate": "2021-09-21T18:22:08.000Z"
+      },
+      {
         "ImageId": "ami-07f26587d2d1c39a7",
         "CreationDate": "2021-09-03T19:29:33.000Z"
       },
@@ -280,6 +312,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-056b1936002ca8ede",
+        "CreationDate": "2021-12-01T19:55:44.000Z"
+      },
+      {
+        "ImageId": "ami-0bf79327ba470a114",
+        "CreationDate": "2021-12-01T19:54:04.000Z"
+      },
+      {
+        "ImageId": "ami-0dd0ccab7e2801812",
+        "CreationDate": "2021-11-09T04:50:54.000Z"
+      },
+      {
+        "ImageId": "ami-0c67a2715fa2fa9fc",
+        "CreationDate": "2021-11-09T04:49:14.000Z"
+      },
+      {
+        "ImageId": "ami-0f19d220602031aed",
+        "CreationDate": "2021-10-12T14:13:53.000Z"
+      },
+      {
+        "ImageId": "ami-0718f424c20e82b14",
+        "CreationDate": "2021-10-12T14:12:44.000Z"
+      },
+      {
+        "ImageId": "ami-074cce78125f09d61",
+        "CreationDate": "2021-10-05T18:18:37.000Z"
+      },
+      {
+        "ImageId": "ami-00fdf85b97b6efa7e",
+        "CreationDate": "2021-10-05T18:17:25.000Z"
+      },
       {
         "ImageId": "ami-00dfe2c7ce89a450b",
         "CreationDate": "2021-08-25T06:57:25.000Z"
@@ -735,6 +799,42 @@ ami_ids = {
   "us-east-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0c5c9bcfb36b772fe",
+        "CreationDate": "2021-12-09T19:18:45.000Z"
+      },
+      {
+        "ImageId": "ami-0fe19057e9cb4efd8",
+        "CreationDate": "2021-11-18T23:59:45.000Z"
+      },
+      {
+        "ImageId": "ami-01783fbb0757adced",
+        "CreationDate": "2021-11-12T00:20:49.000Z"
+      },
+      {
+        "ImageId": "ami-078cbb92727dec530",
+        "CreationDate": "2021-11-04T16:54:39.000Z"
+      },
+      {
+        "ImageId": "ami-0e43fd2a4ef14f476",
+        "CreationDate": "2021-10-22T03:28:17.000Z"
+      },
+      {
+        "ImageId": "ami-0eba366342cb1dfda",
+        "CreationDate": "2021-10-14T22:47:07.000Z"
+      },
+      {
+        "ImageId": "ami-04942e54b391af5d0",
+        "CreationDate": "2021-10-05T17:28:30.000Z"
+      },
+      {
+        "ImageId": "ami-0706a79e169de19a2",
+        "CreationDate": "2021-09-21T18:09:05.000Z"
+      },
+      {
+        "ImageId": "ami-03fe4d5b1d229063a",
+        "CreationDate": "2021-09-03T19:18:35.000Z"
+      },
+      {
         "ImageId": "ami-03db9b2aac6af477d",
         "CreationDate": "2021-08-21T02:41:52.000Z"
       },
@@ -1004,6 +1104,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-061ac2e015473fbe2",
+        "CreationDate": "2021-12-01T19:55:46.000Z"
+      },
+      {
+        "ImageId": "ami-096198a0bccc6bad4",
+        "CreationDate": "2021-12-01T19:52:05.000Z"
+      },
+      {
+        "ImageId": "ami-04ad2567c9e3d7893",
+        "CreationDate": "2021-11-09T04:50:55.000Z"
+      },
+      {
+        "ImageId": "ami-043fe20f06f9f75a6",
+        "CreationDate": "2021-11-09T04:47:15.000Z"
+      },
+      {
+        "ImageId": "ami-01cc34ab2709337aa",
+        "CreationDate": "2021-10-12T14:13:54.000Z"
+      },
+      {
+        "ImageId": "ami-01d425805aef71788",
+        "CreationDate": "2021-10-12T14:09:44.000Z"
+      },
+      {
+        "ImageId": "ami-02e136e904f3da870",
+        "CreationDate": "2021-10-05T18:18:39.000Z"
+      },
+      {
+        "ImageId": "ami-0940aa04644aba71c",
+        "CreationDate": "2021-10-05T18:14:26.000Z"
+      },
       {
         "ImageId": "ami-087c17d1fe0178315",
         "CreationDate": "2021-08-25T06:57:27.000Z"
@@ -1499,6 +1631,38 @@ ami_ids = {
   "us-west-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0a2c844e6bc854d96",
+        "CreationDate": "2021-12-09T19:10:24.000Z"
+      },
+      {
+        "ImageId": "ami-0bd3976c0dbacc605",
+        "CreationDate": "2021-11-18T23:51:16.000Z"
+      },
+      {
+        "ImageId": "ami-00becdb34b62bf459",
+        "CreationDate": "2021-11-12T00:11:22.000Z"
+      },
+      {
+        "ImageId": "ami-0c8b7aacccd254467",
+        "CreationDate": "2021-11-04T17:20:39.000Z"
+      },
+      {
+        "ImageId": "ami-0e92f5873da29c633",
+        "CreationDate": "2021-10-22T03:45:40.000Z"
+      },
+      {
+        "ImageId": "ami-0bc32f414af8badcb",
+        "CreationDate": "2021-10-14T23:04:15.000Z"
+      },
+      {
+        "ImageId": "ami-0ab1b97c4bbf16bf3",
+        "CreationDate": "2021-10-05T17:47:09.000Z"
+      },
+      {
+        "ImageId": "ami-0432f87ba2fb5a0da",
+        "CreationDate": "2021-09-21T18:27:05.000Z"
+      },
+      {
         "ImageId": "ami-0c6712b4108e5909b",
         "CreationDate": "2021-09-03T19:34:22.000Z"
       },
@@ -1772,6 +1936,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-028f2b5ee08012131",
+        "CreationDate": "2021-12-01T19:55:44.000Z"
+      },
+      {
+        "ImageId": "ami-056fba0f4b9d30088",
+        "CreationDate": "2021-12-01T19:55:04.000Z"
+      },
+      {
+        "ImageId": "ami-0074ef78ecb07948c",
+        "CreationDate": "2021-11-09T04:50:53.000Z"
+      },
+      {
+        "ImageId": "ami-0a0c0c2fadace7928",
+        "CreationDate": "2021-11-09T04:50:13.000Z"
+      },
+      {
+        "ImageId": "ami-0e0bf4b3a0c0e0adc",
+        "CreationDate": "2021-10-12T14:13:52.000Z"
+      },
+      {
+        "ImageId": "ami-0cbf5023dfc8f3cd3",
+        "CreationDate": "2021-10-12T14:12:43.000Z"
+      },
+      {
+        "ImageId": "ami-03ab7423a204da002",
+        "CreationDate": "2021-10-05T18:18:36.000Z"
+      },
+      {
+        "ImageId": "ami-0a41b6eb1a15b35ef",
+        "CreationDate": "2021-10-05T18:17:42.000Z"
+      },
       {
         "ImageId": "ami-011996ff98de391d1",
         "CreationDate": "2021-08-25T06:57:24.000Z"
@@ -2267,6 +2463,42 @@ ami_ids = {
   "us-west-2": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0ec2e33c6e1161e98",
+        "CreationDate": "2021-12-09T19:19:56.000Z"
+      },
+      {
+        "ImageId": "ami-04e6179c63d17513d",
+        "CreationDate": "2021-11-19T00:00:46.000Z"
+      },
+      {
+        "ImageId": "ami-09f043c293281ecd4",
+        "CreationDate": "2021-11-12T00:21:46.000Z"
+      },
+      {
+        "ImageId": "ami-072aaf1b030a33b6e",
+        "CreationDate": "2021-11-04T17:20:00.000Z"
+      },
+      {
+        "ImageId": "ami-05a7414872af4b564",
+        "CreationDate": "2021-10-22T03:45:17.000Z"
+      },
+      {
+        "ImageId": "ami-0971980bcf180eb0c",
+        "CreationDate": "2021-10-14T23:03:55.000Z"
+      },
+      {
+        "ImageId": "ami-06c73a8827b372409",
+        "CreationDate": "2021-10-05T17:46:48.000Z"
+      },
+      {
+        "ImageId": "ami-07764a7d8502d36a2",
+        "CreationDate": "2021-09-21T18:26:47.000Z"
+      },
+      {
+        "ImageId": "ami-09f253e2f2e610302",
+        "CreationDate": "2021-09-03T19:34:04.000Z"
+      },
+      {
         "ImageId": "ami-0671fe8a4329a12ee",
         "CreationDate": "2021-08-21T02:58:13.000Z"
       },
@@ -2536,6 +2768,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-0e21d4d9303512b8e",
+        "CreationDate": "2021-12-01T19:55:44.000Z"
+      },
+      {
+        "ImageId": "ami-0b899dea837b5f23a",
+        "CreationDate": "2021-12-01T19:55:04.000Z"
+      },
+      {
+        "ImageId": "ami-00be885d550dcee43",
+        "CreationDate": "2021-11-09T04:50:53.000Z"
+      },
+      {
+        "ImageId": "ami-0a09e2e12317f6b5f",
+        "CreationDate": "2021-11-09T04:50:13.000Z"
+      },
+      {
+        "ImageId": "ami-0e5b6b6a9f3db6db8",
+        "CreationDate": "2021-10-12T14:13:52.000Z"
+      },
+      {
+        "ImageId": "ami-02bcf4285d4895d33",
+        "CreationDate": "2021-10-12T14:12:43.000Z"
+      },
+      {
+        "ImageId": "ami-013a129d325529d4d",
+        "CreationDate": "2021-10-05T18:18:37.000Z"
+      },
+      {
+        "ImageId": "ami-0de1377598c572f0b",
+        "CreationDate": "2021-10-05T18:17:25.000Z"
+      },
       {
         "ImageId": "ami-0c2d06d50ce30b442",
         "CreationDate": "2021-08-25T06:57:26.000Z"
@@ -3031,6 +3295,42 @@ ami_ids = {
   "ca-central-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-06ed354cf4fc6114c",
+        "CreationDate": "2021-12-09T19:20:41.000Z"
+      },
+      {
+        "ImageId": "ami-0583af09af7e435f3",
+        "CreationDate": "2021-11-19T00:01:21.000Z"
+      },
+      {
+        "ImageId": "ami-092b596d9b942c4f8",
+        "CreationDate": "2021-11-12T00:22:21.000Z"
+      },
+      {
+        "ImageId": "ami-084558c06900f1b5f",
+        "CreationDate": "2021-11-04T17:22:30.000Z"
+      },
+      {
+        "ImageId": "ami-0941553a556a284dc",
+        "CreationDate": "2021-10-22T03:46:50.000Z"
+      },
+      {
+        "ImageId": "ami-03385197f86bc0b98",
+        "CreationDate": "2021-10-14T23:05:21.000Z"
+      },
+      {
+        "ImageId": "ami-0a5cfc26b04c4a20e",
+        "CreationDate": "2021-10-05T17:48:14.000Z"
+      },
+      {
+        "ImageId": "ami-07bee82ddd97631a4",
+        "CreationDate": "2021-09-21T18:28:04.000Z"
+      },
+      {
+        "ImageId": "ami-01a77b0247d81c003",
+        "CreationDate": "2021-09-03T19:35:20.000Z"
+      },
+      {
         "ImageId": "ami-0a98db1c4a78bcc78",
         "CreationDate": "2021-08-21T02:59:31.000Z"
       },
@@ -3300,6 +3600,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-0173297cea9ba27b0",
+        "CreationDate": "2021-12-01T19:56:20.000Z"
+      },
+      {
+        "ImageId": "ami-0f27804a87e99ccaa",
+        "CreationDate": "2021-12-01T19:54:42.000Z"
+      },
+      {
+        "ImageId": "ami-0730e12069ab20c26",
+        "CreationDate": "2021-11-09T04:51:27.000Z"
+      },
+      {
+        "ImageId": "ami-00b4af6deeadf232f",
+        "CreationDate": "2021-11-09T04:49:51.000Z"
+      },
+      {
+        "ImageId": "ami-0d8ad3ab25e7abc51",
+        "CreationDate": "2021-10-12T14:14:26.000Z"
+      },
+      {
+        "ImageId": "ami-0106ceb4b6cb0b67d",
+        "CreationDate": "2021-10-12T14:13:18.000Z"
+      },
+      {
+        "ImageId": "ami-0a70476e631caa6d3",
+        "CreationDate": "2021-10-05T18:19:10.000Z"
+      },
+      {
+        "ImageId": "ami-0660c5630e5cf695f",
+        "CreationDate": "2021-10-05T18:18:03.000Z"
+      },
       {
         "ImageId": "ami-0e2407e55b9816758",
         "CreationDate": "2021-08-25T06:57:58.000Z"
@@ -3755,6 +4087,38 @@ ami_ids = {
   "eu-central-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0dc66d9ab40653776",
+        "CreationDate": "2021-12-09T19:18:17.000Z"
+      },
+      {
+        "ImageId": "ami-0e8f6957a4eb67446",
+        "CreationDate": "2021-11-18T23:59:22.000Z"
+      },
+      {
+        "ImageId": "ami-097b8c9927f9a27bc",
+        "CreationDate": "2021-11-12T00:20:28.000Z"
+      },
+      {
+        "ImageId": "ami-088d915ff2a776984",
+        "CreationDate": "2021-11-04T17:14:18.000Z"
+      },
+      {
+        "ImageId": "ami-09219f0735c86449f",
+        "CreationDate": "2021-10-22T03:41:30.000Z"
+      },
+      {
+        "ImageId": "ami-06a0b593202c1590d",
+        "CreationDate": "2021-10-14T23:00:25.000Z"
+      },
+      {
+        "ImageId": "ami-0da383d2d6bdb9100",
+        "CreationDate": "2021-10-05T17:43:15.000Z"
+      },
+      {
+        "ImageId": "ami-02662254373ce730d",
+        "CreationDate": "2021-09-21T18:23:29.000Z"
+      },
+      {
         "ImageId": "ami-06e3e9f1bf6945099",
         "CreationDate": "2021-09-03T19:30:52.000Z"
       },
@@ -4028,6 +4392,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-099ccc441b2ef41ec",
+        "CreationDate": "2021-12-01T19:55:46.000Z"
+      },
+      {
+        "ImageId": "ami-01826408c6676f97e",
+        "CreationDate": "2021-12-01T19:55:07.000Z"
+      },
+      {
+        "ImageId": "ami-030e490c34394591b",
+        "CreationDate": "2021-11-09T04:50:56.000Z"
+      },
+      {
+        "ImageId": "ami-0be1c1374034efaf6",
+        "CreationDate": "2021-11-09T04:50:17.000Z"
+      },
+      {
+        "ImageId": "ami-047e03b8591f2d48a",
+        "CreationDate": "2021-10-12T14:13:55.000Z"
+      },
+      {
+        "ImageId": "ami-0d455065dfd31a3cd",
+        "CreationDate": "2021-10-12T14:12:46.000Z"
+      },
+      {
+        "ImageId": "ami-058e6df85cfc7760b",
+        "CreationDate": "2021-10-05T18:18:38.000Z"
+      },
+      {
+        "ImageId": "ami-0115c147c25d1ac54",
+        "CreationDate": "2021-10-05T18:17:27.000Z"
+      },
       {
         "ImageId": "ami-07df274a488ca9195",
         "CreationDate": "2021-08-25T06:57:26.000Z"
@@ -4519,6 +4915,38 @@ ami_ids = {
   "eu-west-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-06bb94c46ddc47feb",
+        "CreationDate": "2021-12-09T19:18:04.000Z"
+      },
+      {
+        "ImageId": "ami-02c55114d1d2a8201",
+        "CreationDate": "2021-11-18T23:59:10.000Z"
+      },
+      {
+        "ImageId": "ami-015b1508a2ff2c65a",
+        "CreationDate": "2021-11-12T00:20:16.000Z"
+      },
+      {
+        "ImageId": "ami-02cbbd18ed34c5898",
+        "CreationDate": "2021-11-04T17:13:41.000Z"
+      },
+      {
+        "ImageId": "ami-06c11ea68c61e5570",
+        "CreationDate": "2021-10-22T03:41:07.000Z"
+      },
+      {
+        "ImageId": "ami-0da10b897b6796e40",
+        "CreationDate": "2021-10-14T23:00:02.000Z"
+      },
+      {
+        "ImageId": "ami-0fdb1527ad8bf80f7",
+        "CreationDate": "2021-10-05T17:42:53.000Z"
+      },
+      {
+        "ImageId": "ami-0cf04242e75fd2000",
+        "CreationDate": "2021-09-21T18:23:10.000Z"
+      },
+      {
         "ImageId": "ami-037d203e54a0a9c14",
         "CreationDate": "2021-09-03T19:30:33.000Z"
       },
@@ -4792,6 +5220,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-04632f3cef5083854",
+        "CreationDate": "2021-12-01T19:55:46.000Z"
+      },
+      {
+        "ImageId": "ami-032642e88183f7e30",
+        "CreationDate": "2021-12-01T19:55:07.000Z"
+      },
+      {
+        "ImageId": "ami-09d4a659cdd8677be",
+        "CreationDate": "2021-11-09T04:50:55.000Z"
+      },
+      {
+        "ImageId": "ami-06b19cfc47534d4bb",
+        "CreationDate": "2021-11-09T04:50:17.000Z"
+      },
+      {
+        "ImageId": "ami-0ed961fa828560210",
+        "CreationDate": "2021-10-12T14:13:55.000Z"
+      },
+      {
+        "ImageId": "ami-01cb8278802ab6258",
+        "CreationDate": "2021-10-12T14:12:47.000Z"
+      },
+      {
+        "ImageId": "ami-05cd35b907b4ffe77",
+        "CreationDate": "2021-10-05T18:18:38.000Z"
+      },
+      {
+        "ImageId": "ami-023f134057365001a",
+        "CreationDate": "2021-10-05T18:17:27.000Z"
+      },
       {
         "ImageId": "ami-0d1bf5b68307103c2",
         "CreationDate": "2021-08-25T06:57:27.000Z"
@@ -5287,6 +5747,42 @@ ami_ids = {
   "eu-west-2": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-086747296d6983b02",
+        "CreationDate": "2021-12-09T19:19:21.000Z"
+      },
+      {
+        "ImageId": "ami-02a7ca2a9d03676bf",
+        "CreationDate": "2021-11-19T00:00:17.000Z"
+      },
+      {
+        "ImageId": "ami-0141564f07476504d",
+        "CreationDate": "2021-11-12T00:21:19.000Z"
+      },
+      {
+        "ImageId": "ami-0631049bf050d0d46",
+        "CreationDate": "2021-11-04T17:17:49.000Z"
+      },
+      {
+        "ImageId": "ami-0a078ce6abe5fcb1b",
+        "CreationDate": "2021-10-22T03:43:47.000Z"
+      },
+      {
+        "ImageId": "ami-0f731427db4bbe921",
+        "CreationDate": "2021-10-14T23:02:32.000Z"
+      },
+      {
+        "ImageId": "ami-0b5e334d61108a1aa",
+        "CreationDate": "2021-10-05T17:45:25.000Z"
+      },
+      {
+        "ImageId": "ami-0480e9547ca26f499",
+        "CreationDate": "2021-09-21T18:25:28.000Z"
+      },
+      {
+        "ImageId": "ami-0687841b15858229f",
+        "CreationDate": "2021-09-03T19:32:48.000Z"
+      },
+      {
         "ImageId": "ami-0820c1f2c6fc9dff1",
         "CreationDate": "2021-08-21T02:56:56.000Z"
       },
@@ -5556,6 +6052,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-029ed17b4ea379178",
+        "CreationDate": "2021-12-01T19:55:46.000Z"
+      },
+      {
+        "ImageId": "ami-07dc47643cc8af44b",
+        "CreationDate": "2021-12-01T19:55:07.000Z"
+      },
+      {
+        "ImageId": "ami-0fc15d50d39e4503c",
+        "CreationDate": "2021-11-09T04:50:55.000Z"
+      },
+      {
+        "ImageId": "ami-03fe49c04f1627c22",
+        "CreationDate": "2021-11-09T04:50:16.000Z"
+      },
+      {
+        "ImageId": "ami-074771aa49ab046e7",
+        "CreationDate": "2021-10-12T14:13:55.000Z"
+      },
+      {
+        "ImageId": "ami-0fee5a89608420137",
+        "CreationDate": "2021-10-12T14:12:46.000Z"
+      },
+      {
+        "ImageId": "ami-02f5781cba46a5e8a",
+        "CreationDate": "2021-10-05T18:18:38.000Z"
+      },
+      {
+        "ImageId": "ami-079c88b693e657cd6",
+        "CreationDate": "2021-10-05T18:17:27.000Z"
+      },
       {
         "ImageId": "ami-0dbec48abfe298cab",
         "CreationDate": "2021-08-25T06:57:26.000Z"
@@ -6011,6 +6539,42 @@ ami_ids = {
   "eu-west-3": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0845b4e8294c75473",
+        "CreationDate": "2021-12-09T19:17:35.000Z"
+      },
+      {
+        "ImageId": "ami-0bce8e5f8fd912af2",
+        "CreationDate": "2021-11-18T23:58:46.000Z"
+      },
+      {
+        "ImageId": "ami-04cb3664fdfc392bd",
+        "CreationDate": "2021-11-12T00:19:52.000Z"
+      },
+      {
+        "ImageId": "ami-0b6985b29a2fd0ba6",
+        "CreationDate": "2021-11-04T17:10:26.000Z"
+      },
+      {
+        "ImageId": "ami-06f2ca755fea150d5",
+        "CreationDate": "2021-10-22T03:38:48.000Z"
+      },
+      {
+        "ImageId": "ami-0d46bcc68b972dce9",
+        "CreationDate": "2021-10-14T22:57:56.000Z"
+      },
+      {
+        "ImageId": "ami-004138ffbf7aad984",
+        "CreationDate": "2021-10-05T17:41:28.000Z"
+      },
+      {
+        "ImageId": "ami-0b26fe8ef33211fce",
+        "CreationDate": "2021-09-21T18:21:50.000Z"
+      },
+      {
+        "ImageId": "ami-00f9a9c1fc2208dc6",
+        "CreationDate": "2021-09-03T19:29:15.000Z"
+      },
+      {
         "ImageId": "ami-0f6c02efb848f64d0",
         "CreationDate": "2021-08-21T02:53:19.000Z"
       },
@@ -6280,6 +6844,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-0c73cd1c5347436f3",
+        "CreationDate": "2021-12-01T19:55:46.000Z"
+      },
+      {
+        "ImageId": "ami-081b8890ab65cec41",
+        "CreationDate": "2021-12-01T19:55:07.000Z"
+      },
+      {
+        "ImageId": "ami-05f0a049e7aeb407c",
+        "CreationDate": "2021-11-09T04:50:55.000Z"
+      },
+      {
+        "ImageId": "ami-044e4e66f3f472e12",
+        "CreationDate": "2021-11-09T04:50:16.000Z"
+      },
+      {
+        "ImageId": "ami-0da7ba92c3c072475",
+        "CreationDate": "2021-10-12T14:13:54.000Z"
+      },
+      {
+        "ImageId": "ami-0138ef55704df9f0c",
+        "CreationDate": "2021-10-12T14:12:45.000Z"
+      },
+      {
+        "ImageId": "ami-0eb34a1ff6bafc83f",
+        "CreationDate": "2021-10-05T18:18:38.000Z"
+      },
+      {
+        "ImageId": "ami-090bcab700968b923",
+        "CreationDate": "2021-10-05T18:17:27.000Z"
+      },
       {
         "ImageId": "ami-072056ff9d3689e7b",
         "CreationDate": "2021-08-25T06:57:26.000Z"
@@ -6687,6 +7283,42 @@ ami_ids = {
   "ap-southeast-1": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0d7046e1d357b6b85",
+        "CreationDate": "2021-12-09T19:20:14.000Z"
+      },
+      {
+        "ImageId": "ami-09df7bed19956d10b",
+        "CreationDate": "2021-11-19T00:00:58.000Z"
+      },
+      {
+        "ImageId": "ami-071fbc655b2398016",
+        "CreationDate": "2021-11-12T00:21:59.000Z"
+      },
+      {
+        "ImageId": "ami-05c0be0ddeb5915f9",
+        "CreationDate": "2021-11-04T17:21:16.000Z"
+      },
+      {
+        "ImageId": "ami-04e3e68fcfc9ca078",
+        "CreationDate": "2021-10-22T03:46:03.000Z"
+      },
+      {
+        "ImageId": "ami-07b84da235be1cfcb",
+        "CreationDate": "2021-10-14T23:04:37.000Z"
+      },
+      {
+        "ImageId": "ami-0f9e7ad4abf49df6b",
+        "CreationDate": "2021-10-05T17:47:31.000Z"
+      },
+      {
+        "ImageId": "ami-0ab1966ee863c98fd",
+        "CreationDate": "2021-09-21T18:27:25.000Z"
+      },
+      {
+        "ImageId": "ami-03615fd9ef545c196",
+        "CreationDate": "2021-09-03T19:34:42.000Z"
+      },
+      {
         "ImageId": "ami-0a2bfca3c9d16280d",
         "CreationDate": "2021-08-21T02:58:52.000Z"
       },
@@ -6956,6 +7588,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-0d1d4b8d5a0cd293f",
+        "CreationDate": "2021-12-01T19:55:47.000Z"
+      },
+      {
+        "ImageId": "ami-0ab03a9e4558de700",
+        "CreationDate": "2021-12-01T19:55:08.000Z"
+      },
+      {
+        "ImageId": "ami-024221a59c9020e72",
+        "CreationDate": "2021-11-09T04:50:56.000Z"
+      },
+      {
+        "ImageId": "ami-08603e494c8b20143",
+        "CreationDate": "2021-11-09T04:50:17.000Z"
+      },
+      {
+        "ImageId": "ami-07191cf2912e097a6",
+        "CreationDate": "2021-10-12T14:13:56.000Z"
+      },
+      {
+        "ImageId": "ami-0479685ce1308a855",
+        "CreationDate": "2021-10-12T14:12:47.000Z"
+      },
+      {
+        "ImageId": "ami-073998ba87e205747",
+        "CreationDate": "2021-10-05T18:18:39.000Z"
+      },
+      {
+        "ImageId": "ami-082c81c4899f60615",
+        "CreationDate": "2021-10-05T18:17:28.000Z"
+      },
       {
         "ImageId": "ami-082105f875acab993",
         "CreationDate": "2021-08-25T06:57:27.000Z"
@@ -7451,6 +8115,38 @@ ami_ids = {
   "ap-southeast-2": {
     "amazon-linux-2-ecs": [
       {
+        "ImageId": "ami-0ecac5dc97c76f51d",
+        "CreationDate": "2021-12-09T19:20:25.000Z"
+      },
+      {
+        "ImageId": "ami-0666dd0a9eccbab7d",
+        "CreationDate": "2021-11-19T00:01:08.000Z"
+      },
+      {
+        "ImageId": "ami-032edebfa34883542",
+        "CreationDate": "2021-11-12T00:22:08.000Z"
+      },
+      {
+        "ImageId": "ami-09fb62624e1ab3e2c",
+        "CreationDate": "2021-11-04T17:21:54.000Z"
+      },
+      {
+        "ImageId": "ami-012bb964803d474e5",
+        "CreationDate": "2021-10-22T03:46:28.000Z"
+      },
+      {
+        "ImageId": "ami-06e2d8d2a2a6be608",
+        "CreationDate": "2021-10-14T23:04:58.000Z"
+      },
+      {
+        "ImageId": "ami-0cdf16bb10adcaaa1",
+        "CreationDate": "2021-10-05T17:47:53.000Z"
+      },
+      {
+        "ImageId": "ami-06b3adcd9a6d3b154",
+        "CreationDate": "2021-09-21T18:27:45.000Z"
+      },
+      {
         "ImageId": "ami-0310d0e01c1e033c0",
         "CreationDate": "2021-09-03T19:35:01.000Z"
       },
@@ -7724,6 +8420,38 @@ ami_ids = {
       }
     ],
     "amazon-linux-2": [
+      {
+        "ImageId": "ami-0f4484f62c4fd8767",
+        "CreationDate": "2021-12-01T19:55:46.000Z"
+      },
+      {
+        "ImageId": "ami-01b35d63d6836e588",
+        "CreationDate": "2021-12-01T19:55:07.000Z"
+      },
+      {
+        "ImageId": "ami-043e0add5c8665836",
+        "CreationDate": "2021-11-09T04:50:55.000Z"
+      },
+      {
+        "ImageId": "ami-069a120d6f5dea67e",
+        "CreationDate": "2021-11-09T04:50:16.000Z"
+      },
+      {
+        "ImageId": "ami-04a81599b183d7908",
+        "CreationDate": "2021-10-12T14:13:55.000Z"
+      },
+      {
+        "ImageId": "ami-0b1f3ec522f17bf69",
+        "CreationDate": "2021-10-12T14:12:46.000Z"
+      },
+      {
+        "ImageId": "ami-05c029a4b57edda9e",
+        "CreationDate": "2021-10-05T18:18:38.000Z"
+      },
+      {
+        "ImageId": "ami-0955d3849b1697d26",
+        "CreationDate": "2021-10-05T18:17:27.000Z"
+      },
       {
         "ImageId": "ami-0210560cedcb09f07",
         "CreationDate": "2021-08-25T06:57:27.000Z"
@@ -8701,6 +9429,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'DynamoDBKinesisReplicationServiceRolePolicy',
     'AWSApplicationAutoscalingElastiCacheRGPolicy',
     'AmazonAugmentedAIIntegratedAPIAccess',
+    'AWSElasticDisasterRecoveryReadOnlyAccess',
     'AmazonFraudDetectorFullAccessPolicy',
     'AmazonLaunchWizard_Fullaccess',
     'AmazonChimeSDK',
@@ -8728,13 +9457,18 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'ConfigConformsServiceRolePolicy',
     'AmazonEventBridgeReadOnlyAccess',
     'AWSCodeStarNotificationsServiceRolePolicy',
+    'AWSMarketplacePurchaseOrdersServiceRolePolicy',
+    'AWSElementalMediaTailorReadOnly',
+    'AmazonInspector2ServiceRolePolicy',
     'AmazonKendraFullAccess',
     'AmazonEMRFullAccessPolicy_v2',
     'AmazonS3OutpostsFullAccess',
+    'AmazonRedshiftQueryEditorV2FullAccess',
     'AWSQuickSightElasticsearchPolicy',
     'AmazonRoute53RecoveryControlConfigFullAccess',
     'AWSApplicationAutoscalingCassandraTablePolicy',
     'AWSSystemsManagerAccountDiscoveryServicePolicy',
+    'AWSPanoramaServiceLinkedRolePolicy',
     'AmazonDevOpsGuruFullAccess',
     'AWSResourceAccessManagerReadOnlyAccess',
     'AmazonEventBridgeFullAccess',
@@ -8749,6 +9483,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSCloudTrail_FullAccess',
     'AccessAnalyzerServiceRolePolicy',
     'AmazonRoute53ResolverReadOnlyAccess',
+    'AmazonBraketJobsExecutionPolicy',
     'AmazonEC2RolePolicyForLaunchWizard',
     'AmazonAppFlowReadOnlyAccess',
     'AmazonLookoutVisionConsoleReadOnlyAccess',
@@ -8756,6 +9491,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonManagedBlockchainFullAccess',
     'ServiceQuotasFullAccess',
     'AmazonTimestreamFullAccess',
+    'AmazonInspector2FullAccess',
     'ElementalAppliancesSoftwareReadOnlyAccess',
     'AmazonLookoutVisionFullAccess',
     'AWSCodeDeployRoleForCloudFormation',
@@ -8770,6 +9506,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonLookoutMetricsFullAccess',
     'AWSApplicationMigrationAgentPolicy',
     'AWSOpsWorks_FullAccess',
+    'AmazonRDSCustomPreviewServiceRolePolicy',
     'AmazonRoute53RecoveryControlConfigReadOnlyAccess',
     'AmazonChimeTranscriptionServiceLinkedRolePolicy',
     'AWSNetworkFirewallServiceRolePolicy',
@@ -8777,6 +9514,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonMachineLearningRoleforRedshiftDataSourceV3',
     'AmazonAugmentedAIHumanLoopFullAccess',
     'AmazonLookoutEquipmentReadOnlyAccess',
+    'AmazonCloudWatchRUMFullAccess',
     'AWSDataExchangeReadOnly',
     'AWSMarketplaceSellerProductsFullAccess',
     'AWSMarketplaceLicenseManagementServiceRolePolicy',
@@ -8791,6 +9529,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonHoneycodeFullAccess',
     'AmazonWorkDocsReadOnlyAccess',
     'CloudWatchLambdaInsightsExecutionRolePolicy',
+    'AmazonConnectVoiceIDFullAccess',
     'AWSGlobalAcceleratorSLRPolicy',
     'EC2InstanceProfileForImageBuilder',
     'AWSServiceRoleForLogDeliveryPolicy',
@@ -8799,12 +9538,17 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSImageBuilderFullAccess',
     'AWSIncidentManagerResolverAccess',
     'AWSCertificateManagerPrivateCAPrivilegedUser',
+    'AmazonCloudWatchEvidentlyReadOnlyAccess',
     'AmazonSSMPatchAssociation',
     'AWSBudgetsReadOnlyAccess',
     'AWSOpsWorksRegisterCLI_OnPremises',
     'Health_OrganizationsServiceRolePolicy',
+    'AWSMigrationHubStrategyServiceRolePolicy',
+    'AWSApplicationMigrationVCenterClientPolicy',
+    'AmazonRDSCustomServiceRolePolicy',
     'AmazonElasticContainerRegistryPublicFullAccess',
     'AmazonMCSReadOnlyAccess',
+    'AmazonOpenSearchServiceFullAccess',
     'AWSRoboMaker_FullAccess',
     'AWSAppMeshPreviewServiceRolePolicy',
     'ServiceQuotasServiceRolePolicy',
@@ -8812,15 +9556,18 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'ComputeOptimizerReadOnlyAccess',
     'AlexaForBusinessPolyDelegatedAccessPolicy',
     'AWSMarketplaceProcurementSystemAdminFullAccess',
+    'AWSAccountManagementReadOnlyAccess',
     'AmazonEKSFargatePodExecutionRolePolicy',
     'AWSIoTWirelessReadOnlyAccess',
     'AmazonSageMakerPipelinesIntegrations',
     'AppRunnerServiceRolePolicy',
     'AWSThinkboxDeadlineResourceTrackerAdminPolicy',
+    'AmazonRedshiftAllCommandsFullAccess',
     'IAMAccessAdvisorReadOnly',
     'AmazonSageMakerFeatureStoreAccess',
     'AmazonCodeGuruReviewerReadOnlyAccess',
     'AWSThinkboxAWSPortalGatewayPolicy',
+    'AWSElasticDisasterRecoveryFailbackPolicy',
     'AWSApplicationAutoscalingKafkaClusterPolicy',
     'AWSSystemsManagerOpsDataSyncServiceRolePolicy',
     'AmazonCodeGuruProfilerFullAccess',
@@ -8834,17 +9581,24 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonNimbleStudio-LaunchProfileWorker',
     'AWSElasticBeanstalkRoleCWL',
     'DynamoDBCloudWatchContributorInsightsServiceRolePolicy',
+    'AmazonDetectiveServiceLinkedRolePolicy',
     'AWSElasticBeanstalkRoleRDS',
+    'AmazonRedshiftQueryEditorV2ReadSharing',
+    'AWSECRPullThroughCache_ServiceRolePolicy',
     'AWSPanoramaServiceRolePolicy',
+    'AWSElasticDisasterRecoveryConversionServerPolicy',
     'AmazonEMRReadOnlyAccessPolicy_v2',
     'AmazonEventBridgeApiDestinationsServiceRolePolicy',
     'AWSServiceRoleForCodeGuru-Profiler',
     'AmazonChimeVoiceConnectorServiceLinkedRolePolicy',
     'AmazonPrometheusQueryAccess',
+    'AmazonGrafanaRedshiftAccess',
     'AmazonWorkDocsFullAccess',
     'AmazonHoneycodeWorkbookReadOnlyAccess',
     'MediaPackageServiceRolePolicy',
+    'AmazonGrafanaAthenaAccess',
     'IAMAccessAnalyzerReadOnlyAccess',
+    'AmazonCloudWatchRUMServiceRolePolicy',
     'AmazonEventBridgeSchemasServiceRolePolicy',
     'AWSIoTDeviceDefenderPublishFindingsToSNSMitigationAction',
     'AmazonQLDBConsoleFullAccess',
@@ -8852,13 +9606,19 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonEKSConnectorServiceRolePolicy',
     'AWSServiceCatalogAppRegistryServiceRolePolicy',
     'AWSIoTFleetHubFederationAccess',
+    'AWSProtonSyncServiceRolePolicy',
     'AmazonElasticFileSystemClientReadWriteAccess',
+    'AWSElasticDisasterRecoveryServiceRolePolicy',
     'AWSApplicationAutoscalingComprehendEndpointPolicy',
     'AWSCloudShellFullAccess',
     'AWSIoTDeviceDefenderAddThingsToThingGroupMitigationAction',
+    'AmazonMemoryDBReadOnlyAccess',
     'AWSIoTWirelessDataAccess',
     'AmazonQLDBFullAccess',
+    'AmazonWorkSpacesWebReadOnly',
     'AmazonAugmentedAIFullAccess',
+    'AWSDeepRacerAccountAdminAccess',
+    'AWSEC2CapacityReservationFleetRolePolicy',
     'AmazonKeyspacesFullAccess',
     'AWSIoTDeviceDefenderReplaceDefaultPolicyMitigationAction',
     'AWSAppMeshReadOnly',
@@ -8875,6 +9635,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSPanoramaFullAccess',
     'AmazonQLDBReadOnly',
     'AWSChatbotServiceLinkedRolePolicy',
+    'AWSDeepRacerDefaultMultiUserAccess',
     'AWSLambda_ReadOnlyAccess',
     'AWSCodePipeline_ReadOnlyAccess',
     'S3StorageLensServiceRolePolicy',
@@ -8883,6 +9644,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSAppMeshFullAccess',
     'AWSIncidentManagerServiceRolePolicy',
     'AWSProtonFullAccess',
+    'AWSElasticDisasterRecoveryAgentPolicy',
     'AWSCloud9SSMInstanceProfile',
     'ElementalActivationsDownloadSoftwareAccess',
     'AWSPanoramaGreengrassGroupRolePolicy',
@@ -8893,6 +9655,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'EC2FleetTimeShiftableServiceRolePolicy',
     'MigrationHubDMSAccessServiceRolePolicy',
     'AWSServiceCatalogEndUserReadOnlyAccess',
+    'AWSIotRoboRunnerFullAccess',
     'ElementalActivationsFullAccess',
     'AWSIQPermissionServiceRolePolicy',
     'Route53RecoveryReadinessServiceRolePolicy',
@@ -8900,8 +9663,10 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'ElementalActivationsReadOnlyAccess',
     'MigrationHubSMSAccessServiceRolePolicy',
     'CloudFormationStackSetsOrgAdminServiceRolePolicy',
+    'AWSIPAMServiceRolePolicy',
     'AmazonEventBridgeSchemasFullAccess',
     'AWSMarketplaceSellerFullAccess',
+    'AmazonRedshiftQueryEditorV2NoSharing',
     'CloudWatchAutomaticDashboardsAccess',
     'AWSDeepRacerFullAccess',
     'AmazonWorkMailEventsServiceRolePolicy',
@@ -8915,7 +9680,9 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSIoTWirelessFullPublishAccess',
     'GameLiftGameServerGroupPolicy',
     'AmazonMWAAServiceRolePolicy',
+    'AmazonWorkSpacesWebServiceRolePolicy',
     'AWSQuicksightOpenSearchPolicy',
+    'AWSElasticDisasterRecoveryFailbackInstallationPolicy',
     'AmazonConnect_FullAccess',
     'AWSElementalMediaLiveFullAccess',
     'AWSMarketplaceSellerProductsReadOnly',
@@ -8930,6 +9697,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSServiceRoleForAmazonEKSNodegroup',
     'AWSGrafanaAccountAdministrator',
     'AWSBackupOperatorAccess',
+    'AWSMigrationHubRefactorSpacesServiceRolePolicy',
     'AWSApplicationAutoscalingLambdaConcurrencyPolicy',
     'AWSBudgetsActionsRolePolicyForResourceAdministrationWithSSM',
     'AWSIoTDeviceDefenderUpdateCACertMitigationAction',
@@ -8942,6 +9710,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonWorkSpacesServiceAccess',
     'AWSSecurityHubOrganizationsAccess',
     'AmazonElasticFileSystemsUtils',
+    'AWSCostAndUsageReportAutomationPolicy',
     'MemoryDBServiceRolePolicy',
     'AWSLicenseManagerConsumptionPolicy',
     'AWSTransferConsoleFullAccess',
@@ -8952,12 +9721,17 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSElementalMediaLiveReadOnly',
     'AmazonElasticFileSystemClientReadOnlyAccess',
     'AmazonElasticMapReducePlacementGroupPolicy',
+    'AWSElasticDisasterRecoveryConsoleFullAccess',
     'AmazonCognitoIdpServiceRolePolicy',
     'AmazonMQServiceRolePolicy',
     'AWSApplicationMigrationServiceRolePolicy',
+    'AmazonMemoryDBFullAccess',
     'AmazonKeyspacesReadOnlyAccess',
+    'AWSElasticDisasterRecoveryAgentInstallationPolicy',
+    'AWSMigrationHubStrategyCollector',
     'CloudFormationStackSetsOrgMemberServiceRolePolicy',
     'AWSResourceAccessManagerResourceShareParticipantAccess',
+    'AmazonRedshiftQueryEditorV2ReadWriteSharing',
     'AWSBillingReadOnlyAccess',
     'ServerMigrationServiceRoleForInstanceValidation',
     'AWSApplicationAutoscalingNeptuneClusterPolicy',
@@ -8966,9 +9740,11 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSElasticBeanstalkRoleWorkerTier',
     'AmazonCodeGuruProfilerReadOnlyAccess',
     'ElementalActivationsGenerateLicenses',
+    'AWSShieldServiceRolePolicy',
     'AWSBugBustServiceRolePolicy',
     'AWSAppRunnerServicePolicyForECRAccess',
     'AWSNetworkManagerReadOnlyAccess',
+    'AmazonDevOpsGuruOrganizationsAccess',
     'AmazonEMRServicePolicy_v2',
     'AWSApplicationMigrationReadOnlyAccess',
     'AWSServiceCatalogAppRegistryReadOnlyAccess',
@@ -8989,6 +9765,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonManagedBlockchainServiceRolePolicy',
     'AmazonRoute53RecoveryClusterFullAccess',
     'AmazonSageMakerCoreServiceRolePolicy',
+    'AmazonCloudWatchRUMReadOnlyAccess',
     'AWSThinkboxDeadlineSpotEventPluginAdminPolicy',
     'AmazonLookoutMetricsReadOnlyAccess',
     'AWSDataExchangeFullAccess',
@@ -9002,30 +9779,39 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AWSSystemsManagerChangeManagementServicePolicy',
     'AWSServiceCatalogAppRegistryFullAccess',
     'LakeFormationDataAccessServiceRolePolicy',
+    'AWSMediaTailorServiceRolePolicy',
     'AmazonChimeServiceRolePolicy',
     'AmazonSageMakerAdmin-ServiceCatalogProductsServiceRolePolicy',
+    'AmazonMSKConnectReadOnlyAccess',
     'AWSTrustedAdvisorReportingServiceRolePolicy',
     'AWSOpsWorksRegisterCLI_EC2',
     'AWSWAFConsoleReadOnlyAccess',
     'AWSSavingsPlansFullAccess',
     'AWSServiceRoleForImageBuilder',
+    'AWSElasticDisasterRecoveryRecoveryInstancePolicy',
     'AmazonOpenSearchServiceRolePolicy',
     'AmazonBraketServiceRolePolicy',
     'AmazonCodeGuruProfilerAgentAccess',
     'AmazonLookoutVisionConsoleFullAccess',
+    'AWSAccountManagementFullAccess',
     'AmazonCodeGuruReviewerServiceRolePolicy',
     'ServerMigration_ServiceRole',
     'AWSAppMeshPreviewEnvoyAccess',
     'AWSOutpostsServiceRolePolicy',
     'AmazonLambdaRolePolicyForLaunchWizardSAP',
     'AmazonEC2RoleforAWSCodeDeployLimited',
+    'AWSElementalMediaTailorFullAccess',
+    'AWSMigrationHubStrategyConsoleFullAccess',
+    'AWSIotRoboRunnerReadOnly',
     'ECRReplicationServiceRolePolicy',
     'MigrationHubServiceRolePolicy',
     'AWSServiceRoleForMonitronPolicy',
     'AWSPanoramaSageMakerRolePolicy',
+    'AWSPanoramaApplianceServiceRolePolicy',
     'AWSIoTWirelessGatewayCertManager',
     'AWSDirectConnectServiceRolePolicy',
     'AWSApplicationMigrationEC2Access',
+    'AmazonCloudWatchEvidentlyFullAccess',
     'AWSImageBuilderReadOnlyAccess',
     'AWSGrafanaConsoleReadOnlyAccess',
     'AWSMarketplaceMeteringRegisterUsage',
@@ -9037,6 +9823,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonManagedBlockchainConsoleFullAccess',
     'AWSApplicationMigrationConversionServerPolicy',
     'AWSSavingsPlansReadOnlyAccess',
+    'AWSMigrationHubRefactorSpacesFullAccess',
     'AmazonHoneycodeWorkbookFullAccess',
     'AWSIoTDeviceTesterForGreengrassFullAccess',
     'AWSElasticBeanstalkRoleECS',
@@ -9060,6 +9847,7 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonS3ObjectLambdaExecutionRolePolicy',
     'ClientVPNServiceConnectionsRolePolicy',
     'AmazonAppFlowFullAccess',
+    'AWSElasticDisasterRecoveryReplicationServerPolicy',
     'Ec2ImageBuilderCrossAccountDistributionAccess',
     'AWSThinkboxAWSPortalWorkerPolicy',
     'AmazonS3OutpostsReadOnlyAccess',
@@ -9069,6 +9857,8 @@ iam_managed_policies = SimpleVocabulary.fromValues([
     'AmazonKendraReadOnlyAccess',
     'AmazonPrometheusFullAccess',
     'AWS_ConfigRole',
+    'AmazonOpenSearchServiceReadOnlyAccess',
+    'AmazonConnectCampaignsServiceLinkedRolePolicy',
     'AmazonNimbleStudio-StudioAdmin',
     'AWSCodeArtifactReadOnlyAccess',
     'AmazonRedshiftDataFullAccess',
@@ -9134,6 +9924,9 @@ rds_engine_versions = {
     "9.6.22": {
       "param_group_family": "postgres9.6"
     },
+    "9.6.23": {
+      "param_group_family": "postgres9.6"
+    },
     "10.1": {
       "param_group_family": "postgres10"
     },
@@ -9179,6 +9972,9 @@ rds_engine_versions = {
     "10.17": {
       "param_group_family": "postgres10"
     },
+    "10.18": {
+      "param_group_family": "postgres10"
+    },
     "11.1": {
       "param_group_family": "postgres11"
     },
@@ -9212,6 +10008,9 @@ rds_engine_versions = {
     "11.12": {
       "param_group_family": "postgres11"
     },
+    "11.13": {
+      "param_group_family": "postgres11"
+    },
     "12.2": {
       "param_group_family": "postgres12"
     },
@@ -9230,6 +10029,9 @@ rds_engine_versions = {
     "12.7": {
       "param_group_family": "postgres12"
     },
+    "12.8": {
+      "param_group_family": "postgres12"
+    },
     "13.1": {
       "param_group_family": "postgres13"
     },
@@ -9237,6 +10039,9 @@ rds_engine_versions = {
       "param_group_family": "postgres13"
     },
     "13.3": {
+      "param_group_family": "postgres13"
+    },
+    "13.4": {
       "param_group_family": "postgres13"
     }
   },
@@ -9348,6 +10153,12 @@ rds_engine_versions = {
     },
     "8.0.25": {
       "param_group_family": "mysql8.0"
+    },
+    "8.0.26": {
+      "param_group_family": "mysql8.0"
+    },
+    "8.0.27": {
+      "param_group_family": "mysql8.0"
     }
   },
   "aurora": {
@@ -9412,6 +10223,9 @@ rds_engine_versions = {
       "param_group_family": "aurora5.6"
     },
     "5.6.mysql_aurora.1.23.3": {
+      "param_group_family": "aurora5.6"
+    },
+    "5.6.mysql_aurora.1.23.4": {
       "param_group_family": "aurora5.6"
     }
   },
@@ -9485,6 +10299,9 @@ rds_engine_versions = {
     "5.7.mysql_aurora.2.07.6": {
       "param_group_family": "aurora-mysql5.7"
     },
+    "5.7.mysql_aurora.2.07.7": {
+      "param_group_family": "aurora-mysql5.7"
+    },
     "5.7.mysql_aurora.2.08.0": {
       "param_group_family": "aurora-mysql5.7"
     },
@@ -9506,58 +10323,25 @@ rds_engine_versions = {
     "5.7.mysql_aurora.2.09.2": {
       "param_group_family": "aurora-mysql5.7"
     },
+    "5.7.mysql_aurora.2.09.3": {
+      "param_group_family": "aurora-mysql5.7"
+    },
     "5.7.mysql_aurora.2.10.0": {
       "param_group_family": "aurora-mysql5.7"
+    },
+    "5.7.mysql_aurora.2.10.1": {
+      "param_group_family": "aurora-mysql5.7"
+    },
+    "8.0.mysql_aurora.3.01.0": {
+      "param_group_family": "aurora-mysql8.0"
     }
   },
   "aurora-postgresql": {
-    "9.6.3": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.6": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.8": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.9": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.11": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.12": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.16": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.17": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
     "9.6.18": {
       "param_group_family": "aurora-postgresql9.6"
     },
     "9.6.19": {
       "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.21": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "9.6.22": {
-      "param_group_family": "aurora-postgresql9.6"
-    },
-    "10.4": {
-      "param_group_family": "aurora-postgresql10"
-    },
-    "10.5": {
-      "param_group_family": "aurora-postgresql10"
-    },
-    "10.6": {
-      "param_group_family": "aurora-postgresql10"
-    },
-    "10.7": {
-      "param_group_family": "aurora-postgresql10"
     },
     "10.11": {
       "param_group_family": "aurora-postgresql10"
@@ -9577,8 +10361,8 @@ rds_engine_versions = {
     "10.17": {
       "param_group_family": "aurora-postgresql10"
     },
-    "11.4": {
-      "param_group_family": "aurora-postgresql11"
+    "10.18": {
+      "param_group_family": "aurora-postgresql10"
     },
     "11.6": {
       "param_group_family": "aurora-postgresql11"
@@ -9598,6 +10382,9 @@ rds_engine_versions = {
     "11.12": {
       "param_group_family": "aurora-postgresql11"
     },
+    "11.13": {
+      "param_group_family": "aurora-postgresql11"
+    },
     "12.4": {
       "param_group_family": "aurora-postgresql12"
     },
@@ -9607,35 +10394,17 @@ rds_engine_versions = {
     "12.7": {
       "param_group_family": "aurora-postgresql12"
     },
+    "12.8": {
+      "param_group_family": "aurora-postgresql12"
+    },
     "13.3": {
+      "param_group_family": "aurora-postgresql13"
+    },
+    "13.4": {
       "param_group_family": "aurora-postgresql13"
     }
   },
   "sqlserver-ex": {
-    "11.00.5058.0.v1": {
-      "param_group_family": "sqlserver-ex-11.0"
-    },
-    "11.00.6020.0.v1": {
-      "param_group_family": "sqlserver-ex-11.0"
-    },
-    "11.00.6594.0.v1": {
-      "param_group_family": "sqlserver-ex-11.0"
-    },
-    "11.00.7462.6.v1": {
-      "param_group_family": "sqlserver-ex-11.0"
-    },
-    "11.00.7493.4.v1": {
-      "param_group_family": "sqlserver-ex-11.0"
-    },
-    "12.00.4422.0.v1": {
-      "param_group_family": "sqlserver-ex-12.0"
-    },
-    "12.00.5000.0.v1": {
-      "param_group_family": "sqlserver-ex-12.0"
-    },
-    "12.00.5546.0.v1": {
-      "param_group_family": "sqlserver-ex-12.0"
-    },
     "12.00.5571.0.v1": {
       "param_group_family": "sqlserver-ex-12.0"
     },
@@ -9645,31 +10414,7 @@ rds_engine_versions = {
     "12.00.6329.1.v1": {
       "param_group_family": "sqlserver-ex-12.0"
     },
-    "13.00.2164.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
     "13.00.4422.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.4451.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.4466.4.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.4522.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.5216.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.5292.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.5366.0.v1": {
-      "param_group_family": "sqlserver-ex-13.0"
-    },
-    "13.00.5426.0.v1": {
       "param_group_family": "sqlserver-ex-13.0"
     },
     "13.00.5598.27.v1": {
@@ -9683,24 +10428,6 @@ rds_engine_versions = {
     },
     "13.00.5882.1.v1": {
       "param_group_family": "sqlserver-ex-13.0"
-    },
-    "14.00.1000.169.v1": {
-      "param_group_family": "sqlserver-ex-14.0"
-    },
-    "14.00.3015.40.v1": {
-      "param_group_family": "sqlserver-ex-14.0"
-    },
-    "14.00.3035.2.v1": {
-      "param_group_family": "sqlserver-ex-14.0"
-    },
-    "14.00.3049.1.v1": {
-      "param_group_family": "sqlserver-ex-14.0"
-    },
-    "14.00.3192.2.v1": {
-      "param_group_family": "sqlserver-ex-14.0"
-    },
-    "14.00.3223.3.v1": {
-      "param_group_family": "sqlserver-ex-14.0"
     },
     "14.00.3281.6.v1": {
       "param_group_family": "sqlserver-ex-14.0"

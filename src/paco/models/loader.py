@@ -77,7 +77,7 @@ from paco.models.resources import S3Resource, S3Buckets, \
     ApiGatewayMethodMethodResponse, ApiGatewayMethodMethodResponseModel, ApiGatewayMethodIntegration, \
     ApiGatewayMethodIntegrationResponse, ApiGatewayCognitoAuthorizer, ApiGatewayCognitoAuthorizers, \
     ApiGatewayBasePathMapping, \
-    IAMResource, IAMUser, IAMUsers, IAMUserPermissions, IAMUserProgrammaticAccess, \
+    IAMResource, IAMUser, IAMUsers, IAMRole, IAMUserPermissions, IAMUserProgrammaticAccess, \
     IAMUserPermissionCodeCommitRepository, IAMUserPermissionCodeCommit, IAMUserPermissionAdministrator, \
     IAMUserPermissionCodeBuild, IAMUserPermissionCodeBuildResource, IAMUserPermissionCustomPolicy, \
     IAMUserPermissionDeploymentPipelines, IAMUserPermissionDeploymentPipelineResource, IAMUserPermissionSystemsManagerSession, \
@@ -176,6 +176,7 @@ RESOURCES_CLASS_MAP = {
     'EventsRule': EventsRule,
     'DynamoDB': DynamoDB,
     'IAMUser': IAMUserResource,
+    'IAMRole': IAMRole,
     'IoTPolicy': IoTPolicy,
     'IoTTopicRule': IoTTopicRule,
     'IoTAnalyticsPipeline': IoTAnalyticsPipeline,
@@ -806,6 +807,10 @@ SUB_TYPES_CLASS_MAP = {
     IAMUser: {
         'programmatic_access': ('direct_obj', IAMUserProgrammaticAccess),
         'permissions': ('iam_user_permissions', IAMUserPermissions)
+    },
+    IAMRole: {
+        'policies': ('obj_list', Policy),
+        'assume_role_policy': ('direct_obj', AssumeRolePolicy)
     },
     IAMUserPermissionDeploymentPipelines: {
         'resources': ('obj_list', IAMUserPermissionDeploymentPipelineResource)

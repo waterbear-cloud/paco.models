@@ -10460,6 +10460,17 @@ Container for `IAMUser`_ objects.
     taggedValue('contains', 'IIAMUser')
 
 
+class IIAMRole(IResource, IRole):
+    """
+    IAM Role
+    """
+    account = PacoReference(
+        title="The account where the Role will be provisioned.",
+        required=False,
+        schema_constraint=IAccount
+    )
+
+
 class IIAMResource(INamed):
     """
 IAM Resource contains IAM Users who can login and have different levels of access to the AWS Console and API.

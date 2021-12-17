@@ -6,6 +6,7 @@ import troposphere.apigateway
 import troposphere.route53
 from paco.models.base import Enablable, Parent, Named, CFNExport, Deployable, HasStack, Resource, ApplicationResource, AccountRegions
 from paco.models.metrics import SNSTopics
+from paco.models.iam import Role
 from paco.models import references
 from paco.models import schemas
 from zope.interface import implementer
@@ -712,6 +713,12 @@ class IAMUser(Named, Deployable):
 @implementer(schemas.IIAMUsers)
 class IAMUsers(Named, dict):
     pass
+
+@implementer(schemas.IIAMRole)
+class IAMRole(Resource, Role):
+    account = FieldProperty(schemas.IIAMRole['account'])
+    assume_role_policy = FieldProperty(schemas.IIAMRole['assume_role_policy'])
+    policies = FieldProperty(schemas.IIAMRole['policies'])
 
 @implementer(schemas.IIAMResource)
 class IAMResource(Named):

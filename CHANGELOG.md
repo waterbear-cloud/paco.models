@@ -1,11 +1,16 @@
 Changelog for paco.models
 =========================
 
-7.8.18 (unreleased)
+7.8.18 (2021-12-17)
 -------------------
 
-- Nothing changed yet.
+### Changed
 
+- Updated generated vocabulary.
+
+### Added
+
+- Implemented IAM Role resources
 
 7.8.17 (2021-11-24)
 -------------------

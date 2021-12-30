@@ -273,6 +273,7 @@ class VPCEndpoint(Named, Deployable):
     service = FieldProperty(schemas.IVPCEndpoint["service"])
     segments = FieldProperty(schemas.IVPCEndpoint["segments"])
     security_group = FieldProperty(schemas.IVPCEndpoint["security_group"])
+    availability_zone = FieldProperty(schemas.IVPCEndpoint["availability_zone"])
 
     def resolve_ref(self, ref):
         if ref.resource_ref == 'service':

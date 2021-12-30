@@ -3139,6 +3139,13 @@ VPC Endpoint
         str_ok=True,
         schema_constraint='ISecurityGroup'
     )
+    availability_zone = zope.schema.TextLine(
+        # Can be: all | 1 | 2 | 3 | 4 | ...
+        title='Availability Zones to place endpoints in.',
+        default='all',
+        required=False,
+        constraint=IsValidASGAvailabilityZone
+    )
 
 class INATGateways(INamed, IMapping):
     """Container for `NATGateway`_ objects."""

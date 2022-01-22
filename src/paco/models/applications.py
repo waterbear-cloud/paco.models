@@ -2105,6 +2105,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     secrets = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['secrets'])
     source = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['source'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
+    vpc_config = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['vpc_config'])
 
     def __init__(self, name, parent):
         super().__init__(name, parent)
@@ -2841,3 +2842,8 @@ class WAFWebACL(Resource):
     scope = FieldProperty(schemas.IWAFWebACL['scope'])
     visibility_config = FieldProperty(schemas.IWAFWebACL['visibility_config'])
 
+
+@implementer(schemas.IVPCConfiguration)
+class VPCConfiguration(Named):
+    segments = FieldProperty(schemas.IVPCConfiguration['segments'])
+    security_groups = FieldProperty(schemas.IVPCConfiguration['security_groups'])

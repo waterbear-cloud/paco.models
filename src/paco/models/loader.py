@@ -61,7 +61,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     ScriptManager, ScriptManagerEcrDeploys, ScriptManagerEcrDeploy, ScriptManagerECRDeployRepositories, ScriptManagerEcsGroup, \
     ScriptManagerEcs, ASGPatchManager, S3ReplicationConfigurations, S3ReplicationConfiguration, \
     WAFWebACLRuleManagedRuleGroup, WAFIPSet, WAFWebACLVisibilityConfig, WAFWebACLRuleStatement, WAFWebACLRule, WAFWebACL, WAFWebACLRules, \
-    WAFWebACLRuleAction, WAFWebACLRuleActionBlock, WAFWebACLCustomResponse
+    WAFWebACLRuleAction, WAFWebACLRuleActionBlock, WAFWebACLCustomResponse, VPCConfiguration
 from paco.models.iot import IoTTopicRule, IoTTopicRuleAction, IoTTopicRuleLambdaAction, \
     IoTTopicRuleIoTAnalyticsAction, IoTAnalyticsPipeline, IoTPipelineActivities, IoTPipelineActivity, \
     IotAnalyticsStorage, Attributes, IoTDatasets, IoTDataset, DatasetTrigger, DatasetContentDeliveryRules, \
@@ -416,6 +416,7 @@ SUB_TYPES_CLASS_MAP = {
         'secrets': ('str_list', PacoReference),
         'source': ('direct_obj', CodeBuildSource),
         'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase),
+        'vpc_config': ('direct_obj', VPCConfiguration),
     },
     CodeBuildSource: {
         'github': ('direct_obj', CodeBuildSourceGitHub)

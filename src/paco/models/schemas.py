@@ -36,6 +36,15 @@ def isValidWAFScope(value):
     if value not in ('CLOUDFRONT', 'REGIONAL'):
         raise InvalidWAFScope
     return True
+
+
+class InvalidVpcPeerType(zope.schema.ValidationError):
+    __doc__ = 'Scope must be one of: requester | accepter'
+def isValidVpcPeerType(value):
+    if value not in ('requester', 'accepter'):
+        raise InvalidVpcPeerType
+    return True
+
 class InvalidIPAddressVersion(zope.schema.ValidationError):
     __doc__ = 'IP address version must be one of: IPV4 | IPV6'
 
@@ -3084,6 +3093,11 @@ class IVPCPeering(INamed, IDeployable):
     """
 VPC Peering
     """
+    peer_type = zope.schema.TextLine(
+        title="Type of Rule",
+        required=True,
+        constraint = isValidVpcPeerType
+    )
     # peer_* is used when peering with an external VPC
     peer_role_name = zope.schema.TextLine(
         title='Remote peer role name',
@@ -10834,6 +10848,12 @@ CodeBuild DeploymentPipeline Build Stage
         max=480,
         default=60,
         required=False,
+    )
+
+    vpc_config = zope.schema.Object(
+        title="Vpc Configuration",
+        required=False,
+        schema=IVPCConfiguration
     )
 
 class IDeploymentPipelineDeployS3(IDeploymentPipelineStageAction):

@@ -26,6 +26,9 @@ class NetworkEnvironment(Named, Deployable, dict):
     def environments(self):
         return self
 
+    def resolve_ref(self, ref):
+        return self
+
 
 @implementer(schemas.IEnvironment)
 class Environment(Named, dict):
@@ -103,7 +106,7 @@ class Network(Named, Deployable, dict):
     def resolve_ref(self, ref):
         if ref.resource_ref == 'aws_account':
             return self.aws_account
-        return None
+        return self
 
 @implementer(schemas.IVPCPeeringRoute)
 class VPCPeeringRoute(Parent):
@@ -113,6 +116,7 @@ class VPCPeeringRoute(Parent):
 @implementer(schemas.IVPCPeering)
 class VPCPeering(Named, Deployable):
     "VPC Peering"
+    peer_type = FieldProperty(schemas.IVPCPeering["peer_type"])
     peer_role_name = FieldProperty(schemas.IVPCPeering["peer_role_name"])
     peer_vpcid = FieldProperty(schemas.IVPCPeering["peer_vpcid"])
     peer_account_id = FieldProperty(schemas.IVPCPeering["peer_account_id"])

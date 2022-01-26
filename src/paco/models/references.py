@@ -227,7 +227,7 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
             next_obj = obj[name]
         except (TypeError, KeyError):
             next_obj = getattr(obj, name, None)
-        if next_obj != None and isinstance(next_obj, str) == False:
+        if next_obj != None and isinstance(next_obj, str) == False and isinstance(next_obj, int) == False:
             obj = next_obj
         else:
             # Given a ref of 'netenv.websites.prod.[...].resources.database.endpoint.address' then
@@ -244,6 +244,7 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
         outputs_value = resolve_ref_outputs(ref, project['home'])
         if outputs_value != None:
             return outputs_value
+        breakpoint()
         raise_invalid_reference(ref, obj, ref.parts[part_idx:][0])
     return response
 

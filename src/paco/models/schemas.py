@@ -368,7 +368,6 @@ class InvalidRoute53RecordSetTypeError(zope.schema.ValidationError):
 
 def isValidRoute53RecordSetType(value):
     if value not in ('A', 'MX', 'CNAME', 'Alias', 'SRV', 'TXT', 'NS', 'SOA', 'SPF', 'AAAA'):
-        breakpoint()
         raise InvalidRoute53RecordSetTypeError
     return True
 
@@ -3076,17 +3075,21 @@ class IVPCPeeringRoute(IParent):
     """
 VPC Peering Route
     """
-    segment = PacoReference(
-        title="Segment",
+    local_segment = PacoReference(
+        title="Reference to the local segment.",
         required=False,
         schema_constraint='ISegment'
     )
-    cidr = zope.schema.TextLine(
-        title="CIDR IP",
-        default="",
-        description="A valid CIDR v4 block or an empty string",
-        constraint = isValidCidrIpv4orBlank,
+    remote_segment = PacoReference(
+        title="CIDR",
+        description="Reference to the remote segment.",
         required=False,
+    )
+    cidr = PacoReference(
+        title="CIDR",
+        description="A valid CIDR v4 block or a reference to one.",
+        required=False,
+        str_ok=True,
     )
 
 class IVPCPeering(INamed, IDeployable):

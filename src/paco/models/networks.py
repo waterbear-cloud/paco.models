@@ -106,11 +106,14 @@ class Network(Named, Deployable, dict):
     def resolve_ref(self, ref):
         if ref.resource_ref == 'aws_account':
             return self.aws_account
+        elif ref.resource_ref == 'availability_zones':
+            return self.availability_zones
         return self
 
 @implementer(schemas.IVPCPeeringRoute)
 class VPCPeeringRoute(Parent):
-    segment = FieldProperty(schemas.IVPCPeeringRoute["segment"])
+    local_segment = FieldProperty(schemas.IVPCPeeringRoute["local_segment"])
+    remote_segment = FieldProperty(schemas.IVPCPeeringRoute["remote_segment"])
     cidr = FieldProperty(schemas.IVPCPeeringRoute["cidr"])
 
 @implementer(schemas.IVPCPeering)
@@ -262,8 +265,8 @@ class Segment(Named, Deployable):
     az6_cidr = FieldProperty(schemas.ISegment["az6_cidr"])
 
     def resolve_ref(self, ref):
-        if ref.resource_ref == 'az1_cidr':
-            return self.az1_cidr
+        if ref.parts[-1].endswith('_cidr'):
+            return getattr(self, ref.parts[-1])
         else:
             stack = self.resolve_ref_obj.resolve_ref(ref)
             if stack == None:

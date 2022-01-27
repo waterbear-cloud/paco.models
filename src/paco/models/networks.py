@@ -249,6 +249,7 @@ class SecurityGroupRule():
 @implementer(schemas.IIngressRule)
 class IngressRule(Parent, SecurityGroupRule):
     source_security_group = FieldProperty(schemas.IIngressRule["source_security_group"])
+    source_security_group_owner = FieldProperty(schemas.IIngressRule["source_security_group_owner"])
 
 @implementer(schemas.IEgressRule)
 class EgressRule(Parent, SecurityGroupRule):

@@ -2085,6 +2085,8 @@ class DeploymentPipelineBuildReleasePhaseCommand(Parent):
 class CodeBuildSourceGitHub(Deployable):
     location = FieldProperty(schemas.ICodeBuildSourceGitHub['location'])
     report_build_status = FieldProperty(schemas.ICodeBuildSourceGitHub['report_build_status'])
+    deployment_branch_name = FieldProperty(schemas.ICodeBuildSourceGitHub['deployment_branch_name'])
+
 
 @implementer(schemas.ICodeBuildSource)
 class CodeBuildSource(Parent):

@@ -1039,6 +1039,13 @@ class IIngressRule(IParent, ISecurityGroupRule):
         str_ok=True,
         schema_constraint='ISecurityGroup'
     )
+    source_security_group_owner = PacoReference(
+        title="Source Security Group Reference",
+        required=False,
+        description="A Paco Reference to an AWS Account",
+        str_ok=True,
+        schema_constraint='IAccount'
+    )
 
 class IEgressRule(IParent, ISecurityGroupRule):
     "Security group egress"
@@ -10760,6 +10767,14 @@ class ICodeBuildSourceGitHub(IDeployable):
         default=False,
         required=False
     )
+
+    deployment_branch_name = zope.schema.TextLine(
+        title="Deployment Branch Name",
+        description="",
+        required=False,
+    )
+
+
 class ICodeBuildSource(Interface):
     """CodeBuild Source Configuration"""
 

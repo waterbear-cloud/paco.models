@@ -1,11 +1,26 @@
 Changelog for paco.models
 =========================
 
-7.8.19 (unreleased)
+7.8.19 (2022-01-27)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+- Added deployment_branch_name to CodeBuild GitHub source configuration
+
+- Added source_security_group_owner to ISecurityGroup for cross account access
+
+- Added peer_type to Peering config
+
+- Added vpc_config configuration to codebuild
+
+- Added availability_zone to VPC Endpoints configuration.
+
+### Fixed
+
+- Fixed up VPC Peering between netenvs
+
+- Fixed get_resolve_ref_obj if value is an integer
 
 7.8.18 (2021-12-17)
 -------------------

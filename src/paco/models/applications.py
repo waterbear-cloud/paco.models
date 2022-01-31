@@ -2098,6 +2098,7 @@ class CodeBuildArtifacts(Parent):
     namespace_type = FieldProperty(schemas.ICodeBuildArtifacts['namespace_type'])
     packaging = FieldProperty(schemas.ICodeBuildArtifacts['packaging'])
     path = FieldProperty(schemas.ICodeBuildArtifacts['path'])
+    type = FieldProperty(schemas.ICodeBuildArtifacts['type'])
 
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):

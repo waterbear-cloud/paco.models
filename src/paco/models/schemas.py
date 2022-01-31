@@ -609,6 +609,33 @@ def isValidCodeBuildComputeType(value):
         raise InvalidCodeBuildComputeType
     return True
 
+class InvalidCodeBuildArtifactsNamespaceType(zope.schema.ValidationError):
+    __doc__ = 'codebuild artifacts namespace type must be one of: NONE | BUILD_ID'
+
+def isValidCodeBuildArtifactsNamespaceType(value):
+    if value not in ('NONE', 'BUILD_ID'):
+        raise InvalidCodeBuildArtifactsNamespaceType
+    return True
+
+class InvalidCodeBuildArtifactsPackaging(zope.schema.ValidationError):
+    __doc__ = 'codebuild artifacts packaging must be one of: NONE | ZIP'
+
+def isValidCodeBuildArtifactsPackaging(value):
+    if value not in ('NONE', 'ZIP'):
+        raise InvalidCodeBuildArtifactsPackaging
+    return True
+
+class InvalidCodeBuildArtifactsType(zope.schema.ValidationError):
+    __doc__ = 'codebuild artifacts type must be one of: CODEPIPELINE | NO_ARTIFACTS | S3'
+
+def isValidCodeBuildArtifactsType(value):
+    if value not in ('CODEPIPELINE', 'NO_ARTIFACTS', 'S3'):
+        raise InvalidCodeBuildArtifactsType
+    return True
+
+
+
+
 # ASG Scaling Policy Type
 class InvalidASGScalignPolicyType(zope.schema.ValidationError):
     __doc__ = 'policy_type must be one of: SimpleScaling | StepScaling | TargetTrackingScaling'
@@ -10774,6 +10801,44 @@ class ICodeBuildSourceGitHub(IDeployable):
         required=False,
     )
 
+class ICodeBuildArtifacts(Interface):
+    """CodeBuild Artifacts Configuration"""
+
+    name = zope.schema.TextLine(
+        title="Artifacts Name",
+        description="",
+        required=False,
+    )
+
+    namespace_type = zope.schema.TextLine(
+        title="Artifacts NamespaceType: NONE | BUILD_ID",
+        description="",
+        required=False,
+        default="NONE",
+        constraint = isValidCodeBuildArtifactsNamespaceType
+    )
+
+    packaging = zope.schema.TextLine(
+        title="Artifacts Packaging: NONE | ZIP",
+        description="",
+        required=False,
+        default="NONE",
+        constraint = isValidCodeBuildArtifactsPackaging
+    )
+
+    path = zope.schema.TextLine(
+        title="Artifacts Path",
+        description="",
+        required=False,
+    )
+
+    type = zope.schema.TextLine(
+        title="Artifacts Type: CODEPIPELINE | NO_ARTIFACTS | S3",
+        description="",
+        required=False,
+        default='S3',
+        constraint = isValidCodeBuildArtifactsType
+    )
 
 class ICodeBuildSource(Interface):
     """CodeBuild Source Configuration"""
@@ -10789,6 +10854,13 @@ class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
 CodeBuild DeploymentPipeline Build Stage
     """
     taggedValue('contains', 'mixed')
+
+    artifacts = zope.schema.Object(
+        title="CodeBuild Artifacts Configuration",
+        schema=ICodeBuildArtifacts,
+        required=False
+    )
+
     buildspec = zope.schema.Text(
         title="buildspec.yml filename",
         required=False,

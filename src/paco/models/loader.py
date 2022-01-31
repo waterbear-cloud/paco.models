@@ -39,7 +39,7 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceBitBucket, \
     DeploymentPipelineSourceECR, DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, \
-    CodePipelineStage, CodePipelineStages, CodeBuildSource, CodeBuildSourceGitHub, \
+    CodePipelineStage, CodePipelineStages, CodeBuildSource, CodeBuildSourceGitHub, CodeBuildArtifacts, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
@@ -410,6 +410,7 @@ SUB_TYPES_CLASS_MAP = {
         'parameters': ('dynamic_dict', DBParameters)
     },
     DeploymentPipelineBuildCodeBuild: {
+        'artifacts':  ('direct_obj', CodeBuildArtifacts),
         'codecommit_repo_users': ('str_list', PacoReference),
         'ecr_repositories': ('obj_list', ECRRepositoryPermission),
         'role_policies': ('obj_list', Policy),

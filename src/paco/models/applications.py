@@ -2092,8 +2092,16 @@ class CodeBuildSourceGitHub(Deployable):
 class CodeBuildSource(Parent):
     github = FieldProperty(schemas.ICodeBuildSource['github'])
 
+@implementer(schemas.ICodeBuildArtifacts)
+class CodeBuildArtifacts(Parent):
+    name = FieldProperty(schemas.ICodeBuildArtifacts['name'])
+    namespace_type = FieldProperty(schemas.ICodeBuildArtifacts['namespace_type'])
+    packaging = FieldProperty(schemas.ICodeBuildArtifacts['packaging'])
+    path = FieldProperty(schemas.ICodeBuildArtifacts['path'])
+
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
+    artifacts = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['artifacts'])
     buildspec = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['buildspec'])
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])

@@ -1,10 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.8.20 (unreleased)
+7.8.20 (2022-01-31)
 -------------------
 
-- Nothing changed yet.
+### Added
+
+- Added CodeBuild Artifacts configuration
 
 
 7.8.19 (2022-01-27)

@@ -2208,6 +2208,7 @@ class EFSMount(Resource):
 
 @implementer(schemas.IEFS)
 class EFS(ApplicationResource):
+    enable_automatic_backups = FieldProperty(schemas.IEFS['enable_automatic_backups'])
     encrypted = FieldProperty(schemas.IEFS['encrypted'])
     security_groups = FieldProperty(schemas.IEFS['security_groups'])
     segment = FieldProperty(schemas.IEFS['segment'])

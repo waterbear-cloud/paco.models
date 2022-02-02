@@ -2542,7 +2542,7 @@ Caveat: You can not have an environment named 'applications'.
     def process_import_from_applications(self, config):
         for app_name in config['applications'].keys():
             app_config = config['applications'][app_name]
-            if app_config == None or app_config['groups'] == None:
+            if app_config == None or 'groups' not in app_config.keys() or app_config['groups'] == None:
                 continue
             for group_name in app_config['groups'].keys():
                 group_config = app_config['groups'][group_name]

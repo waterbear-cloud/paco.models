@@ -11474,9 +11474,13 @@ AWS Elastic File System (EFS) resource.
       - paco.ref netenv.mynet.network.vpc.security_groups.cloud.content
 
     """
+    enable_automatic_backups = zope.schema.Bool(
+        title='Enable Automatic Backups',
+        default=True
+    )
     encrypted = zope.schema.Bool(
         title='Encryption at Rest',
-        default=False
+        default=True
     )
     security_groups = zope.schema.List(
         title="Security groups",

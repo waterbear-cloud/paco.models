@@ -244,7 +244,6 @@ def get_resolve_ref_obj(project, obj, ref, part_idx_start):
         outputs_value = resolve_ref_outputs(ref, project['home'])
         if outputs_value != None:
             return outputs_value
-        breakpoint()
         raise_invalid_reference(ref, obj, ref.parts[part_idx:][0])
     return response
 

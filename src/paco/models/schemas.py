@@ -10780,27 +10780,6 @@ connection. Then navigate to the AWS Console to complete the connection setup.
         required=True
     )
 
-
-class ICodeBuildSourceGitHub(IDeployable):
-    """CodeBuild GitHub Source Configuration"""
-
-    location = zope.schema.TextLine(
-        title='CodeBuild GitHub Source Location',
-        required=True,
-    )
-
-    report_build_status = zope.schema.Bool(
-        title='Report Build Status',
-        default=False,
-        required=False
-    )
-
-    deployment_branch_name = zope.schema.TextLine(
-        title="Deployment Branch Name",
-        description="",
-        required=False,
-    )
-
 class ICodeBuildArtifacts(Interface):
     """CodeBuild Artifacts Configuration"""
 
@@ -10840,12 +10819,47 @@ class ICodeBuildArtifacts(Interface):
         constraint = isValidCodeBuildArtifactsType
     )
 
-class ICodeBuildSource(Interface):
+class ICodeBuildSourceGitHub(INamed, IDeployable, IMapping):
+    """CodeBuild GitHub Source Configuration"""
+
+    report_build_status = zope.schema.Bool(
+        title='Report Build Status',
+        default=False,
+        required=False
+    )
+    deployment_branch_name = zope.schema.TextLine(
+        title="The name of the branch where source changes are to be detected.",
+        description="",
+        default="master",
+        required=False
+    )
+    github_owner = zope.schema.TextLine(
+        title='The name of the GitHub user or organization who owns the GitHub repository.',
+        required=True
+    )
+    github_repository = zope.schema.TextLine(
+        title='The name of the repository where source changes are to be detected.',
+        required=True
+    )
+    github_access_token = PacoReference(
+        title='Secrets Manager Secret with a GitHub access token',
+        required=True,
+        schema_constraint='ISecretsManagerSecret',
+        str_ok=True
+    )
+    trigger_on_push = zope.schema.Bool(
+        title='Trigger a build when code is pushed into the repository',
+        default=False,
+        required=False
+    )
+
+class ICodeBuildSource(INamed, IMapping):
     """CodeBuild Source Configuration"""
 
     github = zope.schema.Object(
         title="CodeBuild GitHub Source Configuration",
         schema=ICodeBuildSourceGitHub,
+        default=None,
         required=False
     )
 

@@ -922,12 +922,12 @@ def get_all_nodes(root):
             # drill down into objects for non-locatable nodes
             if zope.schema.interfaces.IObject.providedBy(field):
                 obj = getattr(cur_node, field_name, None)
-                if obj:
+                if obj != None:
                     stack.insert(0, obj)
             elif zope.schema.interfaces.IDict.providedBy(field):
                 # dicts are model nodes, don't return them - only their values
                 obj = getattr(cur_node, field_name, None)
-                if obj:
+                if obj != None:
                     for child in obj.values():
                         stack.insert(0, child)
             elif zope.schema.interfaces.IList.providedBy(field):
@@ -943,6 +943,7 @@ def get_all_nodes(root):
                 for obj in getattr(cur_node, field_name, []):
                     if type(obj) != type(''):
                         stack.insert(0, obj)
+
     return nodes
 
 def add_metric(obj, metric):

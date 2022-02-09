@@ -2082,14 +2082,17 @@ class DeploymentPipelineBuildReleasePhaseCommand(Parent):
 
 
 @implementer(schemas.ICodeBuildSourceGitHub)
-class CodeBuildSourceGitHub(Deployable):
-    location = FieldProperty(schemas.ICodeBuildSourceGitHub['location'])
+class CodeBuildSourceGitHub(Named, Deployable, dict):
     report_build_status = FieldProperty(schemas.ICodeBuildSourceGitHub['report_build_status'])
     deployment_branch_name = FieldProperty(schemas.ICodeBuildSourceGitHub['deployment_branch_name'])
+    github_owner = FieldProperty(schemas.ICodeBuildSourceGitHub['github_owner'])
+    github_repository = FieldProperty(schemas.ICodeBuildSourceGitHub['github_repository'])
+    github_access_token = FieldProperty(schemas.ICodeBuildSourceGitHub['github_access_token'])
+    trigger_on_push = FieldProperty(schemas.ICodeBuildSourceGitHub['trigger_on_push'])
 
 
 @implementer(schemas.ICodeBuildSource)
-class CodeBuildSource(Parent):
+class CodeBuildSource(Named, dict):
     github = FieldProperty(schemas.ICodeBuildSource['github'])
 
 @implementer(schemas.ICodeBuildArtifacts)

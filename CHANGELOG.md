@@ -1,11 +1,22 @@
 Changelog for paco.models
 =========================
 
-7.8.21 (unreleased)
+7.8.21 (2022-02-08)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+- Added github source configration to CodeBuild
+
+- Added enable_automatic_backups to IEFS
+
+### Fixed
+
+- Fixed the loader's get_all_nodes() from 'if obj:' returning False when it is a valid obj.
+
+### Changed
+
+- Enabled encryption at rest on EFS by default
 
 7.8.20 (2022-01-31)
 -------------------

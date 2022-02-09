@@ -633,8 +633,23 @@ def isValidCodeBuildArtifactsType(value):
         raise InvalidCodeBuildArtifactsType
     return True
 
+class InvalidCodeBuildBatchReportMode(zope.schema.ValidationError):
+    __doc__ = 'codebuild Build Batch Report Mode must be one of: REPORT_AGGREGATED_BATCH | REPORT_INDIVIDUAL_BUILDS'
 
+def isValidCodeBuildBatchReportMode(value):
+    if value not in ('REPORT_AGGREGATED_BATCH', 'REPORT_INDIVIDUAL_BUILDS'):
+        raise InvalidCodeBuildBatchReportMode
+    return True
 
+class InvalidCodeBuildBatchComputeType(zope.schema.ValidationError):
+    __doc__ = 'codebuild Batch Build Comput Type must be one of: BUILD_GENERAL1_SMALL | BUILD_GENERAL1_MEDIUM | BUILD_GENERAL1_LARGE | BUILD_GENERAL1_2XLARGE'
+
+def isValidCodeBuildBatchComputeType(list_values):
+
+    for value in list_values:
+        if value not in ('BUILD_GENERAL1_SMALL', 'BUILD_GENERAL1_MEDIUM', 'BUILD_GENERAL1_LARGE', 'BUILD_GENERAL1_2XLARGE'):
+            raise InvalidCodeBuildBatchComputeType
+    return True
 
 # ASG Scaling Policy Type
 class InvalidASGScalignPolicyType(zope.schema.ValidationError):
@@ -10863,6 +10878,57 @@ class ICodeBuildSource(INamed, IMapping):
         required=False
     )
 
+class ICodeBuildBatchConfigRestrictions(INamed, IMapping):
+
+    compute_types_allowed = zope.schema.List(
+        title="List of Compute Types Allowed",
+        required=False,
+        value_type=zope.schema.TextLine(
+            title="ComputeTypesAllowed"
+        ),
+        default=['BUILD_GENERAL1_SMALL', 'BUILD_GENERAL1_MEDIUM', 'BUILD_GENERAL1_LARGE', 'BUILD_GENERAL1_2XLARGE'],
+        constraint=isValidCodeBuildBatchComputeType
+    )
+
+    maximum_builds_allowed = zope.schema.Int(
+        title='Maximum Builds Allowed',
+        min=1,
+        max=100,
+        default=100,
+        required=False
+    )
+
+class ICodeBuildBatchConfig(IDeployable, INamed, IMapping):
+    """CodeBuild Build Batch Configuration"""
+
+    batch_report_mode = zope.schema.Text(
+        title="Batch Report Mode",
+        required=False,
+        default='REPORT_AGGREGATED_BATCH',
+        constraint=isValidCodeBuildBatchReportMode
+    )
+
+    combine_artifacts = zope.schema.Bool(
+        title='Combine Artifacts',
+        default=False,
+        required=False
+    )
+
+    timeout_in_mins = zope.schema.Int(
+        title='Timeout in Mins',
+        description='Specifies the maximum amount of time, in minutes, that the batch build must be completed in.',
+        min=5,
+        max=480,
+        default=480,
+        required=False
+    )
+
+    restrictions = zope.schema.Object(
+        title="CodeBuild Batch Build Restrictions",
+        schema=ICodeBuildBatchConfigRestrictions,
+        required=False
+    )
+
 class IDeploymentPipelineBuildCodeBuild(IDeploymentPipelineStageAction):
     """
 CodeBuild DeploymentPipeline Build Stage
@@ -10872,6 +10938,12 @@ CodeBuild DeploymentPipeline Build Stage
     artifacts = zope.schema.Object(
         title="CodeBuild Artifacts Configuration",
         schema=ICodeBuildArtifacts,
+        required=False
+    )
+
+    build_batch_config = zope.schema.Object(
+        title="CodeBuild Build Batch Configuration",
+        schema=ICodeBuildBatchConfig,
         required=False
     )
 

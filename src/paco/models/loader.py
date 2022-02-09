@@ -39,7 +39,8 @@ from paco.models.applications import Application, PinpointApplication, ResourceG
     DeploymentPipelineDeployCodeDeploy, DeploymentPipelineManualApproval, CodeDeployMinimumHealthyHosts, \
     DeploymentPipelineDeployS3, DeploymentPipelineLambdaInvoke, DeploymentPipelineSourceGitHub, DeploymentPipelineSourceBitBucket, \
     DeploymentPipelineSourceECR, DeploymentPipelinePacoCreateThenDeployImage, DeploymentPipelineDeployECS, \
-    CodePipelineStage, CodePipelineStages, CodeBuildSource, CodeBuildSourceGitHub, CodeBuildArtifacts, \
+    CodePipelineStage, CodePipelineStages, CodeBuildSource, CodeBuildSourceGitHub, CodeBuildArtifacts, CodeBuildBatchConfig, \
+    CodeBuildBatchConfigRestrictions, \
     EFS, EFSMount, ASGScalingPolicies, ASGScalingPolicy, ASGLifecycleHooks, ASGLifecycleHook, ASGRollingUpdatePolicy, EIP, \
     EBS, EBSVolumeMount, SecretsManagerApplication, SecretsManagerGroup, SecretsManagerSecret, \
     GenerateSecretString, EC2LaunchOptions, BlockDeviceMapping, BlockDevice, \
@@ -418,6 +419,10 @@ SUB_TYPES_CLASS_MAP = {
         'source': ('direct_obj', CodeBuildSource),
         'release_phase': ('direct_obj', DeploymentPipelineBuildReleasePhase),
         'vpc_config': ('direct_obj', VPCConfiguration),
+        'build_batch_config': ('direct_obj', CodeBuildBatchConfig),
+    },
+    CodeBuildBatchConfig: {
+        'restrictions': ('direct_obj', CodeBuildBatchConfigRestrictions)
     },
     CodeBuildSource: {
         'github': ('direct_obj', CodeBuildSourceGitHub)

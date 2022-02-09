@@ -2103,9 +2103,22 @@ class CodeBuildArtifacts(Parent):
     path = FieldProperty(schemas.ICodeBuildArtifacts['path'])
     type = FieldProperty(schemas.ICodeBuildArtifacts['type'])
 
+@implementer(schemas.ICodeBuildBatchConfigRestrictions)
+class CodeBuildBatchConfigRestrictions(Named, dict):
+    compute_types_allowed = FieldProperty(schemas.ICodeBuildBatchConfigRestrictions['compute_types_allowed'])
+    maximum_builds_allowed = FieldProperty(schemas.ICodeBuildBatchConfigRestrictions['maximum_builds_allowed'])
+
+@implementer(schemas.ICodeBuildBatchConfig)
+class CodeBuildBatchConfig(Deployable, Named, dict):
+    batch_report_mode = FieldProperty(schemas.ICodeBuildBatchConfig['batch_report_mode'])
+    combine_artifacts = FieldProperty(schemas.ICodeBuildBatchConfig['combine_artifacts'])
+    timeout_in_mins = FieldProperty(schemas.ICodeBuildBatchConfig['timeout_in_mins'])
+    restrictions = FieldProperty(schemas.ICodeBuildBatchConfig['restrictions'])
+
 @implementer(schemas.IDeploymentPipelineBuildCodeBuild)
 class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     artifacts = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['artifacts'])
+    build_batch_config = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['build_batch_config'])
     buildspec = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['buildspec'])
     codebuild_image = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_image'])
     codebuild_compute_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['codebuild_compute_type'])

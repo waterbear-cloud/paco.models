@@ -1,11 +1,12 @@
 Changelog for paco.models
 =========================
 
-7.8.22 (unreleased)
+7.8.22 (2022-02-09)
 -------------------
 
-- Nothing changed yet.
+### Added
 
+- Added Build Batch configuration to CodeBuild
 
 7.8.21 (2022-02-08)
 -------------------

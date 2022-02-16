@@ -79,8 +79,15 @@ class Reference():
             if len(self.parts) > 3:
                 if self.parts[3] in vocabulary.aws_regions.keys():
                     self.region = self.parts[3]
+
         if is_ref(self.raw) == False:
             print("Invalid Paco reference: %s" % (value))
+
+    def get_environment_name(self, project):
+        environment_name = None
+        if len(self.parts) > 2:
+            environment_name = self.parts[2]
+        return environment_name
 
     def get_account(self, project, resource):
         "Account object this reference belongs to"

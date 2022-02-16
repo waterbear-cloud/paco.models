@@ -2242,7 +2242,7 @@ Events Rule resources match incoming or scheduled events and route them to targe
     )
     schedule_expression = zope.schema.TextLine(
         title="Schedule Expression",
-        required=True
+        required=False
     )
     enabled_state = zope.schema.Bool(
         title="Enabled State",

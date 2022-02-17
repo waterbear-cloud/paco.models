@@ -1,6 +1,9 @@
 class UnsupportedFeature(Exception):
     title = "Feature is not yet supported"
 
+class InvalidPacoAliasReference(Exception):
+    title = "Invalid Paco Alias reference in YAML"
+
 class InvalidPacoFieldType(Exception):
     title = "Invalid Paco field type in YAML"
 

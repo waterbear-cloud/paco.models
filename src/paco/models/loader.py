@@ -10,7 +10,7 @@ from paco.models.logging import CloudWatchLogSources, CloudWatchLogSource, Metri
     CloudWatchLogGroups, CloudWatchLogGroup, CloudWatchLogSets, CloudWatchLogSet, CloudWatchLogging, \
     MetricTransformation
 from paco.models.exceptions import InvalidPacoFieldType, InvalidPacoProjectFile, UnusedPacoProjectField, \
-    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference, InvalidAlarmConfiguration, InvalidSubType
+    InvalidLocalPath, InvalidPacoSub, InvalidPacoReference, InvalidAlarmConfiguration, InvalidSubType, InvalidPacoAliasReference
 from paco.models.metrics import MonitorConfig, Metric, ec2core_builtin_metric, asg_builtin_metrics, \
     CloudWatchAlarm, SimpleCloudWatchAlarm, \
     AlarmSet, AlarmSets, AlarmNotifications, AlarmNotification, AlarmSetsContainer, SNSTopics, Dimension, \
@@ -1658,6 +1658,7 @@ class ModelLoader():
         self.__class__.validate_local_paths = validate_local_paths
         self.config_folder = pathlib.Path(config_folder)
         self.project = None
+        self.aliases = {}
 
     def read_yaml_file(self, path, replace_config=None):
         file_data = ""
@@ -1755,10 +1756,11 @@ Duplicate key \"{}\" found on line {} at column {}.
 
         # Load config for every sub-directory (except service)
         self.config_subdirs = {
+            "alias": self.instantiate_aliases,
             "monitor": self.instantiate_monitor_config,
             "accounts": self.instantiate_accounts,
             "resource": self.instantiate_resources,
-            "netenv": self.instantiate_network_environments,
+            "netenv": self.instantiate_network_environments
         }
         # Legacy directory names
         if os.path.isdir(self.config_folder / 'NetworkEnvironments'):
@@ -2263,6 +2265,10 @@ Caveat: You can not have an environment named 'applications'.
                 self.project['resource'][name]._read_file_path = pathlib.Path(read_file_path)
         return
 
+    def instantiate_aliases(self, name, config, read_file_path=None):
+        self.aliases[name] = config
+        return
+
     def raise_env_name_mismatch(self, item_name, config_name, env_region):
         raise InvalidPacoProjectFile(
             "Could not find config for '{}' in '{}', for environment '{}' in netenv '{}'.".format(
@@ -2620,6 +2626,61 @@ Caveat: You can not have an environment named 'applications'.
 
         return config
 
+    def iterate_nested_list(self, nested_list, user_callback):
+        idx = 0
+        for list_item in nested_list:
+            if isinstance(list_item, dict):
+                nested_list[idx] = self.iterate_nested_dict(nested_list[idx], user_callback)
+            elif isinstance(list_item, list):
+                nested_list[idx] = self.iterate_nested_list(nested_list[idx], user_callback)
+            else:
+                nested_list[idx] = user_callback(nested_list, idx)
+            idx += 1
+
+        return nested_list
+
+    def iterate_nested_dict(self, nested_dict, user_callback):
+        for key, value in nested_dict.items():
+            if isinstance(value, dict):
+                nested_dict[key] = self.iterate_nested_dict(nested_dict[key], user_callback)
+            elif isinstance(value, list):
+                nested_dict[key] = self.iterate_nested_list(nested_dict[key], user_callback)
+            else:
+                if isinstance(nested_dict, list) and isinstance(key, str):
+                    breakpoint()
+                nested_dict[key] = user_callback(nested_dict, key)
+        return nested_dict
+
+    def process_aliases_replace(self, config_obj, key):
+        """Iterator User Callback Replace method"""
+        alias_ref = Reference(config_obj[key])
+        alias_name = alias_ref.parts[1]
+        if alias_name not in self.aliases.keys():
+            raise InvalidPacoAliasReference(f"Invalid alias reference: {config_obj[key]}: Unable to find alias: {alias_name}")
+        alias_key = alias_ref.parts[2]
+        if alias_key not in self.aliases[alias_name].keys():
+            raise InvalidPacoAliasReference(f"Invalid alias reference: {config_obj[key]}: unable to find {alias_name} key: {alias_key}")
+        config_obj[key] = self.aliases[alias_name][alias_key]
+
+        return config_obj[key]
+
+    def process_aliases_user_callback(self, config_obj, key):
+        alias_sub_str = 'paco.ref alias.'
+        if isinstance(config_obj[key], str):
+            if config_obj[key].startswith(alias_sub_str):
+                config_obj[key] = self.process_aliases_replace(config_obj, key)
+        elif config_obj[key] == None or isinstance(config_obj[key], int):
+            pass
+        else:
+            breakpoint()
+            raise InvalidPacoAliasReference(f"Invalid alias value type {type(config_obj[key])}")
+
+        return config_obj[key]
+
+    def process_aliases(self, config):
+        if len(self.aliases.keys()) > 0:
+            config = self.iterate_nested_dict(config, self.process_aliases_user_callback)
+        return config
 
     def instantiate_network_environments(self, name, config, read_file_path):
         "Instantiates objects for everything in a NetworkEnvironments/some-workload.yaml file"
@@ -2629,6 +2690,7 @@ Caveat: You can not have an environment named 'applications'.
         # Import yaml from different locations
         config = self.process_import_from_netenv(name, config)
         config = self.process_import_from_env_region(config)
+        config = self.process_aliases(config)
 
         net_env = self.create_apply_and_save(
             name,

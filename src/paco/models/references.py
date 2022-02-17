@@ -43,7 +43,7 @@ def is_ref(paco_ref, raise_enabled=False):
     if paco_ref.startswith('paco.ref ') == False:
         if raise_enabled: raise InvalidPacoReferenceStartsWith
         return False
-    ref_types = ["netenv", "resource", "accounts", "function", "service"]
+    ref_types = ["netenv", "resource", "accounts", "function", "service", "alias"]
     for ref_type in ref_types:
         if paco_ref.startswith('paco.ref %s.' % ref_type):
             return True

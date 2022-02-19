@@ -2132,6 +2132,7 @@ class DeploymentPipelineBuildCodeBuild(DeploymentPipelineStageAction):
     secrets = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['secrets'])
     source = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['source'])
     timeout_mins = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['timeout_mins'])
+    environment_type = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['environment_type'])
     vpc_config = FieldProperty(schemas.IDeploymentPipelineBuildCodeBuild['vpc_config'])
 
     def __init__(self, name, parent):

@@ -609,6 +609,14 @@ def isValidCodeBuildComputeType(value):
         raise InvalidCodeBuildComputeType
     return True
 
+
+class InvalidCodeBuildEnvironmentType(zope.schema.ValidationError):
+    __doc__ = 'Codebuild type must be one of: ARM_CONTAINER | LINUX_CONTAINER | LINUX_GPU_CONTAINER | WINDOWS_CONTAINER | WINDOWS_SERVER_2019_CONTAINER'
+
+def isValidCodeBuildEnvironmentType(value):
+    if value not in ('ARM_CONTAINER', 'LINUX_CONTAINER', 'LINUX_GPU_CONTAINER', 'WINDOWS_CONTAINER', 'WINDOWS_SERVER_2019_CONTAINER'):
+        raise InvalidCodeBuildEnvironmentType
+    return True
 class InvalidCodeBuildArtifactsNamespaceType(zope.schema.ValidationError):
     __doc__ = 'codebuild artifacts namespace type must be one of: NONE | BUILD_ID'
 
@@ -10989,6 +10997,14 @@ CodeBuild DeploymentPipeline Build Stage
         required=False,
         default=[],
     )
+
+    environment_type = zope.schema.TextLine(
+        title='CodeBuild Environment Type',
+        constraint = isValidCodeBuildEnvironmentType,
+        default = 'LINUX_CONTAINER',
+        required=False,
+    )
+
     privileged_mode = zope.schema.Bool(
         title='Privileged Mode',
         default=False,

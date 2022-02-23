@@ -2646,8 +2646,6 @@ Caveat: You can not have an environment named 'applications'.
             elif isinstance(value, list):
                 nested_dict[key] = self.iterate_nested_list(nested_dict[key], user_callback)
             else:
-                if isinstance(nested_dict, list) and isinstance(key, str):
-                    breakpoint()
                 nested_dict[key] = user_callback(nested_dict, key)
         return nested_dict
 
@@ -2672,7 +2670,6 @@ Caveat: You can not have an environment named 'applications'.
         elif config_obj[key] == None or isinstance(config_obj[key], int):
             pass
         else:
-            breakpoint()
             raise InvalidPacoAliasReference(f"Invalid alias value type {type(config_obj[key])}")
 
         return config_obj[key]

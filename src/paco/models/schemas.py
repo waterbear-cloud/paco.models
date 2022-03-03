@@ -3788,7 +3788,7 @@ class IDNS(IParent):
         schema_constraint='IHostedZone'
     )
     private_hosted_zone = PacoReference(
-        title="Hosted Zone Id",
+        title="Private Hosted Zone Id",
         required=False,
         str_ok=True,
         schema_constraint='IHostedZone'
@@ -10023,6 +10023,7 @@ Base ElastiCache Interface
     at_rest_encryption = zope.schema.Bool(
         title="Enable encryption at rest",
         required=False,
+        default=True
     )
     auto_minor_version_upgrade = zope.schema.Bool(
         title="Enable automatic minor version upgrades",
@@ -10036,6 +10037,11 @@ Base ElastiCache Interface
         title="AZ mode",
         constraint=isValidAZMode,
         required=False,
+    )
+    dns = zope.schema.List(
+        title="List of DNS for the Cluster",
+        value_type=zope.schema.Object(IDNS),
+        required=False
     )
     cache_clusters = zope.schema.Int(
         title="Number of Cache Clusters",

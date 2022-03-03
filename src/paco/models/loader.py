@@ -506,6 +506,7 @@ SUB_TYPES_CLASS_MAP = {
         'security_groups': ('str_list', PacoReference)
     },
     ElastiCacheRedis: {
+        'dns': ('obj_list', DNS),
         'security_groups': ('str_list', PacoReference),
         'monitoring': ('direct_obj', MonitorConfig)
     },

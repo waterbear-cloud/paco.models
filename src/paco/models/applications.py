@@ -1839,6 +1839,7 @@ class RDSPostgresqlAurora(RDSAurora):
 @implementer(schemas.IElastiCache)
 class ElastiCache():
     description = FieldProperty(schemas.IElastiCache['description'])
+    dns = FieldProperty(schemas.IElastiCache['dns'])
     engine = FieldProperty(schemas.IElastiCache['engine'])
     engine_version = FieldProperty(schemas.IElastiCache['engine_version'])
     automatic_failover_enabled = FieldProperty(schemas.IElastiCache['automatic_failover_enabled'])
@@ -1883,7 +1884,7 @@ class ElastiCacheRedis(ApplicationResource, ElastiCache, Monitorable):
         # 'PrimaryClusterId': (basestring, False),
         'ReplicasPerNodeGroup': 'number_of_read_replicas',
         # 'ReplicationGroupDescription': computed in template
-        'ReplicationGroupId': 'cfn_aws_name',
+        # 'ReplicationGroupId': 'cfn_aws_name',
         # 'SecurityGroupIds': computed in template
         # 'SnapshotArns': ([basestring], False),
         # 'SnapshotName': (basestring, False),
@@ -1910,7 +1911,7 @@ class ElastiCacheRedis(ApplicationResource, ElastiCache, Monitorable):
         app = get_parent_by_interface(self, schemas.IApplication)
         resource_group = get_parent_by_interface(self, schemas.IResourceGroup)
         result = self.create_resource_name_join(
-            name_list=[app.name, resource_group.name, self.name],
+            name_list=[env.name, app.name, resource_group.name, self.name],
             separator='-',
             filter_id='ElastiCache.ReplicationGroup.ReplicationGroupId',
             hash_long_names=True

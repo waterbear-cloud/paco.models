@@ -1,11 +1,19 @@
 Changelog for paco.models
 =========================
 
-7.8.23 (unreleased)
+7.8.23 (2022-03-04)
 -------------------
 
-- Nothing changed yet.
+### Fixed
 
+    - Fixed IRDSClusterInstances taggedValue arguments.
+
+### Added
+
+    - Added DNS to ElastiCache
+    - Added Environment Type to CodeBuild DeploymentPipelie configuration
+    - Added Alias feature for consolidating commonly modified configuration in one location
+    - Added get_environment_name method to Reference()
 
 7.8.22 (2022-02-09)
 -------------------

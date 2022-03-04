@@ -9883,7 +9883,7 @@ class IRDSClusterInstances(INamed, IMapping):
     """
 Container for `RDSClusterInstance`_ objects.
     """
-    taggedValue('contains', 'IRDSClusterInstances')
+    taggedValue('contains', 'IRDSClusterInstance')
 
 
 class IRDSDBClusterEventNotifications(INamed):

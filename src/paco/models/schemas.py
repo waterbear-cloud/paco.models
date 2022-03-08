@@ -10808,6 +10808,10 @@ connection. Then navigate to the AWS Console to complete the connection setup.
         title='The name of the repository where source changes are to be detected.',
         required=True
     )
+    codestar_connection_arn = zope.schema.TextLine(
+        title='The CodeStart Connection ARN to BitBucket.',
+        required=False
+    )
 
 class ICodeBuildArtifacts(Interface):
     """CodeBuild Artifacts Configuration"""

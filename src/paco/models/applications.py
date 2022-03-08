@@ -2066,6 +2066,7 @@ class DeploymentPipelineSourceBitBucket(DeploymentPipelineStageAction):
     deployment_branch_name = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['deployment_branch_name'])
     bitbucket_owner = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['bitbucket_owner'])
     bitbucket_repository = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['bitbucket_repository'])
+    codestar_connection_arn = FieldProperty(schemas.IDeploymentPipelineSourceBitBucket['codestar_connection_arn'])
 
 @implementer(schemas.IECRRepositoryPermission)
 class ECRRepositoryPermission(Parent):

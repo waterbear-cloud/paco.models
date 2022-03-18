@@ -1993,6 +1993,12 @@ Simple Notification Service (SNS) Topic resource.
         required=False,
         default=False,
     )
+    events_bridge_notification_access = zope.schema.Bool(
+        title="EventBridge Notifications access from topic account.",
+        description="",
+        required=False,
+        default=False,
+    )
 
 class ITopics(INamed, IMapping):
     """
@@ -2206,65 +2212,6 @@ CloudWatch Logging configuration
         required=False,
     )
 
-# Events
-
-class IEventTarget(INamed):
-    target = PacoReference(
-        title="Paco Reference to an AWS Resource to invoke",
-        schema_constraint='Interface',
-        required=True,
-    )
-    input_json = zope.schema.TextLine(
-        title="Valid JSON passed as input to the target.",
-        required=False,
-        constraint=isValidJSONOrNone,
-    )
-
-class IEventsRule(IResource):
-    """
-Events Rule resources match incoming or scheduled events and route them to target using Amazon EventBridge.
-
-.. sidebar:: Prescribed Automation
-
-    ``targets``: If the ``target`` is a Lambda, an IAM Role will be created that is granted permission to invoke it by this EventRule.
-
-.. code-block:: yaml
-    :caption: Lambda function resource YAML
-
-    type: EventsRule
-    enabled: true
-    order: 10
-    description: Invoke a Lambda every other minute
-    schedule_expression: "cron(*/2 * * * ? *)"
-    targets:
-        - target: paco.ref netenv.mynet.applications.myapp.groups.mygroup.resources.mylambda
-
-    """
-    # ToDo: add event_pattern field and invariant to make schedule_expression conditional
-    # ToDo: constraint regex that validates schedule_expression
-    description=zope.schema.Text(
-        title="Description",
-        required=False,
-        default='',
-        max_length=512,
-    )
-    schedule_expression = zope.schema.TextLine(
-        title="Schedule Expression",
-        required=False
-    )
-    enabled_state = zope.schema.Bool(
-        title="Enabled State",
-        required=False,
-        default=True
-    )
-    # ToDo: constrain List to not be empty
-    targets = zope.schema.List(
-        title="The AWS Resources that are invoked when the Rule is triggered.",
-        description="",
-        required=True,
-        value_type=zope.schema.Object(IEventTarget),
-    )
-
 # Metric and monitoring schemas
 
 class IMetric(Interface):
@@ -2307,6 +2254,7 @@ class IHealthChecks(INamed, IMapping):
     "Container for `Route53HealthCheck`_ objects."
     taggedValue('contains', 'IRoute53HealthCheck')
 
+
 class IMonitorConfig(IDeployable, INamed, INotifiable):
     """
 A set of metrics and a default collection interval
@@ -2344,7 +2292,6 @@ A set of metrics and a default collection interval
         value_type=zope.schema.Object(IMetric),
         required=False,
     )
-
 class IMonitorable(Interface):
     """
 A monitorable resource
@@ -2352,6 +2299,105 @@ A monitorable resource
     monitoring = zope.schema.Object(
         schema=IMonitorConfig,
         required=False,
+    )
+
+# Events
+
+class IEventTarget(INamed):
+    target = PacoReference(
+        title="Paco Reference to an AWS Resource to invoke",
+        schema_constraint='Interface',
+        required=True,
+    )
+    input_json = zope.schema.TextLine(
+        title="Valid JSON passed as input to the target.",
+        required=False,
+        constraint=isValidJSONOrNone,
+    )
+
+class IEventsRuleEventPatternDetail(INamed, IMapping):
+    """
+Dictionary of EventsRule Event Pattern Detail
+    """
+    taggedValue('contains', 'mixed')
+
+class IEventsRuleEventPattern(INamed, IMapping):
+    """
+    Events Rule Pattern
+    """
+
+    source = zope.schema.List(
+        title="List of resources to listen for events from.",
+        description="",
+        required=False,
+        value_type=PacoReference(
+            title="Paco reference or name of a Resource type",
+            str_ok=True
+        )
+    )
+    detail_type = zope.schema.List(
+        title="List of resources to listen for events from.",
+        description="",
+        required=False,
+        value_type=zope.schema.TextLine(
+            title="EventsRule detail type"
+        )
+    )
+    detail = zope.schema.Object(
+        title="Event Pattern Detail",
+        required=False,
+        schema=IEventsRuleEventPatternDetail,
+    )
+
+class IEventsRule(IResource, IMonitorable):
+    """
+Events Rule resources match incoming or scheduled events and route them to target using Amazon EventBridge.
+
+.. sidebar:: Prescribed Automation
+
+    ``targets``: If the ``target`` is a Lambda, an IAM Role will be created that is granted permission to invoke it by this EventRule.
+
+.. code-block:: yaml
+    :caption: Lambda function resource YAML
+
+    type: EventsRule
+    enabled: true
+    order: 10
+    description: Invoke a Lambda every other minute
+    schedule_expression: "cron(*/2 * * * ? *)"
+    targets:
+        - target: paco.ref netenv.mynet.applications.myapp.groups.mygroup.resources.mylambda
+
+    """
+    # ToDo: add event_pattern field and invariant to make schedule_expression conditional
+    # ToDo: constraint regex that validates schedule_expression
+    description=zope.schema.Text(
+        title="Description",
+        required=False,
+        default='',
+        max_length=512,
+    )
+    event_pattern = zope.schema.Object(
+        title="Event Pattern",
+        schema=IEventsRuleEventPattern,
+        default=None,
+        required=False,
+    )
+    schedule_expression = zope.schema.TextLine(
+        title="Schedule Expression",
+        required=False
+    )
+    enabled_state = zope.schema.Bool(
+        title="Enabled State",
+        required=False,
+        default=True
+    )
+    # ToDo: constrain List to not be empty
+    targets = zope.schema.List(
+        title="The AWS Resources that are invoked when the Rule is triggered.",
+        description="",
+        required=True,
+        value_type=zope.schema.Object(IEventTarget),
     )
 
 class IS3BucketPolicy(Interface):

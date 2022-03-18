@@ -1425,6 +1425,7 @@ class SNSTopic(Enablable, Resource):
     subscriptions = FieldProperty(schemas.ISNSTopic['subscriptions'])
     cross_account_access = FieldProperty(schemas.ISNSTopic['cross_account_access'])
     codestar_notification_access = FieldProperty(schemas.ISNSTopic['codestar_notification_access'])
+    events_bridge_notification_access = FieldProperty(schemas.ISNSTopic['events_bridge_notification_access'])
     locations = FieldProperty(schemas.ISNSTopic["locations"])
 
     def __init__(self, name, parent):

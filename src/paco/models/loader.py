@@ -92,7 +92,7 @@ from paco.models.cfn_init import CloudFormationConfigSets, CloudFormationConfigu
     CloudFormationInitService
 from paco.models.backup import BackupPlanRule, BackupSelectionConditionResourceType, BackupPlanSelection, BackupPlan, \
     BackupPlans, BackupVault, BackupPlanCopyActionResourceType
-from paco.models.events import EventsRule, EventTarget
+from paco.models.events import EventsRule, EventTarget, EventsRuleEventPattern, EventsRuleEventPatternDetail
 from paco.models.iam import IAM, ManagedPolicy, Role, RoleDefaultEnabled, Policy, AssumeRolePolicy, Statement, Principal
 from paco.models.base import get_all_fields, match_allowed_paco_filenames, most_specialized_interfaces, \
     NameValuePair, RegionContainer, AccountRegions
@@ -396,7 +396,14 @@ SUB_TYPES_CLASS_MAP = {
 
     # Assorted unsorted
     EventsRule: {
-        'targets': ('obj_list', EventTarget),
+        'event_pattern': ('direct_obj', EventsRuleEventPattern),
+        'monitoring': ('direct_obj', MonitorConfig),
+        'targets': ('obj_list', EventTarget)
+    },
+    EventsRuleEventPattern: {
+        'source': ('str_list', PacoReference),
+        'detail_type': ('str_list', zope.schema.TextLine),
+        'detail': ('dynamic_dict', EventsRuleEventPatternDetail)
     },
     EIP: {
         'dns': ('obj_list', DNS)

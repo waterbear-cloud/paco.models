@@ -683,7 +683,7 @@ SUB_TYPES_CLASS_MAP = {
         'alarm_sets': ('alarm_sets', AlarmSets),
         'health_checks': ('type_container', (HealthChecks, RESOURCES_CLASS_MAP)),
         'log_sets': ('log_sets', CloudWatchLogSets),
-        'notifications': ('notifications', AlarmNotifications)
+        'notifications': ('container', (AlarmNotifications, AlarmNotification))
     },
     CloudWatchLogging: {
         'log_sets': ('container', (CloudWatchLogSets, CloudWatchLogSet)),
